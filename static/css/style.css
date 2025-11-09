@@ -1,0 +1,1709 @@
+/* Geral */
+body {
+  opacity: 1;
+  transition: none !important;
+}
+
+.btn {
+  transition: none !important;
+}
+
+/* Box de conteúdo */
+.card {
+  max-width: 600px;
+  margin: 20px auto;
+}
+
+/* Remover animações e transições dos flashcards */
+.animated-card {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Progress Bar */
+.progress-bar-container {
+  width: 50%;
+  margin: 0 auto 10px auto;
+  height: 4px;
+  background-color: #e0e0e0;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: #76c7c0;
+  transition: width 0.3s ease-in-out;
+}
+
+/* Containers e alinhamentos */
+.answer-buttons-container {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.answer-btn small {
+  display: block;
+  font-size: 0.8rem;
+}
+
+.id-phase-container {
+  text-align: left;
+  font-size: small;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+.id-phase-container a {
+  color: #888;
+  text-decoration: none;
+}
+
+.id-phase-container span {
+  margin-left: 5px;
+}
+
+.centered-text {
+  text-align: center;
+}
+
+.bottom-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.bottom-buttons a {
+  width: 200px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.toggle-buttons {
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* Imagens dentro dos cards: redimensionamento proporcional */
+.card img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Painel de Cartões (Seção "Procurar Cartões") */
+.panel-container table {
+  max-width: 1000px;
+  margin: 20px auto;
+  table-layout: auto;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.panel-container table th,
+.panel-container table td {
+  padding: 8px;
+  border: 1px solid #ddd;
+  white-space: nowrap;
+}
+
+/* Apenas a coluna "Resposta (preview)" terá truncamento */
+.panel-container table th:nth-child(2),
+.panel-container table td:nth-child(2) {
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* As demais colunas (ID, Dificuldade, Próxima Revisão, Fase) ficam automáticas */
+.panel-container table th:nth-child(1),
+.panel-container table td:nth-child(1),
+.panel-container table th:nth-child(3),
+.panel-container table td:nth-child(3),
+.panel-container table th:nth-child(4),
+.panel-container table td:nth-child(4),
+.panel-container table th:nth-child(6),
+.panel-container table td:nth-child(6) {
+  width: auto;
+  white-space: nowrap;
+}
+
+/* Coluna 5: Imagens – largura fixa */
+.panel-container table th:nth-child(5),
+.panel-container table td:nth-child(5) {
+  width: 100px;
+  overflow: hidden;
+  text-align: center;
+}
+
+/* Removendo os efeitos interativos (hover/active) das linhas do painel */
+/* As regras abaixo foram removidas para que as linhas não se comportem como botões */
+/*
+.panel-container table tr:hover {
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+
+.panel-container table tr:active {
+  background-color: #e0e0e0;
+}
+*/
+
+/* Imagens no painel: tamanho máximo fixo */
+.panel-container table img {
+  max-width: 100px;
+  max-height: 100px;
+  width: auto;
+  height: auto;
+}
+
+/* Gamification-specific styles */
+.btn-purple {
+  background-color: #9b59b6;
+  color: white;
+}
+
+.btn-purple:hover {
+  background-color: #8e44ad;
+  color: white;
+}
+
+body.gamification-page {
+  background-image: url('/static/game.data/parede.png');
+  background-repeat: repeat;
+  background-size: auto;
+}
+
+/* Battle styles */
+/* Background da batalha (floresta) */
+.battle-container {
+  max-width: 800px;
+  height: 500px;
+  margin: 0 auto 30px auto;
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: #2a3132; /* Cor de fundo caso a imagem não carregue */
+}
+
+.battle-bg-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.battle-background {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  z-index: 2; /* Acima da imagem de fundo */
+  /* Remover background-image daqui para evitar conflito */
+  background-image: none;
+}
+
+/* Ajuste para elementos de gamificação com fundo transparente */
+.gamification-page .card {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Garantir que todos os elementos da batalha fiquem acima do fundo */
+.battle-stats, .battle-message, .battle-arena, .battle-actions {
+  position: relative;
+  z-index: 3;
+}
+
+/* Adicionar um pouco de contraste entre o fundo e os elementos */
+.battle-stats, .battle-message {
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.battle-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  z-index: 10;
+}
+
+.player-stats, .boss-stats {
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  width: 45%;
+}
+
+.player-stats h3, .boss-stats h3 {
+  margin-top: 0;
+  font-size: 18px;
+}
+
+.hp-bar, .xp-bar {
+  height: 20px;
+  background-color: #444;
+  border-radius: 10px;
+  margin: 5px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.hp-fill {
+  height: 100%;
+  background-color: #e74c3c;
+  border-radius: 10px;
+  transition: width 0.3s;
+}
+
+.xp-fill {
+  height: 100%;
+  background-color: #2ecc71;
+  border-radius: 10px;
+  transition: width 0.3s;
+}
+
+.crystal-fill {
+  height: 100%;
+  background-color: #3498db;
+  border-radius: 10px;
+  transition: width 0.3s;
+}
+
+.hp-bar span, .xp-bar span {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  top: 0;
+  left: 0;
+  line-height: 20px;
+  color: white;
+  text-shadow: 1px 1px 2px black;
+  font-size: 12px;
+}
+
+.battle-arena {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  width: 100%;
+  height: 250px;
+  position: relative;
+  margin: 0 auto;
+  overflow: visible;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+}
+
+.boss-sprite {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-sprite, .boss-sprite {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-sprite img, .boss-sprite img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scale(3);
+  transform-origin: bottom center;
+}
+
+.boss-sprite .battle-sprite.boss-idle {
+  position: relative;
+  transform: scale(1.5) !important;
+}
+
+.battle-sprite {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Ajustes específicos para o sprite do jogador */
+.player-sprite .battle-sprite {
+  position: relative;
+}
+
+.battle-message {
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 20px 0;
+  text-align: center;
+  z-index: 10;
+}
+
+.battle-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  z-index: 10;
+}
+
+/* Character portrait styling */
+.character-portrait {
+  width: 96px;
+  height: 96px;
+  border: 3px solid #333;
+  border-radius: 5px;
+  padding: 5px;
+  background-color: #f8f9fa;
+  image-rendering: pixelated;
+  object-fit: cover;
+  transform: scale(2);
+  transform-origin: top left;
+  margin: 0 auto 30px auto;
+}
+
+.boss-portrait {
+  width: 64px;
+  height: 64px;
+  border: 2px solid #333;
+  border-radius: 5px;
+  padding: 3px;
+  background-color: #f8f9fa;
+  image-rendering: pixelated;
+  object-fit: contain;
+  transform: scale(2);
+  transform-origin: center;
+  margin: 0 auto 10px auto;
+}
+
+/* Animation classes */
+.shake {
+  animation: shake 0.5s;
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+}
+
+.damage-number {
+  position: absolute;
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 2px 2px 0 #000;
+  animation: float-up 1s forwards;
+  z-index: 100;
+}
+
+.player-damage {
+  color: #e74c3c;
+}
+
+.boss-damage {
+  color: #e74c3c;
+}
+
+.damage-number {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 2px 2px 0 #000;
+  animation: float-up 1s forwards;
+  z-index: 100;
+}
+
+@keyframes float-up {
+  0% { transform: translate(-50%, -50%); opacity: 1; }
+  100% { transform: translate(-50%, -100%); opacity: 0; }
+}
+
+
+/* Time orbs and hourglasses */
+.time-orb-container {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+}
+
+.time-orb {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, #9b59b6 0%, #8e44ad 60%, #6c3483 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 20px rgba(155, 89, 182, 0.7);
+  position: relative;
+  overflow: hidden;
+}
+
+.time-orb-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(to top, rgba(210, 180, 222, 0.8) 0%, rgba(187, 143, 206, 0.5) 100%);
+  transition: height 0.5s;
+}
+
+.time-orb-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-weight: bold;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+  text-align: center;
+  font-size: 12px;
+}
+
+.hourglass-container {
+  position: relative;
+  width: 60px;
+  height: 100px;
+  margin: 0 auto;
+}
+
+.hourglass {
+  width: 100%;
+  height: 100%;
+  background: url('/static/game.data/hourglass.png') no-repeat center center;
+  background-size: contain;
+  position: relative;
+}
+
+.hourglass-fill {
+  position: absolute;
+  bottom: 25%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40%;
+  background: linear-gradient(to top, #f1c40f 0%, #f39c12 100%);
+  transition: height 0.5s;
+}
+
+.hourglass-text {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #333;
+  font-weight: bold;
+  text-align: center;
+  font-size: 12px;
+  width: 100%;
+}
+
+/* Bestiary styles */
+.bestiary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.bestiary-card {
+  background-color: #f8f9fa;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  padding: 15px;
+  text-align: center;
+  transition: transform 0.2s;
+}
+
+.bestiary-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.bestiary-portrait {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 10px auto;
+  image-rendering: pixelated;
+}
+
+/* Shop styles */
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.shop-item {
+  background-color: #f8f9fa;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  padding: 15px;
+  text-align: center;
+}
+
+.shop-item-header {
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.shop-item-image {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 10px auto;
+}
+
+.shop-item-effects {
+  margin: 10px 0;
+  font-style: italic;
+}
+
+.shop-item-price {
+  font-weight: bold;
+  color: #8e44ad;
+}
+
+/* Profile styles */
+.profile-container {
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 30px;
+}
+
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.profile-stat {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  text-align: center;
+}
+
+.profile-stat-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #8e44ad;
+}
+
+.profile-stat-label {
+  font-size: 12px;
+  color: #777;
+}
+
+/* Achievement styles */
+.achievement-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.achievement {
+  background-color: #fff;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  padding: 15px;
+  text-align: center;
+}
+
+.achievement-unlocked {
+  border-color: #8e44ad;
+  box-shadow: 0 0 10px rgba(142, 68, 173, 0.3);
+}
+
+.achievement-locked {
+  opacity: 0.5;
+}
+
+.achievement-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 10px auto;
+}
+
+.achievement-date {
+  font-size: 12px;
+  color: #777;
+  margin-top: 10px;
+}
+
+/* Inventory styles */
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.inventory-item {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  text-align: center;
+}
+
+.inventory-item-image {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto 5px auto;
+}
+
+.inventory-item-quantity {
+  font-size: 12px;
+  color: #555;
+  margin-top: 5px;
+}
+
+/* Estilo base para sprites animados */
+.sprite-container {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+}
+
+/* Correção para os sprites terem altura total sem cortes */
+
+/* Configurações de base para todos os sprites */
+.sprite-frame {
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  display: inline-block;
+}
+
+.knight-idle {
+  width: 64px; /* Largura exata de um frame */
+  height: 64px; /* Altura adequada */
+  background-image: url(/static/game.data/Knight-Idle-Sheet.png);
+  animation: knightIdle 0.5s steps(4) infinite;
+}
+
+/* Knight Walk: 8 quadros */
+.knight-walk {
+  width: 64px;
+  height: 64px;
+  background-image: url('/static/game.data/Knight-Walk-Sheet.png');
+  animation: knightWalk 0.8s steps(8) infinite;
+}
+
+/* Knight Attack: 7 quadros */
+.knight-attack {
+  width: 64px;
+  height: 64px;
+  background-image: url('/static/game.data/Knight-Attack-Sheet.png');
+  animation: knightAttack 0.7s steps(7) forwards;
+}
+
+/* Boss Idle para o Hub Principal: ajustado conforme solicitado */
+.boss-idle {
+  width: 130px;
+  height: 160px;
+  background-image: url('/static/game.data/boss1.png');
+  animation: bossIdle 0.4s steps(3) infinite;
+}
+
+/* Keyframes para as animações */
+@keyframes knightIdle {
+  from { background-position: 0px 0; }
+  to { background-position: -256px 0; } /* 4 frames de 64px = 256px total */
+}
+
+@keyframes knightWalk {
+  from { background-position: 0px 0; }
+  to { background-position: -512px 0; } /* 8 frames de 64px = 512px total */
+}
+
+@keyframes knightAttack {
+  from { background-position: 0px 0; }
+  to { background-position: -448px 0; } /* 7 frames de 64px = 448px total */
+}
+
+@keyframes bossIdle {
+  from { background-position: 0px 0; }
+  to { background-position: -384px 0; } /* 3 frames */
+}
+
+/* Estilos para a exibição dos sprites no Hub Principal */
+.character-portrait-animated {
+  width: 160px;
+  height: 160px;
+  margin: 0 auto 15px auto;
+  border: none;
+  padding: 0;
+  background-color: transparent;
+  overflow: visible !important;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.character-portrait-animated .sprite-frame {
+  position: absolute;
+  top:27%;
+  left: 23%;
+  transform: translate(-50%, -50%);
+}
+
+.character-portrait-animated, .boss-portrait-animated {
+  overflow: hidden;
+  position: relative;
+  width: 130px;
+  height: 160px;
+  margin: 0 auto 15px auto;
+  border: none;
+  padding: 0;
+  background-color: transparent;
+}
+
+
+.boss-portrait-animated {
+  width: 130px;
+  height: 160px;
+  margin: 0 auto 10px auto;
+  border: none; /* Remover borda */
+  padding: 3px;
+  background-color: transparent; /* Remover fundo */
+  overflow: visible !important;
+  position: relative;
+}
+
+.boss-portrait-animated .sprite-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) !important;
+}
+
+/* Atualizações para os sprites na tela de batalha - escalas individuais */
+.battle-arena {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  width: 100%;
+  height: 250px;
+  position: relative;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+/* Área do jogador (esquerda) */
+.player-area {
+  grid-column: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 100%;
+}
+
+/* Área central */
+.battle-central-area {
+  grid-column: 2;
+  position: relative;
+  height: 100%;
+}
+
+/* Área do inimigo (direita) */
+.boss-area {
+  grid-column: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 100%;
+}
+
+.boss-area .battle-sprite {
+  transform: scale(2); /* Reduzido para caber melhor */
+}
+
+.player-area .p1-idle-container {
+  transform: scale(2); /* Reduzido para caber melhor */
+  position: relative;
+}
+
+.player-area .p1-walk,
+.player-area .p1-attack {
+  transform: scale(3); /* Mesma escala para todas as animações */
+}
+
+.boss-sprite .battle-sprite {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(2);
+}
+
+.player-sprite, .boss-sprite {
+  position: relative;
+  width: 96px;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-sprite {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ajuste específico para o boss na tela de batalha */
+.battle-sprite.boss-idle {
+  width: 180px;
+  height: 155px;
+  background-image: url('/static/game.data/boss1.png');
+  animation: bossIdle 0.4s steps(3) infinite;
+  transform: scale(1.8) !important;
+}
+
+.player-sprite .p1-idle-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(2);
+}
+
+/* Ajustes para outras animações do cavaleiro que também possam precisar de correção */
+.knight-walk {
+  width: 64px;
+  height: 64px;
+  background-image: url(/static/game.data/Knight-Walk-Sheet.png);
+  animation: knightWalk 0.8s steps(8) infinite;
+}
+
+@keyframes knightWalk {
+  from { background-position: 0px 0; }
+  to { background-position: -512px 0; } /* 8 frames de 64px = 512px total */
+}
+
+@keyframes knightAttack {
+  from { background-position: 0px 0; }
+  to { background-position: -448px 0; } /* 7 frames de 64px = 448px total */
+}
+
+.knight-attack {
+  width: 64px;
+  height: 64px;
+  background-image: url(/static/game.data/Knight-Attack-Sheet.png);
+  animation: knightAttack 0.7s steps(7) forwards;
+}
+
+/* Ajuste para o sprite no hub principal */
+.sprite-frame.knight-idle {
+  transform: scale(2) !important;
+}
+
+
+
+/* Ajustar posição das mensagens de gamificação para ficarem na parte inferior da tela */
+.gamification-alert {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  min-width: 300px;
+  max-width: 80%;
+  text-align: center;
+  animation: fade-in-out 5s forwards;
+  background-color: #8e44ad;
+  color: white;
+  border-color: #76329c;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  padding: 10px;
+  font-weight: bold;
+}
+
+/* Classe para aplicar no estudo.html para verificar se existe um cronômetro */
+.with-timer .gamification-alert {
+  bottom: 25px; /* Afastar do cronômetro */
+}
+
+.gamification-alert:hover {
+  opacity: 1;
+}
+
+@keyframes fade-in-out {
+  0% { opacity: 0; }
+  10% { opacity: 0.9; }
+  80% { opacity: 0.9; }
+  100% { opacity: 0; display: none; }
+}
+
+/* Defina uma classe específica para identificar mensagens de gamificação */
+.alert-gamification {
+  background-color: #8e44ad;
+  color: white;
+  border-color: #76329c;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Ajuste para o boss na tela de batalha */
+.battle-sprite.boss-idle {
+  width: 180px;
+  height: 270px;
+  background-image: url('/static/game.data/boss1.png');
+  animation: bossIdle 0.4s steps(3) infinite;
+  transform: scale(1.8) !important;
+}
+
+.battle-message {
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 10px 0;
+  text-align: center;
+  z-index: 10;
+}
+
+/* Botões de ação */
+.battle-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  z-index: 10;
+  margin-top: 10px;
+}
+
+/* Estilos para o background da batalha */
+.battle-background {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  /* Define o background diretamente */
+  background-image: url('/static/bg.media/FLORESTA.png');
+}
+
+.wood-header {
+  background-image: url('/static/game.data/madeira.png');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  color: white;
+  text-shadow: 1px 1px 2px black;
+  padding: 15px;
+  text-align: center;
+  border-radius: 5px 5px 0 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.wood-header h5 {
+  margin: 0;
+  font-weight: bold;
+  font-size: 1.25rem;
+}
+
+@keyframes playerAdvance {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(100px); }
+}
+
+@keyframes playerReturn {
+  0% { transform: translateX(100px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes bossShake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+}
+
+.p1-idle-container {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+
+/* Estilo base para todas as camadas */
+.p1-idle-layer {
+  position: absolute;
+  top: -6px;
+  left: 3px;
+  width: 64px;
+  height: 64px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  animation: p1IdleAnimation 0.8s steps(10) infinite; /* Assumindo 10 frames */
+}
+
+/* Animação para todas as camadas (mantendo-as sincronizadas) */
+@keyframes p1IdleAnimation {
+  from { background-position: 0 0; }
+  to { background-position: -1280px 0; } /* 10 frames de 128px = 1280px */
+}
+
+/* Definições específicas para cada camada */
+.p1-idle-armor {
+  background-image: url('/static/game.data/p1/p1.idle/armor/black/p1.idle.armor.black.png');
+  z-index: 1;
+}
+
+.p1-idle-head {
+  background-image: url('/static/game.data/p1/p1.idle/head/bald/p1.idle.head.bald.png');
+  z-index: 2;
+}
+
+/* Equipamentos de cabeça */
+.p1-idle-head-open-helmet {
+  background-image: url('/static/game.data/p1/p1.idle/head/open.helmet/p1.idle.helmet.open.png');
+  z-index: 3;
+}
+
+.p1-idle-head-close-helmet {
+  background-image: url('/static/game.data/p1/p1.idle/head/close.helmet/p1.idle.helmet.close.png');
+  z-index: 3;
+}
+
+.p1-idle-head-touca {
+  background-image: url('/static/game.data/p1/p1.idle/head/touca/p1.idle.head.touca.png');
+  z-index: 3;
+}
+
+/* Olhos */
+.p1-idle-eyes-fire {
+  background-image: url('/static/game.data/p1/p1.idle/eyes/fire/p1.idle.eyes.fire.png');
+  z-index: 4;
+}
+
+.p1-idle-eyes-white {
+  background-image: url('/static/game.data/p1/p1.idle/eyes/white/p1.idle.eyes.white.png');
+  z-index: 4;
+}
+
+.p1-idle-hair {
+  background-image: url('/static/game.data/p1/p1.idle/hair/basic/p1.idle.hair.basic.png');
+  z-index: 5;
+}
+
+.p1-idle-sword {
+  background-image: url('/static/game.data/p1/p1.idle/sword/basic/p1.idle.sword.basic.png');
+  z-index: 6;
+}
+
+.p1-idle-soulgem {
+  background-image: url('/static/game.data/p1/p1.idle/soulgem/p1.idle.soulgem1.png');
+  z-index: 7;
+}
+
+/* Estilos para animação de walk (sprite único por enquanto) */
+.p1-walk {
+  width: 64px;
+  height: 64px;
+  background-image: url('/static/game.data/p1/p1.walk.provisorio/p1.walk.provisorio.png');
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  animation: p1WalkAnimation 0.8s steps(8) infinite;
+  transform: scale(3);
+}
+
+@keyframes p1WalkAnimation {
+  from { background-position: 0 0; }
+  to { background-position: -512px 0; } /* 8 frames de 64px = 512px */
+}
+
+/* Estilos para animação de attack (sprite único por enquanto) */
+.p1-attack {
+  width: 64px;
+  height: 64px;
+  background-image: url('/static/game.data/p1/p1.attack.provisorio/p1.attack.png');
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  animation: p1AttackAnimation 0.5s steps(7) forwards;
+  transform: scale(3);
+}
+
+@keyframes p1AttackAnimation {
+  from { background-position: 0 0; }
+  to { background-position: -448px 0; } /* 7 frames de 64px = 448px */
+}
+
+/* Ajustes para posicionamento em diferentes áreas */
+.character-portrait-animated .p1-idle-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(2.5);
+}
+
+.player-sprite .p1-idle-container,
+.player-sprite .p1-walk,
+.player-sprite .p1-attack {
+  transform: scale(3.5); /* Escala maior para a arena de batalha */
+}
+
+.toast-message {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #28a745;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.toast-message.show {
+  opacity: 1;
+}
+
+.toast-error {
+  background-color: #dc3545;
+}
+
+.toast-warning {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.nicho-container {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  overflow: visible;
+  margin: 0 auto;
+}
+
+/* Estilo para o sprite de fundo do nicho */
+.nicho-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 160px;
+  height: 160px;
+  background-image: url('/static/game.data/nicho.png');
+  background-repeat: no-repeat;
+  background-size: 1440px 160px; /* 9 frames de 160x160 */
+  animation: nichoAnimation 1.8s steps(9) infinite;
+  z-index: 1;
+}
+
+/* Ajuste para o p1-idle-container ficar centralizado sobre o nicho */
+.nicho-container .p1-idle-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -40%);
+  z-index: 2;
+}
+
+/* Animação para o sprite do nicho */
+@keyframes nichoAnimation {
+  from { background-position: 0 0; }
+  to { background-position: -1440px 0; } /* 9 frames de 160px = 1440px */
+}
+
+/* Ajustes para o boss portrait também usar o nicho */
+.boss-portrait-animated .nicho-background {
+  z-index: 1;
+}
+
+.boss-portrait-animated .sprite-frame.boss-idle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) !important;
+  z-index: 2;
+}
+
+/* Estilo para o header-castle */
+.game-header {
+  width: 100%;
+  height: auto;
+  margin-bottom: 15px;
+  background-image: url('/static/game.data/header-castle');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-header h5 {
+  color: white;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+  margin: 0;
+}
+
+
+.castle-header {
+  background-image: url('/static/game.data/header-castle.png'); /* Corrigido para incluir a extensão .png */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  padding: 15px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.castle-nav-container {
+  background-image: url('/static/game.data/header-castle.png'); /* Corrigido para incluir a extensão .png */
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  margin-bottom: 20px;
+  padding: 10px 0;
+  position: relative;
+}
+
+.castle-nav-container .nav-link {
+  color: #f8f9fa;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+  transition: transform 0.2s, color 0.2s;
+  padding: 8px 15px;
+  margin: 0 5px;
+  border-radius: 4px;
+}
+
+.castle-nav-container .nav-link:hover {
+  transform: translateY(-2px);
+  color: #ffeb3b;
+  text-shadow: 0 0 8px rgba(255, 235, 59, 0.6);
+}
+
+.castle-nav-container .nav-link.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #ffeb3b;
+  font-weight: bold;
+  box-shadow: 0 0 10px rgba(255, 235, 59, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Ajuste da escala do personagem nas páginas Hub, Inventário e Perfil */
+.nicho-container .p1-idle-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -40%) scale(2) !important; /* Alterado para escala 2x como solicitado */
+  z-index: 2;
+}
+
+/* Ajuste específico para o Hub Principal */
+.gamification-page .character-portrait-animated .p1-idle-container {
+  transform: scale(2) !important;
+}
+
+/* Ajuste específico para o Inventário */
+.equipment-item .p1-idle-container {
+  transform: scale(2) !important;
+}
+
+/* Ajuste específico para o Perfil */
+.profile-container .p1-idle-container {
+  transform: scale(2) !important;
+}
+
+/* Garantir que a escala seja aplicada independente da estrutura HTML */
+.p1-idle-container {
+  transform: scale(2) !important;
+}
+
+.attribute-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.attribute-name {
+  width: 150px;
+  text-align: center;
+}
+
+.attribute-actions {
+  width: 80px;
+  text-align: center;
+}
+
+.attribute-info {
+  flex: 1;
+  font-size: 0.85rem;
+  color: #6c757d;
+  padding-left: 15px;
+}
+
+.equipment-item {
+  display: flex;
+  align-items: center;
+}
+
+.equipment-icon {
+  width: 40px;
+  margin-right: 10px;
+}
+
+.icon-placeholder {
+  width: 32px;
+  height: 32px;
+  background-color: #eee;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.equipment-info {
+  flex: 1;
+}
+
+/* Estilos para raridade de items */
+.item-rarity {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-right: 5px;
+  text-transform: uppercase;
+}
+
+.rarity-common {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.rarity-rare {
+  background-color: #4a69bd;
+  color: white;
+}
+
+.rarity-epic {
+  background-color: #8e44ad;
+  color: white;
+}
+
+.rarity-legendary {
+  background-color: #f1c40f;
+  color: #333;
+}
+
+.rarity-heroic {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.rarity-special {
+  background-color: #000000;
+  color: white;
+}
+
+/* Estilos para raridade de items */
+.item-rarity {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-left: 5px;
+  text-transform: uppercase;
+}
+
+.rarity-comum {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.rarity-raro {
+  background-color: #4a69bd;
+  color: white;
+}
+
+.rarity-épico {
+  background-color: #8e44ad;
+  color: white;
+}
+
+.rarity-lendário {
+  background-color: #f1c40f;
+  color: #333;
+}
+
+.rarity-heroico {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.rarity-especial {
+  background-color: #000000;
+  color: white;
+}
+
+
+/* Remover margens extras e usar um layout mais compacto */
+.shop-container {
+  margin-bottom: 20px;
+}
+
+.shop-section {
+  margin-bottom: 20px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.game-navigation .nav-link {
+  color: white !important;
+  font-weight: bold;
+  text-shadow: 
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000,
+    0px 0px 3px rgba(0,0,0,0.5);
+  letter-spacing: 0.5px;
+  /* outros estilos */
+}
+
+.truncate-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Estilo para thumbnails de imagens */
+.thumbnail {
+  max-width: 90px;
+  width: auto;
+  height: auto;
+}
+
+/* Novo estilo para a área de conteúdo com altura fixa */
+.card-content-area {
+  min-height: 250px; /* Altura mínima fixa - alterada de 350px para 250px */
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* Permite scroll se o conteúdo for maior */
+  position: relative;
+}
+
+/* Estilos para manter as seções de pergunta e resposta com tamanho consistente */
+#question-section, #answer-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 10px 0;
+}
+
+/* Garantir que o conteúdo da pergunta/resposta seja flexível */
+.card-text-container {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Custom styling for Retina Cards Gamification */
+
+/* 1. Dark navigation bar with stylish appearance */
+.game-navigation {
+  background-color: rgba(20, 20, 20, 0.85) !important;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  padding: 10px 5px !important;
+}
+
+.game-navigation .nav-link {
+  color: white !important;
+  font-weight: bold;
+  text-shadow: 
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000,
+    0px 0px 3px rgba(0,0,0,0.5);
+  letter-spacing: 0.5px;
+  transition: transform 0.2s, color 0.2s;
+  padding: 8px 15px;
+  margin: 0 5px;
+  border-radius: 4px;
+}
+
+.game-navigation .nav-link:hover {
+  transform: translateY(-2px);
+  color: #a0d8ef !important;
+  text-shadow: 0 0 10px rgba(160, 216, 239, 0.7);
+}
+
+.game-navigation .nav-link.active {
+  background-color: rgba(40, 60, 100, 0.6);
+  color: #ffeb3b !important;
+  font-weight: bold;
+  box-shadow: 0 0 10px rgba(255, 235, 59, 0.3);
+  transform: translateY(-2px);
+}
+
+/* 2. Replace wood-header with blue banner image */
+.wood-header {
+  background-image: url('/static/game.data/faixaazul.png'); /* Replace with correct path */
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: transparent; /* Transparent background */
+  background-size: auto; /* Maintain original image size */
+  padding: 15px;
+  text-align: center;
+  border-radius: 5px 5px 0 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.wood-header h5 {
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+  margin: 0;
+  position: relative;
+  top: -3px; /* Move text slightly upward to align with image */
+}
+
+/* 3. Adjust background transparency and add black background */
+body.gamification-page {
+  background-color: #000; /* Black background behind the image */
+  position: relative;
+}
+
+body.gamification-page:before {
+  content: "";
+  background-image: url('/static/game.data/parede.png');
+  background-repeat: repeat;
+  background-size: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.25; /* 75% transparency (increased from 50%) */
+  z-index: -1;
+}
+
+/* 4. Change Orb icon - Now handling spritesheet animation */
+.time-orb {
+  width: 100%;
+  height: 100%;
+  background: url('/static/game.data/orb.png') 0 0;
+  background-size: 700% 100%; /* 7 frames horizontally */
+  box-shadow: 0 0 20px rgba(155, 89, 182, 0.5);
+  position: relative;
+  overflow: hidden;
+  border-radius: 0;
+  animation: orbAnimation 1.4s steps(7) infinite; /* 7 frames at 0.2s each */
+}
+
+@keyframes orbAnimation {
+  from { background-position: 0 0; }
+  to { background-position: 100% 0; } /* Move through all 7 frames */
+}
+
+.time-orb-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(to top, rgba(160, 216, 239, 0.7) 0%, rgba(160, 216, 239, 0.3) 100%);
+  transition: height 0.5s;
+  z-index: 2; /* Ensure fill appears above the animation */
+}
+
+.time-orb-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-weight: bold;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+  text-align: center;
+  font-size: 12px;
+  z-index: 3; /* Ensure text appears above everything */
+}
+
+/* Additional styling for cards and containers in gamification mode */
+.gamification-page .card {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  margin-bottom: 20px;
+}
+
+/* Region card styling - Using the area1.png image */
+.wood-header:has(h5:contains("Região Atual")),
+.card:has(.wood-header:contains("Região Atual")) .card-body,
+.card:has(.card-title:contains("Região Atual")) .card-body,
+.card:has(.card-title:contains("Floresta da Ignorância")) .card-body {
+  background-image: url('/static/game.data/area1.png');
+  background-size: cover;
+  background-position: center;
+  color: white;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+/* Ensure text is readable on the background image */
+.card:has(.card-title:contains("Região Atual")) .card-text,
+.card:has(.card-title:contains("Floresta da Ignorância")) .card-text {
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.gamification-page .container {
+  padding-top: 20px;
+}
+
+/* Enhance the look of shop items */
+.shop-item {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.shop-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}

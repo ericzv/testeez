@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Mover Baralho - {{ deck.name }}{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <h3>Mover Baralho: <strong>{{ deck.name }}</strong></h3>
+    <form method="POST" action="{{ url_for('cards.change_deck_parent', deck_id=deck.id) }}">
+      <div class="form-group">
+        <label for="new_parent_id">Novo Baralho Pai:</label>
+        <select name="new_parent_id" id="new_parent_id" class="form-control">
+          <option value="">Nenhum (Baralho de nível superior)</option>
+          {% for d in all_decks %}
+            <option value="{{ d.id }}">{{ d.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">Mover</button>
+      <a href="{{ url_for('cards.decks') }}" class="btn btn-secondary">Cancelar</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

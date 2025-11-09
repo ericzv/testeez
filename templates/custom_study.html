@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Estudo Personalizado - Retina Cards{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-body centered-text">
+    <h3>Configurar Estudo Personalizado</h3>
+    <hr>
+    
+    <div class="alert alert-info">
+      <strong>Nota:</strong> Esta sessão de estudo personalizado não afeta o calendário de repetição espaçada dos cartões.
+    </div>
+    
+    <p>Selecione os critérios para sua sessão de estudo personalizada:</p>
+    
+    <form method="POST" action="{{ url_for('cards.custom_study') }}">
+      <!-- Seção de Baralhos -->
+      <div class="form-group mb-4">
+        <label><strong>Selecione os baralhos:</strong></label>
+        <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
+          {% for deck in decks %}
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="deck-{{ deck.id }}" name="deck_ids" value="{{ deck.id }}">
+              <label class="form-check-label" for="deck-{{ deck.id }}">{{ deck.name }}</label>
+            </div>
+          {% endfor %}
+        </div>
+        <small class="form-text text-muted">Selecione os baralhos que poderão ser incluídos, caso tenham as tags escolhidas. Se nenhum baralho for selecionado, todos poderão ser incluídos.</small>
+      </div>
+      
+      <!-- Seção de Tags -->
+      <div class="form-group mb-4">
+        <label><strong>Selecione as tags:</strong></label>
+        <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
+          {% for tag in tags %}
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="tag-{{ tag.id }}" name="tag_ids" value="{{ tag.id }}">
+              <label class="form-check-label" for="tag-{{ tag.id }}">{{ tag.name }}</label>
+            </div>
+          {% endfor %}
+        </div>
+        <small class="form-text text-muted">Selecione múltiplas tags para encontrar cartões que tenham QUALQUER UMA destas tags.</small>
+      </div>
+      
+      <button type="submit" class="btn btn-primary" id="startStudyBtn" disabled>Iniciar Estudo Personalizado</button>
+      <a href="{{ url_for('cards.study_lobby') }}" class="btn btn-secondary">Voltar</a>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Função para verificar se pelo menos uma tag está selecionada
+  function checkTagSelection() {
+    const tagCheckboxes = document.querySelectorAll('input[name="tag_ids"]:checked');
+    const startButton = document.getElementById('startStudyBtn');
+    
+    // Habilitar o botão apenas se pelo menos uma tag estiver selecionada
+    startButton.disabled = tagCheckboxes.length === 0;
+  }
+  
+  // Adicionar event listener a todas as checkboxes de tag
+  document.querySelectorAll('input[name="tag_ids"]').forEach(checkbox => {
+    checkbox.addEventListener('change', checkTagSelection);
+  });
+  
+  // Verificar no carregamento da página
+  document.addEventListener('DOMContentLoaded', checkTagSelection);
+</script>
+{% endblock %}

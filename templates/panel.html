@@ -1,0 +1,389 @@
+{% extends 'base.html' %}
+{% block title %}Painel de Cartões{% endblock %}
+{% block content %}
+<!-- Overlay de carregamento -->
+<div id="loadingOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.9); z-index: 9999; display: none; align-items: center; justify-content: center;">
+  <h2>Carregando o Painel de Cartões...</h2>
+</div>
+
+<style>
+  .batch-operation-group {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .batch-operation-group:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  
+  /* Melhorar a aparência do select múltiplo */
+  select[multiple] {
+    height: auto;
+    min-height: 38px;
+    max-height: 150px;
+  }
+  
+  /* Estilo para informações sobre o select múltiplo */
+  .select-info {
+    display: block;
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 3px;
+    margin-bottom: 10px;
+  }
+</style>
+
+<style>
+  /* Reduzir o tamanho da fonte da tabela em ~15% */
+  .panel-container table {
+    font-size: 0.85rem;
+  }
+  
+  /* Centralizar o texto nas colunas de Próxima Revisão e Fase */
+  .panel-container th:nth-child(6),
+  .panel-container td:nth-child(6),
+  .panel-container th:nth-child(8),
+  .panel-container td:nth-child(8) {
+    text-align: center;
+  }
+  
+  /* Centralizar os checkboxes na coluna de seleção */
+  .panel-container th:first-child,
+  .panel-container td:first-child {
+    text-align: center;
+    vertical-align: middle;
+  }
+</style>
+
+<div class="panel-container">
+  <h2>Painel de Cartões</h2>
+  <form method="GET" action="{{ url_for('cards.panel') }}" id="searchForm">
+    <div class="form-group">
+      <input type="text" name="q" class="form-control" placeholder="Buscar... (#ID ou texto)" value="{{ query }}">
+      {% if deck_id %}
+        <input type="hidden" name="deck_id" value="{{ deck_id }}">
+      {% endif %}
+    </div>
+    <div class="d-flex align-items-center flex-wrap">
+      <button type="submit" class="btn btn-primary mr-2 mb-2">Buscar</button>
+      {% if deck_id %}
+        <a href="{{ url_for('cards.show_all', deck_id=deck_id) }}" class="btn btn-secondary mr-2 mb-2">Mostrar Todos os Cartões</a>
+      {% else %}
+        <a href="{{ url_for('cards.show_all') }}" class="btn btn-secondary mr-2 mb-2">Mostrar Todos os Cartões</a>
+      {% endif %}
+      <!-- Botão para ativar/desativar o modo de seleção -->
+      <button type="button" id="toggleSelectionMode" class="btn btn-outline-primary mr-2 mb-2">Selecionar cartões</button>
+      
+      <!-- Botão para filtrar por tags -->
+      <button type="button" id="selectCardsBtn" class="btn btn-info mb-2">Filtrar por Tags</button>
+    </div>
+  </form>
+  
+  <!-- Menu dropdown de tags -->
+  <div class="form-group mt-3" id="tags-selection-container" style="display: none;">
+    <label for="tagsDropdown"><strong>Filtrar por tags:</strong></label>
+    <div class="input-group">
+      <div class="dropdown w-100">
+        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-left" type="button" id="tagsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Selecionar tags
+        </button>
+        <div class="dropdown-menu w-100" aria-labelledby="tagsDropdown" style="max-height: 300px; overflow-y: auto;">
+          {% for tag in all_tags %}
+            <div class="dropdown-item">
+              <div class="form-check">
+                <input class="form-check-input tag-checkbox" type="checkbox" id="tag-{{ tag.id }}" value="{{ tag.id }}" 
+                       {% if selected_tag_ids and tag.id in selected_tag_ids %}checked{% endif %}>
+                <label class="form-check-label" for="tag-{{ tag.id }}">{{ tag.name }}</label>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    
+    <!-- Botão Aplicar com margem superior -->
+    <div class="mt-3">
+      <button class="btn btn-primary" type="button" id="applyTagsBtn">Aplicar</button>
+    </div>
+    <small class="form-text text-muted">Selecione uma ou mais tags para filtrar os cartões</small>
+  </div>
+  
+  <!-- Botões de operações em lote, logo abaixo dos botões de busca -->
+  <div id="batchOperations" style="display: none; margin-top: 10px;">
+    <!-- Seção para mudar de baralho -->
+    <div class="batch-operation-group mb-2">
+      <select name="new_deck_id" form="cardsForm" class="form-control" style="max-width: 300px; display: inline-block;">
+        <option value="">Selecione um novo baralho</option>
+        {% for deck in decks %}
+          <option value="{{ deck.id }}">{{ deck.name }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" form="cardsForm" formaction="{{ url_for('cards.batch_change_deck') }}" class="btn btn-info">Mudar de Baralho</button>
+    </div>
+
+    <!-- Seção para gerenciar tags - Dropdown -->
+    <div class="batch-operation-group mb-2">
+      <div class="input-group" style="max-width: 500px;">
+        <!-- Dropdown de tags -->
+        <div class="dropdown d-inline-block">
+          <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="batchTagsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="min-width: 200px; text-align: left;">
+            Selecionar tag
+          </button>
+          <div class="dropdown-menu" aria-labelledby="batchTagsDropdown" style="max-height: 300px; overflow-y: auto;">
+            {% for tag in all_tags %}
+              <div class="dropdown-item">
+                <div class="form-check">
+                  <input class="form-check-input batch-tag-checkbox" type="checkbox" id="batch-tag-{{ tag.id }}" value="{{ tag.id }}" name="tags" form="cardsForm">
+                  <label class="form-check-label" for="batch-tag-{{ tag.id }}">{{ tag.name }}</label>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        
+        <!-- Dropdown de ação (adicionar/remover/substituir) -->
+        <select name="tag_action" form="cardsForm" class="form-control" style="max-width: 150px; margin-left: 5px;">
+          <option value="add">Adicionar tags</option>
+          <option value="remove">Remover tags</option>
+          <option value="set">Substituir tags</option>
+        </select>
+        
+        <!-- Botão de aplicar -->
+        <div class="input-group-append">
+          <button type="submit" form="cardsForm" formaction="{{ url_for('cards.batch_manage_tags') }}" class="btn btn-info">Aplicar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Outros botões de operação em lote -->
+    <div class="batch-operation-group">
+      <button type="submit" form="cardsForm" formaction="{{ url_for('cards.batch_reset_cards') }}" class="btn btn-warning">Resetar Cartões</button>
+      <button type="submit" form="cardsForm" formaction="{{ url_for('cards.batch_suspend_cards') }}" class="btn btn-danger" id="suspendButton">Suspender Cartões</button>
+    </div>
+  </div>
+  
+  <hr>
+  {% if cards|length > 0 %}
+  <form id="cardsForm" method="POST" action="">
+    <table class="table table-bordered table-striped" style="width:100%; table-layout: fixed; text-align: left; margin-left:0;">
+      <thead>
+        <tr>
+          <th style="width: 3%;"></th>  {# Cabeçalho vazio para a coluna de seleção #}
+          <th style="width: 7%;">ID</th>
+          <th style="width: 38%;">Resposta (preview)</th>
+          <th style="width: 15%;">Baralho</th>
+          <th style="width: 15%;">Dificuldade</th>
+          <th style="width: 12%;">Próxima Revisão</th>
+          <th style="width: 10%;">Imagens</th>
+          <th style="width: 8%;">Fase</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for card in cards %}
+        <tr id="card-{{ card.id }}" onclick="rowClicked(event, '{{ card.id }}')" style="cursor: pointer;" data-suspended="{{ card.suspended|lower }}">
+          <td><input type="checkbox" name="selected_cards" value="{{ card.id }}" class="cardCheckbox" disabled></td>
+          <td>{{ card.id }}</td>
+          <td class="truncate-text">{{ card.back | process_answer | panel_preview | safe }}</td>
+          <td class="truncate-text">{{ card.deck.name }}</td>
+          <td>
+            {{ card.difficulty }} -
+            {% if card.difficulty < 2 %}
+              Muito fácil
+            {% elif card.difficulty < 4 %}
+              Fácil
+            {% elif card.difficulty < 6 %}
+              Médio
+            {% elif card.difficulty < 8 %}
+              Difícil
+            {% else %}
+              Muito difícil
+            {% endif %}
+          </td>
+          <td>{{ card | next_review_status }}</td>
+          <td>{{ card.back | extract_images | safe }}</td>
+          <td>
+            {% if card.suspended %}
+              <span style="color: orange;">Suspenso</span>
+            {% elif card.review_count == 0 %}
+              <span style="color: blue;">Novo</span>
+            {% elif card.next_review | make_aware <= datetime_module().now(timezone_module().utc) %}
+              <span style="color: green;">A revisar</span>
+            {% else %}
+              <span style="color: gray;">Intervalo</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </form>
+  {% else %}
+    <p>Nenhum flashcard encontrado. Use a busca ou clique em "Mostrar Todos os Cartões" para visualizar os flashcards.</p>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  // Controle do modo de seleção
+  var selectionMode = false;
+  var toggleButton = document.getElementById('toggleSelectionMode');
+  toggleButton.addEventListener('click', function(){
+    selectionMode = !selectionMode;
+    if(selectionMode) {
+      this.classList.add('active');
+    } else {
+      this.classList.remove('active');
+    }
+    var checkboxes = document.querySelectorAll('.cardCheckbox');
+    checkboxes.forEach(function(cb){
+      cb.disabled = !selectionMode;
+      if (!selectionMode) { cb.checked = false; }
+    });
+    document.getElementById('batchOperations').style.display = selectionMode ? 'block' : 'none';
+    
+    // Atualizar o texto do botão Suspender/Reativar com base nos cartões selecionados
+    updateSuspendButtonText();
+  });
+
+  // Função para atualizar o texto do botão Suspender/Reativar
+  function updateSuspendButtonText() {
+    const suspendButton = document.getElementById('suspendButton');
+    if (!suspendButton) return;
+
+    // Verificar se há cartões selecionados e se todos eles estão suspensos
+    const selectedCheckboxes = document.querySelectorAll('.cardCheckbox:checked');
+    if (selectedCheckboxes.length === 0) {
+      suspendButton.textContent = 'Suspender Cartões';
+      return;
+    }
+
+    // Verificar o status de cada cartão selecionado
+    let allSuspended = true;
+    selectedCheckboxes.forEach(checkbox => {
+      const row = checkbox.closest('tr');
+      if (row && row.getAttribute('data-suspended') === 'false') {
+        allSuspended = false;
+      }
+    });
+
+    // Atualizar o texto do botão
+    suspendButton.textContent = allSuspended ? 'Reativar Cartões' : 'Suspender Cartões';
+  }
+
+  // Função de clique na linha: se modo seleção ativo, alterna o checkbox; caso contrário, redireciona
+  window.rowClicked = function(event, cardId) {
+    if(event.target.type === 'checkbox') {
+      // Se o clique foi no checkbox, verificar se mudou a seleção
+      setTimeout(updateSuspendButtonText, 0);
+      return;
+    }
+    
+    if(selectionMode) {
+      var checkbox = document.querySelector('.cardCheckbox[value="'+cardId+'"]');
+      if(checkbox) {
+        checkbox.checked = !checkbox.checked;
+        // Atualizar o texto do botão após alterar a seleção
+        updateSuspendButtonText();
+      }
+    } else {
+      window.location = "/card/" + cardId;
+    }
+  };
+
+  // Script de scrollTo
+  function getQueryParam(param) {
+    var searchParams = new URLSearchParams(window.location.search);
+    return searchParams.get(param);
+  }
+  var scrollToId = getQueryParam('scrollTo');
+  if(scrollToId) {
+    var overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+      overlay.style.display = 'flex';
+    }
+    var startTime = Date.now();
+    function tryScroll() {
+      var element = document.getElementById('card-' + scrollToId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        window.scrollBy(0, -20);
+        if (overlay) {
+          overlay.style.display = 'none';
+        }
+      } else if (Date.now() - startTime < 5000) {
+        setTimeout(tryScroll, 100);
+      } else {
+        if (overlay) {
+          overlay.style.display = 'none';
+        }
+      }
+    }
+    document.addEventListener("DOMContentLoaded", tryScroll);
+  }
+})();
+
+// jQuery para gerenciar os dropdowns
+$(document).ready(function() {
+  // Inicialmente esconde o contêiner de seleção de tags
+  $("#tags-selection-container").hide();
+  
+  // Quando o botão "Filtrar por Tags" é clicado, mostra o contêiner de tags
+  $("#selectCardsBtn").click(function() {
+    $("#tags-selection-container").toggle();
+  });
+  
+  // Manipulador para o botão Aplicar no filtro de tags
+  $("#applyTagsBtn").click(function() {
+    // Obter todas as tags selecionadas
+    var selectedTags = [];
+    $(".tag-checkbox:checked").each(function() {
+      selectedTags.push($(this).val());
+    });
+    
+    // Redirecionar para a URL com os parâmetros de tag
+    if (selectedTags.length > 0) {
+      window.location.href = "{{ url_for('cards.panel') }}?tags=" + selectedTags.join(',');
+    } else {
+      alert("Por favor, selecione pelo menos uma tag.");
+    }
+  });
+  
+  // Atualizar o texto do botão dropdown do filtro quando tags são selecionadas
+  $(".tag-checkbox").change(function() {
+    let checkedCount = $(".tag-checkbox:checked").length;
+    if (checkedCount > 0) {
+      $("#tagsDropdown").text(`${checkedCount} tag(s) selecionada(s)`);
+    } else {
+      $("#tagsDropdown").text("Selecionar tags");
+    }
+  });
+  
+  // Atualizar o texto do dropdown de tags em lote quando tags são selecionadas
+  $(".batch-tag-checkbox").change(function() {
+    let checkedCount = $(".batch-tag-checkbox:checked").length;
+    if (checkedCount > 0) {
+      $("#batchTagsDropdown").text(`${checkedCount} tag(s) selecionada(s)`);
+    } else {
+      $("#batchTagsDropdown").text("Selecionar tag");
+    }
+  });
+  
+  // Pré-selecionar as tags da URL atual
+  var urlParams = new URLSearchParams(window.location.search);
+  var tagsParam = urlParams.get('tags');
+  if (tagsParam) {
+    var selectedIds = tagsParam.split(',');
+    selectedIds.forEach(function(id) {
+      $("#tag-" + id).prop('checked', true);
+    });
+    
+    // Atualizar o texto do dropdown
+    $("#tagsDropdown").text(selectedIds.length + " tag(s) selecionada(s)");
+  }
+});
+</script>
+{% endblock %}

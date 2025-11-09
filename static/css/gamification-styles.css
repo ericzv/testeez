@@ -1,0 +1,264 @@
+/* Custom styling for Retina Cards Gamification */
+
+/* 1. Dark navigation bar with stylish appearance */
+.game-navigation {
+  background-color: rgba(20, 20, 20, 0.85) !important;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  padding: 10px 5px !important;
+}
+
+.game-navigation .nav-link {
+  color: white !important;
+  font-weight: bold;
+  text-shadow: 
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000,
+    0px 0px 3px rgba(0,0,0,0.5);
+  letter-spacing: 0.5px;
+  transition: transform 0.2s, color 0.2s;
+  padding: 8px 15px;
+  margin: 0 5px;
+  border-radius: 4px;
+}
+
+.game-navigation .nav-link:hover {
+  transform: translateY(-2px);
+  color: #a0d8ef !important;
+  text-shadow: 0 0 10px rgba(160, 216, 239, 0.7);
+}
+
+.game-navigation .nav-link.active {
+  background-color: rgba(40, 60, 100, 0.6);
+  color: #ffeb3b !important;
+  font-weight: bold;
+  box-shadow: 0 0 10px rgba(255, 235, 59, 0.3);
+  transform: translateY(-2px);
+}
+
+/* 2. Replace wood-header with blue banner image */
+.wood-header {
+  background-image: url('/static/game.data/faixaazul.png'); /* Replace with correct path */
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: transparent; /* Transparent background */
+  background-size: auto; /* Maintain original image size */
+  padding: 15px;
+  text-align: center;
+  border-radius: 5px 5px 0 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.wood-header h5 {
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+  margin: 0;
+  position: relative;
+  top: -3px; /* Move text slightly upward to align with image */
+}
+
+/* 3. Adjust background transparency and add black background */
+body.gamification-page {
+  background-color: #000 !important; /* Black background behind the image with !important */
+  position: relative;
+}
+
+body.gamification-page:before {
+  content: "";
+  background-image: url('/static/game.data/parede.png');
+  background-repeat: repeat;
+  background-size: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.25 !important; /* 75% transparency with !important to override */
+  z-index: -1;
+}
+
+/* 4. Change Orb icon - Now handling spritesheet animation with exact specifications */
+.time-orb {
+  width: 100%;
+  height: 54%;
+  background: url('/static/game.data/orb.png') 0 0;
+  background-size: 700% 100%;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0;
+  animation: orbAnimation 0.6s steps(6) infinite;
+  /* Removed box-shadow for no glow effect */
+}
+
+@keyframes orbAnimation {
+  from { background-position: 0 0; }
+  to { background-position: 100% 0; } /* Move through all frames */
+}
+
+.time-orb-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(to top, rgba(160, 216, 239, 0.7) 0%, rgba(160, 216, 239, 0.3) 100%);
+  transition: height 0.5s;
+  z-index: 2; /* Ensure fill appears above the animation */
+}
+
+.time-orb-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-weight: bold;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+  text-align: center;
+  font-size: 12px;
+  z-index: 3; /* Ensure text appears above everything */
+}
+
+/* Additional styling for cards and containers in gamification mode */
+.gamification-page .card {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  margin-bottom: 20px;
+}
+
+/* Region styling with direct selectors - simplified to ensure it works */
+/* Target by the wood-header first */
+.card .wood-header:contains("Região Atual") ~ .card-body {
+  background-image: url('/static/game.data/area1.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+/* As a fallback, target by known content - more direct approach */
+.card .card-footer:has(.progress[title*="Progresso na região"]) {
+  background-image: url('/static/game.data/area1.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+/* Direct targeting of specific region section */
+.card:has(img[alt="Floresta da Ignorância"]) .card-body {
+  background-image: url('/static/game.data/area1.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+/* Brute force approach as last resort */
+#region-card .card-body,
+#region-info .card-body,
+.region-display .card-body {
+  background-image: url('/static/game.data/area1.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+/* Ensure text is readable against the image */
+.card:has(.card-title:contains("Região")) .card-text,
+.card:has(img[alt="Floresta da Ignorância"]) .card-text,
+#region-card .card-text,
+#region-info .card-text,
+.region-display .card-text {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  padding: 10px !important;
+  border-radius: 5px !important;
+  color: white !important;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9) !important;
+}
+
+.gamification-page .container {
+  padding-top: 20px;
+}
+
+/* Enhance the look of shop items */
+.shop-item {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.shop-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* ADICIONAR no arquivo gamification-styles.css */
+
+/* Estilos para a página de talentos */
+.talents-container {
+  position: relative;
+  width: 100%;
+  min-height: 700px;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.toast-message {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: rgba(40, 167, 69, 0.9);
+  color: white;
+  padding: 15px 20px;
+  border-radius: 5px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  transition: transform 0.3s, opacity 0.3s;
+  transform: translateY(100px);
+  opacity: 0;
+}
+
+.toast-message.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.toast-error {
+  background-color: rgba(220, 53, 69, 0.9);
+}
+
+.toast-warning {
+  background-color: rgba(255, 193, 7, 0.9);
+}
+
+.toast-special {
+  background-color: rgba(138, 43, 226, 0.9);
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 5px rgba(138, 43, 226, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(138, 43, 226, 0.8); }
+  100% { box-shadow: 0 0 5px rgba(138, 43, 226, 0.5); }
+}
+
+.talent-unlocked {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.talent-locked {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.tooltip {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 100;
+}

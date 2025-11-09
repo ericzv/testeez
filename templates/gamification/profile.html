@@ -1,0 +1,1158 @@
+{% extends 'gamification/base.html' %}
+
+{% block game_content %}
+<div id="particles-js"></div>
+
+<!-- Estilo de fonte Cinzel -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+<!-- Estilo de fonte Montserrat (para descrições) -->
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+
+
+<div class="character-page">
+    <!-- Título -->
+    <h1 class="page-title">Personagem</h1>
+    
+    <!-- Container principal -->
+    <div class="main-container">
+        
+        <!-- Seção esquerda: Equipamentos -->
+        <div class="equipments-section">
+            <div class="equipment-tabs">
+                <button class="tab-btn active" data-tab="head">Cabeça</button>
+                <button class="tab-btn" data-tab="back">Costas</button>
+                <button class="tab-btn" data-tab="armor">Armadura</button>
+                <button class="tab-btn" data-tab="weapon">Arma</button>
+            </div>
+            
+            <div class="equipment-content">
+                <!-- Tab Cabeça -->
+                <div class="tab-content active" id="head-tab">
+                    <div class="equipment-grid">
+                        <div class="equipment-item" data-rarity="none">
+                            <div class="equipment-icon">
+                                <div class="icon-placeholder"></div>
+                            </div>
+                            <div class="equipment-info">
+                                <h5>Sem Capacete</h5>
+                                <p>Sem proteção para a cabeça.</p>
+                            </div>
+                            <button class="equip-btn {% if not player.current_helmet %}active{% endif %}" 
+                                    data-type="helmet" data-id="0">
+                                {% if not player.current_helmet %}Equipado{% else %}Equipar{% endif %}
+                            </button>
+                        </div>
+                        
+                        {% for equipment in equipments %}
+                            {% if equipment.equipment_type == 'helmet' %}
+                            <div class="equipment-item" data-rarity="{{ equipment.rarity|lower }}">
+                                <div class="equipment-icon">
+                                    <div class="icon-placeholder"></div>
+                                </div>
+                                <div class="equipment-info">
+                                    <h5>{{ equipment.name }}</h5>
+                                    <p>{{ equipment.description }}</p>
+                                </div>
+                                <button class="equip-btn {% if player.current_helmet_id == equipment.id %}active{% endif %}" 
+                                        data-type="helmet" data-id="{{ equipment.id }}">
+                                    {% if player.current_helmet_id == equipment.id %}Equipado{% else %}Equipar{% endif %}
+                                </button>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Tab Costas -->
+                <div class="tab-content" id="back-tab">
+                    <!-- Implementar equipamentos de costas -->
+                </div>
+                
+                <!-- Tab Armadura -->
+                <div class="tab-content" id="armor-tab">
+                    <!-- Implementar armaduras -->
+                </div>
+                
+                <!-- Tab Arma -->
+                <div class="tab-content" id="weapon-tab">
+                    <!-- Implementar armas -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Seção central: Personagem -->
+        <div class="character-container">
+            <div class="nicho-container">
+                <div class="nicho-background"></div>
+                <div class="p1-idle-container">
+                    <!-- Camadas do personagem -->
+                    <div class="p1-idle-layer p1-idle-armor"></div>
+                    <div class="p1-idle-layer p1-idle-head"></div>
+                    <div class="p1-idle-layer p1-idle-head-open-helmet" style="display: {% if player.equipped_helmet == 'open-helmet' %}block{% else %}none{% endif %}"></div>
+                    <div class="p1-idle-layer p1-idle-head-close-helmet" style="display: {% if player.equipped_helmet == 'close-helmet' %}block{% else %}none{% endif %}"></div>
+                    <div class="p1-idle-layer p1-idle-head-touca" style="display: {% if player.equipped_helmet == 'touca' %}block{% else %}none{% endif %}"></div>
+                    <div class="p1-idle-layer p1-idle-eyes-fire" style="display: {% if player.equipped_eyes == 'fire' or not player.equipped_eyes %}block{% else %}none{% endif %}"></div>
+                    <div class="p1-idle-layer p1-idle-eyes-white" style="display: {% if player.equipped_eyes == 'white' %}block{% else %}none{% endif %}"></div>
+                    <div class="p1-idle-layer p1-idle-hair"></div>
+                    <div class="p1-idle-layer p1-idle-sword"></div>
+                    <div class="p1-idle-layer p1-idle-soulgem"></div>
+                </div>
+            </div>
+            
+            {% set title_info = get_player_title(player.level) %}
+            <div class="character-title">
+                <h4>{{ title_info[0] }}</h4>
+                <p>{{ title_info[1] }}</p>
+                <div class="level-badge">Nível {{ player.level }}</div>
+            </div>
+        </div>
+        
+        <!-- Seção direita: Atributos -->
+        <div class="attributes-section">
+            {% if player.attribute_points > 0 %}
+            <div class="points-alert">
+                Você tem <span id="points-counter">{{ player.attribute_points }}</span> pontos de atributo para distribuir!
+            </div>
+            {% endif %}
+            
+            <div class="attributes-container">
+                <!-- Força -->
+                <div class="attribute-row">
+                    <div class="attribute-name">
+                        <h5>Força</h5>
+                        <p class="attribute-value">{{ player.strength }}</p>
+                    </div>
+                    <div class="attribute-description">
+                        {# Apenas o dano vindo da força, sem incluir player.damage_bonus #}
+                        {% set current_damage = calculate_strength_damage(player.strength) | round(2) %}
+                        {% set next_strength  = player.strength + 1 %}
+                        {% set next_damage    = calculate_strength_damage(next_strength) | round(2) %}
+                        <p>Aumenta o dano base.</p>
+                        <p>Atual: {{ current_damage }}</p>
+                        {% if player.attribute_points > 0 and player.strength < 100 %}
+                            <p class="next-level">
+                                Próximo: {{ next_damage }}
+                                (+{{ (next_damage - current_damage) | round(2) }})
+                            </p>
+                        {% endif %}
+                    </div>
+                    {% if player.attribute_points > 0 and player.strength < 100 %}
+                        <button class="attribute-increase-btn" data-attribute="strength">+</button>
+                    {% endif %}
+                </div>
+                <!-- Vitalidade -->
+                <div class="attribute-row">
+                  <div class="attribute-name">
+                      <h5>Vitalidade</h5>
+                      <p class="attribute-value">{{ player.vitality }}</p>
+                  </div>
+                  <div class="attribute-description">
+                      {% set current_hp = player.max_hp %}
+                      {% set current_regen = calculate_vitality_regeneration(player.vitality) | round(0) %}
+                      {% set next_vitality = player.vitality + 1 %}
+                      {% set next_hp = calculate_max_hp(next_vitality) + player.max_hp_bonus %}
+                      {% set next_regen = calculate_vitality_regeneration(next_vitality) | round(0) %}
+                      <p>Aumenta o HP máximo e regeneração.</p>
+                      <p>Atual: {{ current_hp }} HP max, regen a cada {{ current_regen }} revisões</p>
+                      {% if player.attribute_points > 0 and player.vitality < 100 %}
+                      <p class="next-level">Próximo: {{ next_hp }} HP max (+{{ next_hp - current_hp }}), regen a cada {{ next_regen }} revisões</p>
+                      {% endif %}
+                  </div>
+                  {% if player.attribute_points > 0 and player.vitality < 100 %}
+                  <button class="attribute-increase-btn" data-attribute="vitality">+</button>
+                  {% endif %}
+                </div>
+
+                <!-- Resistência -->
+                <div class="attribute-row">
+                  <div class="attribute-name">
+                      <h5>Resistência</h5>
+                      <p class="attribute-value">{{ player.resistance }}</p>
+                  </div>
+                  <div class="attribute-description">
+                      {% set current_block = calculate_resistance_block(player.resistance) | round(1) %}
+                      {% set next_resistance = player.resistance + 1 %}
+                      {% set next_block = calculate_resistance_block(next_resistance) | round(1) %}
+                      <p>Aumenta a % de dano bloqueado.</p>
+                      <p>Atual: {{ current_block }}% de bloqueio</p>
+                      {% if player.attribute_points > 0 and player.resistance < 100 %}
+                      <p class="next-level">Próximo: {{ next_block }}% (+{{ (next_block - current_block) | round(1) }}%)</p>
+                      {% endif %}
+                  </div>
+                  {% if player.attribute_points > 0 and player.resistance < 100 %}
+                  <button class="attribute-increase-btn" data-attribute="resistance">+</button>
+                  {% endif %}
+                </div>
+
+                <!-- Sorte -->
+                <div class="attribute-row">
+                  <div class="attribute-name">
+                      <h5>Sorte</h5>
+                      <p class="attribute-value">{{ player.luck }}</p>
+                  </div>
+                  <div class="attribute-description">
+                      {% set current_rare = (player.luck * 0.1) | round(1) %}
+                      {% set current_epic = (player.luck * 0.075) | round(1) %}
+                      {% set next_luck = player.luck + 1 %}
+                      {% set next_rare = (next_luck * 0.1) | round(1) %}
+                      {% set next_epic = (next_luck * 0.075) | round(1) %}
+                      <p>Aumenta a chance de itens raros e chance de acerto crítico.</p>
+                      {% set current_crit = ((player.luck * 0.0015 + 0.05) * 100) | round(1) %}
+                      {% set next_crit    = (((player.luck + 1) * 0.0015 + 0.05) * 100) | round(1) %}
+                      <p>Atual: Crítico {{ current_crit }}%</p>
+                      {% if player.attribute_points > 0 and player.luck < 100 %}
+                      <p class="next-level">Próximo: Crítico {{ next_crit }}%
+                    </p>
+                    {% endif %}
+                  </div>
+                  {% if player.attribute_points > 0 and player.luck < 100 %}
+                  <button class="attribute-increase-btn" data-attribute="luck">+</button>
+                  {% endif %}
+                </div>
+
+                <!-- Concentração -->
+                <div class="attribute-row">
+                  <div class="attribute-name">
+                      <h5>Concentração</h5>
+                      <p class="attribute-value">{{ player.concentration }}</p>
+                  </div>
+                  {% if player.attribute_points > 0 and player.concentration < 100 %}
+                  <button class="attribute-increase-btn" data-attribute="concentration">+</button>
+                  {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cards de informações -->
+    <div class="info-cards">
+        <!-- Card 1: Informações Principais -->
+        <div class="card info-card">
+            <h5>Informações Principais</h5>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">HP</span>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: {{ (player.hp / player.max_hp * 100)|round(1) }}%; background-color: #e74c3c;">
+                            {{ player.hp }} / {{ player.max_hp }}
+                        </div>
+                    </div>
+                </div>
+                <div class="info-item">
+                </div>
+                <div class="info-item">
+                    <span class="info-label">XP</span>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: {{ (player.experience / get_exp_for_next_level(player.level) * 100)|round(1) }}%; background-color: #2ecc71;">
+                            {{ player.experience }} / {{ get_exp_for_next_level(player.level) }}
+                        </div>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Dano</span>
+                    <span class="info-value">
+                        {{ "%.2f"|format(
+                            calculate_strength_damage(player.strength)
+                            + player.damage_bonus
+                        ) }}
+                        (
+                            {{ "%.2f"|format(
+                                calculate_strength_damage(player.strength)
+                            ) }}
+                            + {{ "%.2f"|format(player.damage_bonus) }}
+                        )
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Chance de Crítico</span>
+                    <span class="info-value">
+                        {{
+                            (
+                                calculate_critical_chance(
+                                    player.luck,
+                                    0,
+                                    player.critical_chance_bonus
+                                )
+                                * 100
+                            )
+                            | round(1)
+                        }}%
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Dano Crítico</span>
+                    <span class="info-value">
+                        +{{
+                            (
+                                calculate_critical_bonus(
+                                    player.luck,
+                                    0,
+                                    player.critical_damage_bonus
+                                )
+                                * 100
+                            )
+                            | round(1)
+                        }}%
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Bloqueio</span>
+                    <span class="info-value">
+                        {{ calculate_resistance_block(player.resistance, player.block_bonus) | round(1) }}%
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Chance de Esquiva</span>
+                    <span class="info-value">
+                        {{
+                            (
+                                calculate_dodge_chance(
+                                    player.luck,
+                                    player.dodge_item_bonus,
+                                    player.dodge_talent_bonus
+                                )
+                                * 100
+                            )
+                            | round(1)
+                        }}%
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Card 2: Informações Secundárias -->
+        <div class="card info-card">
+            <h5>Informações Secundárias</h5>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Bônus de Experiência</span>
+                    <span class="info-value">+{{ (player.exp_boost * 100)|round(1) }}%</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Regeneração de HP</span>
+                    <span class="info-value">1 HP a cada {{ calculate_vitality_regeneration(player.vitality) | round(0) }} revisões</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Desconto na Loja</span>
+                    <span class="info-value">{{ (player.shop_discount * 100)|round(1) }}%</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Card 3: Efeitos Condicionais -->
+        <div class="card info-card">
+            <h5>Efeitos Condicionais</h5>
+            <div class="info-grid">
+                {% if player.morning_heal_amount > 0 %}
+                <div class="info-item">
+                    <span class="info-label">Cura HP no início do dia</span>
+                    <span class="info-value">+{{ player.morning_heal_amount }} HP</span>
+                </div>
+                {% endif %}
+                
+                {% if player.morning_heal_if_full_mp > 0 %}
+                <div class="info-item">
+                    <span class="info-label">Cura HP se MP cheio</span>
+                    <span class="info-value">+{{ player.morning_heal_if_full_mp }} HP</span>
+                </div>
+                {% endif %}
+                
+                {% if player.perfect_exp_bonus > 0 %}
+                <div class="info-item">
+                    <span class="info-label">EXP bônus se não sofrer dano</span>
+                    <span class="info-value">+{{ (player.perfect_exp_bonus * 100)|round(1) }}%</span>
+                </div>
+                {% endif %}
+                
+                {% if player.shield_on_full_hp > 0 %}
+                <div class="info-item">
+                    <span class="info-label">Escudo se HP cheio</span>
+                    <span class="info-value">+{{ player.shield_on_full_hp }} HP de proteção</span>
+                </div>
+                {% endif %}
+                
+                {% if player.chaos_heal_chance > 0 %}
+                <div class="info-item">
+                    <span class="info-label">Cura caótica</span>
+                    <span class="info-value">{{ (player.chaos_heal_chance * 100)|round(1) }}% chance</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Inventário -->
+    <div class="card inventory-card">
+        <h5>Inventário</h5>
+        <div class="inventory-grid">
+            {% for player_item in inventory %}
+            <div class="inventory-item">
+                <div class="item-icon">
+                    <div class="icon-placeholder"></div>
+                </div>
+                <div class="item-info">
+                    <h6>{{ player_item.item.name }} <span class="quantity">x{{ player_item.quantity }}</span></h6>
+                    <p>{{ player_item.item.description }}</p>
+                </div>
+                <button class="use-btn" data-id="{{ player_item.id }}">Usar</button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+
+.container, 
+.container-lg, 
+.container-md, 
+.container-sm, 
+.container-xl {
+    max-width: 1280px !important;
+}
+
+.nicho-container {
+    position: relative; /* ADICIONADO: contexto para o efeito de brilho */
+    margin: 0 auto;
+    transform: scale(1.2);
+}
+
+body.gamification-page::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, #1a202c 0%, #000000 100%);
+    z-index: -10;
+    opacity: 0.85;
+}
+
+#particles-js {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+.character-page {
+    font-family: 'Cinzel', serif;
+    color: #f8f9fa;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    overflow-x: visible;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.page-title {
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 30px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.main-container {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 30px;
+    width: 100%;
+}
+
+/* Equipamentos */
+.equipments-section {
+    flex: 0 0 480px;
+    width: 480px;
+    background: rgba(31, 41, 55, 0.85);
+    border-radius: 10px;
+    padding: 20px;
+    backdrop-filter: blur(5px);
+}
+
+.equipment-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: rgba(59, 130, 246, 0.3);
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Cinzel', serif;
+}
+
+.tab-btn.active {
+    background: rgba(59, 130, 246, 0.7);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.equipment-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.equipment-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
+}
+
+.equipment-item[data-rarity="comum"] {
+    border: 1px solid #2ecc71;
+}
+
+.equipment-item[data-rarity="raro"] {
+    border: 1px solid #3498db;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+}
+
+.equipment-item[data-rarity="épico"] {
+    border: 1px solid #9b59b6;
+    box-shadow: 0 0 15px rgba(155, 89, 182, 0.5);
+}
+
+.equipment-item[data-rarity="lendário"] {
+    border: 1px solid #f39c12;
+    box-shadow: 0 0 20px rgba(243, 156, 18, 0.7);
+}
+
+.equipment-item[data-rarity="heroico"] {
+    border: 1px solid #e74c3c;
+    box-shadow: 0 0 25px rgba(231, 76, 60, 0.9);
+}
+
+.equipment-icon {
+    width: 64px;
+    height: 64px;
+    margin-right: 15px;
+}
+
+.icon-placeholder {
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.equipment-info {
+    flex: 1;
+}
+
+.equipment-info h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #fff;
+}
+
+.equipment-info p {
+    margin: 5px 0 0;
+    font-size: 0.7rem;
+    color: #cbd5e1;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.gamification-page .card {
+    background: rgba(31, 41, 55, 0.85) !important;
+}
+
+.info-value {
+    color: #f8f9fa;
+    text-align: right;
+    min-width: 160px;
+}
+
+.equip-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    background: rgba(59, 130, 246, 0.7);
+    color: #fff;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    transition: all 0.3s;
+}
+
+.equip-btn.active {
+    background: rgba(46, 204, 113, 0.7);
+}
+
+/* Personagem */
+.character-container {
+    flex: 0 0 25%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.character-title {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.character-title h4 {
+    margin: 4px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #f8f9fa;
+}
+
+.character-title p {
+    margin: 5px 0;
+    color: #94a3b8;
+    font-size: 1.0rem;
+}
+
+.level-badge {
+    display: inline-block;
+    background: rgba(59, 130, 246, 0.7);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    margin-top: 10px;
+}
+
+/* Atributos */
+.character-container {
+    flex: 0 0 20%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.attributes-section {
+    flex: 0 0 480px;
+    width: 480px;
+    background: rgba(31, 41, 55, 0.85);
+    border-radius: 10px;
+    padding: 20px;
+    backdrop-filter: blur(5px);
+}
+
+.points-alert {
+    background: rgba(37, 99, 235, 0.3);
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.attribute-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+}
+
+.attribute-name {
+    width: 120px;
+    text-align: center;
+}
+
+.attribute-name h5 {
+    margin: 0;
+    font-size: 1.0rem;
+}
+
+.attribute-value {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #3b82f6;
+    margin: 0;
+}
+
+.attribute-description {
+    flex: 1;
+    padding: 0 15px;
+    font-size: 0.85rem;
+    line-height: 1.2;
+}
+
+.attribute-description p {
+    margin: 1.5px 8px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.next-level {
+    color: #2ecc71;
+    font-weight: bold;
+}
+
+.attribute-increase-btn {
+    width: 25px;
+    height: 25px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(37, 99, 235, 0.7);
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.9rem;
+    padding: 0;
+    line-height: 1;
+}
+
+/* Cards de informações */
+.info-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    margin-bottom: 30px;
+    width: 100%;
+}
+
+.card {
+    background: rgba(31, 41, 55, 0.85);
+    border-radius: 10px;
+    padding: 20px;
+    backdrop-filter: blur(5px);
+}
+
+.info-card h5 {
+    margin: 0 0 15px;
+    font-size: 1.2rem;
+    color: #f8f9fa;
+    text-align: center;
+}
+
+.info-grid {
+    display: grid;
+    gap: 10px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-label {
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+.info-value {
+    color: #f8f9fa;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-left: 15px;
+}
+
+.progress {
+    height: 100%;
+    line-height: 20px;
+    text-align: center;
+    color: #fff;
+    font-size: 0.8rem;
+    transition: width 0.3s;
+}
+
+/* Inventário */
+.inventory-card {
+    margin-bottom: 30px;
+}
+
+.inventory-card h5 {
+    margin: 0 0 20px;
+    font-size: 1.5rem;
+    color: #f8f9fa;
+    text-align: center;
+}
+
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.inventory-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.item-icon {
+    width: 64px;
+    height: 64px;
+    margin-right: 15px;
+}
+
+.item-info {
+    flex: 1;
+}
+
+.item-info h6 {
+    margin: 0;
+    font-size: 1rem;
+    color: #fff;
+}
+
+.quantity {
+    font-size: 0.8rem;
+    color: #9ca3af;
+}
+
+.item-info p {
+    margin: 5px 0 0;
+    font-size: 0.9rem;
+    color: #cbd5e1;
+}
+
+.use-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    background: rgba(46, 204, 113, 0.7);
+    color: #fff;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    transition: all 0.3s;
+}
+
+.use-btn:hover {
+    background: rgba(46, 204, 113, 0.9);
+}
+/* ─── Brilho pulsátil atrás do personagem ─────────────────────────── */
+.nicho-container::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(253, 233, 47, 0.4), rgba(255,255,255,0));
+    transform: translate(-50%, -50%);
+    filter: blur(30px);
+    z-index: -1; /* coloca atrás de tudo */
+    animation: pulseGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes pulseGlow {
+    from { opacity: 0.2; }
+    to   { opacity: 0.5;   }
+}
+/* ───────────────────────────────────────────────────────────────── */
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar particles.js
+    particlesJS('particles-js', {
+        particles: {
+            number: {
+                value: 100,
+                density: {
+                    enable: true,
+                    value_area: 800
+                }
+            },
+            color: {
+                value: ['#00bfff', '#ffcc00', '#ffffff']
+            },
+            shape: {
+                type: 'circle'
+            },
+            opacity: {
+                value: 0.6,
+                random: true
+            },
+            size: {
+                value: 2,
+                random: true
+            },
+            line_linked: {
+                enable: false
+            },
+            move: {
+                enable: true,
+                speed: 0.5,
+                direction: 'none',
+                random: true,
+                out_mode: 'out'
+            }
+        },
+        interactivity: {
+            detect_on: 'canvas',
+            events: {
+                onhover: {
+                    enable: false
+                },
+                onclick: {
+                    enable: false
+                }
+            }
+        },
+        retina_detect: true
+    });
+    
+    // Tabs de equipamentos
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabId = button.getAttribute('data-tab');
+            
+            // Remover active de todos
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Adicionar active ao selecionado
+            button.classList.add('active');
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+        });
+    });
+    
+    // Equipar/desequipar itens
+    const equipButtons = document.querySelectorAll('.equip-btn');
+    
+    equipButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const equipType = this.getAttribute('data-type');
+            const equipId = this.getAttribute('data-id');
+            
+            // Enviar para o servidor
+            fetch('/gamification/equip_item', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `type=${equipType}&item=${equipId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Atualizar botões
+                    document.querySelectorAll(`.equip-btn[data-type="${equipType}"]`).forEach(btn => {
+                        btn.classList.remove('active');
+                        btn.textContent = 'Equipar';
+                    });
+                    
+                    this.classList.add('active');
+                    this.textContent = 'Equipado';
+                    
+                    // Atualizar visual do personagem
+                    updateCharacterAppearance(equipType, equipId);
+                }
+            });
+        });
+    });
+    
+    // Aumentar atributos
+    const attributeButtons = document.querySelectorAll('.attribute-increase-btn');
+    
+    attributeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const attribute = this.getAttribute('data-attribute');
+            
+            // Enviar para o servidor
+            fetch('/gamification/add_attribute', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `attribute=${attribute}&points=1`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Atualizar página
+                    location.reload();
+                }
+            });
+        });
+    });
+    
+    // Usar itens do inventário
+    const useButtons = document.querySelectorAll('.use-btn');
+    
+    useButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const itemId = this.getAttribute('data-id');
+            
+            // Enviar para o servidor
+            fetch(`/gamification/use_item/${itemId}`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Atualizar página
+                    location.reload();
+                }
+            });
+        });
+    });
+    
+    // Função para atualizar aparência do personagem
+    function updateCharacterAppearance(type, id) {
+        if (type === 'helmet') {
+            // Esconder todos os capacetes
+            document.querySelector('.p1-idle-head-open-helmet').style.display = 'none';
+            document.querySelector('.p1-idle-head-close-helmet').style.display = 'none';
+            document.querySelector('.p1-idle-head-touca').style.display = 'none';
+            
+            // Mostrar o capacete selecionado
+            if (id === '1') {
+                document.querySelector('.p1-idle-head-open-helmet').style.display = 'block';
+            } else if (id === '2') {
+                document.querySelector('.p1-idle-head-close-helmet').style.display = 'block';
+            } else if (id === '3') {
+                document.querySelector('.p1-idle-head-touca').style.display = 'block';
+            }
+        }
+        
+        // Resincronizar as animações
+        const layers = document.querySelectorAll('.p1-idle-layer');
+        layers.forEach(layer => layer.style.animation = 'none');
+        requestAnimationFrame(() => {
+            layers.forEach(layer => {
+                layer.style.animation = 'p1IdleAnimation 0.8s steps(10) infinite';
+            });
+        });
+    }
+    
+    // Função para atualizar aparência do personagem
+    function updateCharacterAppearance(type, id) {
+        // ... código de atualização de aparência
+    }
+    
+    // Enviar mensagens de atributos para notificações
+    document.querySelectorAll('.alert').forEach(function(alert) {
+      const message = alert.textContent.trim();
+      if (message.includes('pontos adicionados a')) {
+        // Remover a mensagem da tela
+        alert.style.display = 'none';
+        
+        // Enviar para o servidor para armazenar na sessão
+        fetch('/store_notification', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify({
+            message: message
+          })
+        });
+      }
+    });
+});
+</script>
+
+<script>
+    // Adicione imediatamente após o carregamento da página
+    window.addEventListener('load', function() {
+        // Procurar alertas relacionados a atributos
+        document.querySelectorAll('.alert-success, .alert-gamification').forEach(function(alert) {
+            const message = alert.textContent.trim();
+            if (message.includes('pontos adicionados a')) {
+                console.log("Encontrada mensagem de atributo:", message);
+                
+                // Remover o alerta da tela
+                alert.style.display = 'none';
+                
+                // Enviar para armazenar na sessão do servidor
+                fetch('/store_notification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Notificação armazenada:", data);
+                })
+                .catch(error => {
+                    console.error("Erro ao armazenar notificação:", error);
+                });
+            }
+        });
+    });
+    </script>
+
+<script>
+    // Adicione imediatamente após o carregamento da página
+    window.addEventListener('load', function() {
+        // Procurar alertas relacionados a atributos
+        document.querySelectorAll('.alert-success, .alert-gamification').forEach(function(alert) {
+            const message = alert.textContent.trim();
+            if (message.includes('pontos adicionados a')) {
+                console.log("Encontrada mensagem de atributo:", message);
+                
+                // Verificar se a função de notificação está disponível
+                if (typeof window.addNotification === 'function') {
+                    window.addNotification(message);
+                } else {
+                    // Enviar para o servidor se a função não estiver disponível
+                    fetch('/store_notification', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: message
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("Notificação armazenada:", data);
+                    })
+                    .catch(error => {
+                        console.error("Erro ao armazenar notificação:", error);
+                    });
+                }
+            }
+        });
+    });
+</script>
+
+{% endblock %}

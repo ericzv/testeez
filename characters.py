@@ -1,0 +1,1083 @@
+# characters.py - Sistema Completo de Personagens e Skills
+"""
+Sistema unificado que gerencia:
+- Modelos SQLAlchemy para skills e buffs
+- Definições de personagens
+- Lógica de skills de ataque e especiais
+- Gerenciamento de buffs e efeitos
+"""
+
+# ===== IMPORTS =====
+from datetime import datetime, timedelta
+import json
+import random
+from database import db
+
+# =====================================
+# MODELOS SQLALCHEMY
+# =====================================
+
+class AttackSkill(db.Model):
+    """Modelo para habilidades de ataque"""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    damage_modifier = db.Column(db.Float, default=1.0)
+    mana_cost = db.Column(db.Integer, default=10)
+    points_cost = db.Column(db.Integer, default=0)
+    effect_type = db.Column(db.String(50))
+    effect_value = db.Column(db.Float, nullable=True)
+    
+    # Caminhos de mídia
+    attack_sequence = db.Column(db.String(100))
+    animation_fx_a = db.Column(db.String(255))
+    animation_fx_b = db.Column(db.String(255))
+    animation_attack = db.Column(db.String(255))
+    sound_activation = db.Column(db.String(255))
+    vignette = db.Column(db.String(255))
+    boss_damage_overlay = db.Column(db.String(255))
+    icon = db.Column(db.String(255))
+    sound_prep_1 = db.Column(db.String(255))
+    sound_prep_2 = db.Column(db.String(255))
+    sound_attack = db.Column(db.String(255))
+    sound_effect_1 = db.Column(db.String(255))
+    sound_effect_2 = db.Column(db.String(255))
+    projectile_type = db.Column(db.String(50))
+    beam_type = db.Column(db.String(50))
+    
+    def __repr__(self):
+        return f"<AttackSkill {self.name}>"
+
+class SpecialSkill(db.Model):
+    """Modelo para habilidades especiais"""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    max_charges = db.Column(db.Integer, default=1)
+    cooldown_minutes = db.Column(db.Integer, default=60)
+    positive_effect_type = db.Column(db.String(50))
+    positive_effect_value = db.Column(db.Text)  # JSON para efeitos complexos
+    negative_effect_type = db.Column(db.String(50))
+    negative_effect_value = db.Column(db.Float, nullable=True)
+    duration_type = db.Column(db.String(20))
+    duration_value = db.Column(db.Integer, default=60)
+    
+    # Caminhos de mídia
+    animation_activate_1 = db.Column(db.String(255))
+    animation_activate_2 = db.Column(db.String(255))
+    icon = db.Column(db.String(255))
+    sound_prep_1 = db.Column(db.String(255))
+    sound_prep_2 = db.Column(db.String(255))
+    sound_effect_1 = db.Column(db.String(255))
+    sound_effect_2 = db.Column(db.String(255))
+    
+    def __repr__(self):
+        return f"<SpecialSkill {self.name}>"
+
+class PlayerSkill(db.Model):
+    """Modelo para skills associadas ao jogador"""
+    id = db.Column(db.Integer, primary_key=True)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    skill_type = db.Column(db.String(20))  # "attack" ou "special"
+    skill_id = db.Column(db.Integer, nullable=False)
+    current_charges = db.Column(db.Integer, default=0)
+    last_charge_time = db.Column(db.DateTime, default=datetime.utcnow)
+    unlocked_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f"<PlayerSkill type={self.skill_type} id={self.skill_id}>"
+    
+    def get_time_until_next_charge(self):
+        """Calcula o tempo restante para a próxima carga"""
+        if self.skill_type != "special":
+            return timedelta(0)
+        
+        special = SpecialSkill.query.get(self.skill_id)
+        if not special:
+            return timedelta(0)
+        
+        cooldown_minutes = special.cooldown_minutes
+        next_charge_time = self.last_charge_time + timedelta(minutes=cooldown_minutes)
+        
+        now = datetime.utcnow()
+        if next_charge_time <= now:
+            return timedelta(0)
+        return next_charge_time - now
+
+class ActiveBuff(db.Model):
+    """Modelo para buffs ativos do jogador"""
+    id = db.Column(db.Integer, primary_key=True)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    source_skill_id = db.Column(db.Integer, nullable=False)
+    skill_type = db.Column(db.String(20))  # "attack" ou "special"
+    effect_type = db.Column(db.String(50), nullable=False)
+    effect_value = db.Column(db.Float, nullable=False)
+    duration_type = db.Column(db.String(20))  # "time" ou "attacks"
+    duration_value = db.Column(db.Integer)
+    start_time = db.Column(db.DateTime, default=datetime.utcnow)
+    attacks_remaining = db.Column(db.Integer, nullable=True)
+    icon = db.Column(db.String(255))
+    
+    def __repr__(self):
+        return f"<ActiveBuff {self.effect_type}={self.effect_value}>"
+    
+    def is_expired(self):
+        """Verifica se o buff expirou"""
+        if self.duration_type == "time":
+            expiry_time = self.start_time + timedelta(minutes=self.duration_value)
+            return datetime.utcnow() >= expiry_time
+        elif self.duration_type == "attacks":
+            return self.attacks_remaining <= 0
+        return True
+
+class CombatLog(db.Model):
+    """Modelo para log de combate"""
+    id = db.Column(db.Integer, primary_key=True)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    skill_id = db.Column(db.Integer, nullable=False)
+    skill_type = db.Column(db.String(20), nullable=False)  # "attack" ou "special"
+    points_used = db.Column(db.Integer, default=0)
+    mana_used = db.Column(db.Integer, default=0)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f"<CombatLog player_id={self.player_id} skill_id={self.skill_id}>"
+
+class UnlockedRPGSkill(db.Model):
+    """Armazena as habilidades de RPG desbloqueadas pelo jogador"""
+    id = db.Column(db.Integer, primary_key=True)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    skill_id = db.Column(db.Integer, nullable=False)
+    skill_type = db.Column(db.String(20), nullable=False)  # "attack" ou "special"
+    unlocked_at = db.Column(db.DateTime, default=datetime.utcnow)
+       
+    def __repr__(self):
+        return f"<UnlockedRPGSkill player_id={self.player_id} skill_id={self.skill_id}>"
+
+# =====================================
+# DEFINIÇÕES DE PERSONAGENS
+# =====================================
+
+CHARACTERS = {
+    "vlad": {
+        "id": "vlad",
+        "name": "Vlad",
+        "description": "Lorde de Sangue",
+        "passive_effect_type": "blood_drain",
+        "passive_effect_value": 0.0,
+        "icon": "vlad_icon.png",
+        "sprite_reference": "Vlad",
+        "skills": {
+            "ataque": 51,      # Garras Sangrentas
+            "poder": 50,       # Energia Escura  
+            "ataque_especial": 52,  # Abraço da Escuridão
+            "ultimate": 53     # Beijo da Morte
+        },
+        "special_abilities": [138, 139, 140, 141]
+    },
+    "mago_teste": {
+        "id": "mago_teste",
+        "name": "Mago Teste",
+        "description": "Mago para testes",
+        "passive_effect_type": "mana_regen",
+        "passive_effect_value": 0.20,
+        "icon": "mago_icon.png", 
+        "sprite_reference": "Mago",
+        "skills": {
+            "ataque": 1,
+            "poder": 2,
+            "ataque_especial": 10,
+            "ultimate": 11
+        },
+        "special_abilities": [101, 110, 111, 112]
+    }
+}
+
+# Skills do Vlad para inserir no banco
+VLAD_ATTACK_SKILLS_DATA = [
+    {
+        "id": 50,
+        "name": "Energia Escura",
+        "description": "Projétil de energia sombria que drena vida",
+        "effect_type": "",
+        "effect_value": 0.0,
+        "animation_fx_a": "mordida_mortal_front",
+        "animation_fx_b": "mordida_mortal_back",
+        "animation_attack": "",
+        "boss_damage_overlay": "necrotic_damage",
+        "sound_activation": "/static/game.data/sounds/vamp-start.mp3",
+        "icon": "/static/game.data/icons/icon2.png",
+        "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
+        "sound_prep_2": "",
+        "sound_effect_1": "/static/game.data/sounds/sfx2.mp3",
+        "sound_effect_2": "",
+        "attack_sequence": "ranged_projectile",
+        "projectile_type": "magic_missile"
+    },
+    {
+        "id": 51,
+        "name": "Garras Sangrentas",
+        "description": "Ataque corpo a corpo com garras vampíricas",
+        "effect_type": "lifesteal",
+        "effect_value": 0.2,
+        "animation_fx_a": "garras_sangrentas_front",
+        "animation_fx_b": "garras_sangrentas_back",
+        "animation_attack": "",
+        "boss_damage_overlay": "feral_damage",
+        "icon": "/static/game.data/icons/icon2.png",
+        "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
+        "sound_prep_2": "",
+        "sound_effect_1": "/static/game.data/sounds/sfx2.mp3",
+        "sound_effect_2": "",
+        "attack_sequence": "melee_run_basic"
+    },
+    {
+        "id": 52,
+        "name": "Abraço da Escuridão",
+        "description": "Feixe sombrio que envolve o inimigo",
+        "effect_type": "crit_chance",
+        "effect_value": 0.20,
+        "animation_fx_a": "abraco_escuridao_front",
+        "animation_fx_b": "abraco_escuridao_back",
+        "animation_attack": "",
+        "boss_damage_overlay": "darkness_embrace_distant",
+        "icon": "/static/game.data/icons/icon2.png",
+        "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
+        "sound_prep_2": "",
+        "sound_effect_1": "/static/game.data/sounds/sfx2.mp3",
+        "sound_effect_2": "",
+        "attack_sequence": "ranged_beam",
+        "beam_type": "dark_beam"
+    },
+    {
+        "id": 53,
+        "name": "Beijo da Morte",
+        "description": "O ultimate vampírico que drena toda essência vital",
+        "effect_type": "",
+        "effect_value": 0.0,
+        "animation_fx_a": "beijo_morte_front",
+        "animation_fx_b": "beijo_morte_back",
+        "animation_attack": "",
+        "icon": "/static/game.data/icons/icon2.png",
+        "boss_damage_overlay": "blood_damage",
+        "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
+        "sound_prep_2": "",
+        "sound_effect_1": "/static/game.data/sounds/sfx2.mp3",
+        "sound_effect_2": "",
+        "attack_sequence": "ranged_distant"
+    }
+]
+
+VLAD_SPECIAL_SKILLS_DATA = [
+    {
+        "id": 138,
+        "name": "Autofagia",
+        "description": "Sacrifica sangue para aumentar poder de ataque",
+        "max_charges": 1,
+        "cooldown_minutes": 600,
+        "positive_effect_type": "multi_boost",
+        "positive_effect_value": '{"crit_chance": 0.25, "crit_damage": 0.5}',
+        "negative_effect_type": "hp_cost",
+        "negative_effect_value": 0.25,
+        "duration_type": "attacks",
+        "duration_value": 4,
+        "animation_activate_1": "/static/game.data/activation/activation2a.png",
+        "animation_activate_2": "/static/game.data/activation/activation2b.png",
+        "icon": "/static/game.data/icons/icon3.png",
+        "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
+        "sound_effect_1": "/static/game.data/sounds/sfx2.mp3"
+    },
+    {
+        "id": 139,
+        "name": "Aura Vampírica",
+        "description": "Emana aura que drena vida com cada ataque",
+        "max_charges": 1,
+        "cooldown_minutes": 600,
+        "positive_effect_type": "lifesteal",
+        "positive_effect_value": "0.15",
+        "negative_effect_type": None,
+        "negative_effect_value": None,
+        "duration_type": "time",
+        "duration_value": 240,
+        "animation_activate_1": "/static/game.data/activation/activation2a.png",
+        "animation_activate_2": "/static/game.data/activation/activation2b.png",
+        "icon": "/static/game.data/icons/icon3.png",
+        "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
+        "sound_effect_1": "/static/game.data/sounds/sfx2.mp3"
+    },
+    {
+        "id": 140,
+        "name": "Domínio Mental",
+        "description": "Controla mente do inimigo temporariamente",
+        "max_charges": 1,
+        "cooldown_minutes": 1080,
+        "positive_effect_type": "mind_control",
+        "positive_effect_value": "0.7",
+        "negative_effect_type": "mp_cost",
+        "negative_effect_value": 0.4,
+        "duration_type": "attacks",
+        "duration_value": 1,
+        "animation_activate_1": "/static/game.data/activation/activation2a.png",
+        "animation_activate_2": "/static/game.data/activation/activation2b.png",
+        "icon": "/static/game.data/icons/icon3.png",
+        "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
+        "sound_effect_1": "/static/game.data/sounds/sfx2.mp3"
+    },
+    {
+        "id": 141,
+        "name": "Abraço Sanguíneo",
+        "description": "Poder supremo que drena toda essência vital",
+        "max_charges": 1,
+        "cooldown_minutes": 2880,
+        "positive_effect_type": "blood_embrace",
+        "positive_effect_value": "1.0",
+        "negative_effect_type": None,
+        "negative_effect_value": None,
+        "duration_type": "attacks",
+        "duration_value": 1,
+        "animation_activate_1": "/static/game.data/activation/activation2a.png",
+        "animation_activate_2": "/static/game.data/activation/activation2b.png",
+        "icon": "/static/game.data/icons/icon3.png",
+        "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
+        "sound_effect_1": "/static/game.data/sounds/sfx2.mp3"
+    }
+]
+
+# =====================================
+# FUNÇÕES DE INICIALIZAÇÃO
+# =====================================
+
+def init_vlad_skills():
+    """Inicializa as skills do Vlad no banco - SEM IMPORT CIRCULAR"""
+    try:
+        print("🔄 Inicializando skills do Vlad...")
+        
+        # Adicionar skills de ataque do Vlad
+        for skill_data in VLAD_ATTACK_SKILLS_DATA:
+            existing = AttackSkill.query.get(skill_data["id"])
+            if not existing:
+                skill = AttackSkill(**skill_data)
+                db.session.add(skill)
+                print(f"  ✅ Skill de ataque criada: {skill_data['name']} (ID: {skill_data['id']})")
+            else:
+                print(f"  ⏭️ Skill de ataque já existe: {skill_data['name']} (ID: {skill_data['id']})")
+        
+        # Adicionar skills especiais do Vlad
+        for skill_data in VLAD_SPECIAL_SKILLS_DATA:
+            existing = SpecialSkill.query.get(skill_data["id"])
+            if not existing:
+                skill = SpecialSkill(**skill_data)
+                db.session.add(skill)
+                print(f"  ✅ Skill especial criada: {skill_data['name']} (ID: {skill_data['id']})")
+            else:
+                print(f"  ⏭️ Skill especial já existe: {skill_data['name']} (ID: {skill_data['id']})")
+        
+        db.session.commit()
+        print("✅ Skills do Vlad inicializadas com sucesso!")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Erro ao inicializar skills do Vlad: {e}")
+        return False
+
+def init_skills():
+    """Inicializa as habilidades no banco de dados"""
+    # Usar função específica do personagem
+    success = init_vlad_skills()
+    if success:
+        print("Habilidades inicializadas com sucesso via personagens!")
+        return
+    
+    print("❌ Falha ao inicializar habilidades")
+
+# =====================================
+# FUNÇÕES DE PERSONAGENS
+# =====================================
+
+def choose_character(player_id, character_id):
+    """Escolhe um personagem e configura suas skills"""
+    try:
+        from models import Player
+        
+        player = Player.query.get(player_id)
+        if not player:
+            return False, "Jogador não encontrado."
+            
+        character = CHARACTERS.get(character_id)
+        if not character:
+            return False, "Personagem inválido."
+        
+        print(f"🎭 Configurando personagem {character['name']} para player {player_id}")
+        
+        # Definir personagem
+        player.character_id = character_id
+        
+        # Limpar skills antigas
+        PlayerSkill.query.filter_by(player_id=player_id).delete()
+        
+        # Adicionar as 4 skills de ataque do personagem
+        for skill_type, skill_id in character["skills"].items():
+            player_skill = PlayerSkill(
+                player_id=player_id,
+                skill_id=skill_id,
+                skill_type="attack"
+            )
+            db.session.add(player_skill)
+            print(f"  ➕ Skill de ataque adicionada: {skill_type} (ID: {skill_id})")
+        
+        # Adicionar as habilidades especiais
+        for skill_id in character["special_abilities"]:
+            player_skill = PlayerSkill(
+                player_id=player_id,
+                skill_id=skill_id,
+                skill_type="special",
+                current_charges=0,
+                last_charge_time=datetime.utcnow()
+            )
+            db.session.add(player_skill)
+            print(f"  ⭐ Skill especial adicionada: ID {skill_id}")
+        
+        db.session.commit()
+        print(f"✅ Personagem {character['name']} configurado com sucesso!")
+        return True, f"Você escolheu {character['name']}!"
+        
+    except Exception as e:
+        print(f"❌ Erro ao escolher personagem: {e}")
+        return False, f"Erro interno: {str(e)}"
+
+def get_character_data(character_id):
+    """Retorna dados completos do personagem"""
+    return CHARACTERS.get(character_id)
+
+def get_attack_type_by_skill_id(skill_id, character_id):
+    """
+    Identifica o tipo de ataque baseado no skill_id e personagem.
+    
+    Args:
+        skill_id: ID da skill usada
+        character_id: ID do personagem (ex: "vlad")
+    
+    Returns:
+        str: Tipo do ataque ("ataque", "poder", "ataque_especial", "ultimate") ou None
+    """
+    if not character_id or character_id not in CHARACTERS:
+        return None
+    
+    character_skills = CHARACTERS[character_id]["skills"]
+    
+    # Procurar qual tipo de ataque corresponde ao skill_id
+    for attack_type, mapped_skill_id in character_skills.items():
+        if mapped_skill_id == skill_id:
+            return attack_type
+    
+    return None
+
+def get_memory_buff_type_by_attack_type(attack_type):
+    """
+    Converte tipo de ataque para tipo de buff de memória.
+    
+    Args:
+        attack_type: Tipo do ataque ("ataque", "poder", "ataque_especial", "ultimate")
+    
+    Returns:
+        str: Tipo de buff correspondente ou None
+    """
+    mapping = {
+        "ataque": "damage_attack",
+        "poder": "damage_power", 
+        "ataque_especial": "damage_special",
+        "ultimate": "damage_ultimate"
+    }
+    
+    return mapping.get(attack_type)
+
+# =====================================
+# FUNÇÕES DE MANIPULAÇÃO DE SKILLS
+# =====================================
+
+def get_player_attacks(player_id):
+    """Retorna as habilidades de ataque que o jogador já desbloqueou"""
+    player_skills = PlayerSkill.query.filter_by(
+        player_id=player_id,
+        skill_type="attack"
+    ).all()
+    
+    result = []
+    for ps in player_skills:
+        skill = AttackSkill.query.get(ps.skill_id)
+        if skill:
+            try:
+                skill_data = {
+                    "id": skill.id,
+                    "name": skill.name,
+                    "description": skill.description,
+                    "level": 1,
+                    "damage_modifier": skill.damage_modifier,
+                    "mana_cost": skill.mana_cost,
+                    "effect_type": skill.effect_type,
+                    "effect_value": skill.effect_value,
+                    "skill_type": None,  # Será preenchido do cache abaixo
+                    # Caminhos de mídia
+                    "icon": skill.icon or "",
+                    "sound_prep_1": skill.sound_prep_1 or "",
+                    "sound_prep_2": skill.sound_prep_2 or "",
+                    "sound_attack": skill.sound_attack or "",
+                    "sound_effect_1": skill.sound_effect_1 or "",
+                    "sound_effect_2": skill.sound_effect_2 or "",
+                    "animation_fx_a": skill.animation_fx_a or "",
+                    "animation_fx_b": skill.animation_fx_b or "",
+                    "animation_attack": skill.animation_attack or "",
+                    "sound_activation": skill.sound_activation or "",
+                    "vignette": skill.vignette or "",
+                    "boss_damage_overlay": skill.boss_damage_overlay or "",
+                    "projectile_type": skill.projectile_type or "",
+                    "beam_type": skill.beam_type or "",
+                    "attack_sequence": skill.attack_sequence or "melee_teleport_basic"
+                }
+                
+                result.append(skill_data)
+            except Exception as e:
+                print(f"Erro ao processar skill {skill.id}: {str(e)}")
+                result.append({
+                    "id": skill.id,
+                    "name": skill.name,
+                    "description": skill.description,
+                    "level": 1,
+                    "damage_modifier": 1.0,
+                    "mana_cost": skill.mana_cost,
+                    "icon": "/static/game.data/icons/icon1.png",
+                    "effect_type": None,
+                    "effect_value": None,
+                    "attack_sequence": "melee_teleport_basic"
+                })
+    
+    # Buscar skill_type e energy_cost do cache para cada skill
+    from models import PlayerAttackCache
+    for skill in result:
+        cache = PlayerAttackCache.query.filter_by(
+            player_id=player_id,
+            skill_id=skill['id']
+        ).first()
+        if cache:
+            skill['skill_type'] = cache.skill_type
+            skill['energy_cost'] = cache.energy_cost  # ← ADICIONAR ESTA LINHA
+
+    return result
+
+def get_player_specials(player_id):
+    """Retorna as habilidades especiais que o jogador já desbloqueou"""
+    player_skills = PlayerSkill.query.filter_by(
+        player_id=player_id,
+        skill_type="special"
+    ).all()
+    
+    result = []
+    for ps in player_skills:
+        skill = SpecialSkill.query.get(ps.skill_id)
+        if skill:
+            time_until_next = ps.get_time_until_next_charge()
+            
+            result.append({
+                "id": skill.id,
+                "name": skill.name,
+                "description": skill.description,
+                "level": 1,
+                "current_charges": ps.current_charges,
+                "max_charges": skill.max_charges,
+                "cooldown_minutes": skill.cooldown_minutes,
+                "time_until_next": time_until_next.total_seconds() if time_until_next else None,
+                "positive_effect": {
+                    "type": skill.positive_effect_type,
+                    "value": skill.positive_effect_value
+                },
+                "negative_effect": {
+                    "type": skill.negative_effect_type,
+                    "value": skill.negative_effect_value
+                } if skill.negative_effect_type else None,
+                "duration": {
+                    "type": skill.duration_type,
+                    "value": skill.duration_value
+                },
+                "icon": skill.icon
+            })
+    
+    return result
+
+def use_attack_skill(player_id, skill_id, session_points=0):
+    """Executa um ataque com a habilidade especificada"""
+    from models import Player
+    
+    player = Player.query.get(player_id)
+    if not player:
+        return False, "Jogador não encontrado.", {}
+    
+    player_skill = PlayerSkill.query.filter_by(
+        player_id=player_id,
+        skill_id=skill_id,
+        skill_type="attack"
+    ).first()
+    
+    if not player_skill:
+        return False, "Você não possui esta habilidade.", {}
+    
+    skill = AttackSkill.query.get(skill_id)
+    if not skill:
+        return False, "Habilidade não encontrada.", {}
+    
+    if player.mp < skill.mana_cost:
+        return False, f"Mana insuficiente. Necessário: {skill.mana_cost}", {}
+    
+    damage_modifier = skill.damage_modifier
+    applied_buffs = []
+    
+    active_buffs = ActiveBuff.query.filter_by(player_id=player_id).all()
+    
+    crit_chance_bonus = 0
+    crit_damage_bonus = 0
+    damage_bonus = 0
+    lifesteal_bonus = 0
+    
+    for buff in active_buffs:
+        if buff.is_expired():
+            db.session.delete(buff)
+            continue
+        
+        if buff.effect_type == "crit_chance":
+            crit_chance_bonus += buff.effect_value
+            applied_buffs.append(f"+{buff.effect_value*100:.0f}% Chance de Crítico")
+        elif buff.effect_type == "crit_damage":
+            crit_damage_bonus += buff.effect_value
+            applied_buffs.append(f"+{buff.effect_value*100:.0f}% Dano Crítico")
+        elif buff.effect_type == "damage":
+            damage_bonus += buff.effect_value
+            applied_buffs.append(f"+{buff.effect_value*100:.0f}% Dano")
+        elif buff.effect_type == "lifesteal":
+            lifesteal_bonus += buff.effect_value
+            applied_buffs.append(f"+{buff.effect_value*100:.0f}% Roubo de Vida")
+        
+        if buff.duration_type == "attacks":
+            buff.attacks_remaining -= 1
+            if buff.attacks_remaining <= 0:
+                db.session.delete(buff)
+    
+    base_damage = 1.0 + player.damage_bonus
+    total_damage_modifier = damage_modifier + damage_bonus
+    
+    player.mp -= skill.mana_cost
+    
+    combat_log = CombatLog(
+        player_id=player_id,
+        skill_id=skill_id,
+        skill_type="attack",
+        points_used=0,
+        mana_used=skill.mana_cost,
+        timestamp=datetime.utcnow()
+    )
+    db.session.add(combat_log)
+    db.session.commit()
+    
+    return True, f"Habilidade {skill.name} utilizada com sucesso!", {
+        "damage_modifier": damage_modifier,
+        "total_damage_modifier": total_damage_modifier,
+        "base_damage": base_damage,
+        "crit_chance_bonus": crit_chance_bonus,
+        "crit_damage_bonus": crit_damage_bonus,
+        "lifesteal_bonus": lifesteal_bonus,
+        "mana_used": skill.mana_cost,
+        "applied_buffs": applied_buffs
+    }
+
+def extend_or_create_buff(player_id, source_skill_id, effect_type, effect_value, duration_type, duration_value, icon=None):
+    """
+    Estende a duração de um buff existente ou cria um novo buff.
+    """
+    try:
+        print(f"Tentando criar/estender buff: {effect_type} para player {player_id}")
+        
+        existing_buff = ActiveBuff.query.filter_by(
+            player_id=player_id,
+            source_skill_id=source_skill_id,
+            effect_type=effect_type
+        ).first()
+        
+        if existing_buff:
+            print("Atualizando buff existente")
+            if duration_type == "time":
+                current_end_time = existing_buff.start_time + timedelta(minutes=existing_buff.duration_value)
+                now = datetime.utcnow()
+                
+                if current_end_time > now:
+                    new_duration = (current_end_time - now).total_seconds() / 60 + duration_value
+                else:
+                    new_duration = duration_value
+                
+                existing_buff.duration_value = int(new_duration)
+                existing_buff.start_time = now
+                
+            elif duration_type == "attacks":
+                current_attacks = existing_buff.attacks_remaining or 0
+                existing_buff.attacks_remaining = current_attacks + duration_value
+            
+            if icon is not None:
+                existing_buff.icon = icon
+            
+            return existing_buff
+        else:
+            print("Criando novo buff")
+            buff_data = {
+                'player_id': player_id,
+                'source_skill_id': source_skill_id,
+                'effect_type': effect_type,
+                'effect_value': effect_value,
+                'duration_type': duration_type,
+                'duration_value': duration_value,
+                'skill_type': "special",
+                'start_time': datetime.utcnow()
+            }
+            
+            if duration_type == "attacks":
+                buff_data['attacks_remaining'] = duration_value
+            
+            if icon is not None:
+                buff_data['icon'] = icon
+            
+            new_buff = ActiveBuff(**buff_data)
+            db.session.add(new_buff)
+            return new_buff
+            
+    except Exception as e:
+        print(f"ERRO em extend_or_create_buff: {str(e)}")
+        return None
+
+def use_special_skill(player_id, skill_id):
+    """Ativa uma habilidade especial"""
+    print(f"==== INICIANDO use_special_skill(player_id={player_id}, skill_id={skill_id}) ====")
+    try:
+        from models import Player
+        
+        player = Player.query.get(player_id)
+        if not player:
+            return False, "Jogador não encontrado.", {}
+        
+        player_skill = PlayerSkill.query.filter_by(
+            player_id=player_id,
+            skill_id=skill_id,
+            skill_type="special"
+        ).first()
+        
+        if not player_skill:
+            return False, "Você não possui esta habilidade.", {}
+        
+        skill = SpecialSkill.query.get(skill_id)
+        if not skill:
+            return False, "Habilidade não encontrada.", {}
+        
+        if player_skill.current_charges <= 0:
+            time_until_next = player_skill.get_time_until_next_charge()
+            hours, remainder = divmod(time_until_next.total_seconds(), 3600)
+            minutes, seconds = divmod(remainder, 60)
+            time_str = ""
+            if hours > 0:
+                time_str += f"{int(hours)}h "
+            if minutes > 0:
+                time_str += f"{int(minutes)}min "
+            time_str += f"{int(seconds)}s"
+            
+            return False, f"Sem cargas disponíveis. Próxima carga em: {time_str}", {}
+        
+        positive_type = skill.positive_effect_type
+        positive_value = skill.positive_effect_value
+        duration_type = skill.duration_type
+        duration_value = skill.duration_value
+        skill_icon = skill.icon if hasattr(skill, 'icon') else None
+        
+        # Processar efeitos comuns
+        if positive_type in ["crit_chance", "crit_damage", "damage", "lifesteal", "block_bonus", "damage_reduction"]:
+            extend_or_create_buff(
+                player_id=player_id,
+                source_skill_id=skill_id,
+                effect_type=positive_type,
+                effect_value=positive_value,
+                duration_type=duration_type,
+                duration_value=duration_value,
+                icon=skill_icon
+            )
+        
+        # Processar efeitos especiais complexos
+        elif positive_type == "multi_boost":
+            if isinstance(positive_value, str):
+                positive_value = json.loads(positive_value)
+            
+            if isinstance(positive_value, dict):
+                for effect_type, effect_value in positive_value.items():
+                    extend_or_create_buff(
+                        player_id=player_id,
+                        source_skill_id=skill_id,
+                        effect_type=effect_type,
+                        effect_value=effect_value,
+                        duration_type=duration_type,
+                        duration_value=duration_value,
+                        icon=skill_icon
+                    )
+        
+        # Aplicar efeitos negativos
+        negative_effects = {}
+        if skill.negative_effect_type:
+            negative_type = skill.negative_effect_type
+            negative_value = skill.negative_effect_value
+            
+            if negative_type == "hp_cost":
+                hp_cost = int(player.max_hp * negative_value)
+                player.hp = max(1, player.hp - hp_cost)
+                negative_effects["hp_loss"] = hp_cost
+            
+            elif negative_type == "mp_cost":
+                mp_cost = int(player.max_mp * negative_value)
+                player.mp = max(0, player.mp - mp_cost)
+                negative_effects["mp_loss"] = mp_cost
+        
+        # Consumir carga
+        player_skill.current_charges -= 1
+        
+        if player_skill.current_charges == 0:
+            player_skill.last_charge_time = datetime.utcnow()
+        
+        # Log de combate
+        combat_log = CombatLog(
+            player_id=player_id,
+            skill_id=skill_id,
+            skill_type="special",
+            points_used=0,
+            mana_used=0,
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(combat_log)
+        db.session.commit()
+        
+        # Formatar mensagem
+        duration_msg = ""
+        if duration_type == "attacks":
+            duration_msg = f"por {duration_value} ataques"
+        else:
+            if duration_value < 60:
+                duration_msg = f"por {duration_value} minutos"
+            else:
+                hours = duration_value // 60
+                minutes = duration_value % 60
+                duration_msg = f"por {hours}h{minutes}min"
+        
+        effect_msg = ""
+        if positive_type == "crit_chance":
+            effect_msg = f"+{float(positive_value)*100:.0f}% Chance de Crítico"
+        elif positive_type == "crit_damage":
+            effect_msg = f"+{float(positive_value)*100:.0f}% Dano Crítico"
+        elif positive_type == "damage":
+            effect_msg = f"+{float(positive_value)*100:.0f}% Dano"
+        elif positive_type == "lifesteal":
+            effect_msg = f"+{float(positive_value)*100:.0f}% Roubo de Vida"
+        
+        animation_data = {
+            "animation_activate_1": getattr(skill, 'animation_activate_1', None),
+            "animation_activate_2": getattr(skill, 'animation_activate_2', None),
+            "sound_prep_1": getattr(skill, 'sound_prep_1', None),
+            "sound_prep_2": getattr(skill, 'sound_prep_2', None),
+            "sound_effect_1": getattr(skill, 'sound_effect_1', None),
+            "sound_effect_2": getattr(skill, 'sound_effect_2', None)
+        }
+        
+        return True, f"Habilidade {skill.name} ativada! {effect_msg} {duration_msg}", {
+            "positive_effect": {
+                "type": positive_type,
+                "value": positive_value,
+                "icon": skill_icon
+            },
+            "negative_effects": negative_effects,
+            "duration": {
+                "type": duration_type,
+                "value": duration_value
+            },
+            "animation": animation_data
+        }
+    
+    except Exception as e:
+        print(f"ERRO em use_special_skill: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return False, f"Erro interno: {str(e)}", {}
+
+def update_skill_charges(player_id, specific_skill_id=None):
+    """Atualiza as cargas das habilidades especiais"""
+    query = PlayerSkill.query.filter_by(player_id=player_id, skill_type="special")
+    
+    if specific_skill_id:
+        query = query.filter_by(skill_id=specific_skill_id)
+    
+    player_skills = query.all()
+    now = datetime.utcnow()
+    updated_skills = []
+    
+    for ps in player_skills:
+        skill = SpecialSkill.query.get(ps.skill_id)
+        if not skill:
+            continue
+        
+        max_charges = skill.max_charges
+        
+        if ps.current_charges >= max_charges:
+            continue
+        
+        cooldown_minutes = skill.cooldown_minutes
+        elapsed = now - ps.last_charge_time
+        elapsed_minutes = elapsed.total_seconds() / 60
+        charges_to_add = int(elapsed_minutes / cooldown_minutes)
+        
+        if charges_to_add > 0:
+            old_charges = ps.current_charges
+            ps.current_charges = min(ps.current_charges + charges_to_add, max_charges)
+            
+            time_used = timedelta(minutes=charges_to_add * cooldown_minutes)
+            ps.last_charge_time += time_used
+            
+            updated_skills.append({
+                "skill_id": ps.skill_id,
+                "skill_name": skill.name,
+                "old_charges": old_charges,
+                "new_charges": ps.current_charges
+            })
+    
+    if updated_skills:
+        db.session.commit()
+    
+    return updated_skills
+
+def update_active_buffs(player_id):
+    """Atualiza buffs ativos e remove os expirados"""
+    active_buffs = ActiveBuff.query.filter_by(player_id=player_id).all()
+    removed_buffs = []
+    
+    for buff in active_buffs:
+        if buff.is_expired():
+            removed_buffs.append({
+                "effect_type": buff.effect_type,
+                "effect_value": buff.effect_value
+            })
+            db.session.delete(buff)
+    
+    if removed_buffs:
+        db.session.commit()
+    
+    return removed_buffs
+
+def apply_time_based_effects(player_id):
+    """Aplica efeitos baseados na hora do dia"""
+    from models import Player
+    
+    player = Player.query.get(player_id)
+    if not player:
+        return []
+    
+    current_hour = datetime.now().hour
+    applied_effects = []
+    
+    last_check = getattr(player, 'last_time_check', None)
+    today = datetime.now().date()
+    
+    if not last_check or last_check.date() < today:
+        last_check = datetime.combine(today, datetime.min.time())
+    
+    # Futuro: adicionar efeitos específicos de personagens aqui
+    
+    player.last_time_check = datetime.now()
+    db.session.commit()
+    
+    return applied_effects
+
+def apply_daily_effects(player_id):
+    """Aplica efeitos diários"""
+    from models import Player
+    
+    player = Player.query.get(player_id)
+    if not player:
+        return []
+    
+    today = datetime.now().date()
+    last_daily = getattr(player, 'last_daily_effects', None)
+    
+    if last_daily and last_daily.date() == today:
+        return []
+    
+    applied_effects = []
+    
+    player.last_daily_effects = datetime.now()
+    db.session.commit()
+    
+    return applied_effects
+
+def fill_all_special_charges(player_id):
+    """Preenche todas as cargas de habilidades especiais do jogador"""
+    player_skills = PlayerSkill.query.filter_by(
+        player_id=player_id,
+        skill_type="special"
+    ).all()
+    
+    filled_skills = []
+    
+    for ps in player_skills:
+        skill = SpecialSkill.query.get(ps.skill_id)
+        if not skill:
+            continue
+        
+        max_charges = skill.max_charges
+        old_charges = ps.current_charges
+        ps.current_charges = max_charges
+        
+        filled_skills.append({
+            "skill_id": ps.skill_id,
+            "skill_name": skill.name,
+            "old_charges": old_charges,
+            "new_charges": ps.current_charges
+        })
+    
+    if filled_skills:
+        db.session.commit()
+    
+    return filled_skills
+
+# =====================================
+# FUNÇÕES AUXILIARES
+# =====================================
+
+def get_max_charges(skill_id):
+    """Retorna o número máximo de cargas para uma habilidade especial"""
+    skill = SpecialSkill.query.get(skill_id)
+    if not skill:
+        return 1
+    return skill.max_charges
+
+def format_time_remaining(target_time):
+    """Formata o tempo restante até um momento específico"""
+    now = datetime.utcnow()
+    
+    if target_time <= now:
+        return "Pronto"
+    
+    delta = target_time - now
+    hours, remainder = divmod(delta.total_seconds(), 3600)
+    minutes, seconds = divmod(remainder, 60)
+    
+    if hours > 0:
+        return f"{int(hours)}h {int(minutes)}min"
+    elif minutes > 0:
+        return f"{int(minutes)}min {int(seconds)}s"
+    else:
+        return f"{int(seconds)}s"
+
+# Funções process_skills não são mais usadas no novo sistema
+# Mas mantidas para compatibilidade se necessário
+def process_skills(skills):
+    """DEPRECATED - Mantido para compatibilidade"""
+    return skills
+
+def process_special_skills(skills):
+    """DEPRECATED - Mantido para compatibilidade"""
+    return skills

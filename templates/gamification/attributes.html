@@ -1,0 +1,492 @@
+{% extends 'gamification/base.html' %}
+
+{% block game_content %}
+<div class="row">
+  <div class="col-md-4">
+    <div class="card mb-4">
+      <div class="wood-header">
+        <h5 class="card-title mb-0">Seu Personagem</h5>
+      </div>
+      <div class="card-body text-center">
+        <!-- Personagem com nicho -->
+        <div class="nicho-container">
+          <div class="nicho-background"></div>
+          <div class="p1-idle-container">
+            <!-- Camada base da armadura -->
+            <div class="p1-idle-layer p1-idle-armor"></div>
+            
+            <!-- Camada base da cabeça (sempre visível) -->
+            <div class="p1-idle-layer p1-idle-head"></div>
+            
+            <!-- Equipamentos de cabeça (visíveis conforme equipados) -->
+            <div class="p1-idle-layer p1-idle-head-open-helmet" style="display: {% if player.equipped_helmet == 'open-helmet' %}block{% else %}none{% endif %}"></div>
+            <div class="p1-idle-layer p1-idle-head-close-helmet" style="display: {% if player.equipped_helmet == 'close-helmet' %}block{% else %}none{% endif %}"></div>
+            <div class="p1-idle-layer p1-idle-head-touca" style="display: {% if player.equipped_helmet == 'touca' %}block{% else %}none{% endif %}"></div>
+            
+            <!-- Olhos (visíveis conforme equipados) -->
+            <div class="p1-idle-layer p1-idle-eyes-fire" style="display: {% if player.equipped_eyes == 'fire' or not player.equipped_eyes %}block{% else %}none{% endif %}"></div>
+            <div class="p1-idle-layer p1-idle-eyes-white" style="display: {% if player.equipped_eyes == 'white' %}block{% else %}none{% endif %}"></div>
+            
+            <!-- Camadas adicionais -->
+            <div class="p1-idle-layer p1-idle-hair"></div>
+            <div class="p1-idle-layer p1-idle-sword"></div>
+            <div class="p1-idle-layer p1-idle-soulgem"></div>
+          </div>
+        </div>
+        
+        {% set title_info = get_player_title(player.level) %}
+        <h4>{{ title_info[0] }}</h4>
+        <p class="text-muted small">{{ title_info[1] }}</p>
+        <p>Nível {{ player.level }}</p>
+      </div>
+    </div>
+
+    <!-- BOTÃO TEMPORÁRIO PARA TESTES - REMOVER EM PRODUÇÃO -->
+<div class="dev-controls mb-4">
+  <div class="card border-danger">
+    <div class="card-body bg-danger bg-opacity-10">
+      <h5 class="card-title text-danger">Controles de Desenvolvimento (REMOVER EM PRODUÇÃO)</h5>
+      <div class="d-flex gap-2">
+        <form action="{{ url_for('dev_level_up', levels=1) }}" method="POST">
+          <button type="submit" class="btn btn-sm btn-warning">+1 Nível</button>
+        </form>
+        <form action="{{ url_for('dev_level_up', levels=5) }}" method="POST">
+          <button type="submit" class="btn btn-sm btn-warning">+5 Níveis</button>
+        </form>
+        <form action="{{ url_for('dev_level_up', levels=10) }}" method="POST">
+          <button type="submit" class="btn btn-sm btn-warning">+10 Níveis</button>
+        </form>
+        <form action="{{ url_for('dev_level_up', levels=20) }}" method="POST">
+          <button type="submit" class="btn btn-sm btn-warning">+20 Níveis</button>
+        </form>
+      </div>
+      <div class="text-danger mt-2 small">
+        <i class="fas fa-exclamation-triangle"></i> Esses controles são apenas para teste e devem ser removidos antes da produção!
+      </div>
+    </div>
+  </div>
+</div>
+<!-- FIM DOS CONTROLES DE DESENVOLVIMENTO -->
+    
+    <div class="card">
+      <div class="wood-header">
+        <h5 class="card-title mb-0">Status</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-6">
+            <div class="progress mb-2" title="HP: {{ player.hp }}/{{ player.max_hp }}">
+              <div class="progress-bar bg-danger" role="progressbar" 
+                   style="width: {{ (player.hp / player.max_hp * 100)|round(1) }}%">
+                HP
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+          </div>
+        </div>
+        
+        <div class="progress mb-3" title="XP: {{ player.experience }}/{{ get_exp_for_next_level(player.level) }}">
+          <div class="progress-bar bg-success" role="progressbar" 
+               style="width: {{ (player.experience / get_exp_for_next_level(player.level) * 100)|round(1) }}%">
+            XP: {{ player.experience }}/{{ get_exp_for_next_level(player.level) }}
+          </div>
+        </div>
+        
+        <div class="attribute-summary">
+          {% set base_damage = 1.0 %}
+          {% set attr_damage = player.damage_bonus %}
+          {% set equip_damage = 0.0 %}
+          {% set total_damage = base_damage + attr_damage + equip_damage %}
+          
+          <p><strong>Dano Base:</strong> {{ "%.2f"|format(total_damage) }} ({{ "%.2f"|format(base_damage + attr_damage) }} + {{ "%.2f"|format(equip_damage) }})</p>
+          
+          <p><strong>Bloqueio:</strong>
+            {{ calculate_resistance_block(player.resistance, player.block_bonus) | round(1) }}%
+         </p>
+          <p><strong>Regeneração HP:</strong> 1 HP a cada {{ calculate_vitality_regeneration(player.vitality) | round(0) }} revisões</p>
+          
+          {% if player.specialization %}
+          <p><strong>Especialização:</strong> {{ player.specialization }}</p>
+          {% if player.specialization == "Fogo" %}
+          <p><strong>Bônus:</strong> +0.5x multiplicador de dano</p>
+          {% elif player.specialization == "Sombras" %}
+          <p><strong>Bônus:</strong> +0.3x multiplicador de dano, +20 Resistência, +10 Vitalidade</p>
+          {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-8">
+    <div class="card">
+      <div class="wood-header">
+        <h5 class="card-title mb-0">Atributos</h5>
+      </div>
+      <div class="card-body">
+        {% if player.attribute_points > 0 %}
+        <div class="alert alert-info">
+          <strong>Você tem <span id="points-counter">{{ player.attribute_points }}</span> pontos de atributo para distribuir!</strong>
+        </div>
+        {% endif %}
+        
+        <!-- Sistema de atributos -->
+        <div class="attribute-container">
+          <!-- Força -->
+          <div class="attribute-row attribute-container" data-attribute="strength">
+            <div class="attribute-name">
+              <h5>Força</h5>
+              <p class="attribute-value">{{ player.strength }}</p>
+            </div>
+            <div class="attribute-actions">
+              {% if player.attribute_points > 0 and player.strength < 100 %}
+              <div class="d-flex align-items-center">
+                <button class="btn btn-sm btn-outline-success attribute-increase-btn" data-attribute="strength">+</button>
+              </div>
+              {% endif %}
+            </div>
+            <div class="attribute-info">
+              {% set current_damage = (1 + player.damage_bonus) | round(2) %}
+              {% set next_strength = player.strength + 1 %}
+              {% set next_damage = calculate_strength_damage(next_strength) | round(2) %}
+              <p>Aumenta o dano base.<br>
+              Atual: {{ current_damage }} (dano base)<br>
+              {% if player.attribute_points > 0 and player.strength < 100 %}
+              <span class="text-success">Próximo nível: {{ next_damage }} (+{{ (next_damage - current_damage) | round(2) }})</span>
+              {% endif %}
+              </p>
+            </div>
+          </div>
+          
+          <!-- Vitalidade -->
+          <div class="attribute-row attribute-container" data-attribute="vitality">
+            <div class="attribute-name">
+              <h5>Vitalidade</h5>
+              <p class="attribute-value">{{ player.vitality }}</p>
+            </div>
+            <div class="attribute-actions">
+              {% if player.attribute_points > 0 and player.vitality < 100 %}
+              <div class="d-flex align-items-center">
+                <button class="btn btn-sm btn-outline-success attribute-increase-btn" data-attribute="vitality">+</button>
+              </div>
+              {% endif %}
+            </div>
+            <div class="attribute-info">
+              {% set current_hp = player.max_hp %}
+              {% set current_regen = calculate_vitality_regeneration(player.vitality) | round(0) %}
+              {% set next_vitality = player.vitality + 1 %}
+              {# usa a função de cálculo + bônus de talento #}
+              {% set next_hp = calculate_max_hp(next_vitality) + player.max_hp_bonus %}
+              {% set next_regen = calculate_vitality_regeneration(next_vitality) | round(0) %}
+              <p>Aumenta o HP máximo e regeneração.<br>
+              Atual: {{ current_hp }} HP max, regen a cada {{ current_regen }} revisões<br>
+              {% if player.attribute_points > 0 and player.vitality < 100 %}
+              <span class="text-success">Próximo nível: {{ next_hp }} HP max (+{{ next_hp - current_hp }}), regen a cada {{ next_regen }} revisões</span>
+              {% endif %}
+              </p>
+            </div>
+          </div>
+          
+          <!-- Resistência -->
+          <div class="attribute-row attribute-container" data-attribute="resistance">
+            <div class="attribute-name">
+              <h5>Resistência</h5>
+              <p class="attribute-value">{{ player.resistance }}</p>
+            </div>
+            <div class="attribute-actions">
+              {% if player.attribute_points > 0 and player.resistance < 100 %}
+              <div class="d-flex align-items-center">
+                <button class="btn btn-sm btn-outline-success attribute-increase-btn" data-attribute="resistance">+</button>
+              </div>
+              {% endif %}
+            </div>
+            <div class="attribute-info">
+              {% set current_block = calculate_resistance_block(player.resistance) | round(1) %}
+              {% set next_resistance = player.resistance + 1 %}
+              {% set next_block = calculate_resistance_block(next_resistance) | round(1) %}
+              <p>Aumenta a % de dano bloqueado.<br>
+              Atual: {{ current_block }}% de bloqueio<br>
+              {% if player.attribute_points > 0 and player.resistance < 100 %}
+              <span class="text-success">Próximo nível: {{ next_block }}% (+{{ (next_block - current_block) | round(1) }}%)</span>
+              {% endif %}
+              </p>
+            </div>
+          </div>
+          
+          <!-- Sorte -->
+          <div class="attribute-row attribute-container" data-attribute="luck">
+            <div class="attribute-name">
+              <h5>Sorte</h5>
+              <p class="attribute-value">{{ player.luck }}</p>
+            </div>
+            <div class="attribute-actions">
+              {% if player.attribute_points > 0 and player.luck < 100 %}
+              <div class="d-flex align-items-center">
+                <button class="btn btn-sm btn-outline-success attribute-increase-btn" data-attribute="luck">+</button>
+              </div>
+              {% endif %}
+            </div>
+            <div class="attribute-info">
+              {% set current_rare = (player.luck * 0.1) | round(1) %}
+              {% set current_epic = (player.luck * 0.075) | round(1) %}
+              {% set next_luck = player.luck + 1 %}
+              {% set next_rare = (next_luck * 0.1) | round(1) %}
+              {% set next_epic = (next_luck * 0.075) | round(1) %}
+              <p>Aumenta a chance de itens raros.<br>
+              Atual: Raro +{{ current_rare }}%, Épico +{{ current_epic }}%<br>
+              {% if player.attribute_points > 0 and player.luck < 100 %}
+              <span class="text-success">Próximo nível: Raro +{{ next_rare }}%, Épico +{{ next_epic }}%</span>
+              {% endif %}
+              </p>
+            </div>
+          </div>
+          
+          <!-- Concentração -->
+          <div class="attribute-row attribute-container" data-attribute="concentration">
+            <div class="attribute-name">
+              <h5>Concentração</h5>
+              <p class="attribute-value">{{ player.concentration }}</p>
+            </div>
+            <div class="attribute-actions">
+              {% if player.attribute_points > 0 and player.concentration < 100 %}
+              <div class="d-flex align-items-center">
+                <button class="btn btn-sm btn-outline-success attribute-increase-btn" data-attribute="concentration">+</button>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        
+        <form id="attribute-form" action="{{ url_for('add_attribute') }}" method="POST" style="display: none;">
+          <input type="hidden" name="attribute" id="selected-attribute" value="">
+          <input type="hidden" name="points" id="selected-points" value="1">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Estilos para a página de atributos */
+.attribute-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.attribute-name {
+  width: 130px;
+  text-align: center;
+}
+
+.attribute-name h5 {
+  margin-bottom: 5px;
+}
+
+.attribute-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #28a745;
+  margin-bottom: 0;
+}
+
+.attribute-bar {
+  flex: 1;
+  margin: 0 15px;
+}
+
+.attribute-bar .progress {
+  height: 20px;
+}
+
+.attribute-actions {
+  width: 60px;
+  text-align: center;
+}
+
+.attribute-info {
+  width: 300px;
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+/* Estilos para especialização */
+.specialization-card {
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 15px;
+  height: 100%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.specialization-card h4 {
+  color: #343a40;
+  margin-bottom: 10px;
+}
+
+.specialization-card ul {
+  padding-left: 20px;
+  margin-bottom: 15px;
+}
+
+/* Estilos para habilidades */
+.skill-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.skill-item {
+  position: relative;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  transition: transform 0.2s;
+}
+
+.skill-item.unlocked {
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.skill-item.locked {
+  opacity: 0.7;
+  filter: grayscale(70%);
+}
+
+.skill-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.skill-header h5 {
+  margin: 0;
+}
+
+.skill-level {
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  background-color: #6c757d;
+  color: white;
+  border-radius: 3px;
+}
+
+.skill-details {
+  display: flex;
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+
+.skill-cost {
+  margin-right: 15px;
+  color: #0d6efd;
+}
+
+.skill-damage {
+  color: #dc3545;
+}
+
+.skill-lock-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+}
+
+.skill-lock-overlay i {
+  font-size: 2rem;
+  color: #6c757d;
+  margin-bottom: 10px;
+}
+
+.skill-lock-overlay p {
+  color: #343a40;
+  font-weight: bold;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  console.log("Script de atributos inicializado");
+  
+  // Seletores para os botões de atributos 
+  const attributeButtons = document.querySelectorAll('.attribute-increase-btn');
+  console.log("Botões de atributo encontrados:", attributeButtons.length);
+  
+  // Registrar listener para cada botão de aumento
+  attributeButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      // Verificar se há pontos disponíveis
+      const pointsElement = document.getElementById('points-counter');
+      if (!pointsElement) {
+        console.error('Elemento de pontos disponíveis não encontrado');
+        return;
+      }
+      
+      const availablePoints = parseInt(pointsElement.textContent) || 0;
+      if (availablePoints <= 0) {
+        showNotification('Nenhum ponto disponível para gastar', 'warning');
+        return;
+      }
+      
+      // Obter o atributo
+      const attributeType = this.getAttribute('data-attribute');
+      if (!attributeType) {
+        console.error('Tipo de atributo não encontrado');
+        return;
+      }
+      
+      console.log(`Aumentando atributo: ${attributeType}`);
+      
+      // Atualizar campos do formulário
+      document.getElementById('selected-attribute').value = attributeType;
+      document.getElementById('selected-points').value = 1;
+      
+      // Enviar o formulário
+      document.getElementById('attribute-form').submit();
+    });
+  });
+  
+  // Função para mostrar notificações
+  function showNotification(message, type = 'success') {
+    const existingToast = document.querySelector('.toast-message');
+    if (existingToast) {
+      existingToast.remove();
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast-message toast-${type}`;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          toast.remove();
+        }, 300);
+      }, 3000);
+    }, 10);
+  }
+});
+</script>
+{% endblock %}

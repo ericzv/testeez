@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Renomear Baralho - {{ deck.name }}{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <h3 class="text-center">Renomear Baralho</h3>
+    <div style="margin-top: 30px; margin-bottom: 30px; text-align: center;">
+      <form method="POST" action="{{ url_for('cards.rename_deck', deck_id=deck.id) }}">
+        <div class="form-group" style="max-width: 300px; margin: 0 auto;">
+          <input type="text" name="new_name" class="form-control" value="{{ deck.name }}">
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">Renomear</button>
+        <a href="{{ url_for('cards.decks') }}" class="btn btn-secondary btn-sm">Cancelar</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

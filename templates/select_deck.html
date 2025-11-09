@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Selecione um Baralho - Retina Cards{% endblock %}
+{% block content %}
+<h2>Selecione um Baralho para Estudar</h2>
+<ul>
+  {% for deck in decks %}
+    <li>
+      <a href="{{ url_for('cards.start_deck_session', deck_id=deck.id) }}">{{ deck.name }}</a>
+    </li>
+  {% endfor %}
+  <li>
+    <a href="{{ url_for('cards.start_deck_session', deck_id=0) }}">Todos os baralhos</a>
+  </li>
+</ul>
+{% endblock %}

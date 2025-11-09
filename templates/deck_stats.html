@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block title %}Estatísticas do Baralho - {{ deck.name }}{% endblock %}
+{% block content %}
+<h2>Estatísticas do Baralho: {{ deck.name }}</h2>
+<p>Total de cartões: {{ total_cards }}</p>
+<p>Cartões estudados: {{ studied_cards }}</p>
+<!-- Adicione mais estatísticas conforme necessário -->
+{% endblock %}

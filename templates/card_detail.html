@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Detalhes do Cartão #{{ card.id }} - Retina Cards{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-body text-center">
+    <h3>Detalhes do Cartão #{{ card.id }}</h3>
+    <p style="font-size: small;">
+      {% if card.suspended %}
+        <span style="color: orange;">Cartão suspenso</span>
+      {% elif card.review_count == 0 %}
+        <span style="color: blue;">Cartão novo</span>
+      {% elif card.next_review | make_aware <= datetime.now(timezone.utc) %}
+        <span style="color: green;">Cartão a revisar</span>
+      {% else %}
+        <span style="color: gray;">Cartão em intervalo</span>
+      {% endif %}
+    </p>
+    <hr>
+    <h5>Pergunta:</h5>
+    <p>{{ card.front | process_front | safe }}</p>
+    <hr>
+    <h5>Resposta:</h5>
+    <p>{{ card.back | process_answer | safe }}</p>
+   
+    <!-- Botão para editar o cartão, logo abaixo do "esquema" (parte da resposta) -->
+    <a href="{{ url_for('cards.edit_card', card_id=card.id) }}" class="btn btn-sm btn-warning d-block mx-auto" style="margin-top: 10px; width: 120px;">Editar Cartão</a>
+    <hr>
+    <div style="text-align: center;">
+      <p style="font-size: 1.2em; color: #888; margin-bottom: 5px;">
+        <span style="font-size: 0.9em;">Baralho:</span> <strong>{{ card.deck.name }}</strong>
+      </p>
+      <a href="{{ url_for('cards.change_deck', card_id=card.id) }}" class="btn btn-sm btn-outline-secondary">Mudar de baralho</a>
+      
+      <!-- Bloco de tags, agora centralizado -->
+      <div class="card-tags mt-3">
+        <p style="font-size: 1.2em; color: #888; margin-bottom: 5px;">
+          <span style="font-size: 0.9em;">Tags:</span>
+        </p>
+        {% if card.tags %}
+          <div class="tag-list">
+            {% for tag in card.tags %}
+              <span class="badge badge-info mr-1">{{ tag.name }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted">Nenhuma tag atribuída</p>
+        {% endif %}
+        <a href="{{ url_for('cards.manage_card_tags', card_id=card.id) }}" class="btn btn-sm btn-outline-primary mt-2">Gerenciar Tags</a>
+      </div>
+      <div style="text-align: center; margin-top: 10px;">
+        <p style="color: #aaa; font-size: 0.9em;">
+          Este cartão já foi estudado <strong>{{ card.review_count }}</strong>
+          {% if card.review_count == 1 %}
+            vez
+          {% else %}
+            vezes
+          {% endif %}
+        </p>
+      </div>
+    <hr>
+    <div class="bottom-buttons" style="display: flex; justify-content: center; gap: 10px;">
+      <a href="{{ url_for('cards.study_session') }}" class="btn btn-sm btn-info">Voltar à sessão de estudo</a>
+      <a href="{{ url_for('cards.show_all', scrollTo=card.id) }}" class="btn btn-sm btn-secondary">Mostrar Cartão no Painel</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Estudar - Flashcards{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <!-- Seção da PERGUNTA -->
+    <div id="question-section">
+      <h5 class="card-title">Pergunta:</h5>
+      <p class="card-text">{{ card.front | process_front | safe }}</p>
+    </div>
+    
+    <!-- Seção da RESPOSTA (oculta inicialmente) -->
+    <div id="answer-section" style="display: none;">
+      <h5 class="card-title">Resposta:</h5>
+      <p class="card-text">{{ card.front | process_answer | safe }}</p>
+      {% if card.back %}
+      <hr>
+      <h6>Extra:</h6>
+      <p class="card-text">{{ card.back | safe }}</p>
+      {% endif %}
+    </div>
+
+    <hr>
+    <button class="btn btn-info" id="show-answer-btn">Mostrar Resposta</button>
+    <a href="{{ url_for('cards.study') }}" class="btn btn-success">Próximo</a>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('show-answer-btn').addEventListener('click', function() {
+    var questionSection = document.getElementById('question-section');
+    var answerSection = document.getElementById('answer-section');
+    // Ao mostrar a resposta, some a pergunta e exibe a resposta
+    questionSection.style.display = 'none';
+    answerSection.style.display = 'block';
+});
+</script>
+{% endblock %}

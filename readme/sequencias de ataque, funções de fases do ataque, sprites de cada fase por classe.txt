@@ -1,0 +1,24 @@
+🔄 COMO FUNCIONA A RELAÇÃO ENTRE PHASES E SPRITES:
+1. DEFINIÇÃO DA SEQUÊNCIA
+javascript// Em ATTACK_PATTERNS:
+ranged_projectile: ['focus_player', 'aim_stance', 'show_fx', 'focus_boss', 'projectile_launch', 'apply_damage']
+2. EXECUÇÃO DAS PHASES
+javascript// Cada string vira uma função:
+'aim_stance' → executePhase_aim_stance()
+'focus_player' → executePhase_focus_player()
+3. DETERMINAÇÃO DA SPRITE
+javascript// Dentro de cada executePhase_:
+const currentClass = getCurrentPlayerClass(); // "Mago", "Samurai", etc.
+const animConfig = getClassAnimation('cast_preparation'); // Busca na CLASS_ANIMATIONS
+applyCharacterAnimation('cast_preparation'); // Aplica os sprites da classe
+4. MAPEAMENTO CLASS_ANIMATIONS
+javascript// No battle-class-animations.js:
+"Mago": {
+    cast_preparation: {
+        layers: {
+            back_effect: "/static/game.data/sprites/mago_standard/magic_1/...",
+            body: "/static/game.data/sprites/mago_standard/magic_1/...",
+            // etc...
+        }
+    }
+}

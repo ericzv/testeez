@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Renomear Tag "{{ tag.name }}" - Retina Cards{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <h3 class="text-center">Renomear Tag "{{ tag.name }}"</h3>
+    <div style="margin-top: 30px; margin-bottom: 30px; text-align: center;">
+      <form method="POST" action="{{ url_for('cards.rename_tag', tag_id=tag.id) }}">
+        <div class="form-group" style="max-width: 300px; margin: 0 auto;">
+          <label for="new_name">Novo nome:</label>
+          <input type="text" id="new_name" name="new_name" class="form-control" value="{{ tag.name }}">
+        </div>
+        
+        <!-- Adicionado espaço com margem superior -->
+        <div class="mt-4">
+          <button type="submit" class="btn btn-primary">Renomear</button>
+          <a href="{{ url_for('cards.tags') }}" class="btn btn-secondary">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Menu da Sessão de Estudo - Retina Cards{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-body centered-text">
+    <h3>Menu da Sessão de Estudo</h3>
+    <hr>
+    <!-- Texto e dropdown para escolher o baralho -->
+    <div style="text-align: center; margin-bottom: 10px;">
+      <strong>Escolha um baralho</strong>
+    </div>
+    <div class="form-group" style="max-width: 300px; margin: 0 auto 20px auto; text-align: center;">
+      <select id="deckSelect" class="form-control" style="text-align: center;" {% if session_exists %} disabled {% endif %}>
+        <option value="0" data-new="{{ global_new }}" data-revision="{{ global_due }}" {% if active_deck == 0 %} selected {% endif %}>Todos os baralhos</option>
+        {% for deck in decks %}
+          {% set counts = count_cards_recursive(deck) %}
+          <option value="{{ deck.id }}" data-new="{{ counts[0] }}" data-revision="{{ counts[2] }}" {% if active_deck == deck.id %} selected {% endif %}>
+            {{ deck.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    {% if session_exists %}
+    <p style="font-size: 1.2em; text-align: center;"><strong>{{ reviewed_session }} de {{ total_session }} cartões respondidos</strong></p>
+    <hr>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      {% if is_custom_study %}
+        <a href="{{ url_for('cards.custom_study_session') }}" class="btn btn-primary">Retomar sessão de estudo personalizado</a>
+        <a href="{{ url_for('cards.end_session') }}" class="btn btn-secondary">Encerrar sessão de estudo</a>
+      {% else %}
+        <a href="{{ url_for('cards.study_session') }}" class="btn btn-primary">Retomar sessão de estudo</a>
+        <a href="{{ url_for('cards.end_session') }}" class="btn btn-secondary">Encerrar sessão de estudo</a>
+      {% endif %}
+    </div>
+  {% else %}
+      <p>Nenhuma sessão de estudo em andamento.</p>
+      <hr>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <a href="{{ url_for('cards.start_session_new') }}" id="newStudyBtn" class="btn btn-primary">
+          Estudar cartões novos (<span id="newCount">{{ global_new }}</span>)
+        </a>
+        <a href="{{ url_for('cards.start_session_revisions') }}" id="revisionStudyBtn" class="btn btn-success">
+          Estudar cartões de revisão (<span id="revisionCount">{{ global_due }}</span>)
+        </a>
+      </div>
+      <hr>
+      <p><strong>Estudo Personalizado:</strong></p>
+      <a href="{{ url_for('cards.custom_study') }}" class="btn btn-warning">
+        Iniciar Estudo Personalizado por Tags/Baralhos
+      </a>
+    {% endif %}
+    <hr>
+    <p><strong>Minha coleção:</strong></p>
+    <p style="color: blue;">Cartões novos: {{ global_new }}</p>
+    <p style="color: gray;">Cartões em intervalo: {{ global_in_date }}</p>
+    <p style="color: green;">Cartões a revisar: {{ global_due }}</p>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('deckSelect').addEventListener('change', function() {
+  var deckId = this.value;
+  var newCount = this.options[this.selectedIndex].getAttribute('data-new');
+  var revisionCount = this.options[this.selectedIndex].getAttribute('data-revision');
+  document.getElementById('newCount').innerText = newCount;
+  document.getElementById('revisionCount').innerText = revisionCount;
+  
+  // Atualiza os href dos botões conforme o deck selecionado:
+  if(deckId == "0") {
+    document.getElementById('newStudyBtn').href = "{{ url_for('cards.start_session_new') }}";
+    document.getElementById('revisionStudyBtn').href = "{{ url_for('cards.start_session_revisions') }}";
+  } else {
+    document.getElementById('newStudyBtn').href = "/start_deck_session/" + deckId;
+    document.getElementById('revisionStudyBtn').href = "/start_deck_session_revisions/" + deckId;
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,2014 @@
+{% extends 'gamification/base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/hub.css') }}">
+{% endblock %}
+
+{% block game_content %}
+
+<!-- Navegação independente do hub -->
+<a href="{{ url_for('cards.index') }}" class="nav-button">
+  <span>←</span>
+  Voltar ao Retina Cards
+</a>
+
+<div id="particles-js"></div>
+<!-- HUD de Currencies -->
+<div class="currencies-hud" id="currencies-hud">
+    <div class="currency-item">
+        <img src="{{ url_for('static', filename='game.data/crystal.png') }}" alt="Cristais" class="currency-icon">
+        <span class="currency-name">Cristais de Memória:</span>
+        <span class="currency-value" id="crystals-value">{{ player.crystals }}</span>
+    </div>
+    <div class="currency-item">
+        <img src="{{ url_for('static', filename='game.data/gold.png') }}" alt="Ouro" class="currency-icon">
+        <span class="currency-name">Ouro:</span>
+        <span class="currency-value" id="gold-value">{{ player.run_gold or 0 }}</span>
+    </div>
+    <div class="currency-item">
+        <img src="{{ url_for('static', filename='game.data/hourglass.png') }}" alt="Ampulhetas" class="currency-icon">
+        <span class="currency-name">Ampulhetas Eternas:</span>
+        <span class="currency-value" id="hourglasses-value">{{ player.eternal_hourglasses or 0 }}</span>
+    </div>
+</div>
+
+<!-- Active Run Buffs Section -->
+<div class="run-buffs-hud" id="run-buffs-hud" style="display:none;">
+    <div class="run-buffs-title">
+        <img src="{{ url_for('static', filename='game.data/buffs/memory.png') }}" alt="Lembranças" style="width: 16px; height: 16px; margin-right: 5px;">
+        Lembranças Ativas
+    </div>
+    <div class="run-buffs-list" id="run-buffs-list">
+        <!-- Os buffs serão inseridos via JavaScript -->
+    </div>
+</div>
+
+<!-- HUD de Relíquias -->
+<div class="relics-bar" id="relics-bar" style="display:none;">
+    <div class="relics-bar-items" id="relics-bar-items">
+        <!-- As relíquias serão inseridas via JavaScript -->
+    </div>
+</div>
+
+<div class="menu-container">
+
+<!-- Botões ao redor - 7 botões com posição de Perfil e Flashcards invertidas -->
+<!-- Botões ao redor - 10 botões com posição homogênea -->
+{% set menu = [
+  ('index', '📚', 'Flashcards'),
+  ('attributes', '✨', 'Atributos'),
+  ('game_inventory', '🎒', 'Inventário'),
+  ('items.shop', '🪙', 'Loja'),
+  ('bestiary', '📘', 'Bestiário'), 
+  ('battle.battle', '⚔️', 'Batalha'),
+  ('game_profile', '🧙‍♂️', 'Perfil'),
+  ('battle.skills', '🔥', 'Habilidades'),
+  ('talents', '🌟', 'Talentos'),
+] %}
+
+<!-- Posicionamento dos botões equidistantes -->
+
+<a href="{{ url_for(menu[1][0]) }}" class="menu-btn btn-1">
+  <span class="menu-icon">{{ menu[1][1] }}</span>
+  <span class="menu-text">{{ menu[1][2] }}</span>
+</a>
+
+<a href="{{ url_for(menu[3][0]) }}" class="menu-btn btn-3">
+  <span class="menu-icon">{{ menu[3][1] }}</span>
+  <span class="menu-text">{{ menu[3][2] }}</span>
+</a>
+
+<a href="{{ url_for(menu[5][0]) }}" class="menu-btn btn-5 battle-btn">
+  <span class="menu-icon">{{ menu[5][1] }}</span>
+  <span class="menu-text">{{ menu[5][2] }}</span>
+</a>
+
+<a href="{{ url_for(menu[6][0]) }}" class="menu-btn btn-6">
+  <span class="menu-icon">{{ menu[6][1] }}</span>
+  <span class="menu-text">{{ menu[6][2] }}</span>
+</a>
+
+<a href="{{ url_for(menu[7][0]) }}" class="menu-btn btn-7">
+  <span class="menu-icon">{{ menu[7][1] }}</span>
+  <span class="menu-text">{{ menu[7][2] }}</span>
+</a>
+
+<a href="{{ url_for('talents.talents') }}" class="menu-btn btn-8">
+  <span class="menu-icon">🌟</span>
+  <span class="menu-text">Talentos</span>
+</a>
+
+<!-- Notification Bell Icon -->
+<div class="notification-bell" id="notificationBell">
+  <span class="bell-icon">🔔</span>
+  <span class="notification-count" id="notificationCount">0</span>
+</div>
+
+<!-- Notification Panel (Hidden by default) -->
+<div class="notification-panel" id="notificationPanel">
+  <div class="notification-header">
+    <h3>Notificações</h3>
+    <button id="clearNotifications">Limpar Todas</button>
+  </div>
+  <div class="notification-list" id="notificationList">
+    <!-- Notifications will be inserted here via JavaScript -->
+  </div>
+</div>
+
+</div>
+
+<!-- Memory Selection Popup -->
+<div id="memory-selection-popup" class="victory-popup" style="display: none;">
+  <div class="victory-content">
+      <div class="victory-header">
+          <img src="{{ url_for('static', filename='game.data/buffs/memory.png') }}" alt="Lembranças" class="victory-icon">
+          <h2>Escolha uma Lembrança</h2>
+          <p>Selecione um dos buffs abaixo para sua run atual:</p>
+      </div>
+      
+      <div class="memory-options" id="memory-options-container">
+          <!-- As opções serão inseridas via JavaScript -->
+      </div>
+      
+      <div class="victory-actions">
+          <button id="confirm-memory-btn" class="btn btn-primary" disabled>Confirmar Seleção</button>
+      </div>
+  </div>
+</div>
+
+<!-- Relic Selection Popup -->
+<div id="relic-selection-popup" class="ui-dialog" style="display: none;">
+  <div class="ui-panel relic-selection-modal">
+      <div class="victory-header">
+          <img src="{{ url_for('static', filename='game.data/relics/relic_icon.png') }}" alt="Relíquia" class="relic-header-icon">
+          <h2>Escolha uma Relíquia</h2>
+      </div>
+      
+      <div class="relic-options" id="relic-options-container">
+          <!-- As opções serão inseridas via JavaScript -->
+      </div>
+      
+      <div class="victory-actions">
+          <button id="confirm-relic-btn" class="btn btn-primary" disabled>Confirmar Seleção</button>
+      </div>
+  </div>
+</div>
+
+<script>
+
+  /*
+  ================================================================================
+                          SISTEMA DE RECOMPENSAS PÓS-BATALHA
+  ================================================================================
+
+  FLUXO COMPLETO:
+
+  1. DERROTA DO INIMIGO (battle.py - damage_boss()):
+    - Jogador ataca e derrota inimigo
+    - Recompensas são CALCULADAS mas NÃO aplicadas ao jogador
+    - Dados salvos na sessão: session['pending_rewards'] 
+    - Se for lembrança: session['pending_memory_reward']
+    - Inimigo marcado como derrotado no banco de dados
+    - Redirecionamento automático para o hub
+
+  2. DETECÇÃO NO HUB (checkForRecentVictory()):
+    - Verifica localStorage por vitória recente (últimos 10s)
+    - Tira snapshot dos HUDs para animações posteriores
+    - Verifica no servidor se há recompensa de lembrança pendente
+    - Define window.__pendingMemoryPopup se necessário
+
+  3. POP-UP DE VITÓRIA (showVictoryRewards()):
+    - Mostra dano causado/recebido e tipo de recompensa
+    - Botão "Receber Recompensas" para confirmar
+    - Barra de progresso da região (inimigos 1-20)
+
+  4. APLICAÇÃO DAS RECOMPENSAS (acceptVictoryRewards()):
+    - Chama /apply_victory_rewards no servidor
+    - EXP, cristais, ouro ou ampulhetas são aplicados ao jogador
+    - Session['pending_rewards'] é limpa
+    - Pop-up de vitória é fechado
+
+  5. ATUALIZAÇÃO E ANIMAÇÕES:
+    - HUDs são atualizados com novos valores
+    - Animações aplicadas comparando snapshots
+    - Valores que aumentaram ganham efeito visual
+
+  6. LEMBRANÇAS (se aplicável):
+    - Pop-up de seleção aparece com 3 opções aleatórias
+    - Jogador escolhe uma lembrança
+    - Lembrança é aplicada via /select_memory
+    - HUD de lembranças é atualizado com animação
+    - Session['pending_memory_reward'] é limpa
+
+  TIPOS DE RECOMPENSA:
+  - crystals: Cristais de Memória (permanente)
+  - gold: Ouro (apenas para a run atual)  
+  - hourglasses: Ampulhetas Eternas (permanente)
+  - memories: Lembranças (buffs para a run atual)
+
+  FUNÇÕES PRINCIPAIS:
+  - damage_boss(): Calcula e salva recompensas
+  - checkForRecentVictory(): Detecta vitória e inicia fluxo
+  - showVictoryRewards(): Exibe pop-up de vitória  
+  - acceptVictoryRewards(): Aplica recompensas no banco
+  - checkMemoryReward(): Verifica lembranças pendentes
+  - selectMemory(): Processa seleção de lembrança
+
+  SISTEMA DE SESSÃO:
+  - pending_rewards: {exp_reward, crystals_gained, gold_gained, etc}
+  - pending_memory_reward: {enemy_rarity, timestamp}
+  - session_revision_count: Pontos de dano disponíveis
+
+  PONTOS CRÍTICOS:
+  - Recompensas NUNCA são aplicadas automaticamente
+  - Jogador deve sempre confirmar clicando "Receber"
+  - Animações só ocorrem após aplicação real
+  - Lembranças verificadas direto no servidor (confiável)
+  - LocalStorage usado apenas para detectar vitória recente
+
+  ================================================================================
+  */
+
+  // === SISTEMA DE SONS ===
+  function playSound(audioPath, volume = 0.6) {
+      try {
+          const audio = new Audio(audioPath);
+          audio.volume = volume;
+          audio.play().catch(err => {
+              console.warn("Som não pôde ser reproduzido:", err);
+          });
+      } catch (e) {
+          console.error("Erro ao tocar som:", e);
+      }
+  }
+
+  function playRewardPopupSound() {
+      playSound("/static/game.data/sounds/rewardpopup.mp3", 0.7);
+  }
+
+  function playMemoryOptionsSound() {
+      playSound("/static/game.data/sounds/memoryoptions.mp3", 0.6);
+  }
+
+  function playMemorySelectionSound() {
+      playSound("/static/game.data/sounds/memoryselection.mp3", 0.8);
+  }
+
+  function playEnemySelectionSound() {
+      playSound("/static/game.data/sounds/enemyselection.mp3", 0.8);
+  }
+
+  function playEnemySelectionCloseSound() {
+      playSound("/static/game.data/sounds/enemyselectionclose.mp3", 0.5);
+  }
+
+  // ===== SISTEMA DE MEMÓRIAS =====
+
+  let memoryOptions = [];
+  let selectedMemoryType = null;
+
+  // Verificar se há recompensa de memória pendente
+  function checkMemoryReward() {
+      console.log("🔍 DEBUG: checkMemoryReward() chamada");
+      console.log("🔍 DEBUG: checkMemoryReward chamada");
+      
+      fetch('/gamification/check_memory_reward')
+          .then(response => response.json())
+          .then(data => {
+              console.log("🔍 DEBUG: Resposta do check_memory_reward:", data);
+              if (data.success && data.has_memory_reward) {
+                  showMemorySelectionPopup(data.enemy_rarity);
+              }
+          })
+          .catch(error => {
+              console.error('Erro ao verificar recompensa de memória:', error);
+          });
+  }
+
+  // Mostrar pop-up de seleção de memórias
+  function showMemorySelectionPopup(enemyRarity) {
+      console.log("🧠 DEBUG: showMemorySelectionPopup chamada com raridade:", enemyRarity);
+      
+      // Salvar dados da recompensa para usar depois
+      window.__pendingMemoryData = { enemy_rarity: enemyRarity };
+      
+      fetch('/gamification/get_memory_options')
+          .then(response => response.json())
+          .then(data => {
+              console.log("🧠 DEBUG: Opções recebidas:", data);
+              if (data.success) {
+                  memoryOptions = data.options;
+                  displayMemoryOptions(enemyRarity);
+                  
+                  // Reset do estado de seleção
+                  selectedMemoryType = null;
+                  const confirmBtn = document.getElementById('confirm-memory-btn');
+                  if (confirmBtn) {
+                      confirmBtn.disabled = true;
+                      confirmBtn.textContent = 'Confirmar Seleção';
+                  }
+                  
+                  // TOCAR SOM DO POP-UP DE MEMÓRIAS
+                  playMemoryOptionsSound();
+
+                  console.log("🧠 DEBUG: Mostrando pop-up");
+                  window.__preRewardSnapshots = {
+                    currencies: snapshotHudValues(document.getElementById('currencies-hud')),
+                    buffs:      snapshotHudValues(document.getElementById('run-buffs-hud'))
+                  };
+                  document.getElementById('memory-selection-popup').style.display = 'flex';
+              }
+          })
+          .catch(error => {
+              console.error('Erro ao carregar opções de memória:', error);
+          });
+  }
+
+    // Exibir opções de memória
+    function displayMemoryOptions(enemyRarity) {
+        const container = document.getElementById('memory-options-container');
+        container.innerHTML = '';
+        
+        // ===== Grid dinâmico baseado no número de opções =====
+        const cols = Math.min(memoryOptions.length, 4);
+        container.style.gridTemplateColumns = `repeat(${cols}, 240px)`;
+        
+        // Atualizar largura do painel pai
+        const panel = document.querySelector('.victory-popup .victory-content');
+        if (panel) panel.style.setProperty('--cols', cols);
+        // ===== FIM =====
+        
+        memoryOptions.forEach(option => {
+            const optionElement = document.createElement('div');
+            optionElement.className = 'memory-option';
+            optionElement.dataset.memoryType = option.type;
+            
+            optionElement.innerHTML = `
+                <div class="memory-header">
+                    <h3 class="memory-name-latin">${option.name}</h3>
+                    ${option.current_count > 0 ? `<div class="memory-count">${option.current_count}</div>` : ''}
+                </div>
+                <img src="/static/game.data/buffs/${option.icon}" alt="${option.name}" class="memory-icon">
+                <div class="memory-description">${option.description}</div>
+                <div class="memory-value">${option.formatted_value}</div>
+            `;
+            
+            optionElement.addEventListener('click', () => selectMemoryOption(option.type));
+            container.appendChild(optionElement);
+        });
+    }
+
+  // Selecionar opção de memória (apenas visual)
+  function selectMemoryOption(memoryType) {
+      console.log("🧠 DEBUG: Selecionando opção:", memoryType);
+      
+      // Remover seleção anterior
+      document.querySelectorAll('.memory-option').forEach(el => {
+          el.classList.remove('selected');
+      });
+
+      // Marcar como selecionado
+      const clickedOption = event.target.closest('.memory-option');
+      if (clickedOption) {
+          clickedOption.classList.add('selected');
+          selectedMemoryType = memoryType;
+          
+          // Habilitar botão de confirmar
+          const confirmBtn = document.getElementById('confirm-memory-btn');
+          if (confirmBtn) {
+              confirmBtn.disabled = false;
+              confirmBtn.textContent = `Confirmar: ${memoryOptions.find(opt => opt.type === memoryType)?.name || 'Lembrança'}`;
+          }
+          
+          console.log("🧠 DEBUG: Opção selecionada:", memoryType);
+      }
+  }
+
+  // Confirmar seleção de memória (enviar para servidor)
+  function confirmMemorySelection() {
+      if (!selectedMemoryType) {
+          alert('Selecione uma lembrança primeiro!');
+          return;
+      }
+      
+      // Obter raridade do inimigo da sessão
+      const pendingMemory = window.__pendingMemoryData || {};
+      const enemyRarity = pendingMemory.enemy_rarity || 1;
+      
+      console.log("🧠 DEBUG: Confirmando seleção:", { memoryType: selectedMemoryType, enemyRarity });
+      
+      // Desabilitar botão para evitar cliques duplos
+      const confirmBtn = document.getElementById('confirm-memory-btn');
+      if (confirmBtn) {
+          confirmBtn.disabled = true;
+          confirmBtn.textContent = 'Aplicando...';
+      }
+
+      // Enviar seleção para o servidor
+      fetch('/gamification/select_memory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+              memory_type: selectedMemoryType,
+              enemy_rarity: enemyRarity
+          })
+      })
+      .then(response => response.json())
+      .then(data => {
+          console.log("🧠 DEBUG: Resposta do servidor:", data);
+          
+          if (data.success) {
+              // TOCAR SOM DE SELEÇÃO DE MEMÓRIA
+              playMemorySelectionSound();
+              
+              // Mostrar mensagem de sucesso
+              addNotification(data.message);
+
+              // DEBUG: Mostrar valores retornados
+              console.log("🧠 DEBUG: Buff aplicado:", {
+                  type: data.buff_type,
+                  value: data.value,
+                  total_count: data.total_count,
+                  total_value: data.total_value
+              });
+
+              // Fechar pop-up após delay
+              setTimeout(async () => {
+                  // 1) Fechar o pop-up
+                  const popup = document.getElementById('memory-selection-popup');
+                  if (popup) popup.style.display = 'none';
+
+                  // 2) Atualizar lembranças no frontend
+                  console.log("🧠 Atualizando lembranças após seleção...");
+                  if (typeof updateActiveRunBuffs === 'function') {
+                      await updateActiveRunBuffs();
+                  }
+
+                  // 2.5) Atualizar relíquias também
+                  console.log("🗡️ Atualizando relíquias após vitória...");
+                  if (typeof updateActiveRelics === 'function') {
+                      await updateActiveRelics();
+                  }
+
+                  // 3) Aguardar update terminar
+                  await new Promise(resolve => setTimeout(resolve, 200));
+
+                  // 4) Aplicar animação específica nas lembranças
+                  const runBuffsHud = document.getElementById('run-buffs-hud');
+                  if (runBuffsHud) {
+                      // Tirar novo snapshot para comparar
+                      const newSnapshot = snapshotHudValues(runBuffsHud);
+                      
+                      // Se havia snapshot anterior das lembranças, comparar
+                      const oldSnapshot = window.__preRewardSnapshots?.buffs || new Map();
+                      diffAndAnimate(runBuffsHud, oldSnapshot);
+                      
+                      console.log("✨ Animação de lembranças aplicada");
+                  }
+
+                  // 5) Reset final
+                  selectedMemoryType = null;
+                  window.__pendingMemoryData = null;
+                  
+              }, 1500);
+          } else {
+              addNotification('Erro: ' + data.message);
+              
+              // Reabilitar botão em caso de erro
+              if (confirmBtn) {
+                  confirmBtn.disabled = false;
+                  confirmBtn.textContent = 'Confirmar Seleção';
+              }
+          }
+      })
+      .catch(error => {
+          console.error('Erro ao selecionar memória:', error);
+          addNotification('Erro ao selecionar memória');
+          
+          // Reabilitar botão em caso de erro
+          if (confirmBtn) {
+              confirmBtn.disabled = false;
+              confirmBtn.textContent = 'Confirmar Seleção';
+          }
+      });
+  }
+
+  // Event listeners para o pop-up de memória
+  document.addEventListener('DOMContentLoaded', () => {
+      // Botão de confirmar
+      const confirmBtn = document.getElementById('confirm-memory-btn');
+      if (confirmBtn) {
+          confirmBtn.addEventListener('click', confirmMemorySelection);
+      }
+  });
+
+  // Verificar memórias ao carregar a página (só se não houver vitória recente)
+  document.addEventListener('DOMContentLoaded', () => {
+      // Só verificar memórias se não estivermos processando uma vitória recente
+      const lastVictory = localStorage.getItem('lastVictoryTime');
+      const now = Date.now();
+      const hasRecentVictory = lastVictory && (now - parseInt(lastVictory)) < 10000;
+      
+      if (!hasRecentVictory) {
+          checkMemoryReward();
+      }
+      updateActiveRunBuffs();
+      updateActiveRelics();
+  });
+
+
+  // Atualizar exibição de buffs ativos
+  function updateActiveRunBuffs(skipDomUpdate = false) {
+      // Se há animação pendente, apenas retornar os dados sem atualizar DOM
+      if (skipDomUpdate) {
+          return fetch('/gamification/get_active_run_buffs')
+              .then(response => response.json())
+              .then(data => {
+                  console.log("🧠 Dados de buffs obtidos (sem atualizar DOM):", data);
+                  return data;
+              });
+      }
+      
+      // Comportamento normal - atualizar DOM
+      return fetch('/gamification/get_active_run_buffs')
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  displayActiveRunBuffs(data.buffs);
+                  console.log("🧠 Buffs atualizados no DOM:", data);
+              }
+              return data;
+          })
+          .catch(error => {
+              console.error('Erro ao carregar buffs ativos:', error);
+              return null;
+          });
+  }
+
+  // Exibir buffs ativos na interface
+  function displayActiveRunBuffs(buffs) {
+    const hud = document.getElementById('run-buffs-hud');
+    if (!hud) return;
+
+    if (!buffs || buffs.length === 0) {
+      hud.style.display = 'none';
+      hud.innerHTML = '';
+      return;
+    }
+
+    hud.style.display = 'flex';
+    hud.innerHTML = '';
+
+    // Cada buff vira um "currency-item" para herdar o mesmo visual
+    buffs.forEach(buff => {
+      const item = document.createElement('div');
+      item.className = 'currency-item';
+
+      // >>> ADICIONE esta linha (chave única para diff/anim):
+      item.setAttribute('data-key', buff.name);
+
+      item.innerHTML = `
+        <img src="/static/game.data/buffs/${buff.icon}" alt="${buff.name}" class="currency-icon tooltip-trigger">
+        <span class="currency-value tooltip-trigger">${buff.display_value}</span>
+        <div class="custom-tooltip">
+          <div class="tooltip-name">${buff.name}${buff.count > 1 ? ` (${buff.count})` : ''}</div>
+          <div class="tooltip-description">${buff.description}</div>
+          <div class="tooltip-value">${buff.display_value}</div>
+        </div>
+      `;
+
+      hud.appendChild(item);
+    });
+  }
+
+    // ===== SISTEMA DE RELÍQUIAS =====
+
+    // Atualizar exibição de relíquias ativas
+    function updateActiveRelics(skipDomUpdate = false) {
+        if (skipDomUpdate) {
+            return fetch('/gamification/get_player_relics')
+                .then(response => response.json())
+                .then(data => {
+                    console.log("🗡️ Dados de relíquias obtidos (sem atualizar DOM):", data);
+                    return data;
+                });
+        }
+        
+        return fetch('/gamification/get_player_relics')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayActiveRelics(data.relics);
+                    console.log("🗡️ Relíquias atualizadas no DOM:", data);
+                }
+                return data;
+            })
+            .catch(error => {
+                console.error('Erro ao carregar relíquias ativas:', error);
+                return null;
+            });
+    }
+
+    // Exibir relíquias ativas na barra horizontal
+    function displayActiveRelics(relics) {
+        const bar = document.getElementById('relics-bar');
+        const items = document.getElementById('relics-bar-items');
+        
+        if (!bar || !items) return;
+
+        if (!relics || relics.length === 0) {
+            bar.style.display = 'none';
+            items.innerHTML = '';
+            return;
+        }
+
+        bar.style.display = 'block';
+        items.innerHTML = '';
+
+        relics.forEach(relic => {
+            const item = document.createElement('div');
+            
+            // Mapear raridades
+            const rarityMap = {
+                'common': 'common',
+                'uncommon': 'rare',
+                'rare': 'rare',
+                'epic': 'epic',
+                'legendary': 'legendary'
+            };
+            
+            const normalizedRarity = rarityMap[relic.rarity] || 'common';
+            
+            item.className = 'relic-bar-item';
+            item.setAttribute('data-rarity', normalizedRarity);
+            item.setAttribute('data-key', relic.name);
+
+            item.innerHTML = `
+                <img src="/static/game.data/relics/${relic.icon}" 
+                    alt="${relic.name}" 
+                    class="relic-bar-icon"
+                    onerror="this.src='/static/game.data/relics/placeholder.png'">
+                ${relic.counter_value && relic.counter_value > 0 ? `
+                    <div class="relic-bar-counter">${relic.counter_value}</div>
+                ` : ''}
+                <div class="relic-tooltip">
+                    <div class="relic-tooltip-name">${relic.name}</div>
+                    <div class="relic-tooltip-desc">${relic.description}</div>
+                </div>
+            `;
+
+            items.appendChild(item);
+        });
+    }
+
+  function dismissClassNotification() {
+    const notification = document.querySelector('.class-choice-notification');
+    if (notification) {
+      // Animar saída
+      notification.style.animation = 'fadeOut 0.3s ease-out';
+      notification.style.opacity = '0';
+      notification.style.transform = 'translate(-50%, -50%) scale(0.9)';
+      
+      // Remover após animação
+      setTimeout(() => {
+        notification.remove();
+      }, 300);
+      
+      // Salvar no localStorage para não mostrar novamente nesta sessão
+      localStorage.setItem('classNotificationDismissed', 'true');
+    }
+  }
+  
+  // Verificar se a notificação foi dispensada nesta sessão
+  document.addEventListener('DOMContentLoaded', function() {
+    if (localStorage.getItem('classNotificationDismissed') === 'true') {
+      const notification = document.querySelector('.class-choice-notification');
+      if (notification) {
+        notification.style.display = 'none';
+      }
+    }
+    
+    // Limpar flag quando sair da página
+    window.addEventListener('beforeunload', function() {
+      localStorage.removeItem('classNotificationDismissed');
+    });
+  });
+
+  // ===== SISTEMA DE RELÍQUIAS =====
+
+  let relicOptions = [];
+  let selectedRelicId = null;
+
+  // Verificar se há recompensa de relíquia pendente
+  function checkRelicReward() {
+      console.log("🗡️ DEBUG: checkRelicReward() chamada");
+      
+      fetch('/gamification/check_relic_reward')
+          .then(response => response.json())
+          .then(data => {
+              console.log("🗡️ DEBUG: Resposta do check_relic_reward:", data);
+              if (data.success && data.has_relic_reward) {
+                  showRelicSelectionPopup(data.context, data.count);
+              }
+          })
+          .catch(error => {
+              console.error('Erro ao verificar recompensa de relíquia:', error);
+          });
+  }
+
+  // Mostrar pop-up de seleção de relíquias
+  function showRelicSelectionPopup(context, count) {
+      console.log("🗡️ DEBUG: showRelicSelectionPopup chamada", { context, count });
+      
+      fetch('/gamification/get_relic_options')
+          .then(response => response.json())
+          .then(data => {
+              console.log("🗡️ DEBUG: Opções recebidas:", data);
+              if (data.success) {
+                  relicOptions = data.options;
+                  displayRelicOptions();
+                  
+                  // Reset do estado de seleção
+                  selectedRelicId = null;
+                  const confirmBtn = document.getElementById('confirm-relic-btn');
+                  if (confirmBtn) {
+                      confirmBtn.disabled = true;
+                      confirmBtn.textContent = 'Confirmar Seleção';
+                  }
+                  
+                  console.log("🗡️ DEBUG: Mostrando pop-up");
+                  document.getElementById('relic-selection-popup').style.display = 'flex';
+              }
+          })
+          .catch(error => {
+              console.error('Erro ao carregar opções de relíquia:', error);
+          });
+  }
+
+    // Exibir opções de relíquias
+    function displayRelicOptions() {
+        const container = document.getElementById('relic-options-container');
+        container.innerHTML = '';
+        
+        // ===== Grid dinâmico baseado no número de opções =====
+        const cols = Math.min(relicOptions.length, 4);
+        container.style.gridTemplateColumns = `repeat(${cols}, 280px)`;
+        
+        // Atualizar largura do painel pai
+        const panel = document.querySelector('.ui-panel.relic-selection-modal');
+        if (panel) panel.style.setProperty('--cols', cols);
+        // ===== FIM =====
+        
+        // Mapear raridades para nomes traduzidos (SEM "incomum")
+        const rarityNames = {
+            'common': 'Comum',
+            'uncommon': 'Rara',  // Mapear uncommon para Rara
+            'rare': 'Rara',
+            'epic': 'Épica',
+            'legendary': 'Lendária'
+        };
+        
+        relicOptions.forEach(option => {
+            const optionElement = document.createElement('div');
+            
+            // Normalizar raridades: uncommon vira rare
+            let normalizedRarity = option.rarity;
+            if (normalizedRarity === 'uncommon') {
+                normalizedRarity = 'rare';
+            }
+            
+            optionElement.className = `relic-option rarity-${normalizedRarity}`;
+            optionElement.dataset.relicId = option.id;
+            
+            // Nome traduzido da raridade
+            const rarityName = rarityNames[option.rarity] || rarityNames[normalizedRarity];
+            
+            optionElement.innerHTML = `
+                <h3 class="relic-name">${option.name}</h3>
+                <img src="/static/game.data/relics/${option.icon}" alt="${option.name}" class="relic-icon" onerror="this.src='/static/game.data/relics/placeholder.png'">
+                <div class="relic-description">${option.description}</div>
+                <div class="relic-rarity-label rarity-${normalizedRarity}">${rarityName}</div>
+            `;
+            
+            optionElement.addEventListener('click', () => selectRelicOption(option.id));
+            container.appendChild(optionElement);
+        });
+    }
+
+  // Selecionar opção de relíquia (apenas visual)
+  function selectRelicOption(relicId) {
+      console.log("🗡️ DEBUG: Selecionando opção:", relicId);
+      
+      // Remover seleção anterior
+      document.querySelectorAll('.relic-option').forEach(el => {
+          el.classList.remove('selected');
+      });
+
+      // Marcar como selecionado
+      const clickedOption = event.target.closest('.relic-option');
+      if (clickedOption) {
+          clickedOption.classList.add('selected');
+          selectedRelicId = relicId;
+          
+          // Habilitar botão de confirmar
+          const confirmBtn = document.getElementById('confirm-relic-btn');
+          if (confirmBtn) {
+              confirmBtn.disabled = false;
+              const selectedRelic = relicOptions.find(opt => opt.id === relicId);
+              confirmBtn.textContent = `Confirmar: ${selectedRelic?.name || 'Relíquia'}`;
+          }
+          
+          console.log("🗡️ DEBUG: Opção selecionada:", relicId);
+      }
+  }
+
+    // Confirmar seleção de relíquia
+    function confirmRelicSelection() {
+        if (!selectedRelicId) {
+            alert('Selecione uma relíquia primeiro!');
+            return;
+        }
+        
+        console.log("🗡️ DEBUG: Confirmando seleção:", selectedRelicId);
+        
+        // Desabilitar botão
+        const confirmBtn = document.getElementById('confirm-relic-btn');
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Aplicando...';
+        }
+
+        // Enviar seleção
+        fetch('/gamification/select_relic', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ relic_id: selectedRelicId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("🗡️ DEBUG: Resposta do servidor:", data);
+            
+            if (data.success) {
+                // Mostrar notificação
+                addNotification(data.message);
+                
+                // Verificar se há mais relíquias
+                if (data.has_more_relics) {
+                    console.log(`🔄 Restam ${data.remaining_count} relíquia(s). Reabrindo pop-up...`);
+                    
+                    // Fechar pop-up atual
+                    const popup = document.getElementById('relic-selection-popup');
+                    if (popup) popup.style.display = 'none';
+                    
+                    // Reabrir após delay
+                    setTimeout(() => {
+                        showRelicSelectionPopup('last_boss', data.remaining_count);
+                    }, 1500);
+                    
+                } else {
+                    // Última relíquia, fechar definitivamente
+                    console.log("✅ Todas as relíquias escolhidas!");
+                    
+                    setTimeout(() => {
+                        const popup = document.getElementById('relic-selection-popup');
+                        if (popup) popup.style.display = 'none';
+                        
+                        selectedRelicId = null;
+                    }, 1500);
+                }
+                
+            } else {
+                addNotification('Erro: ' + data.message);
+                
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = 'Confirmar Seleção';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao selecionar relíquia:', error);
+            addNotification('Erro ao selecionar relíquia');
+            
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Confirmar Seleção';
+            }
+        });
+    }
+
+  // Event listeners
+  document.addEventListener('DOMContentLoaded', () => {
+      const confirmBtn = document.getElementById('confirm-relic-btn');
+      if (confirmBtn) {
+          confirmBtn.addEventListener('click', confirmRelicSelection);
+      }
+      
+      // Verificar relíquias ao carregar
+      checkRelicReward();
+  });
+</script>
+
+<script>
+
+  // Tira um snapshot dos valores numéricos atuais de um HUD (por nome)
+  function snapshotHudValues(hudEl) {
+    if (!hudEl) return new Map();
+    const map = new Map();
+    hudEl.querySelectorAll('.currency-item').forEach(item => {
+      const nameEl = item.querySelector('.currency-name');
+      const valueEl = item.querySelector('.currency-value');
+      const key = nameEl ? nameEl.textContent.trim().replace(/:$/, '') : item.getAttribute('data-key') || '';
+      if (!valueEl || !key) return;
+      const num = parseFloat(String(valueEl.textContent).replace(/[^\d.-]/g,''));
+      map.set(key, isNaN(num) ? valueEl.textContent.trim() : num);
+    });
+    return map;
+  }
+
+  // Marca o elemento como "changed" e remove a classe ao terminar a animação (ou por timeout)
+  function markChanged(el) {
+    if (!el) return;
+    el.classList.remove('changed'); // reset para re-disparar
+    // forçar reflow para reiniciar a animação, caso a classe já estivesse aplicada
+    void el.offsetWidth;
+    el.classList.add('changed');
+    const remove = () => el.classList.remove('changed');
+    el.addEventListener('animationend', remove, { once: true });
+    // Fallback de segurança
+    setTimeout(remove, 1200);
+  }
+
+  // Compara snapshot anterior x estado atual e aplica animação só nos que aumentaram / mudaram
+  function diffAndAnimate(hudEl, beforeMap) {
+    if (!hudEl || !beforeMap) return;
+
+    hudEl.querySelectorAll('.currency-item').forEach(item => {
+      const nameEl  = item.querySelector('.currency-name');
+      const valueEl = item.querySelector('.currency-value');
+      const key = nameEl
+        ? nameEl.textContent.trim().replace(/:$/, '')
+        : (item.getAttribute('data-key') || '');
+      if (!valueEl || !key) return;
+
+      const before   = beforeMap.get(key);
+      const nowText  = valueEl.textContent.trim();
+      const nowNum   = parseFloat(nowText.replace(/[^\d.-]/g,''));
+      const beforeIsNumber = (typeof before === 'number' && Number.isFinite(before));
+      const nowIsNumber    = !Number.isNaN(nowNum);
+
+      // Regras:
+      // 1) se ambos são números: anima forte se AUMENTOU (contador + partículas)
+      // 2) se diminuiu ou mudou (não-numérico): mantém só o pop visual padrão
+      if (beforeIsNumber && nowIsNumber) {
+        if (nowNum > before) {
+          markChanged(valueEl);                     // sua animação CSS .changed
+          animateCounter(valueEl, before, nowNum);  // contador subindo
+          spawnSparkles(valueEl, 8);                // partículas rápidas
+          playCurrencyUpSound();
+        } else if (nowNum !== before) {
+          markChanged(valueEl);                     // mudou pra baixo: só o pop
+        }
+      } else {
+        if (before !== undefined && String(before) !== nowText) {
+          markChanged(valueEl);                     // texto mudou: só o pop
+          // se quiser partículas também aqui, descomente:
+          // spawnSparkles(valueEl, 6);
+        }
+      }
+    });
+  }
+
+
+  // Anima o número subindo, de 'fromVal' até 'toVal'
+  function animateCounter(el, fromVal, toVal, duration = 1200) {
+    if (!el) return;
+    // evita sobreposição de animações
+    if (el.dataset.animating === '1') return;
+    el.dataset.animating = '1';
+
+    const start = performance.now();
+    const from = Number(fromVal) || 0;
+    const to   = Number(toVal) || 0;
+
+    // se diferença é pequena, acelera
+    const dur = Math.max(500, duration * Math.min(1, Math.abs(to - from) / 50));
+
+    function step(now) {
+      const t = Math.min(1, (now - start) / dur);
+      // easeOutCubic
+      const e = 1 - Math.pow(1 - t, 3);
+      const curr = Math.round(from + (to - from) * e);
+      el.textContent = curr;
+      if (t < 1) {
+        requestAnimationFrame(step);
+      } else {
+        el.textContent = to;
+        delete el.dataset.animating;
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  function spawnSparkles(valueEl, count = 8) {
+    const item = valueEl.closest('.currency-item');
+    if (!item) return;
+
+    const base = item.getBoundingClientRect();
+    const rect = valueEl.getBoundingClientRect();
+
+    for (let i = 0; i < count; i++) {
+      const s = document.createElement('span');
+      s.className = 'sparkle';
+      s.textContent = '✦'; // ou troque por símbolo/emoji diferente
+
+      // posição inicial: centro aproximado do número
+      s.style.left = (rect.left - base.left + rect.width / 2) + 'px';
+      s.style.top  = (rect.top  - base.top  + rect.height / 2) + 'px';
+      item.appendChild(s);
+
+      // direção aleatória
+      const angle = Math.random() * Math.PI * 2; // 0 a 360 graus
+      const dist = 15 + Math.random() * 20;      // raio de movimento em px
+      const dx = Math.cos(angle) * dist;
+      const dy = Math.sin(angle) * dist;
+
+      // anima
+      s.animate(
+        [
+          { transform: 'translate(0,0) scale(1)', opacity: 1 },
+          { transform: `translate(${dx}px, ${dy}px) scale(.9)`, opacity: 0 }
+        ],
+        { duration: 520 + Math.random() * 240, easing: 'cubic-bezier(.2,.6,.2,1)' }
+      ).onfinish = () => s.remove();
+    }
+  }
+
+  function playCurrencyUpSound() {
+    try {
+      const audio = new Audio("/static/game.data/sounds/currency-up.mp3");
+      audio.volume = 0.6; // ajusta o volume
+      audio.play().catch(err => {
+        // silenciosamente ignora erros (ex: autoplay bloqueado)
+        console.warn("Som não pôde ser reproduzido:", err);
+      });
+    } catch (e) {
+      console.error("Erro ao tocar som:", e);
+    }
+  }
+
+    function showVictoryRewards(data, victoryData = null) {
+        // Usar dados passados diretamente ou fallback
+        const realVictoryData = victoryData || data.detail || {};
+        console.log("🏆 DADOS DA VITÓRIA NO POP-UP:", realVictoryData);
+        
+        // Determinar qual recompensa foi recebida
+        let rewardHtml = '';
+        let rewardIconSrc = '';
+
+        console.log("🏆 DEBUG RECOMPENSA - rewardType:", realVictoryData.rewardType);
+        console.log("🏆 DEBUG RECOMPENSA - crystalsGained:", realVictoryData.crystalsGained);
+        console.log("🏆 DEBUG RECOMPENSA - goldGained:", realVictoryData.goldGained);
+        console.log("🏆 DEBUG RECOMPENSA - hourglassesGained:", realVictoryData.hourglassesGained);
+
+        // ← PRIORIZAR O TIPO DE RECOMPENSA, NÃO O VALOR
+        if (realVictoryData.rewardType === 'crystals') {
+            const baseAmount = realVictoryData.crystalsBase ?? realVictoryData.crystalsGained ?? 20;
+            const plural = baseAmount !== 1 ? "Cristais de Memória" : "Cristal de Memória";
+            rewardHtml = `<span class="reward-value crystals-gained">${plural} (${baseAmount})</span>`;
+            rewardIconSrc = '/static/game.data/crystal.png';
+        } else if (realVictoryData.rewardType === 'gold') {
+            const baseAmount = realVictoryData.goldBase ?? realVictoryData.goldGained ?? 5;
+            rewardHtml = `<span class="reward-value gold-gained">Ouro (${baseAmount})</span>`;
+            rewardIconSrc = '/static/game.data/gold.png';
+        } else if (realVictoryData.rewardType === 'hourglasses') {
+            const baseAmount = realVictoryData.hourglassesBase ?? realVictoryData.hourglassesGained ?? 1;
+            const plural = baseAmount !== 1 ? "Ampulhetas Eternas" : "Ampulheta Eterna";
+            rewardHtml = `<span class="reward-value hourglasses-gained">${plural} (${baseAmount})</span>`;
+            rewardIconSrc = '/static/game.data/hourglass.png';
+        } else if (realVictoryData.rewardType === 'memories') {
+            rewardHtml = `<span class="reward-value memories-gained">Lembrança Obtida</span>`;
+            rewardIconSrc = '/static/game.data/memory.png';
+        } else {
+            // ← FALLBACK: Se não tem tipo definido, usar o que tiver valor
+            if (realVictoryData.crystalsGained && realVictoryData.crystalsGained > 0) {
+                rewardHtml = `<span class="reward-value crystals-gained">${realVictoryData.crystalsGained} Cristais de Memória</span>`;
+                rewardIconSrc = '/static/game.data/crystal.png';
+            } else if (realVictoryData.goldGained && realVictoryData.goldGained > 0) {
+                rewardHtml = `<span class="reward-value gold-gained">${realVictoryData.goldGained} Ouro</span>`;
+                rewardIconSrc = '/static/game.data/gold.png';
+            } else if (realVictoryData.hourglassesGained && realVictoryData.hourglassesGained > 0) {
+                rewardHtml = `<span class="reward-value hourglasses-gained">Ampulheta Eterna (${realVictoryData.hourglassesGained})</span>`;
+                rewardIconSrc = '/static/game.data/hourglass.png';
+            } else {
+                // ← ÚLTIMO FALLBACK
+                rewardHtml = `<span class="reward-value crystals-gained">20 Cristais de Memória</span>`;
+                rewardIconSrc = '/static/game.data/crystal.png';
+            }
+        }
+
+        // ← USAR ÍCONE DO realVictoryData se disponível
+        if (realVictoryData.rewardIcon) {
+            rewardIconSrc = `/static/game.data/${realVictoryData.rewardIcon}`;
+        }
+        
+        // ===== PROCESSAR MENSAGENS DE BÔNUS DE RELÍQUIAS ANTES DE CRIAR O HTML =====
+        let relicBonusHtml = '';
+        if (realVictoryData.relic_bonus_messages) {
+            const messages = realVictoryData.relic_bonus_messages.split('\n').filter(m => m.trim());
+            if (messages.length > 0) {
+                relicBonusHtml = `
+                    <div class="relic-bonus-section">
+                        ${messages.map(msg => {
+                            // Formatar mensagem: remover emoji e reformatar
+                            let cleanMsg = msg.replace(/[💰💎⏳✨]/g, '').trim();
+                            cleanMsg = cleanMsg.replace(/^Relíquias:\s*/i, '');
+                            return `<div class="relic-bonus-message">Bônus por relíquias: ${cleanMsg}</div>`;
+                        }).join('')}
+                    </div>`;
+            }
+        }
+        
+        const rewardPopup = document.createElement('div');
+        // ADICIONAR ui-dialog no overlay:
+        rewardPopup.className = 'ui-dialog victory-rewards-popup';
+
+        // Envolver o conteúdo com ui-panel:
+        rewardPopup.innerHTML = `
+        <div class="ui-panel victory-content-new">
+            <h2 class="title">${realVictoryData.enemyName || 'Inimigo'} derrotado!</h2>
+
+            <div class="battle-stats-compact">
+                <div class="damage-stats-row">
+                    <span class="damage-stat-left">DANO CAUSADO: <span class="stat-value damage-dealt">${realVictoryData.damageDealt ?? 0}</span></span>
+                    <span class="damage-stat-right">DANO RECEBIDO: <span class="stat-value damage-taken">${realVictoryData.damageTaken ?? 0}</span></span>
+                </div>
+            </div>
+
+            <div class="rewards-section-compact">
+                <div class="reward-icon-large-container">
+                    <img src="${rewardIconSrc}" alt="Recompensa" class="reward-icon-large">
+                </div>
+                <div class="reward-main">
+                    ${rewardHtml}
+                </div>
+            </div>
+
+            ${relicBonusHtml}
+
+            <div class="progress-section">
+                <span class="progress-text">Inimigos derrotados na região: ${(data.enemies_defeated % 20) || 20}/20</span>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill"></div>
+                </div>
+            </div>
+
+            <button class="victory-continue-btn" onclick="acceptVictoryRewards()">
+                Receber Recompensas
+            </button>
+        </div>`;
+
+        
+        // Salvar dados para usar depois
+        window.lastVictoryData = data;
+
+        // >>> SNAPSHOT ANTES DE MOSTRAR O POP-UP <
+        // Só tirar snapshot se ainda não foi tirado (para evitar sobrescrever)
+        if (!window.__preRewardSnapshots) {
+            window.__preRewardSnapshots = {
+            currencies: snapshotHudValues(document.getElementById('currencies-hud')),
+            buffs:      snapshotHudValues(document.getElementById('run-buffs-hud'))
+            };
+            console.log("📸 Snapshot tirado para comparação:", window.__preRewardSnapshots);
+        }
+        
+        document.body.appendChild(rewardPopup);
+
+        // TOCAR SOM DO POP-UP DE RECOMPENSA
+        playRewardPopupSound();
+
+        // Animar barra de progresso
+        setTimeout(() => {
+            const progressBar = rewardPopup.querySelector('.progress-bar-fill');
+            if (progressBar) {
+                const enemiesInRegion = data.enemies_defeated % 20;
+                const progressPercent = (enemiesInRegion / 20) * 100;
+                
+                console.log("🏆 BARRA PROGRESSO DEBUG:");
+                console.log("   enemies_defeated:", data.enemies_defeated);
+                console.log("   enemiesInRegion:", enemiesInRegion);
+                console.log("   progressPercent:", progressPercent);
+                
+                // ← ADICIONAR CLASSE DE ANIMAÇÃO
+                progressBar.classList.add('animating');
+                
+                // ← ANIMAR GRADUALMENTE
+                progressBar.style.width = `${progressPercent}%`;
+                
+                // ← REMOVER CLASSE APÓS ANIMAÇÃO
+                setTimeout(() => {
+                    progressBar.classList.remove('animating');
+                }, 2000);
+                
+                console.log("   Largura aplicada:", progressBar.style.width);
+            }
+        }, 100);
+    }
+
+  // Nova função para atualizar display de currencies
+  function updateCurrencyDisplay(skipDomUpdate = false) {
+      // Se há animação pendente, apenas retornar os dados sem atualizar DOM
+      if (skipDomUpdate) {
+          return fetch('/gamification/get_player_currencies')
+              .then(response => response.json())
+              .then(data => {
+                  console.log("💰 Dados de currencies obtidos (sem atualizar DOM):", data);
+                  return data;
+              });
+      }
+      
+      // Comportamento normal - atualizar DOM
+      return fetch('/gamification/get_player_currencies')
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  // Atualizar valores direto (sem animação)
+                  const crystalsEl = document.getElementById('crystals-value');
+                  const goldEl = document.getElementById('gold-value');
+                  const hourglassesEl = document.getElementById('hourglasses-value');
+                  
+                  if (crystalsEl) crystalsEl.textContent = data.crystals;
+                  if (goldEl) goldEl.textContent = data.gold;
+                  if (hourglassesEl) hourglassesEl.textContent = data.hourglasses;
+                  
+                  console.log("💰 Currencies atualizadas no DOM:", data);
+              }
+              return data;
+          })
+          .catch(error => {
+              console.error('Erro ao atualizar currencies:', error);
+              return null;
+          });
+  }
+
+  function updateValueWithAnimation(elementId, newValue) {
+    const element = document.getElementById(elementId);
+    if (element && element.textContent !== String(newValue)) {
+      element.textContent = newValue;
+    }
+  }
+
+    async function acceptVictoryRewards() {
+        // DEBOUNCE: Evitar cliques duplos
+        if (window.processingRewards) {
+            console.log("⚠️ Já processando recompensas, ignorando clique");
+            return;
+        }
+        window.processingRewards = true;
+        
+        console.log("🎁 Aplicando recompensas...");
+        
+        // Desabilitar botão para feedback visual
+        const continueBtn = document.querySelector('.victory-continue-btn');
+        if (continueBtn) {
+            continueBtn.disabled = true;
+            continueBtn.textContent = 'Processando...';
+        }
+      
+      try {
+          // 1) Chamar rota para aplicar recompensas no backend
+          const response = await fetch('/gamification/apply_victory_rewards', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+          });
+          
+          const result = await response.json();
+          console.log("🎁 Resposta da aplicação:", result);
+          
+          if (!result.success) {
+              console.error('❌ Erro ao aplicar recompensas:', result.message);
+              alert('Erro ao aplicar recompensas: ' + result.message);
+              return;
+          }
+          
+          // 2) Fechar pop-up de vitória
+          const rewardPopup = document.querySelector('.victory-rewards-popup');
+          if (rewardPopup) {
+              rewardPopup.remove();
+              console.log("✅ Pop-up de vitória fechado");
+          }
+          
+          // 3) Aguardar um pouco para suavizar a transição
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          // 4) NOVO: Obter dados atualizados SEM atualizar DOM ainda
+          console.log("🔄 Obtendo dados atualizados...");
+          const [currencyData, buffsData] = await Promise.all([
+              updateCurrencyDisplay(true), // skipDomUpdate = true
+              updateActiveRunBuffs(true)   // skipDomUpdate = true
+          ]);
+          
+          // 5) Aguardar um pouco mais
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          // 6) NOVO: Aplicar animações PRIMEIRO (com valores ainda antigos no DOM)
+          if (window.__preRewardSnapshots) {
+              console.log("✨ Aplicando animações com snapshot...");
+              
+              // Aplicar animações (que vão alterar o DOM gradualmente)
+              const currenciesHud = document.getElementById('currencies-hud');
+              const buffsHud = document.getElementById('run-buffs-hud');
+              
+              if (currenciesHud && window.__preRewardSnapshots.currencies) {
+                  // Primeiro, atualizar valores finais no DOM (para onde a animação vai)
+                  if (currencyData && currencyData.success) {
+                      const crystalsEl = document.getElementById('crystals-value');
+                      const goldEl = document.getElementById('gold-value');
+                      const hourglassesEl = document.getElementById('hourglasses-value');
+                      
+                      if (crystalsEl) crystalsEl.textContent = currencyData.crystals;
+                      if (goldEl) goldEl.textContent = currencyData.gold;
+                      if (hourglassesEl) hourglassesEl.textContent = currencyData.hourglasses;
+                  }
+                  
+                  // Então aplicar animação
+                  diffAndAnimate(currenciesHud, window.__preRewardSnapshots.currencies);
+              }
+              
+              if (buffsHud && window.__preRewardSnapshots.buffs) {
+                  // Primeiro, atualizar buffs no DOM  
+                  if (buffsData && buffsData.success) {
+                      displayActiveRunBuffs(buffsData.buffs);
+                  }
+                  
+                  // Então aplicar animação
+                  diffAndAnimate(buffsHud, window.__preRewardSnapshots.buffs);
+              }
+              
+              // Limpar snapshots
+              window.__preRewardSnapshots = null;
+          } else {
+              // Fallback: atualizar normalmente se não há snapshot
+              console.log("⚠️ Não há snapshot, atualizando normalmente");
+              await updateCurrencyDisplay(false);
+              await updateActiveRunBuffs(false);
+          }
+          
+          // 7) Mostrar level up se houver
+          if (result.level_up) {
+              addNotification(`🎉 Level Up! Você chegou ao nível ${result.new_level}!`);
+          }
+          
+          // 8) Verificar se deve mostrar pop-up de memória
+          console.log("🏆 DEBUG: window.__pendingMemoryPopup =", window.__pendingMemoryPopup);
+          if (window.__pendingMemoryPopup) {
+              window.__pendingMemoryPopup = false;
+              console.log("🧠 DEBUG: Iniciando processo de memória");
+              
+              // Aguardar animações terminarem antes de mostrar o próximo pop-up
+              setTimeout(() => {
+                  console.log("🧠 DEBUG: Chamando checkMemoryReward()");
+                  checkMemoryReward();
+              }, 800);
+          } else {
+              console.log("❌ DEBUG: Nenhuma memória pendente para mostrar");
+          }
+          
+          // 9) Resetar flags
+          window.victoryProcessed = false;
+          window.processingRewards = false;
+          
+      } catch (error) {
+          console.error('❌ Erro na aplicação de recompensas:', error);
+          alert('Erro de comunicação: ' + error.message);
+          
+          // RESETAR FLAGS EM CASO DE ERRO
+          window.processingRewards = false;
+          const continueBtn = document.querySelector('.victory-continue-btn');
+          if (continueBtn) {
+              continueBtn.disabled = false;
+              continueBtn.textContent = 'Receber Recompensas';
+          }
+      }
+  }
+
+
+  function checkForRecentVictory() {
+      // Evitar processamento duplicado
+      if (window.victoryProcessed) {
+          return;
+      }
+      
+      // Só verificar se estamos no hub
+      if (window.location.pathname === '/gamification' || window.location.pathname === '/gamification/') {
+          const lastVictory = localStorage.getItem('lastVictoryTime');
+          const victoryData = localStorage.getItem('victoryData');
+          
+          if (lastVictory && victoryData) {
+              const now = Date.now();
+              const victoryTime = parseInt(lastVictory);
+              
+              // Se a vitória foi nos últimos 10 segundos
+              if (now - victoryTime < 10000) {
+                  console.log("🎉 Vitória recente detectada!");
+                  
+                  // LIMPAR IMEDIATAMENTE para evitar processamento duplicado
+                  localStorage.removeItem('lastVictoryTime');
+                  localStorage.removeItem('victoryData');
+                  
+                  // Marcar como processado para evitar repetições
+                  window.victoryProcessed = true;
+                  window.processingVictory = true;
+                  
+                  // Processar dados da vitória
+                  const parsedVictoryData = JSON.parse(victoryData);
+                  console.log("🏆 DADOS DA VITÓRIA:", parsedVictoryData);
+                  
+                  // Verificar se há recompensas pendentes no servidor
+                  fetch('/gamification/boss_defeated', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' }
+                  })
+                  .then(response => response.json())
+                  .then(progressData => {
+                      console.log("📊 Dados de progresso:", progressData);
+                      
+                      // Tirar snapshot ANTES de mostrar o pop-up
+                      window.__preRewardSnapshots = {
+                          currencies: snapshotHudValues(document.getElementById('currencies-hud')),
+                          buffs: snapshotHudValues(document.getElementById('run-buffs-hud'))
+                      };
+                      console.log("📸 Snapshot tirado:", window.__preRewardSnapshots);
+                      
+                      // NOVO: Verificar diretamente no servidor se há recompensa de memória
+                      fetch('/gamification/check_memory_reward')
+                          .then(response => response.json())
+                          .then(memoryData => {
+                              console.log("🧠 DEBUG: Resposta do check_memory_reward:", memoryData);
+                              
+                              if (memoryData.success && memoryData.has_memory_reward) {
+                                  window.__pendingMemoryPopup = true;
+                                  console.log("🧠 DEBUG: Marcando recompensa de memória para após pop-up");
+                              } else {
+                                  window.__pendingMemoryPopup = false;
+                                  console.log("❌ DEBUG: NÃO é recompensa de memória");
+                              }
+                          })
+                          .catch(error => {
+                              console.error("❌ Erro ao verificar memória:", error);
+                              window.__pendingMemoryPopup = false;
+                              showVictoryRewards(progressData, parsedVictoryData);
+                          });
+                      
+                      // Mostrar pop-up de recompensa
+                      showVictoryRewards(progressData, parsedVictoryData);
+                  })
+                  .catch(error => {
+                      console.error("❌ Erro ao buscar progresso:", error);
+                      // Fallback: mostrar pop-up mesmo assim
+                      window.__preRewardSnapshots = {
+                          currencies: snapshotHudValues(document.getElementById('currencies-hud')),
+                          buffs: snapshotHudValues(document.getElementById('run-buffs-hud'))
+                      };
+                      showVictoryRewards({ enemies_defeated: 1 }, parsedVictoryData);
+                  });
+                  
+              }
+          }
+      }
+  }
+  
+  function startVictoryPolling() {
+      // Verificar imediatamente ao carregar o hub
+      checkForRecentVictory();
+      
+      // Verificar a cada 2 segundos se há vitória recente
+      setInterval(() => {
+          checkForRecentVictory();
+      }, 2000);
+  }
+
+   // Esconder o botão "Voltar ao Retina Cards" no footer
+  document.addEventListener('DOMContentLoaded', function() {
+    const footerButtons = document.querySelectorAll('.text-center.mt-4 .btn-secondary');
+    footerButtons.forEach(button => {
+      button.style.display = 'none';
+    });
+  });
+</script>
+
+<!-- Script de partículas -->
+<script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
+<script>
+  particlesJS('particles-js', {
+    "particles": {
+      "number": { "value": 180 },
+      "color": { "value": ["#888888", "#aaaaaa", "#cccccc", "#999999", "#bbbbbb"] },
+      "shape": { "type": "circle" },
+      "opacity": { 
+        "value": 0.4,
+        "random": true,
+        "anim": {
+          "enable": true,
+          "speed": 1,
+          "opacity_min": 0.1,
+          "sync": false
+        }
+      },
+      "size": { 
+        "value": 2,
+        "random": true,
+        "anim": {
+          "enable": true,
+          "speed": 2,
+          "size_min": 0.5,
+          "sync": false
+        }
+      },
+      "line_linked": { "enable": false },
+      "move": {
+        "enable": true,
+        "speed": 0.3,
+        "direction": "none",
+        "random": true,
+        "straight": false,
+        "out_mode": "out",
+        "bounce": false
+      }
+    },
+    "interactivity": {
+      "detect_on": "canvas",
+      "events": { "onhover": { "enable": false } },
+      "modes": {}
+    },
+    "retina_detect": true
+  }); 
+</script>
+
+<script>
+
+  // === VARIÁVEIS GLOBAIS ===
+  let availableEnemies = [];
+  let isNewBattleSession = false;
+
+  // === FUNÇÕES GLOBAIS PARA SELEÇÃO DE INIMIGOS ===
+  function selectEnemy(enemyId, enemyName) {
+      console.log("🎯 Selecionando inimigo:", enemyId, enemyName);
+
+      // Resetar contador de dano para nova batalha
+      window.totalBattleDamage = 0;
+      window.battleInProgress = false;
+      console.log("🔄 Contador de dano resetado - novo inimigo selecionado");
+      
+      fetch('/gamification/select_enemy', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+              enemy_id: enemyId
+          })
+      })
+      .then(response => response.json())
+      .then(data => {
+          console.log("📊 Resposta do servidor:", data);
+          
+          if (data.success) {
+              closeBossSelection();
+              console.log(`✅ Inimigo ${enemyName} selecionado!`);
+              setTimeout(() => {
+                  window.location.href = '/gamification/battle';
+              }, 500);
+          } else {
+              alert('Erro ao selecionar inimigo: ' + data.message);
+          }
+      })
+      .catch(error => {
+          console.error('❌ Erro ao selecionar inimigo:', error);
+          alert('Erro de comunicação com o servidor');
+      });
+  }
+
+  function selectBoss(bossId, bossName) {
+      console.log("👑 Selecionando boss:", bossId, bossName);
+
+      // Resetar contador de dano para nova batalha
+      window.totalBattleDamage = 0;
+      window.battleInProgress = false;
+      console.log("🔄 Contador de dano resetado - novo boss selecionado");
+      
+      fetch('/gamification/select_boss', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+              boss_id: bossId
+          })
+      })
+      .then(response => response.json())
+      .then(data => {
+          console.log("📊 Resposta do servidor:", data);
+          
+          if (data.success) {
+              closeBossSelection();
+              console.log(`✅ Boss ${bossName} selecionado!`);
+              setTimeout(() => {
+                  window.location.href = '/gamification/battle';
+              }, 500);
+          } else {
+              alert('Erro ao selecionar boss: ' + data.message);
+          }
+      })
+      .catch(error => {
+          console.error('❌ Erro ao selecionar boss:', error);
+          alert('Erro de comunicação com o servidor');
+      });
+  }
+
+  function closeBossSelection() {
+      const popup = document.getElementById('boss-selection-popup');
+      if (popup) {
+          // TOCAR SOM DE FECHAMENTO
+          playEnemySelectionCloseSound();
+          closeDialog('#boss-selection-popup');
+      }
+  }
+
+  // === Utils Modal ===
+  function openDialog(el) {
+    const d = typeof el === 'string' ? document.querySelector(el) : el;
+    if (!d) return;
+    d.style.display = 'flex';
+    // focus trap básico:
+    const focusable = d.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    (focusable || d).focus();
+    document.addEventListener('keydown', escToClose);
+    d.dataset.open = "1";
+  }
+  function closeDialog(el) {
+    const d = typeof el === 'string' ? document.querySelector(el) : el;
+    if (!d) return;
+    d.classList.add('ui-exit');
+    setTimeout(()=>{ d.style.display = 'none'; d.classList.remove('ui-exit'); }, 140);
+    document.removeEventListener('keydown', escToClose);
+    d.dataset.open = "";
+  }
+  function escToClose(e){
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.ui-dialog[data-open="1"]').forEach(d => closeDialog(d));
+    }
+  }
+
+  function markEnemiesAsSeen(enemies) {
+      const newEnemyIds = enemies.filter(enemy => enemy.is_new).map(enemy => enemy.id);
+      
+      if (newEnemyIds.length > 0) {
+          fetch('/gamification/mark_enemies_seen', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ enemy_ids: newEnemyIds })
+          }).catch(error => console.error('Erro ao marcar inimigos como vistos:', error));
+      }
+  }
+
+  function showBossSelection(isNew = false) {
+      isNewBattleSession = isNew;
+    
+      // Carregar inimigos disponíveis
+      fetch('/gamification/get_available_enemies')
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  // Salvar dados globalmente para renderEnemyCards
+                  window.currentBossData = data;
+                  
+                  if (data.is_boss_fight && data.boss) {
+                      // É boss fight - renderizar boss
+                      availableEnemies = [data.boss];
+                      renderEnemyCards([data.boss], isNew);
+                  } else {
+                      // Inimigos genéricos normais
+                      availableEnemies = data.enemies;
+                      renderEnemyCards(data.enemies, isNew);
+                  }
+                  
+                  playEnemySelectionSound();
+                  openDialog('#boss-selection-popup');
+              } else {
+                  console.error('Erro ao carregar inimigos:', data.message);
+              }
+          })
+          .catch(error => {
+              console.error('Erro na requisição:', error);
+          });
+  }
+
+  function renderEnemyCards(enemies, showNewAnimation = false) {
+    const grid  = document.getElementById('enemy-grid');
+    if (!grid) {
+      console.error("❌ Elemento 'enemy-grid' não encontrado!");
+      return;
+    }
+    grid.innerHTML = '';
+
+    // NOVO: Verificar se é boss fight
+    if (window.currentBossData && window.currentBossData.is_boss_fight && window.currentBossData.boss) {
+        console.log("👑 Renderizando boss no pop-up:", window.currentBossData.boss);
+        
+        // Definir 1 coluna para boss
+        const cols = 1;
+        grid.style.display = 'grid';
+        grid.style.gridTemplateColumns = `repeat(${cols}, 240px)`;
+        
+        const panel = document.querySelector('.ui-panel.boss-selection-modal');
+        if (panel) panel.style.setProperty('--cols', cols);
+        
+        // Criar card do boss
+        const bossCard = createEnemyCard(window.currentBossData.boss, showNewAnimation);
+        grid.appendChild(bossCard);
+        return;
+    }
+
+    // 1) Define a quantidade de colunas efetivas (máx. 3)
+    const cols = Math.min(enemies.length, 4); // Suporta até 4 opções
+
+    // 2) Atualiza o grid para usar as colunas calculadas
+    grid.style.display = 'grid';
+    // Se você deixou o CSS com repeat(var(--cols)), esta linha é opcional:
+    grid.style.gridTemplateColumns = `repeat(${cols}, 240px)`;
+
+    // 3) Passa a informação para o PAINEL (.ui-panel.boss-selection-modal)
+    //    Isso vai dimensionar a largura do popup com a regra CSS calc(...)
+    const panel = document.querySelector('.ui-panel.boss-selection-modal');
+    if (panel) panel.style.setProperty('--cols', cols);
+
+    // 4) Renderiza os cards
+    enemies.forEach((enemy, index) => {
+      const isNew = showNewAnimation && index >= enemies.length - 1;
+      const card = createEnemyCard(enemy, isNew);
+      grid.appendChild(card);
+    });
+  }
+
+
+  function createEnemyCard(enemy, isNew = false) {
+    console.log("🏆 DADOS DO INIMIGO/BOSS:", enemy);
+    
+    const card = document.createElement('div');
+    
+    // Verificar se é boss
+    if (enemy.is_boss) {
+        card.className = `enemy-card boss ${isNew ? 'new' : ''}`;
+        
+        // Construir sprite do boss (animada)
+        const bossName = enemy.name.toLowerCase().replace(/\s+/g, '_'); // Converte nome para classe CSS
+        const bossSprite = `<div class="boss-idle-sprite boss-${bossName}" style="background-image: url('/static/game.data/${enemy.sprite_idle}');"></div>`;
+        
+        card.innerHTML = `
+            <div class="card-glow-effect"></div>
+            <div class="card-slide-effect"></div>
+            <div class="rarity-label boss">ESPECIAL</div>
+            <h3 class="enemy-name">${enemy.name}</h3>
+            <div class="enemy-sprite-container">
+                ${bossSprite}
+            </div>
+            <div class="enemy-stats">
+                <div><strong>HP:</strong> ${enemy.hp}</div>
+                <div><strong>Dano:</strong> ${enemy.damage}</div>
+                <div><strong>Postura:</strong> ${enemy.posture}</div>
+                <div><strong>Defesa:</strong> ${enemy.block_percentage}%</div>
+            </div>
+            <!-- Bosses não mostram recompensa no card -->
+            </div>
+            <button class="choose-enemy-btn boss-btn" onclick="selectBoss(${enemy.id}, '${enemy.name}')">
+                Enfrentar Boss
+            </button>
+        `;
+        
+        return card;
+    }
+    
+    // inimigos genéricos
+    card.className = `enemy-card rarity-${enemy.rarity} ${isNew ? 'new' : ''}`;
+    
+    // Construir sprites (apenas as camadas que existem)
+    let spriteLayers = '';
+    
+    if (enemy.sprite_back) {
+      spriteLayers += `<div class="enemy-sprite-layer" style="background-image: url('/static/game.data/enemies/back/${enemy.sprite_back}'); z-index: 1;"></div>`;
+    }
+    
+    spriteLayers += `<div class="enemy-sprite-layer" style="background-image: url('/static/game.data/enemies/body/${enemy.sprite_body}'); z-index: 2;"></div>`;
+    spriteLayers += `<div class="enemy-sprite-layer" style="background-image: url('/static/game.data/enemies/head/${enemy.sprite_head}'); z-index: 3;"></div>`;
+    spriteLayers += `<div class="enemy-sprite-layer" style="background-image: url('/static/game.data/enemies/weapon/${enemy.sprite_weapon}'); z-index: 4;"></div>`;
+    
+    // ADICIONAR: Verificar se o inimigo é novo (baseado em timestamp ou flag)
+    const isNewEnemy = enemy.is_new || (enemy.created_at && Date.now() - new Date(enemy.created_at).getTime() < 60000); // Novo se criado há menos de 1 minuto
+    
+    card.innerHTML = `
+      <div class="card-glow-effect"></div>
+      <div class="card-slide-effect"></div>
+      <div class="rounds-badge">${enemy.rounds_remaining}/${enemy.initial_rounds || 3}</div>
+      ${isNewEnemy ? '<div class="new-enemy-badge">NOVO!</div>' : ''}
+      <div class="rarity-label rarity-${enemy.rarity}">${enemy.rarity_name}</div>
+      <div class="equipment-rank rank-${enemy.equipment_rank}">${enemy.equipment_rank === 'Supremo' ? 'Supremo' : 'Rank ' + enemy.equipment_rank}</div>
+      <div class="reward-icon-container">
+        <img src="/static/game.data/${enemy.reward_icon || 'crystal.png'}" alt="Recompensa" class="reward-icon-small">
+      </div>
+      <h3 class="enemy-name">${enemy.name}</h3>
+      <div class="enemy-sprite-container">
+        ${spriteLayers}
+      </div>
+      <div class="enemy-stats">
+        <div><strong>HP:</strong> ${enemy.hp}</div>
+        <div><strong>Dano:</strong> ${enemy.damage}</div>
+        <div><strong>Postura:</strong> ${enemy.posture}</div>
+      </div>
+      <button class="choose-enemy-btn" onclick="selectEnemy(${enemy.id}, '${enemy.name}')">
+        Escolher
+      </button>
+    `;
+    
+    return card;
+}
+
+  // Mostrar pop-up automaticamente se for uma nova sessão de batalha
+  // (essa função será chamada quando um boss for derrotado)
+  function showNewBattleRewards() {
+    // Esta função será chamada do sistema de batalha
+    showBossSelection(true);
+  }
+
+  // Notification System
+  document.addEventListener('DOMContentLoaded', function() {
+      // Elements
+      const notificationBell = document.getElementById('notificationBell');
+      const notificationPanel = document.getElementById('notificationPanel');
+      const notificationList = document.getElementById('notificationList');
+      const notificationCount = document.getElementById('notificationCount');
+      const clearNotificationsBtn = document.getElementById('clearNotifications');
+      
+      // Load notifications from localStorage
+      let notifications = JSON.parse(localStorage.getItem('gameNotifications') || '[]');
+      updateNotificationCount();
+      
+      // Toggle notification panel
+      notificationBell.addEventListener('click', function() {
+          const isVisible = notificationPanel.style.display === 'flex';
+          notificationPanel.style.display = isVisible ? 'none' : 'flex';
+          if (!isVisible) renderNotifications();
+      });
+      
+      // Clear all notifications
+      clearNotificationsBtn.addEventListener('click', function() {
+          notifications = [];
+          localStorage.setItem('gameNotifications', JSON.stringify(notifications));
+          updateNotificationCount();
+          renderNotifications();
+      });
+      
+      // Close panel when clicking outside
+      document.addEventListener('click', function(event) {
+          if (!notificationBell.contains(event.target) && 
+              !notificationPanel.contains(event.target) && 
+              notificationPanel.style.display === 'flex') {
+              notificationPanel.style.display = 'none';
+          }
+      });
+      
+      // Function to add a new notification
+      window.addNotification = function(message) {
+          const now = new Date();
+          const timestamp = now.toLocaleTimeString() + ' ' + now.toLocaleDateString();
+          notifications.unshift({ message, timestamp, read: false });
+          if (notifications.length > 50) notifications.pop();
+          localStorage.setItem('gameNotifications', JSON.stringify(notifications));
+          updateNotificationCount();
+          notificationBell.classList.add('notification-new');
+          setTimeout(() => notificationBell.classList.remove('notification-new'), 500);
+      };
+      
+      // Update notification count badge
+      function updateNotificationCount() {
+          const unread = notifications.filter(n => !n.read).length;
+          notificationCount.textContent = unread;
+          notificationCount.style.display = unread > 0 ? 'flex' : 'none';
+      }
+      
+      // Render notifications in the panel
+      function renderNotifications() {
+          notificationList.innerHTML = '';
+          if (!notifications.length) {
+              const emptyEl = document.createElement('div');
+              emptyEl.className = 'notification-empty';
+              emptyEl.textContent = 'Nenhuma notificação.';
+              notificationList.appendChild(emptyEl);
+              return;
+          }
+          notifications.forEach((notif, i) => {
+              const item = document.createElement('div');
+              item.className = 'notification-item';
+              const msg = document.createElement('div'); msg.textContent = notif.message;
+              const time = document.createElement('div');
+              time.style.fontSize = '10px';
+              time.style.color = '#9ca3af';
+              time.style.marginTop = '5px';
+              time.textContent = notif.timestamp;
+              item.append(msg, time);
+              notificationList.appendChild(item);
+              if (!notif.read) { notifications[i].read = true; }
+          });
+          localStorage.setItem('gameNotifications', JSON.stringify(notifications));
+          updateNotificationCount();
+      }
+      
+      // Process flash/gamification messages and data-notification attributes
+      document.querySelectorAll('.alert-success, .alert-gamification, .alert-gamification-notification, [data-notification]').forEach(el => {
+          const msg = el.textContent.trim() || el.getAttribute('data-notification');
+          if (msg) addNotification(msg);
+          el.remove();
+      });
+      
+      // Process pending session notifications
+      {% if session.get('pending_notifications') %}
+        console.log("Notificações na sessão encontradas: {{ session.get('pending_notifications')|length }}");
+        {% for notification in session.get('pending_notifications') %}
+          addNotification("{{ notification|e }}");
+        {% endfor %}
+        {% set _ = session.pop('pending_notifications', None) %}
+        updateNotificationCount();
+      {% endif %}
+  
+      // Mover estas funções para DENTRO do DOMContentLoaded
+      function showBossMilestoneMessage(enemiesDefeated) {
+          const milestonePopup = document.createElement('div');
+          milestonePopup.className = 'boss-milestone-popup';
+          milestonePopup.innerHTML = `
+              <div class="milestone-content">
+                  <h2>👑 Boss Milestone!</h2>
+                  <p>Você derrotou ${enemiesDefeated} inimigos!</p>
+                  <p>Um boss especial apareceu!</p>
+                  <button onclick="this.parentElement.parentElement.remove(); window.location.href='/gamification/battle'">
+                      Enfrentar Boss
+                  </button>
+              </div>
+          `;
+          
+          document.body.appendChild(milestonePopup);
+      }
+      
+      // Event listener para botão de batalha
+      const battleBtn = document.querySelector('.battle-btn');
+      if (battleBtn) {
+        console.log("🔵 Event listener adicionado ao botão batalha");
+        
+        battleBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          console.log("🔴 CLIQUE INTERCEPTADO!");
+          
+          // Verificar se já tem inimigo selecionado
+          fetch('/gamification/get_available_enemies')
+            .then(response => response.json())
+            .then(data => {
+              console.log("📊 Dados dos inimigos:", data);
+              console.log("🔍 DEBUG selected_enemy_id:", data.selected_enemy_id);
+              console.log("🔍 DEBUG selected_boss_id:", data.selected_boss_id);
+              console.log("🔍 DEBUG is_boss_fight:", data.is_boss_fight);
+              
+              if (data.success) {
+                if (data.selected_enemy_id || data.selected_boss_id) {
+                  console.log("✅ Inimigo/Boss já selecionado, indo para batalha");
+                  window.location.href = '/gamification/battle';
+                } else {
+                  console.log("⚡ Nenhum inimigo selecionado, mostrando pop-up");
+                  showBossSelection(false);
+                }
+              }
+            })
+            .catch(error => {
+              console.error('❌ Erro:', error);
+              window.location.href = '/gamification/battle';
+            });
+        });
+      } else {
+        console.error("❌ Botão .battle-btn não encontrado!");
+      }
+      
+      // Inicializar polling de vitória
+      startVictoryPolling();
+
+  });  // FIM CORRETO do DOMContentLoaded
+</script>
+
+<!-- Pop-up de Seleção de Boss -->
+<div id="boss-selection-popup" class="ui-dialog" style="display:none">
+  <div class="ui-panel boss-selection-modal">
+    <h2 class="title">Escolha seu Próximo Desafio</h2>
+    <button class="close-popup-btn" onclick="closeBossSelection()">✕</button>
+    <div class="enemy-grid" id="enemy-grid"></div>
+  </div>
+</div>
+
+
+{% endblock %}

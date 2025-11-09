@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@pixi/particle-emitter": "5.0.8",
+    "pixi.js": "7.4.2"
+  }
+}

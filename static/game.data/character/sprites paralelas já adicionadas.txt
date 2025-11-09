@@ -1,0 +1,19 @@
+vlad - power fx1
+
+C:\Users\Eric Vieira\Desktop\flashcards_app\static\game.data\character\vlad\power\
+
+ao invés do "power-fx1":
+
+power-fx1-black
+power-fx1-blue
+power-fx1-blueish
+power-fx1-darkmatter
+power-fx1-lightpink
+power-fx1-neongreen
+power-fx1-orange
+power-fx1-puredarkness
+power-fx1-purewhite
+power-fx1-red
+power-fx1-redish
+power-fx1-white
+power-fx1-yellow

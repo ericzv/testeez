@@ -1,0 +1,812 @@
+#separator:tab
+#html:true
+"<div class=afirmação>No coração a via&nbsp;<span class=""cloze"" data-cloze=""mais&#x20;r&#xE1;pida"" data-ordinal=""1"">[...]</span> comanda <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> No coração a via&nbsp;<span class=""cloze"" data-ordinal=""1"">mais rápida</span> comanda </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId001').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId001"" class=hint style=""display: none""><div>O sistema de condução cardíaco possui células com diferentes velocidades. A via que conduz mais rapidamente (normalmente o nó sinusal) determina o ritmo cardíaco.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>"Atraso" fisiológico na condução atrioventricular é inscrito no ECG como&nbsp;<span class=""cloze"" data-cloze=""Intervalo&#x20;P&#x2D;R"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> "Atraso" fisiológico na condução atrioventricular é inscrito no ECG como&nbsp;<span class=""cloze"" data-ordinal=""1"">Intervalo P-R</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId002').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId002"" class=hint style=""display: none""><div>Este intervalo representa o tempo entre a despolarização atrial e o início da despolarização ventricular, permitindo que o átrio termine sua contração antes dos ventrículos.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Despolarização dos átrios é inscrita no ECG como&nbsp;<span class=""cloze"" data-cloze=""Onda&#x20;P"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Despolarização dos átrios é inscrita no ECG como&nbsp;<span class=""cloze"" data-ordinal=""1"">Onda P</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId003').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId003"" class=hint style=""display: none""><div>A onda P representa a ativação elétrica dos átrios. Uma onda P normal é positiva em DII, arredondada e com duração <120ms.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Despolarização dos ventriculos é inscrita no ECG como&nbsp;<span class=""cloze"" data-cloze=""Complexo&#x20;QRS"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Despolarização dos ventriculos é inscrita no ECG como&nbsp;<span class=""cloze"" data-ordinal=""1"">Complexo QRS</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId004').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId004"" class=hint style=""display: none""><div>O QRS representa a ativação elétrica ventricular. Um QRS normal tem duração <120ms, sendo mais amplo que a onda P devido à maior massa muscular ventricular.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Repolarização dos ventrículos é inscrita no ECG como&nbsp;<span class=""cloze"" data-cloze=""Onda&#x20;T"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Repolarização dos ventrículos é inscrita no ECG como&nbsp;<span class=""cloze"" data-ordinal=""1"">Onda T</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId005').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId005"" class=hint style=""display: none""><div>A onda T representa o retorno dos ventrículos ao estado de repouso elétrico, geralmente seguindo a mesma direção do QRS principal.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Periodo Refratário é inscrito no ECG como&nbsp;<span class=""cloze"" data-cloze=""Intervalo&#x20;QT"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Periodo Refratário é inscrito no ECG como&nbsp;<span class=""cloze"" data-ordinal=""1"">Intervalo QT</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint201b361c1b5d9575').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint201b361c1b5d9575"" class=hint style=""display: none""><div>Intervalo entre despolarização e repolarização.<br></div> </div>
+</div>
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId006').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId006"" class=hint style=""display: none""><div>Este intervalo representa o tempo de despolarização e repolarização ventricular, durante o qual o coração não pode ser reestimulado.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Como calcular Frequência Cardíaca no ECG?<div><br></div><div><span class=""cloze"" data-cloze=""Quadradinhos&#x20;&#x2F;&#x20;1500&#x20;ou&amp;nbsp&#x3B;&lt;br&gt;Quadrad&#xF5;es&#x20;&#x2F;&#x20;300"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Como calcular Frequência Cardíaca no ECG?<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Quadradinhos / 1500 ou&nbsp;<br>Quadradões / 300</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId007').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId007"" class=hint style=""display: none""><div>Em um ECG padrão (25mm/s), pode-se calcular a FC dividindo 1500 pelo número de quadradinhos entre dois QRS consecutivos, ou 300 pelo número de quadradões.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Se a distância R-R for <span class=""cloze"" data-cloze=""&amp;gt&#x3B;5"" data-ordinal=""1"">[...]</span> ""quadradões"" = <span class=""cloze-inactive"" data-ordinal=""2"">Bradicardia</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Se a distância R-R for <span class=""cloze"" data-ordinal=""1"">&gt;5</span> ""quadradões"" = <span class=""cloze-inactive"" data-ordinal=""2"">Bradicardia</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint83b40768b5289c36').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint83b40768b5289c36"" class=hint style=""display: none""><div>&lt; 60 bpm.<br></div> </div>
+</div>
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId008').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId008"" class=hint style=""display: none""><div>Cinco quadradões equivalem a 1 segundo (FC=60bpm). Distâncias maiores indicam FC<60bpm, caracterizando bradicardia.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Se a distância R-R for <span class=""cloze-inactive"" data-ordinal=""1"">&gt;5</span> ""quadradões"" = <span class=""cloze"" data-cloze=""Bradicardia"" data-ordinal=""2"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Se a distância R-R for <span class=""cloze-inactive"" data-ordinal=""1"">&gt;5</span> ""quadradões"" = <span class=""cloze"" data-ordinal=""2"">Bradicardia</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint83b40768b5289c36').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint83b40768b5289c36"" class=hint style=""display: none""><div>&lt; 60 bpm.<br></div> </div>
+</div>
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId009').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId009"" class=hint style=""display: none""><div>Cinco quadradões equivalem a 1 segundo (FC=60bpm). Distâncias maiores indicam FC<60bpm, caracterizando bradicardia.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Se a distância R-R for <span class=""cloze"" data-cloze=""&amp;lt&#x3B;3"" data-ordinal=""1"">[...]</span> ""quadradões"" = <span class=""cloze-inactive"" data-ordinal=""2"">Taquicardia</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Se a distância R-R for <span class=""cloze"" data-ordinal=""1"">&lt;3</span> ""quadradões"" = <span class=""cloze-inactive"" data-ordinal=""2"">Taquicardia</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId010').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId010"" class=hint style=""display: none""><div>Três quadradões equivalem a 0,6 segundos (FC=100bpm). Distâncias menores indicam FC>100bpm, caracterizando taquicardia.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Se a distância R-R for <span class=""cloze-inactive"" data-ordinal=""1"">&lt;3</span> ""quadradões"" = <span class=""cloze"" data-cloze=""Taquicardia"" data-ordinal=""2"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Se a distância R-R for <span class=""cloze-inactive"" data-ordinal=""1"">&lt;3</span> ""quadradões"" = <span class=""cloze"" data-ordinal=""2"">Taquicardia</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId011').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId011"" class=hint style=""display: none""><div>Três quadradões equivalem a 0,6 segundos (FC=100bpm). Distâncias menores indicam FC>100bpm, caracterizando taquicardia.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação
+"<div class=afirmação>No ECG - 1 ""quadradinho"" tem&nbsp;<span class=""cloze"" data-cloze=""40"" data-ordinal=""1"">[...]</span>ms <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> No ECG - 1 ""quadradinho"" tem&nbsp;<span class=""cloze"" data-ordinal=""1"">40</span>ms </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId012').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId012"" class=hint style=""display: none""><div>Na velocidade padrão (25mm/s), cada quadrado pequeno no eixo horizontal corresponde a 40ms, unidade básica para medir intervalos no ECG.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>No ECG -&nbsp;Um ""quadradão"" tem <span class=""cloze"" data-cloze=""5"" data-ordinal=""1"">[...]</span> quadradinhos <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> No ECG -&nbsp;Um ""quadradão"" tem <span class=""cloze"" data-ordinal=""1"">5</span> quadradinhos </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId013').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId013"" class=hint style=""display: none""><div>Cada quadrado grande (5mm) corresponde a 200ms, facilitando a contagem de intervalos e determinação da frequência cardíaca.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Intervalo PR = <span class=""cloze"" data-cloze=""120&#x2D;200"" data-ordinal=""1"">[...]</span>ms <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Intervalo PR = <span class=""cloze"" data-ordinal=""1"">120-200</span>ms </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint4f8bc9acfecab000').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint4f8bc9acfecab000"" class=hint style=""display: none""><div>3-5 quadradinhos.</div> </div>
+</div>
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId014').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId014"" class=hint style=""display: none""><div>O intervalo PR normal varia de 120-200ms (3-5 quadradinhos). Valores alterados sugerem distúrbios de condução atrioventricular.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>QRS estreito <span class=""cloze"" data-cloze=""&amp;lt&#x3B;&#x20;120"" data-ordinal=""1"">[...]</span> ms <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> QRS estreito <span class=""cloze"" data-ordinal=""1"">&lt; 120</span> ms </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint4e4ed388cdac90ba').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint4e4ed388cdac90ba"" class=hint style=""display: none""><div>3 quadradinhos.</div> </div>
+</div>
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId015').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId015"" class=hint style=""display: none""><div>QRS com duração <120ms (3 quadradinhos) indica condução ventricular normal através do sistema His-Purkinje.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Intervalo QT = <span class=""cloze"" data-cloze=""440"" data-ordinal=""1"">[...]</span> ms <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Intervalo QT = <span class=""cloze"" data-ordinal=""1"">440</span> ms </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId016').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId016"" class=hint style=""display: none""><div>O intervalo QT normal é geralmente <440ms, variando com a frequência cardíaca. Por isso, frequentemente usa-se o QT corrigido (QTc).</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>O que ver da Onda P?<div><br /></div><div><span class=""cloze"" data-cloze=""Deve&#x20;estar&#x20;Positiva&#x2C;&#x20;Regular&#x20;e&#x20;Precedendo&#x20;todos&#x20;os&#x20;QRS&#x20;em&#x20;D2"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> O que ver da Onda P?<div><br /></div><div><span class=""cloze"" data-ordinal=""1"">Deve estar Positiva, Regular e Precedendo todos os QRS em D2</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId017').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId017"" class=hint style=""display: none""><div>No ritmo sinusal, cada onda P deve ser positiva em DII, manter morfologia constante e preceder cada QRS com intervalo PR estável.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Derivação para ver onda P é&nbsp;<span class=""cloze"" data-cloze=""D2"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Derivação para ver onda P é&nbsp;<span class=""cloze"" data-ordinal=""1"">D2</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId018').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId018"" class=hint style=""display: none""><div>DII é a derivação ideal para avaliar ondas P porque está alinhada com o vetor de despolarização atrial, mostrando ondas P com maior amplitude.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Ritmo sinual + QRS alargado = Investigar <span class=""cloze"" data-cloze=""bloqueio&#x20;de&#x20;ramo"" data-ordinal=""1"">[...]</span>&nbsp; <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Ritmo sinual + QRS alargado = Investigar <span class=""cloze"" data-ordinal=""1"">bloqueio de ramo</span>&nbsp; </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId019').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId019"" class=hint style=""display: none""><div>QRS alargado (>120ms) com ritmo sinusal normal sugere bloqueio na condução intraventricular, geralmente bloqueio de ramo direito ou esquerdo.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Após uma PCR, há perda de consciência após <span class=""cloze"" data-cloze=""3&#x20;segundos&#x2E;"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Após uma PCR, há perda de consciência após <span class=""cloze"" data-ordinal=""1"">3 segundos.</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId020').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId020"" class=hint style=""display: none""><div>A interrupção do fluxo sanguíneo cerebral durante uma parada cardíaca causa rápida perda de consciência, destacando a urgência do atendimento.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Taquicardia Sinusal - É considerada uma arritmia? <br><br><span class=""cloze"" data-cloze=""&lt;b&gt;N&#xE3;o&#x20;&#xE9;&#x20;arritmia&lt;&#x2F;b&gt;"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Taquicardia Sinusal - É considerada uma arritmia? <br><br><span class=""cloze"" data-ordinal=""1""><b>Não é arritmia</b></span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint570235ed7a3511ec').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint570235ed7a3511ec"" class=hint style=""display: none""><div>Pegadinha</div> </div>
+</div>
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId021').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId021"" class=hint style=""display: none""><div>É uma resposta fisiológica a estímulos como exercício, febre ou ansiedade, não um distúrbio do ritmo cardíaco. Trata-se da causa, não do sintoma.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Taquicardia Atrial - A onda P está&nbsp;<span class=""cloze"" data-cloze=""Presente&#x2C;&#x20;mas&#x20;anormal"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Taquicardia Atrial - A onda P está&nbsp;<span class=""cloze"" data-ordinal=""1"">Presente, mas anormal</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintNewId022').style.display='block';
+return false;"">
+✚ Informações adicionais</a>
+<div id=""hintNewId022"" class=hint style=""display: none""><div>Origina-se de um foco ectópico atrial, resultando em ondas P com morfologia alterada (diferente da sinusal).</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Flutter Atrial - Onda P&nbsp;<span class=""cloze"" data-cloze=""ausente"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Flutter Atrial - Onda P&nbsp;<span class=""cloze"" data-ordinal=""1"">ausente</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintd11335479f2b1a73').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hintd11335479f2b1a73"" class=hint style=""display: none""><div>Tem é onda F.</div> </div>
+</div>

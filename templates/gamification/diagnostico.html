@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }} - Retina Cards{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header bg-primary text-white">
+    <h4>{{ titulo }}</h4>
+  </div>
+  <div class="card-body">
+    <div class="alert alert-info">
+      <p>Esta é uma página de diagnóstico para ajudar a resolver problemas técnicos.</p>
+    </div>
+    
+    <h5>Resultados:</h5>
+    <div class="diagnostic-results">
+      {% for linha in resultados %}
+        {% if 'ERRO' in linha %}
+          <div class="diagnostic-line diagnostic-error">{{ linha }}</div>
+        {% elif 'VERIFICANDO' in linha or 'REMOVENDO' in linha or 'INSERINDO' in linha %}
+          <div class="diagnostic-line diagnostic-section">{{ linha }}</div>
+        {% else %}
+          <div class="diagnostic-line">{{ linha }}</div>
+        {% endif %}
+      {% endfor %}
+    </div>
+    
+    <div class="mt-4">
+      <a href="{{ url_for('shop') }}" class="btn btn-primary">Voltar para a Loja</a>
+      <a href="{{ url_for('gamification') }}" class="btn btn-secondary">Voltar para o Hub</a>
+    </div>
+  </div>
+</div>
+
+<style>
+  .diagnostic-results {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    font-family: monospace;
+    max-height: 500px;
+    overflow-y: auto;
+  }
+  
+  .diagnostic-line {
+    margin-bottom: 5px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  
+  .diagnostic-section {
+    font-weight: bold;
+    color: #007bff;
+    margin-top: 10px;
+  }
+  
+  .diagnostic-error {
+    color: #dc3545;
+    font-weight: bold;
+  }
+</style>
+{% endblock %}

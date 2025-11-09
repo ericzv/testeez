@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <defs>
+    <!-- Obsidiana: preto com violeta profundo -->
+    <linearGradient id="obsidian" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#191a1f"></stop>
+      <stop offset="1" stop-color="#0f1014"></stop>
+    </linearGradient>
+
+    <!-- Dourado do filete interno -->
+    <linearGradient id="gild" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#caa858"></stop>
+      <stop offset="0.5" stop-color="#f2d58a"></stop>
+      <stop offset="1" stop-color="#caa858"></stop>
+    </linearGradient>
+
+    <!-- Realces “martelados” (linhas quebradas) -->
+    <linearGradient id="highlight" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2a2c34"></stop>
+      <stop offset="1" stop-color="#343844"></stop>
+    </linearGradient>
+  </defs>
+
+  <!-- Centro (área que será o fill do border-image) -->
+  <rect x="48" y="48" width="96" height="96" fill="#141416" opacity="0.9"></rect>
+
+  <!-- BORDAS: cada faixa tem formas irregulares dentro do retângulo do slice -->
+  <!-- TOPO (48px de altura) -->
+  <g>
+    <rect x="48" y="0" width="96" height="48" fill="url(#obsidian)"></rect>
+    <!-- Lábio irregular superior -->
+    <path d="M48,34
+             C66,28 74,26 88,28
+             C101,30 114,24 126,27
+             C137,30 142,28 144,27
+             L144,48 L48,48 Z" fill="url(#highlight)" opacity="0.55"></path>
+    <!-- Marcas marteladas -->
+    <path d="M58,16 l10,2 l-8,4 z M84,12 l9,3 l-7,3 z M112,16 l12,2 l-8,4 z M134,14 l8,2 l-6,3 z" fill="#242730" opacity="0.8"></path>
+  </g>
+
+  <!-- BASE (48px de altura) -->
+  <g>
+    <rect x="48" y="144" width="96" height="48" fill="url(#obsidian)"></rect>
+    <path d="M48,144 L144,144 L144,164
+             C137,162 130,166 120,166
+             C106,166 98,160 86,162
+             C74,164 64,160 56,161
+             C52,161 50,162 48,164 Z" fill="url(#highlight)" opacity="0.55"></path>
+    <path d="M60,170 l9,-2 l-6,6 z M88,174 l8,-3 l-6,5 z M116,170 l10,-2 l-7,6 z M136,172 l8,-2 l-5,5 z" fill="#242730" opacity="0.8"></path>
+  </g>
+
+  <!-- ESQUERDA (48px de largura) -->
+  <g>
+    <rect x="0" y="48" width="48" height="96" fill="url(#obsidian)"></rect>
+    <path d="M0,48 L20,48
+             C22,56 18,64 20,72
+             C22,84 18,94 20,106
+             C22,118 18,126 20,138
+             L0,144 Z" fill="url(#highlight)" opacity="0.55"></path>
+    <path d="M18,60 l4,8 l-6,-1 z M16,92 l4,9 l-6,-1 z M18,122 l4,8 l-6,-1 z" fill="#242730" opacity="0.8"></path>
+  </g>
+
+  <!-- DIREITA (48px de largura) -->
+  <g>
+    <rect x="144" y="48" width="48" height="96" fill="url(#obsidian)"></rect>
+    <path d="M192,48 L172,48
+             C170,56 174,64 172,74
+             C170,86 174,96 172,108
+             C170,120 174,128 172,138
+             L192,144 Z" fill="url(#highlight)" opacity="0.55"></path>
+    <path d="M176,62 l-4,8 l6,-1 z M178,92 l-4,9 l6,-2 z M176,124 l-4,8 l6,-1 z" fill="#242730" opacity="0.8"></path>
+  </g>
+
+  <!-- CANTOS (48×48), assimétricos -->
+  <g>
+    <!-- TL -->
+    <path d="M0,0 H48 V48 H0 Z" fill="url(#obsidian)"></path>
+    <path d="M6,40 C14,28 22,24 34,22 C40,20 44,16 46,8 L48,8 L48,48 L0,48 L0,0 L8,0 C8,8 8,10 6,16 C4,24 2,32 6,40 Z" fill="url(#highlight)" opacity="0.6"></path>
+    <!-- TR -->
+    <path d="M144,0 H192 V48 H144 Z" fill="url(#obsidian)"></path>
+    <path d="M186,40 C178,28 170,24 158,22 C152,20 148,16 146,8 L144,8 L144,48 L192,48 L192,0 L184,0 C184,8 184,10 186,16 C188,24 190,32 186,40 Z" fill="url(#highlight)" opacity="0.6"></path>
+    <!-- BL -->
+    <path d="M0,144 H48 V192 H0 Z" fill="url(#obsidian)"></path>
+    <path d="M6,152 C12,162 22,168 34,170 C40,172 44,176 46,184 L48,184 L48,144 L0,144 L0,192 L8,192 C8,184 8,182 6,176 C4,168 2,160 6,152 Z" fill="url(#highlight)" opacity="0.6"></path>
+    <!-- BR -->
+    <path d="M144,144 H192 V192 H144 Z" fill="url(#obsidian)"></path>
+    <path d="M186,152 C180,162 170,168 158,170 C152,172 148,176 146,184 L144,184 L144,144 L192,144 L192,192 L184,192 C184,184 184,182 186,176 C188,168 190,160 186,152 Z" fill="url(#highlight)" opacity="0.6"></path>
+  </g>
+
+  <!-- Filete interno dourado (bem fino) -->
+  <rect x="44" y="44" width="104" height="104" fill="none" stroke="url(#gild)" stroke-width="1.5" opacity="0.85"></rect>
+</svg>

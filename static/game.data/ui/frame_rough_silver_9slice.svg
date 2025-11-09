@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <defs>
+    <!-- Metal frio com leve tom violeta -->
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e7e9f0"></stop>
+      <stop offset="0.5" stop-color="#a7a9b6"></stop>
+      <stop offset="1" stop-color="#d8dae4"></stop>
+    </linearGradient>
+
+    <!-- Ruído para deformar a borda (irregularidade “orgânica”) -->
+    <filter id="roughen" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="noise"></feTurbulence>
+      <feColorMatrix in="noise" type="saturate" values="0"></feColorMatrix>
+      <!-- desloca só um pouco (2px) pra não quebrar ao fatiar -->
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap>
+    </filter>
+
+    <!-- brilho suave interno -->
+    <linearGradient id="innerStroke" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.22"></stop>
+      <stop offset="1" stop-color="#000000" stop-opacity="0.15"></stop>
+    </linearGradient>
+  </defs>
+
+  <!-- Centro translúcido (preenche o 'fill' do border-image) -->
+  <rect x="48" y="48" width="96" height="96" fill="#141417" opacity="0.88"></rect>
+
+  <!-- Bordas: faixas com filtro de irregularidade -->
+  <g filter="url(#roughen)">
+    <!-- Topo -->
+    <rect x="48" y="0" width="96" height="48" fill="url(#metal)"></rect>
+    <!-- Base -->
+    <rect x="48" y="144" width="96" height="48" fill="url(#metal)"></rect>
+    <!-- Esquerda -->
+    <rect x="0" y="48" width="48" height="96" fill="url(#metal)"></rect>
+    <!-- Direita -->
+    <rect x="144" y="48" width="48" height="96" fill="url(#metal)"></rect>
+
+    <!-- Cantos assimétricos “amassados” -->
+    <path d="M0,0 H48 V48 H0 Z" fill="url(#metal)"></path>
+    <path d="M144,0 H192 V48 H144 Z" fill="url(#metal)"></path>
+    <path d="M0,144 H48 V192 H0 Z" fill="url(#metal)"></path>
+    <path d="M144,144 H192 V192 H144 Z" fill="url(#metal)"></path>
+  </g>
+
+  <!-- Filete interno, fina luz/ombra pra dar profundidade -->
+  <rect x="44" y="44" width="104" height="104" fill="none" stroke="url(#innerStroke)" stroke-width="2" opacity="0.9"></rect>
+</svg>

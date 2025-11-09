@@ -1,0 +1,18 @@
+📋 TIPOS DE animation_attack DISPONÍVEIS
+🎯 SÉRIE 1 (9 frames cada, 0.6s duração)
+
+attack_basic → attack1.png
+attack_yellow1 → attack1amarelo.png
+attack_blue1 → attack1blue.png
+attack_black1 → attack1black.png
+attack_black_double → attack1black-double.png (12 frames, 0.8s duração)
+attack_pink1 → attack1rosa.png
+attack_green1 → attack1verde.png
+attack_red1 → attack1vermelho.png
+
+🎯 SÉRIE 2 (10 frames cada, 0.7s duração)
+
+attack_black2 → attack2black.png
+attack_blue2 → attack2blue.png
+attack_red2 → attack2red.png
+attack_yellow2 → attack2yellow.png

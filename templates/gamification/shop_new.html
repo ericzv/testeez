@@ -1,0 +1,434 @@
+{% extends 'gamification/base.html' %}
+
+{% block game_content %}
+<div class="crystals-display mb-4">
+  <div class="card text-center">
+    <div class="card-body">
+      <h4 class="mb-0">Seus Cristais de Memória: <span class="text-success">{{ player.crystals }}</span></h4>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <!-- Viajante do Tempo -->
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="wood-header">
+        <h5 class="card-title mb-0">Viajante do Tempo</h5>
+      </div>
+      <div class="card-body">
+        <div class="shop-npc">
+          <div class="npc-portrait">
+            <img src="{{ url_for('static', filename='game.data/timet.png') }}" alt="Viajante do Tempo" width="128" height="128">
+          </div>
+          <div class="npc-quote">
+            "{{ time_traveler_quote }}"
+          </div>
+        </div>
+        
+        <div class="shop-items">
+          <h6>Itens Disponíveis:</h6>
+          <div class="item-grid">
+            {% for item in time_traveler_items %}
+            <div class="shop-item">
+              <div class="item-icon">
+                <div class="icon-placeholder"></div>
+              </div>
+              <div class="item-content">
+                <h6>{{ item.name }} {% if item.quantity > 1 %}({{ item.quantity }} unidades){% endif %} <span class="item-rarity rarity-{{ item.rarity|lower }}">{{ item.rarity }}</span></h6>
+                <p class="item-description">{{ item.description }}</p>
+                <div class="item-price">
+                  {% set final_cost = (item.cost * (1 - player.shop_discount))|int %}
+                  {% if player.shop_discount > 0 %}
+                    <div>
+                      <span class="final-price">{{ final_cost }} Cristais</span>
+                    </div>
+                    <div>
+                      <span class="original-price">{{ item.cost }} Cristais</span>
+                    </div>
+                  {% else %}
+                    <span>{{ item.cost }} Cristais</span>
+                  {% endif %}
+                </div>
+                <form action="{{ url_for('items.buy_item', item_id=item.id) }}" method="POST">
+                  <button type="submit" class="btn btn-sm btn-primary" {% if player.crystals < final_cost %}disabled{% endif %}>Comprar</button>
+                </form>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Mestre dos Arquimagos -->
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="wood-header">
+        <h5 class="card-title mb-0">Mestre dos Arquimagos</h5>
+      </div>
+      <div class="card-body">
+        <div class="shop-npc">
+          <div class="npc-portrait">
+            <img src="{{ url_for('static', filename='game.data/master.png') }}" alt="Mestre dos Arquimagos" width="128" height="128">
+          </div>
+          <div class="npc-quote">
+            "{{ archmage_quote }}"
+          </div>
+        </div>
+        
+        <div class="shop-items">
+          <h6>Itens Disponíveis:</h6>
+          <div class="item-grid">
+            {% for item in archmage_items %}
+            <div class="shop-item">
+              <div class="item-icon">
+                <div class="icon-placeholder"></div>
+              </div>
+              <div class="item-content">
+                <h6>{{ item.name }} {% if item.quantity > 1 %}({{ item.quantity }} unidades){% endif %} <span class="item-rarity rarity-{{ item.rarity|lower }}">{{ item.rarity }}</span></h6>
+                <p class="item-description">{{ item.description }}</p>
+                <div class="item-price">
+                  {% set final_cost = (item.cost * (1 - player.shop_discount))|int %}
+                  {% if player.shop_discount > 0 %}
+                    <div>
+                      <span class="final-price">{{ final_cost }} Cristais</span>
+                    </div>
+                    <div>
+                      <span class="original-price">{{ item.cost }} Cristais</span>
+                    </div>
+                  {% else %}
+                    <span>{{ item.cost }} Cristais</span>
+                  {% endif %}
+                </div>
+                <form action="{{ url_for('items.buy_item', item_id=item.id) }}" method="POST">
+                  <button type="submit" class="btn btn-sm btn-primary" {% if player.crystals < final_cost %}disabled{% endif %}>Comprar</button>
+                </form>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Estilos para a loja */
+.shop-npc {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.final-price {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #28a745;
+}
+.original-price {
+  display: block;
+  font-size: 0.85rem;
+  text-decoration: line-through;
+  opacity: 0.5;
+  margin-top: 2px;
+}
+
+.npc-portrait {
+  flex: 0 0 128px;
+  margin-right: 15px;
+}
+
+.npc-portrait img {
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.npc-quote {
+  flex: 1;
+  font-style: italic;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border-left: 3px solid #28a745;
+}
+
+.item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 15px;
+}
+
+.shop-item {
+  display: flex;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.item-icon {
+  flex: 0 0 64px;
+  margin-right: 10px;
+}
+
+.icon-placeholder {
+  width: 64px;
+  height: 64px;
+  background-color: #eee;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.item-content {
+  flex: 1;
+}
+
+.item-description {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.item-price {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+/* Estilos para raridade de items */
+.item-rarity {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-left: 5px;
+  text-transform: uppercase;
+}
+
+.rarity-comum {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.rarity-raro {
+  background-color: #4a69bd;
+  color: white;
+}
+
+.rarity-épico {
+  background-color: #8e44ad;
+  color: white;
+}
+
+.rarity-lendário {
+  background-color: #f1c40f;
+  color: #333;
+}
+
+.rarity-heroico {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.rarity-especial {
+  background-color: #000000;
+  color: white;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Manipular os eventos de compra
+  const buyButtons = document.querySelectorAll('.buy-button');
+  
+  buyButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const itemId = this.getAttribute('data-item-id');
+      
+      // Enviar requisição para comprar o item
+      fetch('/gamification/buy_item/' + itemId, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          showNotification(data.message, 'success');
+          
+          // Atualizar os cristais do jogador
+          if (document.getElementById('player-crystals')) {
+            document.getElementById('player-crystals').textContent = data.crystals;
+          }
+          
+          // Se o item foi comprado, remover ou desabilitar o botão
+          if (data.quantity <= 0) {
+            this.closest('.shop-item').style.opacity = '0.5';
+            this.disabled = true;
+            this.textContent = 'Esgotado';
+          } else {
+            // Atualizar a quantidade disponível
+            const itemContainer = this.closest('.shop-item');
+            const itemName = itemContainer.querySelector('h6');
+            const quantityMatch = itemName.textContent.match(/\((\d+) unidades\)/);
+            if (quantityMatch) {
+              const newText = itemName.textContent.replace(/\(\d+ unidades\)/, `(${data.quantity} unidades)`);
+              itemName.textContent = newText;
+            }
+          }
+        } else {
+          showNotification(data.message, 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Erro:', error);
+        showNotification('Erro ao processar a compra', 'error');
+      });
+    });
+  });
+  
+  // Função para mostrar notificações
+  function showNotification(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast-message toast-${type}`;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          toast.remove();
+        }, 300);
+      }, 3000);
+    }, 10);
+  }
+});
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Manipular os eventos de compra
+    const buyButtons = document.querySelectorAll('.buy-button');
+    
+    buyButtons.forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault(); // Impedir o envio normal do formulário
+        
+        const itemId = this.getAttribute('data-item-id');
+        const originalButtonText = this.textContent;
+        const itemName = this.closest('.shop-item').querySelector('h6').textContent.split(' (')[0];
+        
+        // Mostrar mensagem de carregamento
+        this.disabled = true;
+        this.textContent = 'Comprando...';
+        
+        // Criar um formulário para envio
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/gamification/buy_item/' + itemId;
+        
+        // Aqui está a parte importante: adicionar o cabeçalho X-Requested-With
+        const formData = new FormData(form);
+        
+        // Enviar a requisição
+        fetch('/gamification/buy_item/' + itemId, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Erro na rede');
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Resposta do servidor:', data);
+          
+          if (data.success) {
+            // Atualizar feedback visual
+            this.closest('.shop-item').style.opacity = '0.6';
+            this.disabled = true;
+            this.textContent = 'Comprado!';
+            
+            // Atualizar a quantidade de cristais exibida
+            const crystalsElement = document.querySelector('#player-crystals');
+            if (crystalsElement) {
+              crystalsElement.textContent = data.crystals;
+            }
+            
+            // Mostrar mensagem de sucesso
+            showNotification(data.message, 'success');
+            
+            // Se o item acabou, remover ou desabilitar
+            if (parseInt(this.closest('.shop-item').querySelector('.quantity').textContent) <= 1) {
+              setTimeout(() => {
+                this.closest('.shop-item').style.display = 'none';
+              }, 1000);
+            } else {
+              // Atualizar a quantidade exibida
+              const quantityElement = this.closest('.shop-item').querySelector('.quantity');
+              if (quantityElement) {
+                const currentQuantity = parseInt(quantityElement.textContent);
+                quantityElement.textContent = currentQuantity - 1;
+              }
+            }
+          } else {
+            // Restaurar o botão
+            this.disabled = false;
+            this.textContent = originalButtonText;
+            
+            // Mostrar mensagem de erro
+            showNotification(data.message || 'Erro ao processar a compra', 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Erro:', error);
+          
+          // Restaurar o botão
+          this.disabled = false;
+          this.textContent = originalButtonText;
+          
+          // Mostrar notificação de erro
+          showNotification('Erro ao processar a compra', 'error');
+        });
+      });
+    });
+    
+    // Função para mostrar notificações
+    window.showNotification = function(message, type = 'success') {
+      const existingToast = document.querySelector('.toast-message');
+      if (existingToast) {
+        existingToast.remove();
+      }
+      
+      const toast = document.createElement('div');
+      toast.className = `toast-message toast-${type}`;
+      toast.textContent = message;
+      
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.classList.add('show');
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => {
+            toast.remove();
+          }, 300);
+        }, 3000);
+      }, 10);
+    };
+    
+    
+  });
+  </script>
+
+{% endblock %}

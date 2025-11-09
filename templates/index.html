@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Home - Memento{% endblock %}
+{% block content %}
+<div class="jumbotron centered-text">
+  <h1 class="display-4">Bem-vindo ao Memento</h1>
+  <hr class="my-4">
+  <a class="btn btn-success btn-lg" href="{{ url_for('cards.study_lobby') }}" role="button">Sessão de Estudo</a>
+  <a class="btn btn-info btn-lg" href="{{ url_for('cards.panel') }}" role="button">Pesquisar Cartões</a>
+  <a class="btn btn-warning btn-lg" href="{{ url_for('cards.statistics') }}" role="button">Estatísticas</a>
+  <a class="btn btn-dark btn-lg" href="{{ url_for('battle.gamification') }}" role="button">🎮 Gamificação</a>
+
+  <hr class="my-4">
+  <p>
+    {% if study_time_minutes > 0 %}
+      Você estudou {{ stats.cards_studied }} cartões em {{ study_time_minutes }} minutos hoje.
+    {% else %}
+      Você estudou {{ stats.cards_studied }} cartões hoje.
+    {% endif %}
+  </p>
+  <p>Taxa de acerto: {{ accuracy|round(1) }}%</p>
+  <hr class="my-4">
+  <p><strong>Minha coleção:</strong></p>
+  <p style="color: blue;">Cartões novos: {{ new_total }}</p>
+  <p style="color: gray;">Cartões em intervalo: {{ in_date }}</p>
+  <p style="color: green;">Cartões a revisar: {{ due_total }}</p>
+</div>
+
+<div class="text-center" style="margin-top: 30px;">
+  <img src="{{ url_for('static', filename='data.rc/logo.png') }}" alt="Retina Cards Logo" style="max-width: 200px;">
+</div>
+{% endblock %}

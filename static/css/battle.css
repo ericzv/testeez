@@ -1,0 +1,4792 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  /* ===== OTIMIZAÇÕES DE PERFORMANCE ===== */
+  .battle-arena {
+      will-change: transform;
+      transform: translateZ(0); /* Force GPU acceleration */
+      backface-visibility: hidden;
+  }
+
+  .tree-paralax {
+      will-change: transform;
+      backface-visibility: hidden;
+      transform: translateZ(0);
+      /* Otimização: usar transform3d para ativar GPU */
+  }
+
+  .character-container, .boss-container {
+      will-change: transform, opacity;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+  }
+
+  /* Desabilitar animações em dispositivos lentos */
+  @media (prefers-reduced-motion: reduce) {
+      * {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+      }
+  }
+
+  /* Otimização para mobile */
+  @media (max-width: 768px) {
+      .tree-paralax {
+          transform: translateZ(0) scale3d(1, 1, 1);
+      }
+  }
+  
+  /* Melhorar renderização de sprites */
+  .character-sprite-layer, 
+  .boss-sprite, 
+  .boss-sprite-idle,
+  .p1-walk, 
+  .p1-attack {
+    image-rendering: -webkit-optimize-contrast; /* Safari */
+    image-rendering: -moz-crisp-edges; /* Firefox */
+    image-rendering: pixelated; /* Chrome/Edge */
+    -ms-interpolation-mode: nearest-neighbor; /* IE */
+  }
+
+  /* Canvas PixiJS */
+  .pixie-canvas {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-60%, -50%);
+      pointer-events: none;
+      width: 200%;
+      height: 200%;
+  }
+
+  /* Z-Index específicos */
+  .character-fx-back {
+      z-index: 1;
+  }
+
+  .character-fx-front {
+      z-index: 46;
+  }
+
+  .boss-fx-back {
+      z-index: 1;
+  }
+
+  .boss-fx-front {
+      z-index: 25;
+  }
+  
+  
+  /* Estilos para árvores de paralaxe */
+  .tree-paralax-container {
+    position: fixed;
+    top: -80px;
+    left: 0;
+    width: 100%;
+    height: 200%;
+    pointer-events: none;
+    z-index: 1000;
+    overflow: hidden;
+  }
+
+  /* Estilos para os menus de habilidades */
+  .skill-option {
+    background: linear-gradient(to bottom, #2a3d5c, #1a2d4c);
+    border: 2px solid #4a77bf;
+    border-radius: 8px;
+    margin: 10px 0;
+    padding: 10px;
+    color: #fff;
+    display: flex;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .skill-option:hover {
+    background: linear-gradient(to bottom, #3a4d6c, #2a3d5c);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .skill-option.disabled {
+    background: linear-gradient(to bottom, #3a3a3a, #2a2a2a);
+    border-color: #666;
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .skill-icon {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .skill-icon img {
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .skill-info {
+    flex: 1;
+  }
+
+  .skill-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+
+  .skill-desc {
+    font-size: 0.9em;
+    opacity: 0.8;
+    margin-bottom: 5px;
+  }
+
+  .skill-cost, .skill-charges {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8em;
+  }
+
+  .mana-cost {
+    color: #77aaff;
+  }
+
+  .point-cost {
+    color: #ffaa77;
+  }
+
+  .current-charges {
+    color: #77ffaa;
+  }
+
+  .cooldown {
+    color: #ff7777;
+  }
+  
+  .tree-paralax {
+    position: absolute;
+    width: 26vw;
+    height: 36vh;
+    max-width: 500px;
+    max-height: 700px;
+    min-width: 200px;
+    min-height: 280px;
+    background-image: url('/static/game.data/tree-paralax.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.8;
+    transition: transform 1.8s linear, filter 1s ease-in-out;
+    transform-origin: bottom center;
+    animation: tree-gentle-sway 3s infinite alternate ease-in-out;
+    filter: brightness(0.8);
+  }
+  
+  /* Animação de balanço suave */
+  @keyframes tree-gentle-sway {
+      0%, 100% { 
+          transform: translateZ(0) scale3d(var(--tree-scale, 1), var(--tree-scale, 1), 1) rotate(-0.5deg); 
+      }
+      50% { 
+          transform: translateZ(0) scale3d(var(--tree-scale, 1), var(--tree-scale, 1), 1) rotate(0.5deg); 
+      }
+  }
+  
+  /* Animações específicas para personagem, boss e botões */
+  @keyframes character-dynamic {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(-2px, 1px) rotate(-0.5deg); }
+    50% { transform: translate(2px, -1px) rotate(0.5deg); }
+    75% { transform: translate(-1px, -1px) rotate(-0.2deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+  }
+  
+  @keyframes boss-dynamic {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(2px, -1px) rotate(0.3deg); }
+    50% { transform: translate(-2px, 1px) rotate(-0.3deg); }
+    75% { transform: translate(1px, 1px) rotate(0.1deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+  }
+  
+  @keyframes button1-dynamic {
+    0% { transform: translateX(0) rotate(var(--rotate-angle, 0deg)); }
+    25% { transform: translateX(-5px) rotate(calc(var(--rotate-angle, 0deg) - 0.5deg)); }
+    50% { transform: translateX(4px) rotate(calc(var(--rotate-angle, 0deg) - 0.1deg)); }
+    75% { transform: translateX(-3px) rotate(calc(var(--rotate-angle, 0deg) + 0.3deg)); }
+    100% { transform: translateX(0) rotate(var(--rotate-angle, 0deg)); }
+  }
+  
+  @keyframes button2-dynamic {
+    0% { transform: translateX(0) rotate(var(--rotate-angle, 0deg)); }
+    25% { transform: translateX(4px) rotate(calc(var(--rotate-angle, 0deg) + 0.4deg)); }
+    50% { transform: translateX(-4px) rotate(calc(var(--rotate-angle, 0deg) + 0.1deg)); }
+    75% { transform: translateX(2px) rotate(calc(var(--rotate-angle, 0deg) - 0.2deg)); }
+    100% { transform: translateX(0) rotate(var(--rotate-angle, 0deg)); }
+  }
+  
+  @keyframes button3-dynamic {
+    0% { transform: translateX(0) rotate(var(--rotate-angle, 0deg)); }
+    25% { transform: translateX(-4px) rotate(calc(var(--rotate-angle, 0deg) - 0.4deg)); }
+    50% { transform: translateX(5px) rotate(calc(var(--rotate-angle, 0deg) - 0.1deg)); }
+    75% { transform: translateX(-3px) rotate(calc(var(--rotate-angle, 0deg) + 0.2deg)); }
+    100% { transform: translateX(0) rotate(var(--rotate-angle, 0deg)); }
+  }
+    
+  .zoom-view .boss-container {
+    animation: boss-dynamic 4s ease-in-out infinite;
+  }
+  
+  /* Manter as animações quando houver hover nos botões */
+  .zoom-view .action-button:hover {
+    animation-play-state: running !important;
+  }
+  
+  .no-transition {
+    transition: none !important;
+  }
+  
+  /* Filtros específicos para cada visualização */
+  .zoom-view .tree-paralax {
+    filter: brightness(0.6); /* Mais escuro na zoom-view */
+  }
+  
+  .boss-view .tree-paralax {
+    filter: brightness(0.4) saturate(0.8); /* Ainda mais escuro e menos saturado na boss-view */
+  }
+  
+  .character-view .tree-paralax {
+    filter: brightness(0.9); /* Mais claro na character-view */
+  }
+  
+  /* Ajustar posições quando árvores estão em transição */
+  .tree-paralax.left-to-right,
+  .tree-paralax.right-to-left {
+    animation: tree-gentle-sway 3s infinite alternate ease-in-out;
+    transition: transform 2.5s linear, filter 1s ease-in-out; /* Manter transição de filter */
+  }
+  
+  /* Posicionamento inicial das árvores do lado esquerdo */
+  .tree-paralax.left-side {
+    left: -20px; /* parte visível na borda esquerda */
+    right: auto;
+    display: block;
+    opacity: 0.8;
+  }
+  
+  /* Posicionamento inicial das árvores do lado direito */
+  .tree-paralax.right-side {
+    right: -20px; /* parte  visível na borda direita */
+    left: auto;
+    display: block;
+    opacity: 0.8;
+  }
+  
+  .tree-paralax.left-to-right.animate {
+    transform: translateX(calc(100vw + 300px));
+  }
+  
+  .tree-paralax.right-to-left.animate {
+    transform: translateX(calc(-100vw - 300px));
+  }
+  
+  /* Z-index baseado na posição vertical - árvores inferiores na frente */
+  .tree-paralax[style*="top: 0"] { z-index: 900; }
+  .tree-paralax[style*="top: 10"] { z-index: 901; }
+  .tree-paralax[style*="top: 20"] { z-index: 902; }
+  .tree-paralax[style*="top: 30"] { z-index: 903; }
+  .tree-paralax[style*="top: 40"] { z-index: 904; }
+  .tree-paralax[style*="top: 50"] { z-index: 905; }
+  .tree-paralax[style*="top: 60"] { z-index: 906; }
+  .tree-paralax[style*="top: 70"] { z-index: 907; }
+  .tree-paralax[style*="top: 80"] { z-index: 908; }
+  .tree-paralax[style*="top: 100"] { z-index: 909; }
+  
+  body, html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    overflow-x: hidden; /* Previne scroll horizontal no nível do documento */
+    font-family: 'Cinzel', serif;
+    color: #fff;
+    background-color: #000;
+  }
+  
+  .battle-arena {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    background-color: #000;
+    overflow: visible;
+  }
+  
+  /* Background Images */
+  .background-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    overflow: hidden;
+    background-color: #000; /* Fundo preto para áreas não cobertas */
+  }
+  
+  .background-default {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/static/game.data/background-sakura.png');
+    background-size: contain; /* Mantém proporção */
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: all 0.4s linear;
+  }
+  
+  .background-zoom {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/static/game.data/background-sakura-zoom-view.png');
+    background-size: contain; /* Mantém proporção */
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    filter: blur(1px); /* Blur reduzido */
+    transform: translateX(-100%);
+    transition: all 0.4s linear;
+  }
+  
+  .background-character {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/static/game.data/background-sakura-zoom-character1.png');
+    background-size: contain; /* Mantém proporção */
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    filter: blur(1px);
+    transform: translateX(100%); /* Começa fora da tela pela direita */
+    transition: all 0.4s linear;
+  }
+  
+  .zoom-view .background-default {
+    opacity: 0;
+    filter: blur(1px);
+    transform: translateX(100%);
+  }
+  
+  .zoom-view .background-zoom {
+    opacity: 1;
+    filter: blur(1px);
+    transform: translateX(0);
+  }
+  
+  .character-view .background-default {
+    opacity: 0;
+    filter: blur(1px);
+    transform: translateX(-100%); /* Sai pela esquerda */
+  }
+  
+  .character-view .background-character {
+    opacity: 1;
+    filter: blur(2px);
+    transform: translateX(0);
+  }
+  
+  /* Posição específica do menu na character-view */
+  .character-view .action-menu {
+    position: absolute !important;
+    bottom: 2% !important;
+    left: 58% !important;
+  }
+  
+  .character-view .skill-fx-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: contain;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease-out;
+      image-rendering: pixelated;
+  }
+
+  .character-view .skill-fx-layer.animate-skill-fx {
+      opacity: 0.7;
+      animation-name: skill-fx-animation;
+      animation-duration: 0.8s;
+      animation-iteration-count: 1;
+      animation-timing-function: steps(11);
+      animation-fill-mode: forwards;
+  }
+
+  /* Sobrescrever o seletor restritivo */
+  .battle-arena .skill-fx-layer.animate-skill-fx {
+      opacity: 1;
+  }
+
+  @keyframes skill-fx-animation {
+      from { background-position: 0 0; }
+      to { background-position: -2816px 0; }
+  }
+
+  .character-view .skill-fx-behind {
+      z-index: 0 !important;
+  }
+
+  .character-view .skill-fx-front {
+      z-index: 7 !important;
+  }
+
+  .skill-fx-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-repeat: no-repeat;
+    background-position: 0 0; /* Começa no primeiro frame */
+    background-size: cover; /* Importante: usar cover em vez de contain */
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10; /* Para aparecer sobre o personagem */
+  }
+
+
+  /* Boss View Styles */
+  .boss-view .background-default,
+  .boss-view .background-zoom,
+  .boss-view .background-character {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  
+  .boss-view .character-container,
+  .boss-view .action-menu,
+  .boss-view .character-hud,
+  .boss-view .boss-hud {
+    opacity: 0;
+    visibility: hidden;
+  }
+  
+  .boss-view .boss-container {
+    position: fixed !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translateX(-50%) scale(1.5) !important;
+    z-index: 25;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  
+  .boss-info-panel {
+    position: absolute;
+    right: 20%;
+    top: 40%;
+    width: 300px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 2px solid rgba(255, 50, 50, 0.5);
+    border-radius: 10px;
+    padding: 20px;
+    color: white;
+    font-family: 'Cinzel', serif;
+    transform: translateY(50px);
+    opacity: 0;
+    transition: all 0.4s ease;
+    z-index: 1300;
+    visibility: hidden;
+  }
+  
+  .boss-view .boss-info-panel {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Player Status Panel - SEMPRE escondido por padrão */
+  .player-status-panel {
+    width: 520px !important;
+    max-width: 90%;
+    position: fixed !important;
+    top: 30px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    margin: 0 !important;
+    padding: 12px;
+    background: rgba(0,0,0,0.7);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    color: white;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    z-index: 9500;
+    display: none !important; /* Forçar display none */
+    flex-direction: column;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+
+  /* Apenas na character-view, o painel fica visível */
+  .character-view .player-status-panel {
+    display: flex !important; /* Forçar exibição apenas na character-view */
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .player-stats {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+  }
+
+  .player-buffs-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 0px;
+    padding: 0px 0;
+  }
+
+  .player-buff {
+    margin: 5px;
+  }
+  
+  .character-view .player-status-panel {
+    opacity: 0.8;
+    visibility: visible;
+  }
+  
+  .player-name {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+    color: #f5d76e;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding-bottom: 5px;
+  }
+  
+  .player-stats {
+    margin-bottom: 15px;
+  }
+  
+  .player-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 0;
+    white-space: nowrap;
+  }
+
+  /* Seção de estatísticas vitais */
+  .vital-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 8px;
+  }
+
+  .vital-stat {
+    display: flex;
+    align-items: center;
+    margin: 3px 0;
+    gap: 10px;
+  }
+
+  /* Duas colunas para estatísticas */
+  .player-stats-columns {
+    display: flex;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 8px;
+  }
+
+  .vital-stat-row {
+    display: flex;
+    justify-content: center; /* Centraliza os elementos */
+    gap: 40px; /* Espaçamento controlado entre HP e MP */
+    width: 100%;
+    margin: 3px 0;
+  }
+
+  /* Cores específicas para cada estatística vital */
+  .hp-stat .stat-label,
+  .hp-stat .stat-value {
+    color: #a0e6a0; /* Tom levemente verde para HP */
+    font-weight: bold;
+  }
+
+  .mp-stat .stat-label,
+  .mp-stat .stat-value {
+    color: #a0c6e6; /* Tom levemente azul para MP */
+    font-weight: bold;
+  }
+
+  .damage-points-stat {
+    justify-content: center;
+    margin-top: 5px;
+  }
+
+  .damage-points-stat .stat-label,
+  .damage-points-stat .stat-value {
+    color: #e6a0a0; /* Tom levemente vermelho para Pontos de Dano */
+    font-weight: bold;
+  }
+
+  .stats-column {
+    flex: 1;
+    padding: 0 5px;
+  }
+  
+  .player-stat span:first-child {
+    font-weight: bold;
+    color: #d0d0d0;
+  }
+  
+  .player-stat .divider {
+    margin: 0 5px;
+    color: #666;
+  }
+  
+  /* Titulo da seção de buffs centralizado */
+  .player-buffs-title {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    margin: 0px 0 5px;
+    color: #f5d76e;
+    padding-bottom: 0px;
+  }
+
+  /* Container de buffs */
+  .player-buffs-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    padding: 5px 0;
+  }
+  
+  .player-buff {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    background: rgba(40, 40, 50, 0.8);
+    overflow: visible; /* Alterado para permitir que o tooltip saia */
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+    cursor: default; /* Cursor normal */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .player-buff img {
+      width: 90%;
+      height: 90%;
+      object-fit: contain;
+      display: block;
+      pointer-events: none; /* Evita que o cursor mude */
+  }
+
+  .buff-duration {
+      position: absolute;
+      bottom: -18px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 11px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 2px 4px;
+      border-radius: 4px;
+      white-space: nowrap;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  .player-buff:hover .buff-tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Seta do tooltip */
+  .buff-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -6px;
+      border-width: 6px;
+      border-style: solid;
+      border-color: rgba(10, 10, 10, 0.95) transparent transparent transparent;
+  }
+  
+  .buff-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 10px; /* Espaço entre o tooltip e o ícone */
+    background: rgba(10, 10, 10, 0.95);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 9999;
+    width: max-content;
+    max-width: 250px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    pointer-events: none;
+  }
+
+  /* Estilos para os ícones de habilidades especiais */
+  .special-skills-container {
+      display: flex;
+      flex-direction: row; /* Garante layout em linha */
+      flex-wrap: nowrap; /* Evita quebra de linha */
+      justify-content: center; /* Centraliza horizontalmente */
+      align-items: center; /* Centraliza verticalmente */
+      gap: 12px;
+      padding: 8px;
+      width: 100%; /* Ocupa toda a largura disponível */
+  }
+
+  .special-skills-container {
+  max-height: none !important;
+  overflow-y: visible !important;
+  }
+
+  .special-skill-icon:active {
+    transform: scale(0.95);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) inset;
+  }
+
+  .special-skill-icon.skill-using {
+    animation: skill-activate 0.8s;
+  }
+
+  /* Estilos forçados para efeito de clique */
+  .special-skills-container .special-skill-icon:active,
+  .special-skills-container .special-skill-icon.active {
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) inset !important;
+  }
+
+  /* Animação para uso da skill */
+  .special-skill-icon.skill-using {
+      animation: skill-activate 1.2s !important;
+  }
+
+  @keyframes skill-activate {
+      0% { transform: scale(1); }
+      20% { transform: scale(0.95); box-shadow: 0 0 20px rgba(206, 206, 206, 0.421) inset; }
+      50% { transform: scale(0.99); box-shadow: 0 0 15px rgba(255, 255, 255, 0.277) inset; }
+      100% { transform: scale(1); }
+  }
+
+  .special-skill-icon {
+      position: relative;
+      width: 90px; /* Um pouco menor para caber 5 ícones em linha */
+      height: 90px;
+      border-radius: 10px;
+      background: rgba(20, 20, 30, 0.9);
+      overflow: visible;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.2s ease;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+      flex-shrink: 0; /* Evita que os ícones encolham demais */
+  }
+
+  .special-skill-icon img {
+    width: 90%;
+    height: 90%;
+    object-fit: contain;
+    display: block;
+    pointer-events: none;
+    border-radius: 8px;
+  }
+
+  .special-skill-icon:hover {
+    transform: scale(1.05);
+  }
+
+  .special-skill-icon.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(0.8);
+  }
+
+  /* Skill desabilitada por relíquia - visual mais chamativo */
+  .skill-button.relic-disabled {
+      position: relative;
+      opacity: 0.5;
+      filter: grayscale(10%) brightness(0.6);
+      cursor: not-allowed;
+      border: 3px solid #ff0000;
+      box-shadow: 0 0 15px rgba(255, 0, 0, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.8);
+      animation: relic-lock-pulse 2s ease-in-out infinite;
+  }
+
+  /* Animação de pulso vermelho */
+  @keyframes relic-lock-pulse {
+      0%, 100% {
+          border-color: #ff0000;
+          box-shadow: 0 0 15px rgba(255, 0, 0, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.8);
+      }
+      50% {
+          border-color: #ff4444;
+          box-shadow: 0 0 35px rgba(255, 0, 0, 0.6), inset 0 0 30px rgba(0, 0, 0, 0.9);
+      }
+  }
+
+  .skill-button.relic-disabled:hover {
+      transform: none;
+      box-shadow: 0 0 15px rgba(255, 0, 0, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.8);
+  }
+
+  /* Ícone da relíquia no centro - COLORIDO */
+  .skill-button.relic-disabled .relic-lock-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 56px;
+      height: 56px;
+      z-index: 5;
+      opacity: 1;
+      filter: drop-shadow(0 0 12px rgba(255, 0, 0, 1)) brightness(1.2);
+      pointer-events: none;
+      animation: relic-icon-pulse 1.5s ease-in-out infinite;
+  }
+
+  /* Animação do ícone da relíquia */
+  @keyframes relic-icon-pulse {
+      0%, 100% {
+          transform: translate(-50%, -50%) scale(1);
+          filter: drop-shadow(0 0 12px rgba(255, 0, 0, 1)) brightness(1.2);
+      }
+      50% {
+          transform: translate(-50%, -50%) scale(1.1);
+          filter: drop-shadow(0 0 20px rgba(255, 0, 0, 1)) brightness(1.3);
+      }
+  }
+
+  /* Estilo para o badge de cargas */
+  .special-skill-charges {
+      position: absolute;
+      top: -8px; /* Ajustado de -10px */
+      right: -8px; /* Ajustado de -10px */
+      background: rgba(20, 20, 30, 0.9);
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      color: white;
+      border-radius: 50%;
+      width: 28px; /* Reduzido de 32px */
+      height: 28px; /* Reduzido de 32px */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 14px; /* Reduzido de 16px */
+      font-weight: bold;
+      z-index: 2;
+  }
+
+  /* Tooltip da habilidade especial */
+  .special-skill-tooltip {
+      position: absolute;
+      width: 250px;
+      background: rgba(20, 20, 30, 0.95); /* Fundo mais opaco para legibilidade */
+      border: 2px solid rgba(128, 80, 200, 0.7);
+      border-radius: 8px;
+      padding: 12px;
+      color: white;
+      font-size: 14px;
+      z-index: 99999; /* z-index extremamente alto */
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.5s;
+      bottom: 110%;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+      pointer-events: none;
+  }
+
+  /* INSERIR: Garantir que o container do tooltip não limite o z-index */
+  .special-skill-icon, 
+  .special-skills-container,
+  #special-submenu,
+  .character-view #special-submenu {
+      z-index: 9600 !important; /* Maior que o card, mas menor que o tooltip */
+      isolation: isolate; /* Criar novo contexto de empilhamento */
+  }
+
+  /* INSERIR: Asegurar que o card não crie contexto de empilhamento que bloqueie o tooltip */
+  .player-status-panel {
+      /* Manter todas as propriedades existentes */
+      isolation: auto !important; /* Desativar possível isolamento */
+  }
+
+  .special-skill-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -8px;
+    border-width: 8px;
+    border-style: solid;
+    border-color: rgba(128, 80, 200, 0.7) transparent transparent transparent;
+}
+
+  .special-skill-tooltip h3 {
+    margin: 0 0 8px 0;
+    color: #ffffff;
+    font-size: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 4px;
+  }
+
+  .special-skill-tooltip .level {
+    color: #ffffff;
+    font-style: italic;
+    margin-bottom: 8px;
+  }
+
+  .special-skill-tooltip .effect {
+    color: #8cffac;
+    margin-bottom: 4px;
+    font-weight: bold;
+  }
+
+  .special-skill-tooltip .cost {
+    color: #ff8c8c;
+    margin-bottom: 4px;
+  }
+
+  .special-skill-tooltip .duration {
+    color: #8cbeff;
+    margin-bottom: 4px;
+    font-weight: bold;
+  }
+
+  .special-skill-tooltip .charges {
+    color: #ffffff;
+    margin-bottom: 8px;
+  }
+
+  .special-skill-icon:hover .special-skill-tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Bordas de classes */
+  .special-skill-icon.generic {
+    border: 3px solid #808080;
+    box-shadow: 0 0 10px rgba(128, 128, 128, 0.5);
+  }
+
+  .special-skill-icon.mage {
+    border: 3px solid #9B59B6;
+    box-shadow: 0 0 10px rgba(155, 89, 182, 0.6);
+  }
+
+  .special-skill-icon.ronin {
+    border: 3px solid #2ECC71;
+    box-shadow: 0 0 10px rgba(46, 204, 113, 0.6);
+  }
+
+  .special-skill-icon.warrior {
+    border: 3px solid #E74C3C;
+    box-shadow: 0 0 10px rgba(231, 76, 60, 0.6);
+  }
+
+  .special-skill-icon.thief {
+    border: 3px solid #4B6EFF;
+    box-shadow: 0 0 10px rgba(75, 110, 255, 0.6);
+  }
+
+  /* Bordas de subclasses */
+  .special-skill-icon.cleric {
+    border: 3px solid #F5F5F5;
+    box-shadow: 0 0 15px rgba(245, 245, 245, 0.8);
+  }
+
+  .special-skill-icon.arcanist {
+    border: 3px solid #00BFFF;
+    box-shadow: 0 0 15px rgba(0, 191, 255, 0.8);
+  }
+
+  .special-skill-icon.samurai {
+    border: 3px solid #2E8B57;
+    box-shadow: 0 0 15px rgba(46, 139, 87, 0.8);
+  }
+
+  .special-skill-icon.ninja {
+    border: 3px solid #222222;
+    box-shadow: 0 0 15px rgba(34, 34, 34, 0.8);
+  }
+
+  .special-skill-icon.berserker {
+    border: 3px solid #8B0000;
+    box-shadow: 0 0 15px rgba(139, 0, 0, 0.8);
+  }
+
+  .special-skill-icon.werewolf {
+    border: 3px solid #505050;
+    box-shadow: 0 0 15px rgba(80, 80, 80, 0.8);
+  }
+
+  .special-skill-icon.master-thief {
+    border: 3px solid #FFD700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+  }
+
+  .special-skill-icon.vampire {
+    border: 3px solid #800000;
+    box-shadow: 0 0 15px rgba(128, 0, 0, 0.8);
+  }
+
+  /* Efeito especial para skills supremas */
+  .special-skill-icon.supreme {
+    animation: supreme-pulse 2s infinite;
+  }
+
+  @keyframes supreme-pulse {
+    0% {
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    }
+    50% {
+      box-shadow: 0 0 25px rgba(255, 215, 0, 0.8);
+    }
+    100% {
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    }
+  }
+
+  .stat-label {
+    color: #cccccc;
+    font-size: 16px;
+    flex: 1;
+    text-align: center !important;
+  }
+  
+  .stat-value {
+    font-weight: bold;
+    font-size: 16px;
+    color: white;
+    text-align: center;
+    min-width: 60px;
+  }
+
+  .player-stat .stat-value {
+      font-weight: bold; /* Deixa o texto do valor em negrito */
+      font-size: 14px;   /* Tamanho da fonte do valor */
+      color: #e0e8f0;    /* Cor do texto do valor */
+      min-width: 50px;   /* Largura mínima para o quadrinho */
+      text-align: center;/* Centraliza o texto dentro do quadrinho */
+      
+      /* Estas são as propriedades CHAVE para o visual do quadrinho: */
+      background-color: rgba(40, 45, 60, 0.7); /* Cor de fundo do quadrinho */
+      border: 1px solid rgba(55, 61, 73, 0.7); /* Borda do quadrinho */
+      border-radius: 5px; /* Cantos arredondados do quadrinho */
+      padding: 4px 6px; /* Espaçamento interno (entre o texto e a borda) */
+      box-shadow: inset 0 0 4px rgba(0,0,0,0.5); /* Sombra interna para dar profundidade */
+      
+      margin-left: 10px; /* Espaço à esquerda do quadrinho (onde a linha pontilhada termina) */
+      
+      position: relative; /* Importante para o empilhamento correto (z-index) */
+      z-index: 1;         /* Garante que o quadrinho fique por cima da linha pontilhada do elemento pai */
+  }
+
+  /* ===== FLIP HORIZONTAL E ESCURECIMENTO - NOVO SISTEMA ===== */
+
+  /* Flip horizontal para TODAS as camadas do personagem na zoom-view */
+  .zoom-view .character-container .character-sprite-layer {
+    transform: scaleX(-1) !important;
+  }
+
+  .zoom-view .character-container {
+    animation: character-dynamic 4s ease-in-out infinite !important;
+    position: fixed !important;
+    left: 56% !important;
+    bottom: 15% !important;
+    transform: translateX(-50%) scale(4.0) !important;
+    z-index: 30 !important;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3)) blur(2px) brightness(0.4) !important;
+  }
+
+  /* Vlad - Escurecimento específico */
+  .zoom-view .character-container[data-character="vlad"] {
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.2)) blur(3px) brightness(0.6) !important;
+  }
+
+  .zoom-view .stat-value {
+    display: none; /* Esconde os valores */
+  }
+
+  .stat-value {
+    display: none;
+  }
+
+  .character-view .stat-value {
+    display: block;
+    visibility: visible !important;
+  }
+  
+  /* Cores para buffs e debuffs */
+  .buff-value {
+    font-weight: bold;
+    color: white;
+  }
+  
+  .buff-value.buffed {
+    color: #4CAF50;
+    text-shadow: 0 0 3px rgba(76, 175, 80, 0.5);
+  }
+  
+  .buff-value.debuffed {
+    color: #ff6b6b; /* Vermelho claro para debuffs */
+  }
+
+  .character-view #player-status-panel {
+    display: flex !important;
+    flex-direction: column;
+    position: fixed;
+    top: 15%;
+    left: 50%;
+    width: 35%;
+    transform: translateX(-50%);
+    z-index: 9500;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    padding: 12px
+  }
+  
+  #player-status-panel {
+    opacity: 0;
+    visibility: hidden;
+    /* display: none; FOI ADICIONADO ANTES, MAS PODE SER NECESSÁRIO REVISAR */
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+  .boss-name {
+    font-size: 24px;
+    margin-bottom: 10px;
+    text-align: center;
+    color: #ff5555;
+    text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+  }
+  
+  .boss-tags {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .boss-tag {
+    background-color: rgba(150, 0, 0, 0.5);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+  }
+  
+  .boss-stat {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  
+  .boss-quote {
+    font-style: italic;
+    text-align: center;
+    margin-top: 20px;
+    color: #aaa;
+  }
+  
+  .boss-view-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/static/game.data/background-sakura-zoom-boss.png');
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.4s linear;
+    z-index: 1;
+  }
+  
+  .boss-view .boss-view-background {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  
+  @keyframes bossGlowPulse {
+    0% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1.2); }
+  }
+  
+  /* Parallax Background Layers */
+  .parallax-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+  }
+  
+  #layer1 {
+    background: radial-gradient(circle, rgba(180, 180, 180, 0.05) 50%, rgba(100, 100, 100, 0.2) 100%);
+  }
+  
+  /* Cherry blossom particles */
+  .particles-container {
+    position: absolute;
+    top: 0;
+    left: 50%; /* Centralizado horizontalmente */
+    width: 80%; /* Limitado à largura aproximada do background */
+    height: 100%;
+    transform: translateX(-50%); /* Centralizado corretamente */
+    overflow: hidden;
+    z-index: 40;
+    pointer-events: none; /* Não interfere com cliques */
+  }
+  
+  #particles-layer1, #particles-layer2, #particles-layer3 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  
+  .cherry-petal {
+    position: absolute;
+    background-color: rgba(255, 192, 203, 0.8);
+    border-radius: 50% 20% 50% 20%;
+    pointer-events: none;
+    transform: rotate(45deg);
+    box-shadow: 0 0 2px rgba(255, 182, 193, 0.5);
+  }
+  
+  .zoom-view .cherry-petal {
+    opacity: 0.5; /* 50% transparência em zoom-view */
+  }
+  
+  /* Character and Boss */
+  .character-container, .boss-container {
+    position: absolute;
+    transition: all 0.4s linear; /* Mesma duração da transição de tela (0.4s) */
+    height: 256px;  /* Dobrado de 128px para 256px */
+    width: 256px;   /* Dobrado de 128px para 256px */
+  }
+  
+  .character-container {
+    position: absolute;
+    left: 30%;
+    bottom: 13%;
+    height: 256px;  /* Alterado para 256px, sendo o dobro de 128px original */
+    width: 256px;   /* Alterado para 256px, sendo o dobro de 128px original */
+    z-index: 45;
+    transform-origin: center;
+    transition: all 0.4s linear; /* Mesma duração da transição de tela */
+    cursor: pointer;
+    pointer-events: auto;
+  }
+  
+  .character-container:hover {
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
+  }
+
+  .boss-container {
+    position: absolute;
+    right: 30%; /* Ajustado para ficar dentro do background */
+    bottom: 18%; /* Mesma altura que o personagem */
+    width: 128px;
+    height: 128px;
+    z-index: 15;
+    cursor: pointer !important;
+    pointer-events: all !important;
+    transition: all 0.4s linear !important;
+  }
+  
+  /* Zoom view effects */
+  .zoom-view .character-container {
+    animation: character-dynamic 4s ease-in-out infinite !important;
+    position: fixed !important;
+    left: 55% !important;
+    bottom: 15% !important;
+    transform: translateX(-50%) scale(4.0) !important;
+    z-index: 30 !important;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3)) blur(4px) !important;
+  }
+  
+  /* Ajuste de posição dos sprites na zoom-view */
+  .zoom-view .character-sprite-layer {
+    position: absolute;
+    top: -50px; /* Ajuste vertical conforme solicitado */
+    left: 21px; /* Ajuste horizontal conforme solicitado */
+  }
+    
+  /* Animação de entrada do boss da direita para a esquerda */
+  .boss-enter-animation {
+    transform: translateX(100%); /* Começa fora da tela direita */
+    opacity: 0;
+  }
+  
+  .zoom-view .boss-container {
+    position: fixed !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translateX(-50%) scale(0.9) !important;
+    animation: boss-dynamic 4s ease-in-out infinite !important;
+    z-index: 20 !important;
+    transition: all 0.4s linear;
+    cursor: pointer !important;
+    pointer-events: all !important;
+  }
+  
+  /* Ajuste de posição do boss sprite apenas na zoom-view */
+  .zoom-view .boss-sprite {
+    position: absolute;
+    top: 0px;
+    transform: scaleX(-1); /* Flip horizontal */
+  }
+  
+  /* Character View effects */
+  .character-view .character-container {
+    position: fixed !important;
+    left: 50% !important; /* Centralizado */
+    bottom: 25% !important; 
+    top: auto !important;
+    transform: translateX(-50%) scale(3.0) !important;
+    z-index: 20;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3)); /* Sem blur */
+  }
+  
+  .character-view .boss-container {
+    opacity: 0;
+    visibility: hidden;
+  }
+  
+  /* Nova posição HUDs com posição relativa aos personagens */
+  .character-hud {
+    position: absolute;
+    left: 30%;
+    bottom: 5%;
+    width: 128px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 60;
+    opacity: 0; /* Começar invisível */
+    transition: opacity 0.4s linear; /* Apenas fade-in */
+  }
+  
+  .boss-hud {
+    position: absolute;
+    right: 30%;
+    bottom: 5%;
+    width: 128px;
+    z-index: 60;
+    opacity: 0; /* Começar invisível */
+    transition: opacity 0.4s linear; /* Apenas fade-in */
+  }
+  
+  /* HUD em zoom-view */
+  .zoom-view .character-hud {
+    opacity: 0; /* O HUD do personagem deve sumir */
+    pointer-events: none;
+  }
+  
+  .zoom-view .boss-hud {
+    right: auto;
+    left: 50%;
+    bottom: auto;
+    top: 20%;
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  /* Modificar as regras para zoom-view e character-view dos HUDs */
+  .zoom-view .character-hud,
+  .character-view .character-hud,
+  .character-view .boss-hud {
+    opacity: 0 !important; /* Força a invisibilidade */
+    visibility: hidden !important; /* Esconde completamente */
+    transition: opacity 0.4s linear, visibility 0.4s linear;
+  }
+  
+  /* ===== HUD DE ENERGIA - VERSÃO CLEAN E FLUTUANTE ===== */
+
+  .energy-indicator {
+      position: fixed;
+      left: calc(25% - 60px); /* Próximo ao personagem */
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 8000;
+      
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      
+      /* Sem background, mais leve */
+      background: none;
+      border: none;
+      padding: 0;
+      box-shadow: none;
+      
+      transition: all 0.3s ease;
+      animation: floatEnergy 3s ease-in-out infinite;
+  }
+
+  @keyframes floatEnergy {
+      0%, 100% { 
+          transform: translateY(-50%) translateX(0); 
+      }
+      50% { 
+          transform: translateY(calc(-50% - 5px)) translateX(2px); 
+      }
+  }
+
+  .energy-icon-container {
+      position: relative;
+      width: 40px;
+      height: 40px;
+  }
+
+  .energy-icon {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
+      transition: filter 0.3s ease;
+  }
+
+  /* Brilho baseado na energia */
+  .energy-indicator[data-energy-percent="high"] .energy-icon {
+      filter: drop-shadow(0 0 12px rgba(255, 215, 0, 1));
+      animation: energyGlowHigh 2s ease-in-out infinite;
+  }
+
+  .energy-indicator[data-energy-percent="medium"] .energy-icon {
+      filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+  }
+
+  .energy-indicator[data-energy-percent="low"] .energy-icon {
+      filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.5));
+  }
+
+  @keyframes energyGlowHigh {
+      0%, 100% {
+          filter: drop-shadow(0 0 12px rgba(255, 215, 0, 1));
+      }
+      50% {
+          filter: drop-shadow(0 0 18px rgba(255, 215, 0, 1));
+      }
+  }
+
+  .energy-text {
+      font-family: 'Cinzel', serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: #FFD700;
+      text-shadow: 
+          0 0 10px rgba(255, 215, 0, 0.8),
+          0 0 20px rgba(255, 215, 0, 0.5),
+          2px 2px 4px rgba(0, 0, 0, 0.8);
+      letter-spacing: 1px;
+  }
+
+  /* Remover label "Energia" */
+  .energy-label {
+      display: none;
+  }
+
+  /* Animação de consumo de energia */
+  @keyframes energyConsume {
+      0% { transform: scale(1); }
+      50% { transform: scale(0.9); opacity: 0.7; }
+      100% { transform: scale(1); }
+  }
+
+  .energy-indicator.consuming {
+      animation: energyConsume 0.3s ease, floatEnergy 3s ease-in-out infinite;
+  }
+
+  /* Animação de restauração de energia */
+  @keyframes energyRestore {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+  }
+
+  .energy-indicator.restoring {
+      animation: energyRestore 0.5s ease, floatEnergy 3s ease-in-out infinite;
+  }
+
+  .energy-indicator.restoring .energy-icon {
+      filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1));
+  }
+
+  /* Responsivo */
+  @media (max-width: 768px) {
+      .energy-indicator {
+          left: 15px;
+          transform: translateY(-50%) scale(0.85);
+      }
+      
+      .energy-icon-container {
+          width: 35px;
+          height: 35px;
+      }
+      
+      .energy-text {
+          font-size: 20px;
+      }
+  }
+
+  /* ===== CUSTO DE ENERGIA NOS BOTÕES DE ATAQUE ===== */
+  .skill-energy-cost {
+      position: absolute;
+      top: 12px;
+      right: 0px;
+      
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      
+      background: rgb(245 241 158 / 36%);
+      border: 1.5px solid #FFD700;
+      border-radius: 50px;
+      padding: 8px 4px;
+      
+      font-family: 'Cinzel', serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: #FFD700;
+      text-shadow: 0 0 5px rgba(255, 215, 0, 0.8);
+      
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+      pointer-events: none;
+      z-index: 10;
+  }
+
+  .skill-energy-icon {
+      width: 14px;
+      height: 14px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.6));
+  }
+
+  /* Estado de energia insuficiente */
+  .skill-button.insufficient-energy {
+      opacity: 0.5;
+      cursor: not-allowed;
+      filter: grayscale(50%);
+      position: relative;
+  }
+
+  .skill-button.insufficient-energy .skill-energy-cost {
+      border-color: #ff4444;
+      background: rgba(40, 10, 10, 0.9);
+      color: #ff4444;
+      text-shadow: 0 0 5px rgba(255, 68, 68, 0.8);
+      box-shadow: 0 0 10px rgba(255, 68, 68, 0.4);
+  }
+
+  .skill-button.insufficient-energy::after {
+      content: '⚠ Energia Insuficiente';
+      position: absolute;
+      bottom: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      
+      background: rgba(40, 10, 10, 0.95);
+      border: 1px solid #ff4444;
+      border-radius: 6px;
+      padding: 4px 10px;
+      
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      font-weight: 600;
+      color: #ff4444;
+      text-shadow: 0 0 5px rgba(255, 68, 68, 0.8);
+      white-space: nowrap;
+      
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 100;
+  }
+
+  .skill-button.insufficient-energy:hover::after {
+      opacity: 1;
+  }
+
+  /* Responsivo */
+  @media (max-width: 768px) {
+      .energy-indicator {
+          left: 10px;
+          padding: 10px;
+          transform: translateY(-50%) scale(0.85);
+      }
+      
+      .energy-icon-container {
+          width: 40px;
+          height: 40px;
+      }
+      
+      .energy-text {
+          font-size: 16px;
+      }
+      
+      .energy-label {
+          font-size: 10px;
+      }
+      
+      .skill-energy-cost {
+          font-size: 11px;
+          padding: 2px 6px;
+      }
+      
+      .skill-energy-icon {
+          width: 12px;
+          height: 12px;
+      }
+  }
+
+  .small-bar-container {
+    position: relative;
+    width: 100%;
+    height: 18px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.7) inset, 0 0 2px rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .small-hp-fill {
+    height: 100%;
+    background: linear-gradient(to right, #ff3838, #ff7676);
+    width: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease-out;
+    position: relative;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    animation: hp-pulse 2s infinite;
+  }
+  
+  .small-mp-fill {
+    height: 100%;
+    background: linear-gradient(to right, #3861ff, #76a9ff);
+    width: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease-out;
+    position: relative;
+    box-shadow: 0 0 10px rgba(0, 100, 255, 0.5);
+    animation: mp-pulse 3s infinite;
+  }
+  
+  .small-bar-label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.7rem;
+    text-shadow: 0 0 3px #000, 0 0 3px #000;
+    pointer-events: none;
+    z-index: 5;
+  }
+  
+  /* Character layers */
+  .character-sprite-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    background-size: auto 100%;  /* Mantenha isto */
+    animation: idle-animation 0.8s steps(11) infinite;
+    pointer-events: none;
+  }
+  
+  .character-fx-layer.animate-fx {
+    opacity: 0.5;
+    animation-name: fx-sprite-animation; 
+    animation-duration: 0.8s;      
+    animation-iteration-count: 1;  
+    animation-timing-function: steps(11); /* Mesmo número de steps do idle */
+    animation-fill-mode: forwards;
+  }
+
+  /* ===== SISTEMA GENÉRICO DE CAMADAS DE PERSONAGEM ===== */
+
+  /* Camada base para todas as sprites do personagem */
+  .character-sprite-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-repeat: no-repeat;
+      background-position: 0 0;
+      background-size: auto 100%;
+      animation: idle-animation 0.8s steps(11) infinite;
+      pointer-events: none;
+      image-rendering: pixelated;
+  }
+
+
+  /* SISTEMA MODULAR PARA PERSONAGENS ------------------- SISTEMA FUNCIONAL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  /* ========================================
+    SISTEMA MODULAR DE PERSONAGENS
+    ======================================== */
+
+  /* Container base - configurações responsivas por personagem */
+  .character-container[data-character="vlad"] {
+      /* Tamanho base do Vlad */
+      width: 128px;
+      height: 96px;
+  }
+
+  .character-container[data-character="vlad"][data-animation="bloodattack"],
+  .character-container[data-character="vlad"][data-animation="power"] {
+      /* Tamanho maior para animações específicas */
+      width: 176px;
+      height: 98px;
+  }
+
+  .character-container[data-character="mago_teste"],
+  .character-container[data-character="Mago"] {
+      /* Manter tamanho do Mago */
+      width: 256px;
+      height: 256px;
+  }
+
+  /* ========================================
+    CAMADAS DO VLAD - Z-INDEX CORRETO
+    ======================================== */
+
+  /* Camadas de fundo para a frente (ordem Z-index crescente) */
+  .character-container[data-character="vlad"] .layer-fx2 {
+      z-index: 1 !important;
+  }
+
+  .character-container[data-character="vlad"] .layer-hairback {
+      z-index: 2 !important;
+  }
+
+  .character-container[data-character="vlad"] .layer-cape {
+      z-index: 3 !important;
+  }
+
+  .character-container[data-character="vlad"] .layer-backarm {
+      z-index: 4 !important;
+  }
+
+  .character-container[data-character="vlad"] .layer-body {
+      z-index: 5 !important;
+  }
+
+  .character-container[data-character="vlad"] .layer-arms {
+      z-index: 6 !important;
+  }
+
+  .character-container[data-character="vlad"] .layer-head {
+      z-index: 7 !important;
+  }
+
+  .character-container[data-character="vlad"] .layer-hair {
+      z-index: 8 !important;
+  }
+
+  .character-container[data-character="vlad"] .layer-ear {
+      z-index: 9 !important;
+  }
+
+  .character-container[data-character="vlad"] .layer-robe {
+      z-index: 10 !important;
+  }
+
+  .character-container[data-character="vlad"] .layer-ombreira {
+      z-index: 11 !important;
+  }
+
+  .character-container[data-character="vlad"] .layer-hairfront {
+      z-index: 12 !important;
+  }
+
+  .character-container[data-character="vlad"] .layer-fx1 {
+      z-index: 13 !important;
+  }
+
+  /* ========================================
+    ANIMAÇÕES ESPECÍFICAS DO VLAD
+    ======================================== */
+
+
+  /* Animação idle do Vlad */
+  @keyframes vlad-idle-animation {
+      from { background-position: 0 0; }
+      to { background-position: -1536px 0; } /* 12 frames × 128px */
+  }
+
+  /* Animação de corrida do Vlad */
+  @keyframes vlad-run-animation {
+      from { background-position: 0 0; }
+      to { background-position: -1536px 0; } /* 12 frames × 128px */
+  }
+
+  /* Animação de parada do Vlad */
+  @keyframes vlad-stop-animation {
+      from { background-position: 0 0; }
+      to { background-position: -1024px 0; } /* 8 frames × 128px */
+  }
+
+  /* Animação de ataque sanguíneo do Vlad */
+  @keyframes vlad-bloodattack-animation {
+      from { background-position: 0 0; }
+      to { background-position: -4224px 0; } /* 24 frames × 176px */
+  }
+
+  /* Animação de poder do Vlad */
+  @keyframes vlad-power-animation {
+      from { background-position: 0 0; }
+      to { background-position: -4752px 0; } /* 27 frames × 176px */
+  }
+
+  /* Animação especial do Vlad */
+  @keyframes vlad-special-animation {
+      from { background-position: 0 0; }
+      to { background-position: -4096px 0; } /* 32 frames × 128px */
+  }
+
+  /* Animação ultimate do Vlad */
+  @keyframes vlad-ultimate-animation {
+      from { background-position: 0 0; }
+      to { background-position: -3584px 0; } /* 28 frames × 128px */
+  }
+
+  /* Animação de retorno do Vlad */
+  @keyframes vlad-return-animation {
+      from { background-position: 0 0; }
+      to { background-position: -1664px 0; } /* 13 frames × 128px */
+  }
+
+  /* Animação autofagia do Vlad */
+  @keyframes vlad-autofagia-animation {
+      from { background-position: 0 0; }
+      to { background-position: -3968px 0; } /* 31 frames × 128px */
+  }
+
+  /* Animação de dano do Vlad */
+  @keyframes vlad-damage-animation {
+      from { background-position: 0 0; }
+      to { background-position: -1024px 0; } /* 9 frames × 128px */
+  }
+
+  /* Animação de morte do Vlad */
+  @keyframes vlad-deathdamage-animation {
+      from { background-position: 0 0; }
+      to { background-position: -5504px 0; } /* 44 frames × 128px */
+  }
+
+  /* Animação de esquiva do Vlad */
+  @keyframes vlad-dodge-animation {
+      from { background-position: 0 0; }
+      to { background-position: -1536px 0; } /* 13 frames × 128px */
+  }
+
+  /* ========================================
+    APLICAÇÃO DAS ANIMAÇÕES POR PERSONAGEM
+    ======================================== */
+
+  /* Vlad - Idle */
+  .character-container[data-character="vlad"] .character-sprite-layer.idle-anim {
+      animation: vlad-idle-animation 1.2s steps(12) infinite;
+  }
+
+  /* Vlad - Run */
+  .character-container[data-character="vlad"] .character-sprite-layer.run-anim {
+      animation: vlad-run-animation 0.5s steps(12) infinite;
+  }
+
+  /* Vlad - Stop */
+  .character-container[data-character="vlad"] .character-sprite-layer.stop-anim {
+      animation: vlad-stop-animation 0.8s steps(8) forwards;
+  }
+
+  /* Vlad - Blood Attack */
+  .character-container[data-character="vlad"] .character-sprite-layer.bloodattack-anim {
+      animation: vlad-bloodattack-animation 2.4s steps(24) forwards;
+  }
+
+  /* Vlad - Power */
+  .character-container[data-character="vlad"] .character-sprite-layer.power-anim {
+      animation: vlad-power-animation 2.7s steps(27) forwards;
+  }
+
+  /* Vlad - Special */
+  .character-container[data-character="vlad"] .character-sprite-layer.special-anim {
+      animation: vlad-special-animation 3.2s steps(32) forwards;
+  }
+
+  /* Vlad - Ultimate */
+  .character-container[data-character="vlad"] .character-sprite-layer.ultimate-anim {
+      animation: vlad-ultimate-animation 2.8s steps(28) forwards;
+  }
+
+  /* Vlad - Return */
+  .character-container[data-character="vlad"] .character-sprite-layer.return-anim {
+      animation: vlad-return-animation 1.3s steps(13) forwards;
+  }
+
+  /* Vlad - Autofagia */
+  .character-container[data-character="vlad"] .character-sprite-layer.autofagia-anim {
+      animation: vlad-autofagia-animation 3.1s steps(31) forwards;
+  }
+
+  /* Vlad - DeathDamage */
+  .character-container[data-character="vlad"] .character-sprite-layer.deathdamage-anim {
+    animation: vlad-deathdamage-animation 4.0s steps(43) forwards;
+    /* deixe o JS controlar o size; se quiser fixar via CSS, use o padrão do sistema: */
+    background-size: auto 100%;
+    background-position: 0 100%; /* ancora pelo rodapé (corrige o "baixo") */
+  }
+
+  /* Vlad - Damage */
+  .character-container[data-character="vlad"] .character-sprite-layer.damage-anim {
+    animation: vlad-damage-animation 1.0s steps(8) forwards;
+    background-size: auto 100%;
+    background-position: 0 100%;
+  }
+
+  /* Vlad - Dodge */
+  .character-container[data-character="vlad"] .character-sprite-layer.dodge-anim {
+    animation: vlad-dodge-animation 1.0s steps(12) forwards;
+    background-size: auto 100%;
+    background-position: 0 100%;
+  }
+
+  /* ========================================
+    MANTER COMPATIBILIDADE COM MAGO
+    ======================================== */
+
+  /* Manter z-index do sistema antigo para Mago */
+  .character-container[data-character="mago_teste"] .layer-back-effect,
+  .character-container[data-character="Mago"] .layer-back-effect {
+      z-index: 1 !important;
+  }
+
+  .character-container[data-character="mago_teste"] .layer-body,
+  .character-container[data-character="Mago"] .layer-body {
+      z-index: 2 !important;
+  }
+
+  .character-container[data-character="mago_teste"] .layer-weapon,
+  .character-container[data-character="Mago"] .layer-weapon {
+      z-index: 3 !important;
+  }
+
+  .character-container[data-character="mago_teste"] .layer-front-effect,
+  .character-container[data-character="Mago"] .layer-front-effect {
+      z-index: 7 !important;
+  }
+
+  /* ========================================
+    SISTEMA RESPONSIVO PARA VIEWS
+    ======================================== */
+
+  /* Ajustes proporcionais na zoom-view */
+  .zoom-view .character-container[data-character="vlad"] {
+      transform: translateX(-50%) scale(4.5) !important; /* Maior escala para compensar tamanho menor */
+  }
+
+  .zoom-view .character-container[data-character="mago_teste"],
+  .zoom-view .character-container[data-character="Mago"] {
+      transform: translateX(-50%) scale(4.0) !important; /* Escala original do Mago */
+  }
+
+  /* Ajustes na character-view */
+  .character-view .character-container[data-character="vlad"] {
+      transform: translateX(-50%) scale(2.0) !important;
+  }
+
+  .character-view .character-container[data-character="mago_teste"],
+  .character-view .character-container[data-character="Mago"] {
+      transform: translateX(-50%) scale(3.0) !important;
+  }
+
+  /* ========================================
+    QUICK CUTS PARA VLAD
+    ======================================== */
+
+  /* Focus player - Vlad */
+  #battle-arena.quick-cut-player .character-container[data-character="vlad"] {
+      transform: scale(3.5) translate(-10%, -30%) !important;
+  }
+
+  /* Focus boss - Vlad */
+  #battle-arena.quick-cut-boss .character-container[data-character="vlad"] {
+      transform: scale(2.8) translate(-10%, -30%) !important;
+  }
+
+  /* Player moving - Vlad */
+  #battle-arena.quick-cut-player .character-container[data-character="vlad"].moving-to-boss {
+      transform: scale(3.5) translate(-10%, -30%) translateX(var(--movement-distance, 70%)) !important;
+  }
+
+  #battle-arena.quick-cut-player .character-container[data-character="vlad"].moving-back {
+      transform: scale(2.8) translate(-25%, -30%) translateX(0%) !important;
+  }
+
+  /* ========================================
+    SISTEMA DE FALLBACK
+    ======================================== */
+
+  /* Fallback para personagens não identificados */
+  .character-container:not([data-character]) {
+      width: 256px;
+      height: 256px;
+  }
+
+  .character-container:not([data-character]) .character-sprite-layer {
+      /* Usar configurações do Mago como fallback */
+      z-index: 2;
+  }
+
+  /* ========================================
+    OTIMIZAÇÕES DE PERFORMANCE
+    ======================================== */
+
+  /* Aplicar otimizações apenas às camadas do Vlad */
+  .character-container[data-character="vlad"] .character-sprite-layer {
+      will-change: transform, opacity;
+      transform: translateZ(0);
+      scale: 2;
+      backface-visibility: hidden;
+      image-rendering: pixelated;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      -ms-interpolation-mode: nearest-neighbor;
+  }
+
+  /* ========================================
+    TRANSIÇÕES SUAVES
+    ======================================== */
+
+  /* Transições para mudança de animações */
+  .character-container[data-character="vlad"] .character-sprite-layer {
+      transition: opacity 0.2s ease-out;
+  }
+
+  /* Transições para flip horizontal */
+  .character-container[data-character="vlad"] .character-sprite-layer.flipped {
+      transform: scaleX(-1);
+  }
+
+  /* ========================================
+    DEBUG E DESENVOLVIMENTO
+    ======================================== */
+
+  /* Classes temporárias para debug (remover em produção) */
+  .character-container[data-character="vlad"].debug {
+      border: 2px solid red;
+  }
+
+  .character-container[data-character="vlad"].debug .character-sprite-layer {
+      border: 1px solid blue;
+      opacity: 0.8;
+  }
+
+  /* ========================================
+    RESPONSIVIDADE MOBILE
+    ======================================== */
+
+  @media screen and (max-width: 768px) {
+      .character-container[data-character="vlad"] {
+          /* Ajustes para mobile se necessário */
+          min-width: 96px;
+          min-height: 72px;
+      }
+  }
+
+  /* ========================================
+    ESTRUTURA PREPARADA PARA NOVOS PERSONAGENS
+    ======================================== */
+
+  /* Template para futuros personagens */
+  .character-container[data-character="spectra"] {
+      /* Configurações para Spectra quando implementado */
+      width: 140px;
+      height: 110px;
+  }
+
+  /* Exemplo de z-index para novo personagem */
+  .character-container[data-character="spectra"] .layer-base {
+      z-index: 1 !important;
+  }
+
+  .character-container[data-character="spectra"] .layer-clothes {
+      z-index: 2 !important;
+  }
+
+  .character-container[data-character="spectra"] .layer-effects {
+      z-index: 3 !important;
+  }
+
+  /* Camadas específicas por tipo (z-index será definido via JavaScript) */
+  .layer-back-effect {
+      /* Efeitos de fundo - z-index: 1 (via JS) */
+  }
+
+  .layer-front-effect {
+      /* Efeitos da frente - z-index: 7 (via JS) */
+  }
+
+  /* Estados especiais das camadas */
+  .character-sprite-layer.animate {
+      animation-play-state: running;
+  }
+
+  .character-sprite-layer.paused {
+      animation-play-state: paused;
+  }
+
+  /* Flip horizontal para camadas quando necessário */
+  .character-sprite-layer.flipped {
+      transform: scaleX(-1);
+  }
+
+  /* ===== ANIMAÇÕES DE ATAQUE COM NOMES LÓGICOS ===== */
+
+  /* Container para animação de ataque da skill */
+  .skill-attack-animation {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-repeat: no-repeat;
+      background-position: 0 0;
+      background-size: auto 100%;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 55;
+      image-rendering: pixelated;
+  }
+
+  .skill-attack-animation.play-attack {
+      opacity: 1;
+      animation-fill-mode: forwards;
+  }
+
+  /* ===== ANIMAÇÕES POR NOME LÓGICO ===== */
+
+  /* Ataques básicos série 1 */
+  .attack-animation-attack_basic {
+      animation: attack-basic-anim 0.6s steps(9) forwards;
+  }
+
+  .attack-animation-attack_yellow1 {
+      animation: attack-yellow1-anim 0.6s steps(9) forwards;
+  }
+
+  .attack-animation-attack_blue1 {
+      animation: attack-blue1-anim 0.6s steps(9) forwards;
+  }
+
+  .attack-animation-attack_black1 {
+      animation: attack-black1-anim 0.6s steps(9) forwards;
+  }
+
+  .attack-animation-attack_black_double {
+      animation: attack-black-double-anim 0.8s steps(12) forwards;
+  }
+
+  .attack-animation-attack_pink1 {
+      animation: attack-pink1-anim 0.6s steps(9) forwards;
+  }
+
+  .attack-animation-attack_green1 {
+      animation: attack-green1-anim 0.6s steps(9) forwards;
+  }
+
+  .attack-animation-attack_red1 {
+      animation: attack-red1-anim 0.6s steps(9) forwards;
+  }
+
+  /* Ataques série 2 */
+  .attack-animation-attack_black2 {
+      animation: attack-black2-anim 0.7s steps(10) forwards;
+  }
+
+  .attack-animation-attack_blue2 {
+      animation: attack-blue2-anim 0.7s steps(10) forwards;
+  }
+
+  .attack-animation-attack_red2 {
+      animation: attack-red2-anim 0.7s steps(10) forwards;
+  }
+
+  .attack-animation-attack_yellow2 {
+      animation: attack-yellow2-anim 0.7s steps(10) forwards;
+  }
+
+  /* Animação de ataque corpo a corpo */
+  .melee-strike-anim .character-sprite-layer {
+      animation-fill-mode: forwards !important;
+  }
+
+  /* Animação de corrida para retorno */
+  .run-return-anim .character-sprite-layer {
+      animation: walk-return-animation 0.6s steps(8) forwards !important;
+  }
+
+  @keyframes walk-return-animation {
+      from { background-position: -2048px 0; }  /* Começa no último frame da corrida */
+      to { background-position: 0 0; }          /* Vai para o primeiro frame (invertido) */
+  }
+
+  /* Animação de corrida para retorno */
+  .run-return-anim .character-sprite-layer {
+      animation: walk-return-animation 0.6s steps(8) forwards !important;
+  }
+
+  @keyframes walk-return-animation {
+      from { background-position: -2048px 0; }  /* Começa no último frame da corrida */
+      to { background-position: 0 0; }          /* Vai para o primeiro frame (invertido) */
+  }
+
+  /* ===== KEYFRAMES ===== */
+
+  @keyframes attack-basic-anim {
+      from { background-position: 0 0; }
+      to { background-position: -720px 0; } /* 9 frames × 80px */
+  }
+
+  @keyframes attack-yellow1-anim {
+      from { background-position: 0 0; }
+      to { background-position: -720px 0; }
+  }
+
+  @keyframes attack-blue1-anim {
+      from { background-position: 0 0; }
+      to { background-position: -720px 0; }
+  }
+
+  @keyframes attack-black1-anim {
+      from { background-position: 0 0; }
+      to { background-position: -720px 0; }
+  }
+
+  @keyframes attack-black-double-anim {
+      from { background-position: 0 0; }
+      to { background-position: -960px 0; } /* 12 frames × 80px */
+  }
+
+  @keyframes attack-pink1-anim {
+      from { background-position: 0 0; }
+      to { background-position: -720px 0; }
+  }
+
+  @keyframes attack-green1-anim {
+      from { background-position: 0 0; }
+      to { background-position: -720px 0; }
+  }
+
+  @keyframes attack-red1-anim {
+      from { background-position: 0 0; }
+      to { background-position: -720px 0; }
+  }
+
+  @keyframes attack-black2-anim {
+      from { background-position: 0 0; }
+      to { background-position: -800px 0; } /* 10 frames × 80px */
+  }
+
+  @keyframes attack-blue2-anim {
+      from { background-position: 0 0; }
+      to { background-position: -800px 0; }
+  }
+
+  @keyframes attack-red2-anim {
+      from { background-position: 0 0; }
+      to { background-position: -800px 0; }
+  }
+
+  @keyframes attack-yellow2-anim {
+      from { background-position: 0 0; }
+      to { background-position: -800px 0; }
+  }
+
+  /* ===== QC2 ATTACK ANIMATION COM SPRITES DINÂMICAS ===== */
+
+  #qc2-attack-animation-container .p1-attack-qc2.play-animation {
+      /* Usar a animação attack1 como padrão se não for definida */
+      animation: attack-animation 0.6s steps(9) forwards;
+  }
+
+  /* Keyframe genérica para QC2 */
+  @keyframes attack-animation {
+      from { background-position: 0 0; }
+      to { background-position: -720px 0; }
+  }
+  
+  /* Animation states */
+  .p1-walk {
+    width: 100%;
+    height: 100%;
+    background-image: url('/static/game.data/p1/p1.walk.provisorio/p1.walk.provisorio.png');
+    background-size: auto 100%;
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    animation: walk-animation 0.2s steps(3) forwards;
+    z-index: 26;
+  }
+  
+  .p1-attack {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/static/game.data/p1/p1.attack.provisorio/attack1.png');
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    background-size: auto 100%;
+    animation: attack-animation 0.6s steps(8) forwards;
+    z-index: 50; /* Aumentado ainda mais para garantir que fique na frente do inimigo */
+  }
+  
+  /* Boss sprite */
+  .boss-sprite {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/static/game.data/boss1.png');
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    background-size: auto 100%;
+    animation: boss-animation 0.8s steps(6) infinite;
+  }
+  
+  /* Blood particles */
+  .blood-particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background-color: #ff0000;
+    border-radius: 50%;
+    opacity: 0.9;
+    z-index: 30;
+    pointer-events: none;
+    box-shadow: 0 0 4px rgba(255, 0, 0, 0.5);
+  }
+  
+  /* Animation keyframes for sprites */
+  @keyframes idle-animation {
+    from { background-position:    0    0; }
+    to   { background-position: -2816px  0; }
+  }
+  
+  @keyframes walk-animation {
+    from { background-position: 0 0; }
+    to { background-position: -768px 0; }
+  }
+  
+  @keyframes walkBackAnim {
+    0% { background-position: -768px 0; }
+    33% { background-position: -512px 0; }
+    66% { background-position: -256px 0; }
+    100% { background-position: 0px 0; }
+  }
+  
+  @keyframes attack-animation {
+    from { background-position:    0    0; }
+    to   { background-position: -720px 0; }
+  }
+  
+  @keyframes boss-animation {
+    from { background-position:    0    0; }
+    to   { background-position: -1536px 0; }
+  }
+  
+  /* Stats display */
+  .stats-container {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 50px;
+    z-index: 60;
+  }
+  
+  .player-stats, .boss-stats {
+    background-color: transparent;
+    border: none;
+    padding: 15px;
+    width: 30%;
+  }
+  
+  .stats-title {
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    display: none;
+  }
+  
+  .bar-container {
+    margin-bottom: 12px;
+    position: relative;
+  }
+  
+  .bar-label {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 5;
+    font-size: 0.9rem;
+    text-shadow: 0 0 4px #000, 0 0 4px #000;
+    pointer-events: none;
+  }
+  
+  .progress-bar {
+    height: 22px;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 7px;
+    overflow: hidden;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.7) inset, 0 0 2px rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+  }
+  
+  .hp-fill {
+    height: 100%;
+    background: linear-gradient(to right, #ff3838, #ff7676);
+    width: 100%;
+    border-radius: 7px;
+    transition: width 0.5s ease-out;
+    position: relative;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    animation: hp-pulse 2s infinite;
+  }
+  
+  .hp-damage {
+    animation: hp-damage 0.5s ease;
+  }
+  
+  .mp-fill {
+    height: 100%;
+    background: linear-gradient(to right, #3861ff, #76a9ff);
+    width: 100%;
+    border-radius: 7px;
+    transition: width 0.5s ease-out;
+    position: relative;
+    box-shadow: 0 0 10px rgba(0, 100, 255, 0.5);
+    animation: mp-pulse 3s infinite;
+  }
+  
+  /* Animações para as barras */
+  @keyframes hp-pulse {
+      0%, 100% { 
+          box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+          transform: translateZ(0);
+      }
+      50% { 
+          box-shadow: 0 0 12px rgba(255, 0, 0, 0.7);
+          transform: translateZ(0);
+      }
+  }
+  
+  @keyframes hp-damage {
+    0% { transform: scale(1); filter: brightness(1); }
+    25% { transform: scale(1.05) translateX(2px); filter: brightness(1.5); }
+    50% { transform: scale(1.02) translateX(-2px); filter: brightness(1.3); }
+    75% { transform: scale(1.03) translateX(1px); filter: brightness(1.2); }
+    100% { transform: scale(1); filter: brightness(1); }
+  }
+  
+  @keyframes mp-pulse {
+      0%, 100% { 
+          box-shadow: 0 0 5px rgba(0, 100, 255, 0.5);
+          transform: translateZ(0);
+      }
+      50% { 
+          box-shadow: 0 0 12px rgba(0, 100, 255, 0.7);
+          transform: translateZ(0);
+      }
+  }
+  
+  /* Battle Message - Movido para o topo da tela */
+  .battle-message {
+    position: absolute;
+    top: 30px; /* Posicionado no topo da tela */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 15px 30px;
+    text-align: center;
+    font-size: 1.2rem;
+    max-width: 80%;
+    min-width: 50%;
+    z-index: 1300;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  }
+  
+  .battle-message.visible {
+    opacity: 1;
+  }
+  
+  /* Action Menu - Reposicionado à direita do personagem */
+  .action-menu {
+    position: absolute;
+    bottom: 5%; /* Ajustado para ficar na parte inferior */
+    left: 65%;
+    width: auto;
+    z-index: 10000;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.4s linear;
+    pointer-events: all !important;
+  }
+  
+  .character-view #special-submenu,
+  .character-view #inventory-submenu {
+    position: absolute !important;
+    top: 63% !important; /* Posicionar no meio da tela */
+    left: 15% !important; 
+    transform: translateY(-50%) !important; /* Centraliza verticalmente */
+    width: 75%; /* Largura maior para acomodar ícones em linha */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1200;
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.4s linear;
+    max-height: none; /* Permite altura natural */
+    pointer-events: all !important;
+  }
+  
+  .character-view #special-submenu.visible,
+  .character-view #inventory-submenu.visible {
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 1300 !important;
+    pointer-events: all !important;
+  }
+  
+  /* Garantir que o submenu de habilidades especiais tenha prioridade máxima */
+  .special-skills-submenu,
+  .special-skill-list,
+  .special-skill-item,
+  .skill-button {
+      position: relative !important;
+      z-index: 9999 !important; /* Prioridade extremamente alta */
+      pointer-events: auto !important;
+  }
+
+  /* Garantir que o container de botões de skills também tenha alta prioridade */
+  #special-skills-container,
+  .skill-container,
+  .special-skill-container {
+      position: relative !important;
+      z-index: 9998 !important;
+      pointer-events: auto !important;
+  }
+
+  /* Adicione uma borda temporária para visualizar melhor a área clicável (remova depois) */
+  .special-skill-item, 
+  .skill-button {
+      border: 2px solid rgba(255, 215, 0, 0.5) !important;
+  }
+
+  /* Lista autoajustável para os submenus */
+  .character-view .submenu-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  /* Remover angulação dos botões de skill em ESPECIAIS e INVENTÁRIO */
+  .character-view .skill-button {
+    transform: translateX(-30px) rotate(0deg) !important; /* Sem angulação */
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    opacity: 0;
+    margin-bottom: 10px;
+  }
+  
+  /* Animação de entrada sequencial */
+  .submenu.visible .skill-button {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  /* Garantir que os botões estejam completamente invisíveis antes da animação */
+  .submenu:not(.visible) .skill-button {
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+  
+  /* Para botões do menu principal quando o menu não está visível */
+  .action-menu:not(.visible) .action-button {
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+  
+  /* Ajuste para a animação de entrada dos botões */
+  .submenu.visible .skill-button {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  /* Ajuste para a animação de entrada dos botões do menu principal */
+  .action-menu.visible .action-button {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .submenu.visible .skill-button:nth-child(1) {
+    transition-delay: 0.1s;
+  }
+  
+  .submenu.visible .skill-button:nth-child(2) {
+    transition-delay: 0.3s;
+  }
+  
+  .submenu.visible .skill-button:nth-child(3) {
+    transition-delay: 0.5s;
+  }
+  
+  .submenu.visible .skill-button:nth-child(4) {
+    transition-delay: 0.7s;
+  }
+  
+  .submenu.visible .skill-button:nth-child(5) {
+    transition-delay: 0.9s;
+  }
+  
+  /* Manter a angulação no submenu de ATACAR na zoom-view */
+  .zoom-view #attack-submenu .skill-button:nth-child(odd) {
+    transform: translateX(-30px) rotate(-5deg);
+  }
+  
+  .zoom-view #attack-submenu .skill-button:nth-child(even) {
+    transform: translateX(-30px) rotate(5deg);
+  }
+  
+  .zoom-view #attack-submenu.visible .skill-button:nth-child(odd) {
+    transform: translateX(0) rotate(-5deg);
+  }
+  
+  .zoom-view #attack-submenu.visible .skill-button:nth-child(even) {
+    transform: translateX(0) rotate(5deg);
+  }
+  
+  .zoom-view .action-menu {
+    left: 64%; /* Movido mais para a direita */
+    pointer-events: all !important;
+  }
+  
+  .action-menu.visible {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: all !important;
+  }
+  
+  /* MODIFICAR a animação para a sequência */
+  .action-menu.visible #attack-button {
+    opacity: 1;
+    transform: translateX(0) rotate(var(--rotate-angle));
+    transition-delay: 0s;
+    animation: buttonShake 0.3s 0.3s;
+  }
+  
+  .action-menu.visible #special-button {
+    opacity: 1;
+    transform: translateX(0) rotate(var(--rotate-angle));
+    transition-delay: 0.5s;
+    animation: buttonShake 0.3s 0.8s;
+  }
+  
+  .action-menu.visible #inventory-button {
+    opacity: 1;
+    transform: translateX(0) rotate(var(--rotate-angle));
+    transition-delay: 1.0s;
+    animation: buttonShake 0.3s 1.3s;
+  }
+  
+  .menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 30px; /* Aumentado de 15px para 40px */
+    align-items: flex-start;
+    border: none;
+    padding: 15px;
+    pointer-events: all !important;
+  }
+  
+  .action-button {
+    background: linear-gradient(to bottom, #4a4a4a, #2a2a2a);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 15px 30px;
+    font-family: 'Cinzel', serif;
+    font-size: 1.3rem;
+    cursor: pointer !important;
+    width: 250px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    pointer-events: all !important;
+    z-index: 1150;
+    opacity: 0;
+    transform: translateX(-50px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    --rotate-angle: 0deg; /* Variável CSS para controlar a rotação */
+  }
+  
+  /* ADICIONAR estilos para cada botão individualmente */
+  #attack-button {
+    transform: translateX(-50px) rotate(-10deg);
+    --rotate-angle: -8deg;
+  }
+  
+  #special-button {
+    transform: translateX(-50px) rotate(0deg);
+    --rotate-angle: -2deg;
+    margin: 10px
+  }
+  
+  #inventory-button {
+    transform: translateX(-50px) rotate(10deg);
+    --rotate-angle: 4deg;
+  }
+  
+  .action-button:hover, .action-button:focus {
+    background: linear-gradient(to bottom, #636363, #3a3a3a);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.9);
+  }
+  
+  .action-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+  }
+  
+  .action-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: all 0.5s ease;
+  }
+  
+  .action-button:hover::before {
+    left: 100%;
+  }
+  
+  .action-button.selected {
+    filter: brightness(1.5) drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+    z-index: 2;
+  }
+  
+  .action-button.faded {
+    opacity: 0.5;
+    z-index: 1;
+  }
+  
+  
+  /* Animação de entrada dos botões na zoom-view */
+  .zoom-view .action-menu.visible #attack-button {
+    opacity: 1;
+    transform: translateX(0) rotate(var(--rotate-angle));
+    transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition-delay: 0.3s;
+    /* Shake termina em 0.5s + 0.3s = 0.8s. Novo delay para dynamic: 1.0s */
+    animation: buttonShake 0.3s 0.5s, button1-dynamic 4.2s ease-in-out 1.0s infinite;
+  }
+  
+  .zoom-view .action-menu.visible #special-button {
+    opacity: 1;
+    transform: translateX(0) rotate(var(--rotate-angle));
+    transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition-delay: 0.5s;
+     /* Shake termina em 1.0s + 0.3s = 1.3s. Novo delay para dynamic: 1.5s */
+    animation: buttonShake 0.3s 1.0s, button2-dynamic 4.4s ease-in-out 1.5s infinite;
+  }
+  
+  .zoom-view .action-menu.visible #inventory-button {
+    opacity: 1;
+    transform: translateX(0) rotate(var(--rotate-angle));
+    transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition-delay: 1.0s;
+    /* Shake termina em 1.5s + 0.3s = 1.8s. Novo delay para dynamic: 2.0s */
+    animation: buttonShake 0.3s 1.5s, button3-dynamic 4.6s ease-in-out 2.0s infinite;
+  }
+  
+  /* Animação combinada para botões na zoom-view */
+  .zoom-view .action-menu #attack-button,
+  .zoom-view .action-menu #special-button, 
+  .zoom-view .action-menu #inventory-button {
+    opacity: 0;
+    transform: translateX(-50px) rotate(var(--rotate-angle));
+  }
+  
+  /* Submenu styling - Reposicionado à esquerda do personagem */
+  .submenu {
+    position: absolute;
+    top: auto;
+    bottom: 2%;
+    left: 30%;
+    width: 400px; /* Aumentado de 300px para 400px */
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    z-index: 1200;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateX(-50px) scale(0.8);
+    transition: opacity 0.3s ease-out, visibility 0.3s ease-out, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    max-width: 70%;
+    max-height: 75vh;
+    transform-origin: left center;
+    overflow: visible; /* Evita cortes nos elementos */
+    padding: 10px; /* Espaço adicional */
+  }
+  
+  .zoom-view .submenu {
+    position: fixed !important;
+    left: 27% !important;
+    bottom: 0% !important;
+  }
+  
+  .character-view .submenu {
+    position: fixed !important;
+    left: 35% !important;
+    bottom: 15% !important;
+  }
+  
+  #attack-options, #special-options, #inventory-options {
+    padding: 10px;
+    overflow: visible;
+    margin: 0 10px; /* Margem lateral para evitar que a rotação corte nas bordas */
+  }
+  
+  /* Aplicar animações dinâmicas aos botões do submenu */
+  .zoom-view .skill-button:nth-child(1) {
+    animation: button1-dynamic 4.3s ease-in-out infinite !important;
+  }
+  
+  .zoom-view .skill-button:nth-child(2) {
+    animation: button2-dynamic 4.5s ease-in-out infinite !important;
+  }
+  
+  .zoom-view .skill-button:nth-child(3) {
+    animation: button3-dynamic 4.7s ease-in-out infinite !important;
+  }
+  
+  .zoom-view .skill-button:nth-child(4) {
+    animation: button1-dynamic 4.9s ease-in-out infinite !important;
+  }
+  
+  .character-view .skill-button:nth-child(1) {
+    animation: button1-dynamic 4.3s ease-in-out infinite !important;
+  }
+  
+  .character-view .skill-button:nth-child(2) {
+    animation: button2-dynamic 4.5s ease-in-out infinite !important;
+  }
+  
+  .character-view .skill-button:nth-child(3) {
+    animation: button3-dynamic 4.7s ease-in-out infinite !important;
+  }
+  
+  .character-view .skill-button:nth-child(4) {
+    animation: button1-dynamic 4.9s ease-in-out infinite !important;
+  }
+  
+  /* Manter as animações no hover */
+  .zoom-view .skill-button:hover,
+  .character-view .skill-button:hover {
+    animation-play-state: running !important;
+  }
+
+  /* Estilo para a seção de buffs */
+  .battle-buffs-container {
+    margin-top: 8px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  }
+
+  .battle-buffs-container h3 {
+    font-size: 16px;
+    color: #ffd700;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .buffs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .buff-item {
+    padding: 5px 8px;
+    margin-bottom: 2px;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-left: 3px solid #9ff;
+  }
+
+  .buff-type {
+    font-weight: bold;
+    color: #9ff;
+  }
+
+  .buff-value {
+    color: #fff;
+    margin-left: 5px;
+  }
+
+  .buff-duration {
+    color: #ccc;
+    font-size: 0.6em;
+    float: right;
+  }
+  
+  /* Remover scrollbar e ajustar botões */
+  .submenu-content {
+    border: none;
+    border-radius: 5px;
+    padding: 20px;
+    width: 100%;
+    overflow: visible;
+    position: relative;
+  }
+  
+  #attack-options, #special-options, #inventory-options {
+    padding: 10px;
+    overflow: visible;
+    margin: 0 10px;
+  }
+  
+  #special-submenu,
+  #inventory-submenu {
+    z-index: 1100 !important;
+  }
+  
+  .submenu.visible {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  
+  .submenu.visible {
+    pointer-events: all !important;
+    z-index: 1200 !important;
+  }
+  
+  .skill-button {
+    opacity: 0;
+    transform: translateX(-50px);
+    visibility: hidden;
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+    --rotate-angle: 0deg; /* Variável CSS para controlar a rotação */
+  }
+
+  /* INSERIR: Estilos para feedback de uso de habilidade */
+  .skill-button.skill-used {
+    background: linear-gradient(to bottom, #9933ff, #6a2080) !important;
+    border-color: #dd99ff !important;
+    transform: scale(1.05);
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(153, 51, 255, 0.5);
+  }
+
+  @keyframes skill-using-pulse {
+    0% {
+        box-shadow: 0 0 5px #ffcc00;
+        transform: scale(0.98);
+    }
+    100% {
+        box-shadow: 0 0 15px #ffaa00;
+        transform: scale(1.02);
+    }
+  }
+
+  @keyframes skill-pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Garantir que valores buffados fiquem verdes */
+  .stat-value.buffed {
+    color: #4caf50 !important;
+    text-shadow: 0 0 3px rgba(142, 255, 146, 0.308) !important;
+  }
+  
+  .submenu.visible {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .submenu-content {
+    border: none;
+    border-radius: 5px;
+    padding: 20px;  /* Aumentei o padding */
+    width: 100%;
+    max-height: 70vh; /* Aumentei a altura máxima */
+    overflow: visible; /* Mudei para visible para evitar corte */
+    position: relative;
+  }
+
+  .skill-button {
+    background: linear-gradient(to bottom, #8c2022, #5c1011);
+    color: #fff;
+    border: 2px solid #aa3033;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    cursor: pointer !important;
+    width: 100%;
+    text-align: left;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateX(-30px);
+    pointer-events: all !important;
+    z-index: 1250 !important;
+  }
+  
+  #attack-options {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%; /* Garantir que ocupe toda a largura disponível */
+    padding: 5px; /* Pequeno padding para conter as transformações */
+    overflow: visible
+  }
+  
+  :root {
+    --button-horizontal-offset: 20px; /* Valor menor para movimentos menos amplos */
+  }
+  
+  /* Especificamente para o submenu de ataque */
+  /* Manter a angulação no submenu de ATACAR na zoom-view */
+  .zoom-view #attack-submenu .skill-button {
+    opacity: 0;
+    transform-origin: center; /* Ajuda a conter as transformações */
+    transform: translateX(var(--button-horizontal-offset)) rotate(0deg);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    margin-bottom: 0 !important; /* Forçar remoção, agora usamos gap */
+  }
+  
+  .zoom-view #attack-submenu .skill-button:nth-child(1) {
+    transform: translateX(var(--button-horizontal-offset)) rotate(8deg);
+    --rotate-angle: 8deg;
+  }
+  
+  .zoom-view #attack-submenu .skill-button:nth-child(2) {
+    transform: translateX(var(--button-horizontal-offset)) rotate(4deg);
+    --rotate-angle: 4deg;
+  }
+  
+  .zoom-view #attack-submenu .skill-button:nth-child(3) {
+    transform: translateX(var(--button-horizontal-offset)) rotate(0deg);
+    --rotate-angle: 0deg;
+  }
+  
+  .zoom-view #attack-submenu .skill-button:nth-child(4) {
+    transform: translateX(var(--button-horizontal-offset)) rotate(-4deg);
+    --rotate-angle: -4deg;
+  }
+  
+  .zoom-view #attack-submenu.visible .skill-button {
+    opacity: 1;
+  }
+  
+  .zoom-view #attack-submenu.visible .skill-button:nth-child(1) {
+    transform: translateX(0) rotate(8deg);
+    opacity: 1;
+  }
+  
+  .zoom-view #attack-submenu.visible .skill-button:nth-child(2) {
+    transform: translateX(0) rotate(4deg);
+    opacity: 1;
+  }
+  
+  .zoom-view #attack-submenu.visible .skill-button:nth-child(3) {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+  
+  .zoom-view #attack-submenu.visible .skill-button:nth-child(4) {
+    transform: translateX(0) rotate(-4deg);
+    opacity: 1;
+  }
+  
+  /* Adicionar animação shake */
+  @keyframes buttonShake {
+    0% { transform: translateX(0) rotate(var(--rotate-angle, 0deg)); }
+    25% { transform: translateX(5px) rotate(var(--rotate-angle, 0deg)); }
+    50% { transform: translateX(-5px) rotate(var(--rotate-angle, 0deg)); }
+    75% { transform: translateX(3px) rotate(var(--rotate-angle, 0deg)); }
+    100% { transform: translateX(0) rotate(var(--rotate-angle, 0deg)); }
+  }
+  
+  @keyframes fx-sprite-animation {
+    from { background-position: 0 0; }
+    to { background-position: -2816px 0; } /* Largura total da sequência de frames */
+  }
+  
+  .zoom-view #attack-submenu.visible .skill-button:nth-child(1) {
+    transition-delay: 0.1s;
+    animation: buttonShake 0.3s 0.5s;
+  }
+  
+  .zoom-view #attack-submenu.visible .skill-button:nth-child(2) {
+    transition-delay: 0.5s; /* 0.1 + 0.4 */
+    animation: buttonShake 0.3s 0.9s;
+  }
+  
+  .zoom-view #attack-submenu.visible .skill-button:nth-child(3) {
+    transition-delay: 0.9s; /* 0.5 + 0.4 */
+    animation: buttonShake 0.3s 1.3s;
+  }
+  
+  .zoom-view #attack-submenu.visible .skill-button:nth-child(4) {
+    transition-delay: 1.3s; /* 0.9 + 0.4 */
+    animation: buttonShake 0.3s 1.7s;
+  }
+  
+  .zoom-view-leaving .skill-button,
+  .character-view-leaving .skill-button {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: opacity 0.2s ease, visibility 0.2s ease !important;
+  }
+  
+  .skill-button:nth-child(odd) {
+    transform: translateX(-30px) rotate(-5deg);
+  }
+  
+  .skill-button:nth-child(even) {
+    transform: translateX(-30px) rotate(5deg);
+  }
+  
+  .submenu.visible .skill-button {
+    opacity: 1;
+    transform: translateX(0) rotate(0deg);
+    visibility: visible; /* Adicionar esta linha */
+  }
+  
+  .submenu.visible .skill-button:nth-child(odd) {
+    transform: translateX(0) rotate(-5deg);
+  }
+  
+  .submenu.visible .skill-button:nth-child(even) {
+    transform: translateX(0) rotate(5deg);
+  }
+  
+  .submenu.visible .skill-button:nth-child(1) {
+    transition-delay: 0.1s;
+  }
+  
+  .submenu.visible .skill-button:nth-child(2) {
+    transition-delay: 0.3s;
+  }
+  
+  .submenu.visible .skill-button:nth-child(3) {
+    transition-delay: 0.5s;
+  }
+  
+  .submenu.visible .skill-button:nth-child(4) {
+    transition-delay: 0.7s;
+  }
+  
+  .skill-button:hover:not(.disabled) {
+    background: linear-gradient(to bottom, #aa3033, #7c1517);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.7);
+  }
+  
+  .skill-button.disabled {
+    background: linear-gradient(to bottom, #5a5a5a, #3a3a3a);
+    border-color: #555;
+    color: #777;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+    cursor: not-allowed;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  
+  .skill-button.disabled::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      rgba(0, 0, 0, 0.1),
+      rgba(0, 0, 0, 0.1) 10px,
+      rgba(0, 0, 0, 0.2) 10px,
+      rgba(0, 0, 0, 0.2) 20px
+    );
+  }
+
+  /* Estilos para o estado ativo e processamento dos botões de skill */
+  .skill-button.skill-using {
+    background: linear-gradient(to bottom, #9933ff, #6a1b9a);
+    border-color: #b967ff;
+    animation: pulse-border 0.8s infinite alternate;
+    pointer-events: none;
+  }
+
+  .skill-button.skill-used {
+    background: linear-gradient(to bottom, #2c882d, #145a15);
+    border-color: #4caf50;
+    animation: flash-success 0.8s;
+    transform: translateY(-2px);
+  }
+
+  @keyframes pulse-border {
+    from { box-shadow: 0 0 5px rgba(153, 51, 255, 0.7); }
+    to { box-shadow: 0 0 15px rgba(153, 51, 255, 0.9); }
+  }
+
+  @keyframes flash-success {
+    0%, 100% { box-shadow: 0 0 5px rgba(76, 175, 80, 0.7); }
+    50% { box-shadow: 0 0 20px rgba(76, 175, 80, 1); }
+  }
+  
+  .skill-details {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.8rem;
+    text-align: right;
+  }
+  
+  /* Attack Special Effects */
+  .attack-effect {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 25;
+    pointer-events: none;
+  }
+  
+  .damage-number {
+    position: absolute;
+    color: #ff3838;
+    font-size: 2rem;
+    font-weight: bold;
+    text-shadow: 0 0 5px #000;
+    animation: damageFloat 2.0s forwards;
+    z-index: 25;
+  }
+  
+  .critical-hit {
+    color: #ffcc00 !important;
+    font-size: 2.5rem !important;
+    text-shadow: 0 0 10px #ff0000, 0 0 20px #ff8800;
+  }
+  
+  .vignette {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, 0.95) 70%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+    z-index: 1000;
+  }
+  
+  .initial-vignette {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at center, transparent 10%, rgba(0, 0, 0, 0.55) 60%);
+    opacity: 0.6; /* Mais leve que a vinheta principal */
+    pointer-events: none;
+    z-index: 1020; /* Abaixo da interface, acima das árvores */
+    transition: opacity 0.5s ease;
+  }
+  
+  /* Esconder a vinheta leve quando outras views estão ativas */
+  .zoom-view .initial-vignette,
+  .character-view .initial-vignette, 
+  .boss-view .initial-vignette {
+    opacity: 0;
+  }
+  
+  .vignette.visible {
+    opacity: 0.8;
+  }
+  
+  /* Vinheta horizontal para zoom-view-attack */
+  .horizontal-vignette {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, 
+                  rgba(0, 0, 0, 0.8) 0%, 
+                  rgba(0, 0, 0, 0) 80%, 
+                  rgba(0, 0, 0, 0) 70%, 
+                  rgba(0, 0, 0, 0.5) 100%);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1025;
+    transition: opacity 0.3s ease;
+  }
+  
+  .zoom-view-attack .horizontal-vignette {
+    opacity: 0.3;
+    animation: horizontal-vignette-fade 6s forwards;
+  }
+  
+  @keyframes horizontal-vignette-fade {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  
+  /* Vinheta vermelha pulsátil para o ataque */
+  .attack-vignette {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at center, transparent 60%, rgba(255, 0, 0, 0.15) 100%);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 3;
+    transition: opacity 0.3s ease;
+  }
+  
+  .attack-vignette.visible {
+    opacity: 1;
+    animation: pulseRed 3s infinite;
+  }
+  
+  @keyframes pulseRed {
+    0% { opacity: 0.15; }
+    50% { opacity: 0.3; }
+    100% { opacity: 0.15; }
+  }
+  
+  /* Brilho vermelho ao redor do boss quando selecionado para ataque */
+  .boss-target-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 19; /* Logo abaixo do boss */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .boss-target-glow::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    right: -20px;
+    bottom: -20px;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle, 
+      rgba(255, 0, 0, 0.7) 0%, 
+      rgba(255, 0, 0, 0.5) 30%, 
+      rgba(255, 0, 0, 0.3) 60%, 
+      rgba(255, 0, 0, 0) 90%
+    );
+    animation: bossTargetPulse 2s infinite alternate;
+  }
+  
+  @keyframes bossTargetPulse {
+    0% { transform: scale(0.9); opacity: 0.5; }
+    100% { transform: scale(1.1); opacity: 0.8; }
+  }
+  
+  .zoom-view-attack .boss-target-glow {
+    opacity: 1;
+  }
+  
+  /* Zoom view effects - Personagens deslocados horizontalmente */
+  .zoom-view .character-container {
+    position: fixed !important;
+    left: 55% !important; /* Movido mais para a direita */
+    bottom: 15% !important; /* Subido para mostrar mais do personagem */
+    top: auto !important;
+    transform: translateX(-50%) scale(4.0) !important; /* Aumentado em 100% */
+    z-index: 30 !important;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3)) blur(4px);
+  }
+  
+  @keyframes pulse-aura {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+    50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.5; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+  }
+  
+  /* Adicionando flip horizontal sem transição */
+  .zoom-view .boss-sprite {
+    transform: scaleX(-1);
+  }
+  
+  /* Animações para zoom-view-attack */
+  .zoom-view-attack .character-container {
+    left: 51% !important; /* Move para a esquerda (era 55%) */
+    bottom: 16% !important; /* Move para cima (era 15%) */
+    transform: translateX(-50%) scale(4.5) !important; /* Aumentado de 4.0 para 4.5 */
+    transition: left 6s linear, bottom 6s linear, filter 6s linear, transform 6s linear !important;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3)) blur(2.5px) !important;
+    z-index: 30 !important; /* Valor muito maior para garantir precedência */
+  }
+  
+  .zoom-view-attack .boss-container {
+    left: 51% !important; /* Move para a direita (era 50%) */
+    top: 51% !important; /* Move para baixo (era 50%) */
+    transition: left 4s linear, top 4s linear !important;
+    z-index: 20 !important; /* Valor mais baixo */
+  }
+  
+  .zoom-view-attack .background-zoom {
+    filter: blur(2px) !important; /* Aumenta o blur (era 1px) */
+    transform: translateX(0) scale(1.15) !important; /* Adiciona zoom leve */
+    transition: filter 4s linear, transform 4s linear !important;
+  }
+  
+  /* Transição suave ao sair do modo de ataque */
+  .leaving-attack-mode .character-container {
+    left: 55% !important;
+    bottom: 15% !important;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3)) blur(4px) !important;
+    transition: left 0.7s ease-out, bottom 0.7s ease-out, filter 0.7s ease-out !important;
+  }
+  
+  .leaving-attack-mode .boss-container {
+    left: 50% !important;
+    top: 50% !important;
+    transition: left 0.7s ease-out, top 0.7s ease-out !important;
+  }
+  
+  .leaving-attack-mode .background-zoom {
+    filter: blur(1px) !important;
+    transform: translateX(0) scale(1) !important;
+    transition: filter 0.7s ease-out, transform 0.7s ease-out !important;
+  }
+  
+  .spotlight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0) 50%, 
+                rgba(255,255,255,0.1) 50%, 
+                rgba(255,255,255,0) 51%);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 4;
+    transition: opacity 0.5s ease;
+  }
+  
+  .spotlight.visible {
+    opacity: 1;
+    animation: spotlightPulse 2s infinite alternate;
+  }
+  
+  /* Luz pulsante para iluminar o personagem no menu especial */
+  .white-pulse {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0);
+    pointer-events: none;
+    z-index: 4;
+    transition: all 0.1s ease;
+  }
+  
+  .white-pulse.visible {
+    animation: whitePulse 4s infinite;
+  }
+  
+  /* Adicionar iluminação ao personagem no menu especial */
+  .character-view .white-pulse.visible ~ .character-container {
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.25)) brightness(1.1);
+    transition: filter 0.7s ease;
+    animation: characterGlow 4s infinite alternate;
+  }
+  
+  @keyframes characterGlow {
+    0% { filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.15)) brightness(1.05); }
+    100% { filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.25)) brightness(1.2); }
+  }
+  
+  .screen-shake {
+    animation: screenShake 0.3s;
+  }
+
+  /* Screen-shake que preserva a posição do boss durante focus_center */
+  #battle-arena.quick-cut-player #boss.screen-shake {
+      /* Usar animation em vez de transform para não conflitar */
+      animation: boss-screen-shake 0.3s ease-in-out;
+  }
+
+  @keyframes boss-screen-shake {
+      0% { transform: scale(1.2) translate(15%, -8%) translate(0, 0); }
+      25% { transform: scale(1.2) translate(15%, -8%) translate(-3px, 3px); }
+      50% { transform: scale(1.2) translate(15%, -8%) translate(1px, -1px); }
+      75% { transform: scale(1.2) translate(15%, -8%) translate(-3px, -3px); }
+      100% { transform: scale(1.2) translate(15%, -8%) translate(0, 0); }
+  }
+  
+  /* Loading transition */
+  .loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 1s ease;
+  }
+  
+  .loading-text {
+    font-size: 2rem;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  }
+  
+  /* Critical Flash */
+  #critical-flash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    opacity: 0;
+    z-index: 99;
+    transition: opacity 0.15s ease-in-out;
+    pointer-events: none;
+  }
+  
+  /* Animations */
+  @keyframes screenShake {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(-3px, 3px) rotate(-0.4deg); }
+    50% { transform: translate(1px, -1px) rotate(0.3deg); }
+    75% { transform: translate(-3px, -3px) rotate(-0.2deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+  }
+  
+  @keyframes damageFloat {
+    0% { transform: scale(0.7); opacity: 0; }
+    10% { transform: scale(1.5); opacity: 1; }
+    30% { transform: scale(1.2); opacity: 1; }
+    100% { transform: translateY(-120px) scale(0.5); opacity: 0; }
+  }
+  
+  @keyframes whitePulse {
+    0% { background-color: rgba(255, 255, 255, 0); }
+    50% { background-color: rgba(255, 255, 255, 0.05); }
+    100% { background-color: rgba(255, 255, 255, 0); }
+  }
+  
+  @keyframes spotlightPulse {
+    0% { opacity: 0.1; }
+    100% { opacity: 0.3; }
+  }
+  
+  @keyframes dynamicBattleArea {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(-2px, 1px); }
+    50% { transform: translate(2px, -1px); }
+    75% { transform: translate(-1px, -1px); }
+    100% { transform: translate(0, 0); }
+  }
+  
+  /* Combat Animations */
+  @keyframes playerAdvance {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(200px); }
+  }
+  
+  @keyframes playerReturn {
+    0% { transform: translateX(200px); }
+    100% { transform: translateX(0); }
+  }
+  
+  @keyframes walkBackAnim {
+    from { background-position: -768px 0; }
+    to { background-position: 0 0; }
+  }
+  
+  /* Position adjustment fix to prevent character displacement when menu appears */
+  .zoom-view.menu-open .submenu {
+    position: absolute;
+    z-index: 50;
+  }
+  
+  .character-container,
+  .boss-container {
+    transition: all 0.4s linear; /* Mesma duração da transição de tela */
+  }
+  
+  .zoom-view.menu-open.zoom-view-attack .character-container {
+    position: fixed !important;
+    z-index: 30 !important; /* Valor mais alto para o personagem */
+  }
+  
+  .zoom-view.menu-open.zoom-view-attack .boss-container {
+    position: fixed !important;
+    z-index: 20 !important; /* Mantém o boss atrás */
+  }
+  
+  /* --- ESTILOS PARA EFEITOS FX --- */
+  .character-fx-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-repeat: no-repeat;
+    /* Ajuste background-position e background-size se necessário para seus Fx */
+    background-position: center center;
+    background-size: contain; /* Ou cover, ou tamanho específico */
+    opacity: 0;
+    pointer-events: none;
+    /* Adicione transição se quiser fade-in/out suave */
+    transition: opacity 0.2s ease-out;
+    image-rendering: pixelated; /* Mantém estilo pixelado */
+  }
+  
+  .fx-layer-behind {
+    z-index: 0 !important; /* Atrás das camadas base do personagem */
+  }
+  
+  .fx-layer-front {
+    z-index: 7 !important; /* Na frente da camada da espada (z-index: 6) */
+  }
+  
+  /* --- ESTILOS PARA QUICK CUTS --- */
+  
+  /* --- AJUSTE NA TRANSIÇÃO GERAL (MAIS LENTA) --- */
+  #battle-arena.quick-cut-transition .background-container > div,
+  #battle-arena.quick-cut-transition .character-container,
+  #battle-arena.quick-cut-transition .boss-container {
+      /* Duração aumentada para transição mais suave entre QC1 e QC2 */
+      transition: transform 0.5s ease-out, opacity 0.0s ease-out, filter 0.3s ease-out; /* Aumentado de 0.4s */
+  }
+  
+  /* --- Quick Cut 1: Foco no Jogador --- */
+  #battle-arena.quick-cut-player .background-container > div {
+      /* transform-origin é definido via JS */
+      transform: scale(2.5);
+      filter: blur(2px) contrast(1.3) brightness(0.7);
+  }
+  
+  #battle-arena.quick-cut-player #character {
+      /* Centraliza e aumenta o personagem */
+      transform: scale(2.5) translate(-10%, -30%); /* <<< AJUSTE AQUI (principalmente o valor Y: 10%) */
+      transform-origin: center center;
+      /* left: 50%; */
+      /* bottom: 40%; */
+      z-index: 46;
+      opacity: 1;
+      filter: drop-shadow(0 0 15px rgba(200, 200, 255, 0.4));
+      transition: transform 0.4s ease-out, opacity 0.4s ease-out; /* Adicionada transition */
+  }
+  
+  #battle-arena.quick-cut-player #boss {
+      /* Esconde o boss */
+      opacity: 0;
+      transform: scale(1.2) translateY(-8%);
+      transform-origin: center bottom; /* ADICIONAR: cresce a partir da base */
+      pointer-events: none;
+  }
+  
+  /* Esconde HUDs durante QC1 */
+  #battle-arena.quick-cut-player .character-hud,
+  #battle-arena.quick-cut-player .boss-hud {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      transition: opacity 0.1s linear, visibility 0.1s linear !important;
+  }
+  
+  /* Opacidade reduzida das árvores durante quick cuts */
+  .quick-cut-player .tree-paralax,
+  .quick-cut-boss .tree-paralax {
+    opacity: 0.0 !important;
+    transition: opacity 0.2s ease-in-out;
+  }
+  
+  /* --- Quick Cut 2: Foco no Boss --- */
+  #battle-arena.quick-cut-boss .background-container > div {
+      /* transform-origin é definido via JS */
+      transform: scale(2.5);
+      filter: blur(2px) contrast(1.3) brightness(0.7)
+  }
+  
+  #battle-arena.quick-cut-boss #character {
+      /* Mantém personagem visível e MESMO TAMANHO do focus_player */
+      opacity: 1;
+      transform: scale(2.0) translate(-10%, -30%) !important; /* MESMO tamanho e posição do focus_player */
+      filter: none;
+      pointer-events: none;
+      transition: transform 0.3s ease-in;
+  }
+
+  /* ===== CLASSES PARA MOVIMENTO DO PERSONAGEM (Opção 3 - Solução Limpa) ===== */
+
+  /* Movimento durante quick-cut-player (fase focus_player) */
+  #battle-arena.quick-cut-player .character-container.moving-to-boss {
+      transform: scale(2.5) translate(-10%, -30%) translateX(var(--movement-distance, 70%)) !important;
+      transition: transform 1.0s linear !important;
+  }
+
+  #battle-arena.quick-cut-player .character-container.moving-back {
+      transform: scale(2.0) translate(-10%, -30%) translateX(0%) !important;
+      transition: transform 1.2s linear !important;
+  }
+
+  /* Movimento durante quick-cut-boss (fase focus_boss) */
+  #battle-arena.quick-cut-boss .character-container.moving-to-boss {
+      transform: scale(2.0) translate(-10%, -30%) translateX(95%) !important;
+      transition: transform 1.0s linear !important;
+  }
+
+  #battle-arena.quick-cut-boss .character-container.moving-back {
+      transform: scale(2.0) translate(-10%, -30%) translateX(0%) !important;
+      transition: transform 1.2s linear !important;
+  }
+
+  /* Garantir que as classes de movimento tenham precedência sobre as regras base */
+  .character-container.moving-to-boss,
+  .character-container.moving-back {
+      /* Força precedência das classes de movimento */
+  }
+
+  /* Movimento de volta durante quick-cut-player */
+  #battle-arena.quick-cut-player .character-container.moving-back {
+      transform: scale(2.8) translate(-25%, -30%) translateX(0%) !important;
+      transition: transform 2.2s linear !important;
+  }
+
+/* ===== // ===== */
+
+  /* Esconder personagem apenas durante teleporte */
+  #battle-arena.quick-cut-boss.teleport-mode #character {
+      opacity: 0;
+      transform: scale(0.7);
+      filter: blur(5px);
+  }
+
+  /* Esconder personagem apenas durante teleporte */
+  #battle-arena.quick-cut-boss.teleport-mode #character {
+      opacity: 0;
+      transform: scale(0.7);
+      filter: blur(5px);
+  }
+  
+  #battle-arena.quick-cut-boss #boss {
+      /* Centraliza e aumenta o boss */
+      transform: scale(1.6) translate(15%, -15%); /* Ajuste */
+      /* left: 50%; */ /* Pode precisar ajustar */
+      /* bottom: 50%; */
+      opacity: 1;
+      z-index: 20; /* Mantém z-index */
+      filter: brightness(1.1) contrast(1.1) drop-shadow(-5px 10px 15px rgba(0, 0, 0, 0.6));
+      transition: transform 0.4s ease-out, opacity 0.4s ease-out, filter 0.4s ease-out;
+  }
+
+  /* Boss específico para focus_center (melee_run_basic) */
+  .boss-focus-center {
+      transform: scale(1.2) translate(15%, -8%) !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      z-index: 20 !important;
+      transition: all 0.4s linear !important;
+  }
+
+  /* Esconde HUDs durante QC2 */
+  #battle-arena.quick-cut-boss .character-hud,
+  #battle-arena.quick-cut-boss .boss-hud {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      transition: opacity 0.1s linear, visibility 0.1s linear !important;
+  }
+  
+  
+  /* Estilo para a animação de ataque dentro do container QC2 */
+  #qc2-attack-animation-container .p1-attack-qc2 {
+    position: absolute; /* Posicionamento será definido via JS */
+    width: 80px;  /* Tamanho original da sprite */
+    height: 17px; /* Tamanho original da sprite */
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    background-size: auto 100%;
+    /* A animação será aplicada via classe/JS */
+    transform-origin: center center;
+    image-rendering: pixelated;
+    /* Z-index alto para ficar sobre o boss e background em QC2 */
+    z-index: 56;
+  }
+  
+  /* Classe para tocar a animação de ataque em QC2 */
+  #qc2-attack-animation-container .p1-attack-qc2.play-animation {
+    animation: attack-animation 0.6s steps(9) forwards; /* Reusa a animação existente */
+  }
+  
+  /* --- Estilos para Movimento do Personagem (Ajuste se necessário) --- */
+  /* Classe para o avanço (animando no lugar, 1 vez) */
+  .p1-walk-advance {
+    width: 100%;
+    height: 100%;
+    background-image: url('/static/game.data/p1/p1.walk.provisorio/p1.walk.provisorio.png');
+    background-size: auto 100%;
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    animation-name: walk-animation;
+    animation-duration: 0.3s; /* ALTERADO: Reduzido para 0.3s */
+    animation-iteration-count: 1;
+    animation-timing-function: steps(3);
+    animation-fill-mode: forwards;
+    z-index: 26;
+    image-rendering: pixelated;
+    opacity: 1;
+  }
+  
+  .p1-walk-return {
+    width: 100%;
+    height: 100%;
+    background-image: url('/static/game.data/p1/p1.walk.provisorio/p1.walk.provisorio.png');
+    background-size: auto 100%;
+    background-position: -768px 0; /* Começa no último frame */
+    background-repeat: no-repeat;
+    animation-name: walkBackAnim;
+    animation-duration: 0.6s; /* Aumentado para 0.6s para ser mais visível */
+    animation-iteration-count: 1;
+    animation-timing-function: steps(3); /* Mantido como steps */
+    animation-fill-mode: forwards;
+    z-index: 26;
+    image-rendering: pixelated;
+    opacity: 1;
+  }
+
+  /* Animação de corrida em loop para avanço */
+  .run-advance-anim .character-sprite-layer {
+      animation: run-animation 0.6s steps(8) infinite !important;
+  }
+
+  @keyframes run-animation {
+      from { background-position-x: 0; }
+      to { background-position-x: -2048px; } /* 8 frames × 256px */
+  }
+  
+  /* Garante que HUDs voltem a aparecer suavemente após quick cuts */
+  .character-hud, .boss-hud {
+      transition: opacity 0.3s linear 0.2s, visibility 0.3s linear 0.2s; /* Delay na re-aparição */
+  }
+  
+  /* Dynamic combat effect */
+  .battle-dynamic {
+    animation: dynamicCombat 5s ease-in-out infinite;
+  }
+  
+  .battle-area-dynamic {
+    animation: dynamicBattleArea 4s ease-in-out infinite;
+  }
+  
+  /* DESABILITA animações de zoom-view apenas fora da zoom-view */
+  body:not(.zoom-view) .battle-dynamic,
+  body:not(.zoom-view) .battle-area-dynamic {
+    animation: none !important;
+  }
+  
+  @keyframes dynamicCombat {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(-1px, 1px) rotate(-1deg); }
+    50% { transform: translate(0px, 0px) rotate(1deg); }
+    75% { transform: translate(1px, -1px) rotate(-0.5deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+  }
+  
+  /* ===== ANIMAÇÕES PARA INIMIGOS GENÉRICOS ===== */
+
+  /* Keyframes para sprites de inimigos genéricos (mesmo padrão do boss) */
+  @keyframes boss-animation {
+      from { background-position: 0 0; }
+      to { background-position: -1408px 0; }
+  }
+
+  /* Camadas de sprite para inimigos genéricos */
+  .boss-sprite-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-repeat: no-repeat;
+      background-position: 0 0;
+      background-size: auto 100%;
+      animation: boss-animation 0.8s steps(11) infinite;
+      image-rendering: pixelated;
+  }
+
+  /* Flip horizontal para inimigos (posição inicial) */
+  .boss-sprite-layer {
+      transform: scaleX(-1);
+  }
+
+  /* Manter flip na zoom-view (volta ao normal) */
+  .zoom-view .boss-sprite-layer {
+      transform: scaleX(1);
+  }
+
+  /* Z-index para camadas de inimigos genéricos */
+  .boss-layer-back {
+      z-index: 1;
+  }
+
+  .boss-layer-body {
+      z-index: 2;
+  }
+
+  .boss-layer-head {
+      z-index: 3;
+  }
+
+  .boss-layer-weapon {
+      z-index: 4;
+  }
+
+  /* Boss derrotado - forçar invisibilidade */
+  .boss-defeated {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+  }
+
+  /* Animações de morte do boss */
+  @keyframes death-impact-frames-scaled {
+      from { background-position: 0 0; }
+      to { background-position: -5400px 0; }
+  }
+
+  @keyframes victory-banner-scale {
+      from { 
+          transform: translateX(-50%) scale(1);
+          opacity: 0;
+      }
+      5% {
+          opacity: 1;
+      }
+      100% { 
+          transform: translateX(-50%) scale(1.1);
+          opacity: 1;
+      }
+  }
+
+  /* Animação de brilho pulsátil para o banner */
+  @keyframes banner-glow-pulse {
+      0%, 100% { 
+          filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.3)) 
+                  drop-shadow(0 0 20px rgba(255, 215, 0, 0.2))
+                  drop-shadow(0 0 30px rgba(255, 215, 0, 0.1));
+      }
+      50% { 
+          filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.5)) 
+                  drop-shadow(0 0 30px rgba(255, 215, 0, 0.4))
+                  drop-shadow(0 0 45px rgba(255, 215, 0, 0.3));
+      }
+  }
+
+  /* Estilos dos elementos de vitória */
+  .victory-banner-container {
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  }
+
+  .death-impact-animation {
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+  }
+  
+  /* Estilos específicos para Mobile */
+  @media screen and (max-width: 768px) {
+    .tree-paralax {
+      width: 18vw;
+      height: 24vh;
+      min-width: 140px;
+      min-height: 200px;
+      max-width: 350px;
+      max-height: 450px;
+      animation: tree-gentle-sway 8s infinite alternate ease-in-out !important;
+      transform-origin: bottom center !important;
+    }
+
+    .tree-paralax.left-side {
+      left: calc(-12vw + 20px) !important;
+      right: auto !important;
+    }
+
+    .tree-paralax.right-side {
+      right: calc(-12vw + 20px) !important;
+      left: auto !important;
+    }
+    
+    /* Posições fixas para personagens */
+    .character-container {
+      position: fixed !important;
+      left: 0% !important;
+      right: auto !important;
+      bottom: 15% !important;
+      transform: none !important;
+      height: 256px;
+      width: 256px;
+    }
+    
+    .boss-container {
+      position: fixed !important;
+      right: 0% !important;
+      left: auto !important;
+      bottom: 25% !important;
+      transform: none !important;
+      height: 128px;
+      width: 128px;
+    }
+    
+    /* resto das regras mobile permanecem iguais... */
+    .background-default,
+    .background-zoom,
+    .background-character {
+      background-size: cover !important;
+      background-position: center !important;
+      height: 100% !important;
+    }
+    
+    .character-hud {
+      position: fixed !important;
+      left: 25% !important;
+      transform: translateX(-50%) !important;
+      bottom: 10% !important;
+    }
+    
+    .boss-hud {
+      position: fixed !important;
+      right: 25% !important;
+      left: auto !important;
+      transform: translateX(50%) !important;
+      bottom: 10% !important;
+    }
+    
+    .action-menu {
+      position: fixed !important;
+      bottom: 5% !important;
+      right: 5% !important;
+      left: auto !important;
+      transform: none !important;
+    }
+    
+    .submenu {
+      position: absolute;
+      bottom: 5% !important;
+      right: 20% !important;
+      left: auto !important;
+      transform: none !important;
+      max-width: 90% !important;
+    }
+    
+    .menu-buttons {
+      justify-content: center !important;
+      flex-wrap: wrap !important;
+    }
+    
+    .action-button {
+      width: auto !important;
+      padding: 10px 15px !important;
+      font-size: 1rem !important;
+    }
+    
+    .zoom-view .character-container {
+      left: 0% !important;
+      bottom: 10% !important;
+      transform: translateX(-50%) scale(1.5) !important;
+      z-index: 25 !important;
+    }
+    
+    .zoom-view .boss-container {
+      left: 0% !important;
+      top: 20% !important;
+      transform: translateX(-50%) scale(0.5) !important;
+      z-index: 20 !important;
+    }
+    
+    .character-view .character-container {
+      left: 50% !important;
+      bottom: 15% !important;
+      transform: translateX(-50%) scale(3.0) !important;
+    }
+
+    .zoom-view .boss-container {
+      pointer-events: none !important;
+    }
+
+    .zoom-view .character-container {
+      pointer-events: all !important;
+      cursor: pointer !important;
+    }
+
+    .action-menu.submenu-open {
+      display: none !important;
+    }
+  }
+
+  /* ===== ENEMY ATTACK VIEW ===== */
+
+  /* View principal para ataques do inimigo */
+  .battle-arena.enemy-attack-view {
+      background-image: url('/static/game.data/bgf.png') !important;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+  }
+
+  /* Posicionamento do personagem na enemy-attack-view */
+  .battle-arena.enemy-attack-view #character {
+      position: absolute !important;
+      left: 50% !important;
+      top: 50% !important;
+      transform: translate(-50%, -50%) scale(2.5) !important;
+      z-index: 30;
+  }
+
+  /* Vinheta mais forte para enemy attack view */
+  #enemy-attack-vignette {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(
+          ellipse at center,
+          transparent 25%,
+          rgba(0, 0, 0, 0.4) 50%,
+          rgba(0, 0, 0, 0.6) 80%,
+          rgba(0, 0, 0, 0.75) 100%
+      );
+      z-index: 25;
+      opacity: 0;
+      transition: opacity 1.2s ease-in-out;
+      pointer-events: none;
+  }
+
+  #enemy-attack-vignette.visible {
+      opacity: 1;
+  }
+
+  /* Estilo especial para botão quando há cargas de ataque */
+  .action-button.has-enemy-charges {
+      background: linear-gradient(145deg, #ff6b6b, #ff5252) !important;
+      border: 2px solid #ff3333 !important;
+      box-shadow: 0 0 15px rgba(255, 107, 107, 0.6) !important;
+      color: #fff !important;
+  }
+
+  .action-button.has-enemy-charges:hover {
+      background: linear-gradient(145deg, #ff5252, #ff3333) !important;
+      box-shadow: 0 0 20px rgba(255, 107, 107, 0.8) !important;
+  }
+
+  /* ===== HUD DE CARGAS DE ATAQUE - ACIMA DO INIMIGO ===== */
+
+  /* Container principal do HUD - Acima do inimigo */
+  .enemy-charges-hud {
+      position: fixed;
+      top: 15%;
+      right: calc(25% - 100px); /* Próximo ao inimigo */
+      z-index: 9000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+  }
+
+  .enemy-charges-hud.visible {
+      opacity: 1;
+  }
+
+  /* REMOVER timers-container completamente */
+  .timers-container,
+  .charge-timer {
+      display: none !important;
+  }
+
+  /* Container dos Ícones de cargas - ESTE TURNO */
+  .charges-container {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.85) 0%, rgba(20, 20, 40, 0.85) 100%);
+      border: 3px solid #ff9500;
+      border-radius: 15px;
+      padding: 12px 18px;
+      box-shadow: 
+          0 0 20px rgba(255, 149, 0, 0.6),
+          inset 0 0 15px rgba(255, 149, 0, 0.1);
+      backdrop-filter: blur(8px);
+  }
+
+  /* Ícone individual de carga */
+  .attack-charge-icon {
+      width: 36px;
+      height: 36px;
+      background-image: url('/static/game.data/icons/attackcharge.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      filter: drop-shadow(0 0 10px rgba(255, 149, 0, 0.9));
+      animation: charge-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes charge-pulse {
+      0%, 100% {
+          transform: scale(1);
+          filter: drop-shadow(0 0 10px rgba(255, 149, 0, 0.9));
+      }
+      50% {
+          transform: scale(1.05);
+          filter: drop-shadow(0 0 15px rgba(255, 149, 0, 1));
+      }
+  }
+
+  /* Texto quando não há cargas */
+  .no-charges-text {
+      color: rgba(255, 149, 0, 0.5);
+      font-size: 13px;
+      font-style: italic;
+      font-family: 'Cinzel', serif;
+  }
+
+  /* Buff/debuff container - abaixo das cargas */
+  .buff-debuff-container {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.85) 0%, rgba(40, 20, 60, 0.85) 100%);
+      border: 3px solid #aa44ff;
+      border-radius: 15px;
+      padding: 12px 18px;
+      box-shadow: 
+          0 0 20px rgba(170, 68, 255, 0.6),
+          inset 0 0 15px rgba(170, 68, 255, 0.1);
+      backdrop-filter: blur(8px);
+  }
+
+  .buff-skill-icon,
+  .debuff-skill-icon {
+      width: 36px;
+      height: 36px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      filter: drop-shadow(0 0 10px rgba(170, 68, 255, 0.9));
+      animation: skill-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes skill-pulse {
+      0%, 100% {
+          transform: scale(1);
+          filter: drop-shadow(0 0 10px rgba(170, 68, 255, 0.9));
+      }
+      50% {
+          transform: scale(1.05);
+          filter: drop-shadow(0 0 15px rgba(170, 68, 255, 1));
+      }
+  }
+
+  .no-buffs-text {
+      color: rgba(170, 68, 255, 0.5);
+      font-size: 13px;
+      font-style: italic;
+      font-family: 'Cinzel', serif;
+  }
+
+  /* Responsivo */
+  @media (max-width: 768px) {
+      .enemy-charges-hud {
+          top: 12%;
+          right: 15px;
+      }
+      
+      .charges-container,
+      .buff-debuff-container {
+          padding: 10px 14px;
+      }
+      
+      .attack-charge-icon,
+      .buff-skill-icon,
+      .debuff-skill-icon {
+          width: 30px;
+          height: 30px;
+      }
+  }
+
+  /* ===== ANIMAÇÕES DE HIT ===== */
+
+  /* Container para animações de hit */
+  .hit-animation {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(3);
+      width: 32px;
+      height: 32px;
+      background-repeat: no-repeat;
+      background-position: 0 0;
+      z-index: 150;
+      pointer-events: none;
+      opacity: 0;
+      overflow: hidden;
+
+      /* INSERIR: Pixel art rendering para qualidade */
+      image-rendering: -webkit-optimize-contrast; /* Safari */
+      image-rendering: -moz-crisp-edges; /* Firefox */
+      image-rendering: pixelated; /* Chrome/Edge */
+      -ms-interpolation-mode: nearest-neighbor; /* IE */
+      image-rendering: crisp-edges; /* Fallback adicional */
+  }
+
+  /* Sprites específicos para cada tipo de hit */
+  .hit-animation.hit1 {
+      background-image: url('/static/game.data/enemies/hits/hit1.png');
+      background-size: 160px 32px; /* Manter tamanho original - NÃO comprimir */
+  }
+
+  .hit-animation.hit2 {
+      background-image: url('/static/game.data/enemies/hits/hit2.png');
+      background-size: 160px 32px;
+  }
+
+  .hit-animation.hit3 {
+      background-image: url('/static/game.data/enemies/hits/hit3.png');
+      background-size: 160px 32px;
+  }
+
+  /* Animação dos frames de hit - POSIÇÕES CORRETAS */
+  @keyframes hit-frames {
+      from { background-position: 0px 0; }
+      to { background-position: -128px 0; }
+  }
+
+  .hit-animation.playing {
+      opacity: 1;
+      animation: hit-frames 0.4s steps(4) forwards;
+  }
+
+  /* ===== ANIMAÇÃO SMOKEOUT ===== */
+
+  .smokeout-animation {
+      position: relative;
+      left: 50%;
+      top: 70%;
+      transform: translate(-50%, -50%) scale(1);
+      width: 256px;
+      height: 256px;
+      background-image: url('/static/game.data/enemies/hits/smokeout.png');
+      /* CORREÇÃO: Se são 10 frames, cada frame tem 256px */
+      background-size: 2560px 256px;
+      background-repeat: no-repeat;
+      background-position: 0 0;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      overflow: hidden;
+  }
+
+  /* CORREÇÃO: Keyframes para 10 frames usando steps() */
+  @keyframes smokeout-frames {
+      from { background-position: 0 0; }
+      to { background-position: -2304px 0; } /* Último frame */
+  }
+
+  .smokeout-animation.playing {
+      opacity: 1;
+      /* CORREÇÃO: 10 frames, então steps(10) */
+      animation: smokeout-frames 1.0s steps(9) forwards;
+  }
+
+  /* ===== TELA DE DERROTA ===== */
+
+  .defeat-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.5s ease-in-out;
+  }
+
+  .defeat-overlay.visible {
+      opacity: 1;
+      visibility: visible;
+  }
+
+  .defeat-text {
+      font-family: 'Cinzel', serif;
+      font-size: 72px;
+      font-weight: 900;
+      color: #ff0000;
+      text-shadow: 
+          0 0 20px #ff0000,
+          0 0 40px #ff0000,
+          0 0 60px #ff0000,
+          3px 3px 0 #000,
+          -1px -1px 0 #000,
+          1px -1px 0 #000,
+          -1px 1px 0 #000,
+          1px 1px 0 #000;
+      text-align: center;
+      animation: defeat-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes defeat-pulse {
+      0%, 100% {
+          transform: scale(1);
+          filter: brightness(1);
+      }
+      50% {
+          transform: scale(1.05);
+          filter: brightness(1.2);
+      }
+  }
+
+  /* ===== RESPONSIVO MOBILE ===== */
+
+  @media (max-width: 768px) {
+      .enemy-charges-hud {
+          top: 10px;
+          gap: 10px;
+      }
+      
+      .charge-timer {
+          font-size: 14px;
+          padding: 8px 15px;
+      }
+      
+      .attack-charge-icon {
+          width: 28px;
+          height: 28px;
+      }
+      
+      .defeat-text {
+          font-size: 48px;
+      }
+  }
+
+  /* Animação do marcador de dano do personagem */
+  @keyframes player-damage-float {
+      0% {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0px) scale(1);
+      }
+      50% {
+          opacity: 1;
+          transform: translateX(-50%) translateY(-40px) scale(1.2);
+      }
+      100% {
+          opacity: 0;
+          transform: translateX(-50%) translateY(-80px) scale(0.8);
+      }
+  }
+
+  .player-damage-marker {
+      user-select: none;
+  }
+
+
+  /* BOSSES */
+  .boss-container .boss-sprite-idle {
+      position: absolute;
+      top: 47%;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-repeat: no-repeat;
+      background-position: 0 0;
+      transform: scaleX(-1.2) scaleY(1.2); /* Invertido como os inimigos normais */
+      image-rendering: pixelated;
+  }
+
+  /* Boss específico: Purassombra (128x128, 9 frames) */
+  .boss-container.boss-purassombra .boss-sprite-idle {
+      width: 128px;
+      height: 128px;
+      background-size: 1152px 128px; /* 128px * 9 frames = 1152px */
+      animation: purassombra-idle 0.8s steps(9) infinite;
+  }
+
+  /* Boss específico: Heresiarca (256x128, 27 frames) */
+  .boss-container.boss-heresiarca .boss-sprite-idle {
+      width: 256px;
+      height: 128px;
+      scale: 1.25;
+      background-size: 6912px 128px; /* 256px * 27 frames = 6912px */
+      animation: heresiarca-idle 1.6s steps(27) infinite;
+      left: -58%; /* ou transform: translateX(20px); */
+      top: 28%
+  }
+
+  /* Boss específico: Alma Negra (256x128, 8 frames) */
+  .boss-container.boss-alma_negra .boss-sprite-idle {
+      width: 256px;
+      height: 128px;
+      background-size: 2048px 128px; /* 256px * 8 frames = 2048px */
+      animation: alma-negra-idle 0.8s steps(8) infinite;
+      scale: 0.65;
+      left: -60%;
+      top: 60%;
+  }
+
+  /* Boss específico: Formofagus (256x256, 15 frames) */
+  .boss-container.boss-formofagus .boss-sprite-idle {
+      width: 256px;
+      height: 256px;
+      background-size: 3840px 256px; /* 256px * 15 frames = 3840px */
+      animation: formofagus-idle 1.3s steps(15) infinite;
+      left: -50%;
+      top: -60%;
+  }
+
+  /* Boss específico: Nefasto (128x128, 9 frames) */
+  .boss-container.boss-nefasto .boss-sprite-idle {
+      width: 128px;
+      height: 128px;
+      background-size: 1152px 128px; /* 128px * 9 frames = 1152px */
+      animation: nefasto-idle 1.8s steps(9) infinite;
+      scale: 1.3;
+      left: -5%;
+      top: 25%;
+  }
+
+  /* Keyframes para cada boss */
+  @keyframes purassombra-idle {
+      from { background-position-x: 0; }
+      to { background-position-x: -1152px; }
+  }
+
+  @keyframes heresiarca-idle {
+      from { background-position-x: 0; }
+      to { background-position-x: -6912px; }
+  }
+
+  @keyframes alma-negra-idle {
+      from { background-position-x: 0; }
+      to { background-position-x: -2048px; }
+  }
+
+  @keyframes formofagus-idle {
+      from { background-position-x: 0; }
+      to { background-position-x: -3840px; }
+  }
+
+  @keyframes nefasto-idle {
+      from { background-position-x: 0; }
+      to { background-position-x: -1152px; }
+  }
+
+  /* Estilo para botão bloqueado da Suprema */
+  .skill-button.used-once {
+      position: relative;
+      background: #333 !important;
+  }
+
+  .skill-button.used-once:hover {
+      transform: none !important;
+      box-shadow: none !important;
+  }
+
+  .used-indicator {
+      animation: pulse-red 2s infinite;
+  }
+
+  @keyframes pulse-red {
+      0%, 100% { 
+          opacity: 0.9;
+          transform: translate(-50%, -50%) scale(1);
+      }
+      50% { 
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1.05);
+      }
+  }
+
+  /* ========================================
+    SISTEMA DE BARREIRA (BARRIER)
+    ========================================
+  */
+
+  /* Aplica o outline e cor na barra de HP quando a barreira está ativa */
+  .character-hud .small-bar-container.has-barrier {
+      /* Garante que o ícone da barreira se posicione corretamente */
+      position: relative; 
+      
+      /* O outline e cor que você pediu */
+      outline: 2px solid #55aaff;
+      box-shadow: 0 0 10px rgba(85, 170, 255, 0.7);
+  }
+
+  /* Cor levemente diferente para o preenchimento de HP */
+  .character-hud .small-bar-container.has-barrier .small-hp-fill {
+      background: linear-gradient(to right, #ff5050, #ff8a8a); /* Tom de vermelho um pouco mais claro */
+      box-shadow: 0 0 10px rgba(255, 80, 80, 0.5);
+  }
+
+  /* O contêiner para o ícone e o valor da Barreira */
+  .barrier-display {
+      position: absolute;
+      /* Posiciona à direita da barra de HP */
+      right: -42px; 
+      top: 50%;
+      transform: translateY(-50%);
+      
+      display: flex;
+      align-items: center;
+      
+      background: rgba(40, 60, 90, 0.85); /* Fundo azulado escuro */
+      border: 1px solid #55aaff;
+      border-radius: 4px;
+      padding: 1px 4px;
+      height: 90%; /* Ligeiramente menor que a barra */
+      box-shadow: 0 0 5px rgba(85, 170, 255, 0.5);
+  }
+
+  /* O ícone de escudo (SVG) */
+  .barrier-icon {
+      width: 14px;
+      height: 14px;
+      fill: #77ccff; /* Cor azul claro para o ícone */
+      margin-right: 3px;
+  }
+
+  /* O valor numérico da Barreira */
+  .barrier-value {
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: #77ccff; /* Cor azul claro para o texto */
+      text-shadow: 0 0 3px #000;
+      line-height: 1;
+  }

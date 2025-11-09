@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="gold" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#fff3b0"/>
+      <stop offset="50%" stop-color="#f5c542"/>
+      <stop offset="100%" stop-color="#a8741a"/>
+    </linearGradient>
+    <filter id="innerGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
+      <feOffset dx="0" dy="0"/>
+      <feComposite in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 0.85  0 0 0 0 0.4  0 0 0 1 0"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect x="6" y="6" width="108" height="108" rx="10" ry="10"
+        fill="none" stroke="url(#gold)" stroke-width="8" filter="url(#innerGlow)"/>
+  <rect x="14" y="14" width="92" height="92" rx="8" ry="8"
+        fill="none" stroke="#2a2010" stroke-opacity="0.65" stroke-width="2"/>
+  <path d="M14 28 L28 14 L14 14 Z" fill="#f5c542"/>
+  <path d="M106 28 L92 14 L106 14 Z" fill="#f5c542"/>
+  <path d="M14 92 L28 106 L14 106 Z" fill="#f5c542"/>
+  <path d="M106 92 L92 106 L106 106 Z" fill="#f5c542"/>
+</svg>

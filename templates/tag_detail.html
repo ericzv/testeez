@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Tag: {{ tag.name }} - Retina Cards{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <h3>Cartões com a tag "{{ tag.name }}"</h3>
+    <p>Total: {{ cards|length }} cartões</p>
+    
+    {% if cards %}
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Pergunta</th>
+            <th>Resposta</th>
+            <th>Baralho</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for card in cards %}
+            <tr>
+              <td>{{ card.id }}</td>
+              <td>{{ card.front | process_front | panel_preview | safe }}</td>
+              <td>{{ card.back | process_answer | panel_preview | safe }}</td>
+              <td>{{ card.deck.name }}</td>
+              <td>
+                <a href="{{ url_for('cards.card_detail', card_id=card.id) }}" class="btn btn-sm btn-info">Ver</a>
+                <a href="{{ url_for('cards.manage_card_tags', card_id=card.id) }}" class="btn btn-sm btn-warning">Gerenciar Tags</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>Nenhum cartão encontrado com esta tag.</p>
+    {% endif %}
+    
+    <a href="{{ url_for('cards.tags') }}" class="btn btn-secondary">Voltar para Tags</a>
+  </div>
+</div>
+{% endblock %}

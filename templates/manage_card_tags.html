@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Gerenciar Tags - Cartão #{{ card.id }} - Retina Cards{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <h3>Gerenciar Tags - Cartão #{{ card.id }}</h3>
+    
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5>Pergunta:</h5>
+        <p>{{ card.front | process_front | safe }}</p>
+        <hr>
+        <h5>Resposta:</h5>
+        <p>{{ card.back | process_answer | safe }}</p>
+      </div>
+    </div>
+    
+    <form method="POST">
+      <div class="form-group">
+        <label>Selecione as tags para este cartão:</label>
+        <div class="tag-selection" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
+          {% for tag in all_tags %}
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="tag-{{ tag.id }}" name="tags" value="{{ tag.id }}" 
+                {% if tag in card.tags %}checked{% endif %}>
+              <label class="form-check-label" for="tag-{{ tag.id }}">{{ tag.name }}</label>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Salvar Tags</button>
+      <a href="{{ url_for('cards.card_detail', card_id=card.id) }}" class="btn btn-secondary">Cancelar</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

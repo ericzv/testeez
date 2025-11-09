@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Arena de Batalha Imersiva</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="/static/css/enemy-skills.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/battle.css">
+<link rel="stylesheet" href="/static/css/battle-turns.css">
+
+</head>
+<body>
+<!-- Loading Screen -->
+<div class="loading-screen" id="loading-screen">
+<div class="loading-text" style="display: flex; justify-content: center; align-items: center; width: 100%; height: 100vh;">Preparando para Batalha...</div>
+</div>
+
+<!-- Critical Flash Effect -->
+<div id="critical-flash"></div>
+<!-- Canvas para vinhetas de attack skills -->
+<canvas id="attack-vignette-canvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1200; pointer-events: none; opacity: 0;"></canvas>
+<canvas id="background-effects-canvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4;"></canvas>
+<canvas id="foreground-effects-canvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100;"></canvas>
+
+<!-- Main Battle Arena -->
+<div class="battle-arena battle-area-dynamic battle-dynamic" id="battle-arena">
+<div class="tree-paralax-container" id="tree-paralax-container">
+  <!-- Árvores do lado esquerdo -->
+  <div class="tree-paralax left-side" id="tree-left-1"></div>
+  <div class="tree-paralax left-side" id="tree-left-2"></div>
+  <div class="tree-paralax left-side" id="tree-left-3"></div>
+  <div class="tree-paralax left-side" id="tree-left-4"></div>
+  <div class="tree-paralax left-side" id="tree-left-5"></div>
+  <div class="tree-paralax left-side" id="tree-left-6"></div>
+  <div class="tree-paralax left-side" id="tree-left-7"></div>
+  <div class="tree-paralax left-side" id="tree-left-8"></div>
+  <div class="tree-paralax left-side" id="tree-left-9"></div>
+  <div class="tree-paralax left-side" id="tree-left-10"></div>
+  
+  <!-- Árvores do lado direito -->
+  <div class="tree-paralax right-side" id="tree-right-1"></div>
+  <div class="tree-paralax right-side" id="tree-right-2"></div>
+  <div class="tree-paralax right-side" id="tree-right-3"></div>
+  <div class="tree-paralax right-side" id="tree-right-4"></div>
+  <div class="tree-paralax right-side" id="tree-right-5"></div>
+  <div class="tree-paralax right-side" id="tree-right-6"></div>
+  <div class="tree-paralax right-side" id="tree-right-7"></div>
+  <div class="tree-paralax right-side" id="tree-right-8"></div>
+  <div class="tree-paralax right-side" id="tree-right-9"></div>
+  <div class="tree-paralax right-side" id="tree-right-10"></div>
+</div>
+
+<!-- Marcador de Energia -->
+<div class="energy-indicator" id="energy-indicator" data-energy-percent="high">
+    <span class="energy-label">Energia</span>
+    <div class="energy-icon-container">
+        <img src="/static/game.data/energy.png" alt="Energia" class="energy-icon">
+    </div>
+    <span class="energy-text" id="energy-text">10/10</span>
+</div>
+
+<!-- Background images -->
+<div class="background-container">
+  <div class="background-default" id="background-default"></div>
+  <div class="background-zoom" id="background-zoom"></div>
+  <div class="background-character" id="background-character"></div>
+</div>
+
+<!-- Parallax Layers -->
+<div class="parallax-layer" id="layer1"></div>
+
+<!-- Particle Layers -->
+<div class="particles-container">
+  <div id="particles-layer1"></div>
+  <div id="particles-layer2"></div>
+  <div id="particles-layer3"></div>
+</div>
+
+<!-- Special Effects - Posicionados atrás dos personagens -->
+<div class="initial-vignette" id="initial-vignette"></div>
+<div class="vignette" id="vignette"></div>
+<div class="horizontal-vignette" id="horizontal-vignette"></div>
+<div class="attack-vignette" id="attack-vignette"></div>
+<div class="spotlight" id="spotlight"></div>
+<div class="white-pulse" id="white-pulse"></div>
+
+<!-- Vinheta para Enemy Attack View -->
+<div class="enemy-attack-vignette" id="enemy-attack-vignette"></div>
+
+<!-- HUD de cargas de ataque do inimigo - ACIMA DO INIMIGO -->
+<div class="enemy-charges-hud" id="enemy-charges-hud">
+    <!-- Fila de ataques normais + skills de ataque - ESTE TURNO -->
+    <div class="charges-container" id="charges-container">
+        <span class="no-charges-text">Aguardando turno</span>
+    </div>
+    
+    <!-- Fila de buff/debuff skills - ESTE TURNO -->
+    <div class="buff-debuff-container" id="buff-debuff-container" style="display: none;">
+        <span class="no-buffs-text">Nenhuma skill pendente</span>
+    </div>
+</div>
+
+<!-- Ícones de buffs ativos no inimigo -->
+<div class="enemy-active-buffs" id="enemy-active-buffs">
+    <!-- Ícones de buffs ativos serão adicionados aqui -->
+</div>
+
+<!-- Overlay de derrota -->
+<div class="defeat-overlay" id="defeat-overlay">
+    <div class="defeat-text">DERROTA!</div>
+</div>
+
+<!-- Battle Message - Movido para o topo -->
+<div class="battle-message" id="battle-message">
+  Estude cartões de revisão para causar dano ao boss!
+</div>
+
+<!-- Character -->
+<div class="character-container" id="character" data-character="{{ player.character_id or 'mago_teste' }}" data-animation="idle">
+  <!-- Canvas PixiJS para Character - Atrás -->
+  <canvas id="character-fx-back" class="pixie-canvas character-fx-back"></canvas>
+  
+  <!-- As camadas de sprite serão criadas dinamicamente pelo JavaScript -->
+  <!-- baseadas na classe do jogador (Samurai, Mago, etc.) -->
+  
+  <!-- Camadas FX tradicionais -->
+  <div class="character-fx-layer fx-layer-behind" id="fx-layer-b"></div>
+  <div class="character-fx-layer fx-layer-front" id="fx-layer-a"></div>
+  
+  <!-- Canvas PixiJS para Character - Frente -->
+  <canvas id="character-fx-front" class="pixie-canvas character-fx-front"></canvas>
+</div>
+
+<div id="player-character" style="display: none;">{{ player.character_id or 'Mago' }}</div>
+
+<!-- Boss -->
+<div class="boss-container" id="boss">
+  <!-- Canvas PixiJS para Boss - Atrás -->
+  <canvas id="boss-fx-back" class="pixie-canvas boss-fx-back"></canvas>
+  <!-- Canvas PixiJS para Boss - Frente -->
+  <canvas id="boss-fx-front" class="pixie-canvas boss-fx-front"></canvas>
+</div>
+
+<!-- Stats Display (removido) -->
+<div class="stats-container" style="display: none;">
+  <div class="player-stats">
+    <div class="bar-container">
+      <div class="progress-bar">
+        <div class="hp-fill" id="player-hp-bar"></div>
+      </div>
+      <div class="bar-label">
+        <span id="player-hp-text">100/100</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Seção de buffs ativos -->
+  <div class="battle-buffs-container">
+    <h3>Buffs Ativos</h3>
+    <div id="active-buffs-list" class="buffs-list">
+        <p>Nenhum buff ativo</p>
+    </div>
+  </div>
+
+  <div class="boss-stats">
+    <div class="bar-container">
+      <div class="progress-bar">
+        <div class="hp-fill" id="boss-hp-bar"></div>
+      </div>
+      <div class="bar-label">
+        <span id="boss-hp-text">500/500</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Novo HUD -->
+<div class="character-hud">
+  <div class="small-bar-container">
+    <div class="small-hp-fill" id="small-player-hp-bar"></div>
+    <div class="small-bar-label">
+      <span id="small-player-hp-text">100/100</span>
+    </div>
+  </div>
+</div>
+
+<div class="boss-hud">
+  <div class="small-bar-container">
+    <div class="small-hp-fill" id="small-boss-hp-bar"></div>
+    <div class="small-bar-label">
+      <span id="small-boss-hp-text">500/500</span>
+    </div>
+  </div>
+</div>
+
+<!-- Main Action Menu -->
+<div class="action-menu" id="action-menu">
+  <div class="menu-buttons">
+    <button class="action-button" id="attack-button">Atacar</button>
+    <button class="action-button" id="special-button">Especiais</button>
+    <button class="action-button" id="inventory-button">Inventário</button>
+  </div>
+</div>
+
+<!-- Attack Submenu -->
+<div class="submenu" id="attack-submenu">
+  <div class="submenu-content">
+    <div id="attack-skills-menu">
+      <!-- Habilidades de ataque serão carregadas aqui pelo JavaScript -->
+    </div>
+  </div>
+</div>
+
+<!-- Special Abilities Submenu -->
+<div class="submenu" id="special-submenu">
+  <div class="submenu-content">
+    <div id="special-skills-menu">
+      <!-- Habilidades especiais serão carregadas aqui pelo JavaScript -->
+    </div>
+  </div>
+</div>
+
+<!-- Inventory Submenu -->
+<div class="submenu" id="inventory-submenu">
+  <div class="submenu-content">
+    <div id="inventory-options">
+      <div class="skill-button" style="background: linear-gradient(to bottom, #206a40, #104a30); border: 2px solid #3a8853;">
+        <div>Inventário</div>
+        <div class="skill-details">
+          <span>Em breve</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Boss Info Panel -->
+<div class="boss-info-panel" id="boss-info-panel">
+  <div class="boss-name">Boss da Ignorância</div>
+  <div class="boss-tags">
+    <span class="boss-tag">Nível 10</span>
+    <span class="boss-tag">Escuridão</span>
+  </div>
+  <div class="boss-stat">
+    <span>Vida:</span>
+    <span id="boss-info-hp">500/500</span>
+  </div>
+  <div class="boss-stat">
+    <span>Dano:</span>
+    <span>25-35</span>
+  </div>
+  <div class="boss-quote">"O conhecimento é a minha maior fraqueza."</div>
+</div>
+
+<!-- SUBSTITUIR a div player-status-panel inteira por este código -->
+<div class="player-status-panel" id="player-status-panel">
+  <div class="player-name">Status do Personagem</div>
+  
+  <!-- Estatísticas vitais -->
+  <div class="vital-stats">
+    <!-- HP e MP na mesma linha -->
+    <div class="vital-stat-row">
+      <div class="vital-stat hp-stat">
+        <span class="stat-label">HP:</span>
+        <span id="player-status-hp" class="stat-value">0/0</span>
+      </div>
+    </div>
+    <!-- Pontos de Dano em destaque abaixo -->
+    <div class="vital-stat damage-points-stat">
+      <span class="stat-label">Pontos de Dano:</span>
+      <span id="player-status-points" class="stat-value">0</span>
+    </div>
+  </div>
+  
+  <!-- Duas colunas para as demais estatísticas -->
+  <div class="player-stats-columns">
+    <!-- Coluna esquerda (ofensiva) -->
+    <div class="stats-column">
+      <div class="player-stat">
+        <span class="stat-label">Dano:</span>
+        <span id="player-status-damage" class="stat-value">0</span>
+      </div>
+      <div class="player-stat">
+        <span class="stat-label">Chance Crítico:</span>
+        <span id="player-status-crit-chance" class="stat-value">0%</span>
+      </div>
+      <div class="player-stat">
+        <span class="stat-label">Bônus Crítico:</span>
+        <span id="player-status-crit-bonus" class="stat-value">0%</span>
+      </div>
+    </div>
+    
+    <!-- Coluna direita (defensiva) -->
+    <div class="stats-column">
+      <div class="player-stat">
+        <span class="stat-label">Bloqueio:</span>
+        <span id="player-status-block" class="stat-value">0%</span>
+      </div>
+      <div class="player-stat">
+        <span class="stat-label">Esquiva:</span>
+        <span id="player-status-dodge" class="stat-value">0%</span>
+      </div>
+      <div class="player-stat" id="player-status-lifesteal-container">
+        <span class="stat-label">Roubo de Vida:</span>
+        <span id="player-status-lifesteal" class="stat-value">0%</span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="player-buffs-title">Buffs Ativos</div>
+  <div class="player-buffs-container" id="player-buffs-container">
+    <!-- Buffs serão adicionados aqui dinamicamente -->
+  </div>
+</div>
+
+<!-- Boss View Background -->
+<div class="boss-view-background"></div>
+</div>
+
+</div> </div> <div id="qc2-attack-animation-container" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 55; pointer-events: none; opacity: 0;">
+</div>
+
+<!-- Elementos ocultos para armazenar informações do jogador -->
+<!-- SUBSTITUIR a seção de elementos ocultos por: -->
+<div style="display: none;">
+  <!-- Dados básicos do jogador -->
+  <span id="player_hp">{{ player_hp or 100 }}</span>/<span id="player_max_hp">{{ player_max_hp or 100 }}</span>
+  <span id="session_points">{{ session_points or 0 }}</span>
+  
+  <!-- Dados do boss -->
+  <span id="boss_hp">{{ boss_hp or 500 }}</span>/<span id="boss_max_hp">{{ boss_max_hp or 500 }}</span>
+  
+  <!-- Estatísticas do jogador -->
+  <span id="player_strength">{{ player_strength or 0 }}</span>
+  <span id="player_damage_bonus">{{ player_damage_bonus or 0 }}</span>
+  <span id="player_luck">{{ player_luck or 0 }}</span>
+  <span id="player_crit_bonus">{{ player_crit_bonus or 0.05 }}</span>
+  <span id="player_resistance">{{ player_resistance or 0 }}</span>
+  <span id="player_block_bonus">{{ player_block_bonus or 0 }}</span>
+  <span id="player_damage_multiplier">{{ player_damage_multiplier or 1.0 }}</span>
+  <span id="player_dodge_chance">{{ player_dodge_chance or 0 }}</span>
+  
+  <!-- Dados de classe (mantidos para compatibilidade) -->
+  <span id="player_class">{{ player_class or 'Nenhuma' }}</span>
+  <span id="player_subclass">{{ player_subclass or 'Nenhuma' }}</span>
+  
+  <!-- Dados do personagem -->
+  <span id="player_talents">[]</span> <!-- Mantido vazio por enquanto -->
+</div>
+
+<form id="special-skill-form" action="/gamification/use_special" method="POST">
+  <input type="hidden" id="special-skill-id" name="skill_id" value="">
+</form>
+
+<!-- Botão de teste para diagnosticar problema do boss -->
+<div style="position: fixed; bottom: 80px; left: 10px; z-index: 9999;">
+  <button id="test-boss-damage" style="background: #ff3300; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Testar Dano (Bypass API)</button>
+</div>
+
+elementos ocultos para debug (antes dos scripts) -->
+<!-- Inserir antes da linha ~450 (onde começam os scripts) -->
+<div id="character-debug-info" style="display: none;">
+  <span id="current-character">{{ player.character_id or 'mago_teste' }}</span>
+  <span id="current-animation">idle</span>
+  <span id="character-skills">{{ (player_attack_skills or []) | tojson | safe }}</span>
+  <span id="character-specials">{{ player_special_skills | tojson | safe }}</span>
+</div>
+
+<!-- 3. ADICIONAR script de inicialização (antes do fechamento do body) -->
+<!-- Inserir antes de </body> -->
+<script>
+// Inicialização específica do sistema de personagens
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar se o personagem foi escolhido
+    const characterId = '{{ player.character_id or "" }}';
+    const characterContainer = document.getElementById('character');
+    
+    if (!characterId || characterId === 'None') {
+        console.warn('Nenhum personagem selecionado, redirecionando...');
+        // Opcional: redirecionar para seleção de personagem
+        // window.location.href = '/choose-character';
+        return;
+    }
+    
+    console.log(`Inicializando batalha com personagem: ${characterId}`);
+    
+    // Garantir que o container tem os atributos corretos
+    if (characterContainer) {
+        characterContainer.setAttribute('data-character', characterId);
+        characterContainer.setAttribute('data-animation', 'idle');
+    }
+    
+    // Aguardar carregamento dos outros scripts
+    setTimeout(() => {
+        if (typeof initializeCharacterContainer === 'function') {
+            initializeCharacterContainer();
+        }
+        
+        // Debug info
+        if (typeof debugCharacterSystem === 'function') {
+            debugCharacterSystem();
+        }
+    }, 500);
+});
+
+// Função para testar animações do Vlad via console
+function testVlad() {
+    const characterId = '{{ player.character_id or "" }}';
+    if (characterId === 'vlad') {
+        if (typeof testVladAnimations === 'function') {
+            testVladAnimations();
+        } else {
+            console.error('Função testVladAnimations não encontrada');
+        }
+    } else {
+        console.log('Esta função é apenas para o Vlad');
+    }
+}
+
+// Função para debug via console do navegador
+function debugCharacter() {
+    if (typeof debugCharacterSystem === 'function') {
+        debugCharacterSystem();
+    } else {
+        console.error('Função debugCharacterSystem não encontrada');
+    }
+}
+
+// Expor funções para debug no console
+window.testVlad = testVlad;
+window.debugCharacter = debugCharacter;
+</script>
+
+<!-- 4. ADICIONAR botão de debug para desenvolvimento (opcional) -->
+<!-- Inserir dentro da div #dev-controls (linha ~430) -->
+<button id="dev-test-animations" style="background: #cc33ff; color: white; border: none; padding: 5px 10px; border-radius: 3px; margin-top: 5px; cursor: pointer; width: 100%;">Testar Animações</button>
+<button id="dev-debug-character" style="background: #33cc99; color: white; border: none; padding: 5px 10px; border-radius: 3px; margin-top: 5px; cursor: pointer; width: 100%;">Debug Personagem</button>
+
+<script>
+// Verificação adicional na inicialização
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar se as variáveis críticas existem
+    const characterId = '{{ player.character_id or "" }}';
+    const attackSkills = {{ (player_attack_skills or []) | tojson | safe }};
+    const specialSkills = {{ (player_special_skills or []) | tojson | safe }};
+    
+    console.log('🔍 Verificação de dados:');
+    console.log('   Character ID:', characterId);
+    console.log('   Attack Skills:', attackSkills.length, 'encontradas');
+    console.log('   Special Skills:', specialSkills.length, 'encontradas');
+    
+    // Verificar se o personagem foi escolhido
+    if (!characterId || characterId === 'None' || characterId === '') {
+        console.warn('❌ Nenhum personagem selecionado!');
+        const confirmRedirect = confirm('Você precisa escolher um personagem primeiro. Ir para seleção?');
+        if (confirmRedirect) {
+            window.location.href = '/choose-character';
+        }
+        return;
+    }
+    
+    // Verificar se há skills disponíveis
+    if (attackSkills.length === 0) {
+        console.warn('⚠️ Nenhuma skill de ataque encontrada!');
+        console.log('Isso pode indicar que o personagem não foi configurado corretamente.');
+    }
+    
+    // Salvar dados globalmente para outros scripts
+    window.gameData = {
+        characterId: characterId,
+        attackSkills: attackSkills,
+        specialSkills: specialSkills,
+        playerData: {
+            hp: {{ player_hp or 100 }},
+            maxHp: {{ player_max_hp or 100 }}
+        },
+        bossData: {
+            hp: {{ boss_hp or 500 }},
+            maxHp: {{ boss_max_hp or 500 }}
+        }
+    };
+    
+    console.log('✅ Dados do jogo salvos em window.gameData');
+});
+
+// Função para debug dos dados
+function debugGameData() {
+    console.log('=== DEBUG DADOS DO JOGO ===');
+    console.log('window.gameData:', window.gameData);
+    console.log('========================');
+}
+
+// Função para verificar personagem
+function verifyCharacter() {
+    const characterElement = document.getElementById('current-character');
+    const skillsElement = document.getElementById('character-skills');
+    
+    console.log('=== VERIFICAÇÃO DE PERSONAGEM ===');
+    console.log('Elemento character:', characterElement?.textContent);
+    console.log('Skills raw:', skillsElement?.textContent);
+    
+    try {
+        const skills = JSON.parse(skillsElement?.textContent || '[]');
+        console.log('Skills parsed:', skills);
+    } catch (e) {
+        console.error('Erro ao parsear skills:', e);
+    }
+    console.log('================================');
+}
+
+// Expor funções para debug
+window.debugGameData = debugGameData;
+window.verifyCharacter = verifyCharacter;
+</script>
+
+<!-- 5. SCRIPT para os botões de debug -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Botão para testar animações
+    const testBtn = document.getElementById('dev-test-animations');
+    if (testBtn) {
+        testBtn.addEventListener('click', function() {
+            const characterId = '{{ player.character_id or "" }}';
+            if (characterId === 'vlad') {
+                if (typeof testVladAnimations === 'function') {
+                    testVladAnimations();
+                } else {
+                    console.error('testVladAnimations não disponível ainda');
+                }
+            } else {
+                console.log('Teste disponível apenas para Vlad por enquanto');
+            }
+        });
+    }
+    
+    // Botão para debug
+    const debugBtn = document.getElementById('dev-debug-character');
+    if (debugBtn) {
+        debugBtn.addEventListener('click', function() {
+            if (typeof debugCharacterSystem === 'function') {
+                debugCharacterSystem();
+            } else {
+                console.error('debugCharacterSystem não disponível ainda');
+            }
+        });
+    }
+});
+</script>
+
+<!-- ========================================
+     SISTEMA DE TURNOS - HUD EXTERNO
+     ======================================== -->
+     
+<!-- Área de Intenções do Inimigo -->
+<div id="enemy-intentions-container" class="enemy-intentions-container">
+    <div class="intentions-header">
+        🔮 Próximo Turno do Inimigo
+    </div>
+    <div id="intentions-icons" class="intentions-icons">
+        <!-- Ícones das intenções aparecerão aqui -->
+    </div>
+</div>
+
+<!-- Botão Terminar Turno -->
+<button id="end-turn-btn" class="end-turn-btn">
+    <img src="/static/game.data/turn.png" alt="Turno" class="turn-icon-img">
+    <span class="turn-text">Terminar Turno</span>
+</button>
+
+<!-- Performance Manager (INSERIR ANTES do pixi.min.js) -->
+<script src="/static/js/performance-manager.js"></script>
+
+<!-- PixiJS Libraries -->
+<script src="/static/js/lib/pixi.min.js"></script>
+
+<!-- Bibliotecas de efeitos antigas (manter compatibilidade) -->
+<script src="/static/js/fx-attacks.js"></script>
+<script src="/static/js/fx-specials.js"></script>
+
+<!-- Novas vinhetas avançadas -->
+<script src="/static/js/battle-vignette-part1.js"></script>
+<script src="/static/js/battle-vignette-part2.js"></script>
+<script src="/static/js/battle-vignette-part3.js"></script>
+<script src="/static/js/battle-vignette-part4.js"></script>
+
+<!-- Sistema PixiJS principal (DEVE vir ANTES da integração) -->
+<script src="/static/js/battle-pixie.js"></script>
+
+<!-- Integração das vinhetas (DEVE vir DEPOIS do battle-pixie.js) -->
+<script src="/static/js/vignette-integration.js"></script>
+
+<!-- Resto dos arquivos -->
+<script async src="/static/js/shaders-attacks1.js"></script>
+<script async src="/static/js/shaders-attacks2.js"></script>
+<script async src="/static/js/shaders-attacks3.js"></script>
+<script async src="/static/js/shaders-attacks4.js"></script>
+<script async src="/static/js/shaders-attacks5.js"></script>
+<script async src="/static/js/shaders-attacks-distant.js"></script>
+<script src="/static/js/shaders-attacks.js"></script> <!-- Principal por último -->
+<script src="/static/js/battle-class-animations.js"></script>
+<script src="/static/js/battle-base.js"></script>
+<script src="/static/js/battle-combat-system.js"></script>
+<script src="/static/js/battle-skills-system.js"></script>
+<script src="/static/js/battle-animation.js"></script>
+<script src="/static/js/battle-sakura.js"></script>
+<script src="/static/js/battle-turns.js"></script>
+
+
+                </body>
+            </html>

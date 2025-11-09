@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% block title %}Estudo Personalizado - Retina Cards{% endblock %}
+{% block head %}
+<style>
+  /* Copiar os estilos do study_session.html aqui */
+  .progress-bar-container {
+    width: 50%;
+    margin: 0 auto 10px auto;
+    height: 4px;
+    background-color: #e0e0e0;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background-color: #76c7c0;
+    transition: width 0.3s ease-in-out;
+  }
+  .answer-buttons-container {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .answer-btn small {
+    display: block;
+    font-size: 0.8rem;
+  }
+  .id-phase-container {
+    text-align: left;
+    font-size: small;
+    color: #888;
+    margin-bottom: 10px;
+  }
+  .id-phase-container a {
+    color: #888;
+    text-decoration: none;
+  }
+  .centered-text {
+    text-align: center;
+  }
+  .bottom-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+  }
+  .bottom-buttons a {
+    width: 200px;
+    text-align: center;
+    vertical-align: middle;
+  }
+  .toggle-buttons {
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  /* Estilo para a área de conteúdo com altura fixa */
+  .card-content-area {
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  /* Estilos para manter as seções de pergunta e resposta com tamanho consistente */
+  #question-section, #answer-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 10px 0;
+  }
+
+  /* Garantir que o conteúdo da pergunta/resposta seja flexível */
+  .card-text-container {
+    flex: 1;
+    overflow-y: auto;
+  }
+</style>
+{% endblock %}
+{% block content %}
+<div class="progress-bar-container">
+  <div class="progress-bar-fill" style="width: {{ progress_percent }}%;"></div>
+</div>
+<div class="card animated-card">
+  <div class="card-body centered-text">
+    <!-- Cabeçalho do cartão -->
+    <div class="id-phase-container">
+      <a href="{{ url_for('cards.card_detail', card_id=card.id) }}" id="card-link">Cartão #{{ card.id }}</a>
+      <span style="color: purple;">Estudo Personalizado</span>
+    </div>
+    <h5 class="card-title" style="margin-top: 10px;">Cartão {{ current_index + 1 }} de {{ total }}</h5>
+    <p><strong>Revisados:</strong> {{ cards_reviewed }} | <strong>Restantes:</strong> {{ total - cards_reviewed }}</p>
+    <hr>
+    
+    <!-- Área de conteúdo com altura fixa -->
+    <div class="card-content-area">
+      <!-- Seção da pergunta -->
+      <div id="question-section" class="centered-text">
+        <h5>Pergunta:</h5>
+        <div class="card-text-container">
+          <p class="card-text">{{ card.front | process_front | safe }}</p>
+        </div>
+      </div>
+      
+      <!-- Seção da resposta, inicialmente oculta -->
+      <div id="answer-section" class="centered-text" style="display: none;">
+        <h5>Resposta:</h5>
+        <div class="card-text-container">
+          <p class="card-text">{{ card.back | process_answer | safe }}</p>
+        </div>
+      </div>
+      
+      <!-- Botões de resposta (inicialmente invisíveis, mas ocupando espaço) -->
+      <div id="answer-buttons" class="answer-buttons-container" style="display: none;">
+        <form method="POST" action="{{ url_for('cards.custom_study_session') }}">
+          <button type="submit" name="response" value="errei" class="btn btn-danger">Errei</button>
+          <button type="submit" name="response" value="difícil" class="btn btn-warning">Difícil</button>
+          <button type="submit" name="response" value="facil" class="btn btn-success">Fácil</button>
+          <button type="submit" name="response" value="muito_facil" class="btn btn-primary">Muito Fácil</button>
+        </form>
+      </div>
+    </div>
+    
+    <hr>
+    
+    <!-- Botão de toggle para mostrar/ocultar a resposta -->
+    <div class="toggle-buttons">
+      <button class="btn btn-info" id="toggle-answer-btn">Mostrar Resposta</button>
+    </div>
+    
+    <hr>
+    
+    <!-- Botões inferiores -->
+    <div class="bottom-buttons">
+      <a href="{{ url_for('cards.custom_study') }}" class="btn btn-dark btn-sm" style="width: 170px;">Voltar à configuração</a>
+      <a href="{{ url_for('cards.study_lobby') }}" class="btn btn-secondary btn-sm" style="width: 170px;">Encerrar sessão</a>
+    </div>
+    <div style="margin-bottom: 20px;"></div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function toggleAnswer() {
+    var questionSection = document.getElementById('question-section');
+    var answerSection = document.getElementById('answer-section');
+    var answerButtons = document.getElementById('answer-buttons');
+    var toggleBtn = document.getElementById('toggle-answer-btn');
+    
+    if (answerSection.style.display === 'none') {
+        // Mostrar resposta
+        answerSection.style.display = 'flex';
+        questionSection.style.display = 'none';
+        answerButtons.style.display = 'block';
+        toggleBtn.textContent = 'Ocultar Resposta';
+    } else {
+        // Ocultar resposta
+        answerSection.style.display = 'none';
+        answerButtons.style.display = 'none';
+        questionSection.style.display = 'flex';
+        toggleBtn.textContent = 'Mostrar Resposta';
+    }
+}
+document.getElementById('toggle-answer-btn').addEventListener('click', toggleAnswer);
+
+// Atalhos de teclado
+document.addEventListener('keydown', function(event) {
+    if (event.target.tagName.toLowerCase() === 'input' || event.target.tagName.toLowerCase() === 'textarea') {
+        return;
+    }
+    
+    // Atalho para mostrar/ocultar resposta (Espaço ou Enter)
+    if ((event.code === 'Space' || event.key === 'Enter') && document.getElementById('answer-section').style.display === 'none') {
+        event.preventDefault();
+        toggleAnswer();
+    } 
+    // Atalhos para responder (1, 2, 3, 4) - apenas se os botões de resposta estiverem visíveis
+    else if (document.getElementById('answer-buttons').style.display !== 'none') {
+        if (event.key === '1') {
+            document.querySelector('button[name="response"][value="errei"]').click();
+        } else if (event.key === '2') {
+            document.querySelector('button[name="response"][value="difícil"]').click();
+        } else if (event.key === '3') {
+            document.querySelector('button[name="response"][value="facil"]').click();
+        } else if (event.key === '4') {
+            document.querySelector('button[name="response"][value="muito_facil"]').click();
+        }
+    } 
+    // Outros atalhos sempre disponíveis
+    else if (event.key.toLowerCase() === 'd') {
+        window.location = '{{ url_for("cards.card_detail", card_id=card.id) }}';
+    }
+});
+</script>
+{% endblock %}

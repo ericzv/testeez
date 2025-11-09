@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Importar Coleção - Flashcards{% endblock %}
+{% block content %}
+<h2>Importar Coleção</h2>
+<p>Selecione o arquivo CSV (tabulado). O arquivo deve conter ao menos duas colunas: pergunta e resposta.</p>
+<form method="POST" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="file">Arquivo:</label>
+        <input type="file" class="form-control-file" name="file" id="file" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Importar</button>
+</form>
+{% endblock %}

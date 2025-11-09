@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Editar Cartão{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <h3>Editar Cartão #{{ card.id }}</h3>
+    <p style="font-size: 0.8em; color: #888;">Editar cartões prontos pode desconfigurá-los</p>
+    <hr>
+    <form method="POST">
+      <div class="form-group">
+        <label for="front">Pergunta (Front):</label>
+        <textarea class="form-control" id="front" name="front" rows="3">{{ card.front | raw_edit }}</textarea>
+      </div>
+      <div class="form-group">
+        <label for="back">Resposta (Back):</label>
+        <textarea class="form-control" id="back" name="back" rows="3">
+{% if "<img" in card.back %}
+{{ card.back | raw_edit }} (Imagem)
+{% else %}
+{{ card.back | raw_edit }}
+{% endif %}
+        </textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Salvar</button>
+      <a href="{{ url_for('cards.card_detail', card_id=card.id) }}" class="btn btn-secondary">Cancelar</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

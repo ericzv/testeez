@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habilidades | Retina Cards</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #111;
+            --bg-secondary: #1a1a1a;
+            --border-color: #333;
+            --accent-color: #2563eb;
+            --accent-hover: #1d4ed8;
+            --text-primary: #f8f9fa;
+            --text-secondary: #d1d5db;
+            --attack-color: #dc2626;
+            --special-color: #8b5cf6;
+            --passive-color: #10b981;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        h1, h2, h3, h4 {
+            font-family: 'Cinzel', serif;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 30px;
+        }
+        
+        .back-button {
+            background-color: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .back-button:hover {
+            background-color: var(--border-color);
+        }
+        
+        .player-stats {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            background-color: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 30px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .skill-section {
+            margin-bottom: 40px;
+        }
+        
+        .skill-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .skill-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        
+        .skill-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .skill-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .skill-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #333;
+            border-radius: 50%;
+            margin-right: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+        }
+        
+        .attack .skill-icon {
+            background-color: rgba(220, 38, 38, 0.2);
+            color: var(--attack-color);
+        }
+        
+        .special .skill-icon {
+            background-color: rgba(139, 92, 246, 0.2);
+            color: var(--special-color);
+        }
+        
+        .passive .skill-icon {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: var(--passive-color);
+        }
+        
+        .skill-title {
+            flex-grow: 1;
+        }
+        
+        .skill-title h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        
+        .skill-level {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        
+        .skill-description {
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .skill-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .skill-stat {
+            background-color: var(--bg-primary);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .skill-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .action-button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .action-button:hover {
+            background-color: var(--accent-hover);
+        }
+        
+        .action-button.disabled {
+            background-color: #4b5563;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        .unlock-button {
+            background-color: #10b981;
+        }
+        
+        .unlock-button:hover {
+            background-color: #059669;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Habilidades</h1>
+            <a href="{{ url_for('battle.gamification') }}" class="back-button">Voltar ao Hub</a>
+        </div>
+        
+        <div class="player-stats">
+            <div class="stat">
+                <div class="stat-label">Nível</div>
+                <div class="stat-value">{{ player.level }}</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Pontos de Habilidade</div>
+                <div class="stat-value">{{ player.skill_points }}</div>
+            </div>
+        </div>
+        
+        <!-- HABILIDADES DE ATAQUE -->
+        <div class="skill-section">
+            <h2>Habilidades de Ataque</h2>
+            
+            <div class="skill-grid">
+                {% for skill in attack_skills %}
+                <div class="skill-card attack">
+                    <div class="skill-header">
+                        <div class="skill-icon">⚔️</div>
+                        <div class="skill-title">
+                            <h3>{{ skill.name }}</h3>
+                        </div>
+                        <div class="skill-level">Nv. {{ skill.level }}</div>
+                    </div>
+                    
+                    <div class="skill-description">
+                        {{ skill.description }}
+                    </div>
+                    
+                    <div class="skill-stats">
+                        {% if skill.cache %}
+                            <!-- DADOS DO CACHE -->
+                            <div class="skill-stat">Tipo: {{ skill.cache.skill_type }}</div>
+                            <div class="skill-stat">Dano Base: {{ skill.cache.base_damage }}</div>
+                            <div class="skill-stat">Crítico: {{ "%.1f"|format(skill.cache.crit_chance) }}% ({{ "%.2f"|format(skill.cache.crit_multiplier) }}x)</div>
+                            {% if skill.cache.lifesteal_percent > 0 %}
+                                <div class="skill-stat">Vampirismo: {{ "%.0f"|format(skill.cache.lifesteal_percent) }}%</div>
+                            {% endif %}
+                        {% else %}
+                            <!-- FALLBACK SE NÃO HOUVER CACHE -->
+                            <div class="skill-stat">Dano: +{{ skill.damage_modifier }}</div>
+                            <div class="skill-stat">Pontos: {{ skill.points_cost }}</div>
+                        {% endif %}
+                    </div>
+                    
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- HABILIDADES ESPECIAIS -->
+        <div class="skill-section">
+            <h2>Habilidades Especiais</h2>
+            
+            <div class="skill-grid">
+                {% for skill in special_skills %}
+                <div class="skill-card special">
+                    <div class="skill-header">
+                        <div class="skill-icon">✨</div>
+                        <div class="skill-title">
+                            <h3>{{ skill.name }}</h3>
+                        </div>
+                        <div class="skill-level">Nv. {{ skill.level }}</div>
+                    </div>
+                    
+                    <div class="skill-description">
+                        {{ skill.description }}
+                    </div>
+                    
+                    <div class="skill-stats">
+                        {% if skill.positive_effect.type == "crit_chance" %}
+                            <div class="skill-stat">Chance de Crítico: +{{ skill.positive_effect.value|float * 100 }}%</div>
+                        {% elif skill.positive_effect.type == "damage_reduction" %}
+                            <div class="skill-stat">Redução de Dano: {{ skill.positive_effect.value|float * 100 }}%</div>
+                        {% elif skill.positive_effect.type == "damage" %}
+                            <div class="skill-stat">Dano: +{{ skill.positive_effect.value|float }}</div>
+                        {% elif skill.positive_effect.type == "lifesteal" %}
+                            <div class="skill-stat">Roubo de Vida: {{ skill.positive_effect.value|float * 100 }}%</div>
+                        {% elif skill.positive_effect.type == "crit_damage" %}
+                            <div class="skill-stat">Dano Crítico: +{{ skill.positive_effect.value|float * 100 }}%</div>
+                        {% elif skill.positive_effect.type == "block_bonus" %}
+                            <div class="skill-stat">Bloqueio: +{{ skill.positive_effect.value|float * 100 }}%</div>
+                        {% elif skill.positive_effect.type == "multi_boost" %}
+                            {% if skill.positive_effect.value.damage is defined %}
+                                <div class="skill-stat">Dano: +{{ skill.positive_effect.value.damage|float * 100 }}%</div>
+                            {% endif %}
+                            {% if skill.positive_effect.value.crit_chance is defined %}
+                                <div class="skill-stat">Chance de Crítico: +{{ skill.positive_effect.value.crit_chance|float * 100 }}%</div>
+                            {% endif %}
+                            {% if skill.positive_effect.value.crit_damage is defined %}
+                                <div class="skill-stat">Dano Crítico: +{{ skill.positive_effect.value.crit_damage|float * 100 }}%</div>
+                            {% endif %}
+                            {% if skill.positive_effect.value.block_bonus is defined %}
+                                <div class="skill-stat">Bloqueio: +{{ skill.positive_effect.value.block_bonus|float * 100 }}%</div>
+                            {% endif %}
+                        {% else %}
+                            <div class="skill-stat">Efeito: {{ skill.positive_effect.type }}: {{ skill.positive_effect.value }}</div>
+                        {% endif %}
+                        {% if skill.max_charges is string %}
+                            {% set max_charges = skill.max_charges.strip('[]').split(',')[0]|int %}
+                        {% else %}
+                            {% set max_charges = skill.max_charges %}
+                        {% endif %}
+                        <div class="skill-stat">Cargas: {{ max_charges }}</div>
+                        <div class="skill-stat">Recarga: {{ skill.cooldown_minutes }} min</div>
+                        {% if skill.duration.type == "attacks" %}
+                            <div class="skill-stat">Duração: {{ skill.duration.value }} ataques</div>
+                        {% elif skill.duration.type == "time" %}
+                            <div class="skill-stat">Duração: {% if skill.duration.value >= 60 %}{{ (skill.duration.value / 60)|int }}h{% if skill.duration.value % 60 > 0 %}{{ skill.duration.value % 60 }}min{% endif %}{% else %}{{ skill.duration.value }}min{% endif %}</div>
+                        {% endif %}
+                    </div>
+                    
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- HABILIDADES DISPONÍVEIS -->
+        <div class="skill-section">
+            <h2>Desbloquear Novas Habilidades</h2>
+            
+            <div class="skill-grid">
+                {% for skill in available_attacks %}
+                <div class="skill-card attack">
+                    <div class="skill-header">
+                        <div class="skill-icon">⚔️</div>
+                        <div class="skill-title">
+                            <h3>{{ skill.name }}</h3>
+                        </div>
+                        <div class="skill-level">Ataque</div>
+                    </div>
+                    
+                    <div class="skill-description">
+                        {{ skill.description }}
+                    </div>
+                    
+                    <div class="skill-stats">
+                        <div class="skill-stat">Dano: +{{ skill.damage_values[0]|float }}</div>
+                        <div class="skill-stat">Pontos: {{ skill.points_cost }}</div>
+                        {% if skill.effect_type %}
+                            {% if skill.effect_type == "crit_chance" %}
+                                <div class="skill-stat">Chance Crítico: +{{ skill.effect_values[0]|float * 100 }}%</div>
+                            {% elif skill.effect_type == "crit_damage" %}
+                                <div class="skill-stat">Dano Crítico: +{{ skill.effect_values[0]|float * 100 }}%</div>
+                            {% elif skill.effect_type == "lifesteal" %}
+                                <div class="skill-stat">Roubo de Vida: {{ skill.effect_values[0]|float * 100 }}%</div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="skill-actions">
+                        <form action="{{ url_for('unlock_skill_route') }}" method="post">
+                            <input type="hidden" name="skill_id" value="{{ skill.id }}">
+                            <input type="hidden" name="skill_type" value="attack">
+                            <button type="submit" class="action-button unlock-button" {% if player.level < skill.min_level %}disabled{% endif %}>
+                                {% if player.level < skill.min_level %}
+                                    Requer nível {{ skill.min_level }}
+                                {% else %}
+                                    Desbloquear (0 pontos)
+                                {% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                {% for skill in available_specials %}
+                <div class="skill-card special">
+                    <div class="skill-header">
+                        <div class="skill-icon">✨</div>
+                        <div class="skill-title">
+                            <h3>{{ skill.name }}</h3>
+                        </div>
+                        <div class="skill-level">Especial</div>
+                    </div>
+                    
+                    <div class="skill-description">
+                        {{ skill.description }}
+                    </div>
+                    
+                    <div class="skill-stats">
+                        {% set effect_value = skill.positive_effect_value.replace('[', '').replace(']', '').split(',')[0]|float %}
+                        {% if skill.positive_effect_type == "crit_chance" %}
+                            <div class="skill-stat">Chance de Crítico: +{{ effect_value * 100 }}%</div>
+                        {% elif skill.positive_effect_type == "damage_reduction" %}
+                            <div class="skill-stat">Redução de Dano: {{ effect_value * 100 }}%</div>
+                        {% elif skill.positive_effect_type == "damage" %}
+                            <div class="skill-stat">Dano: +{{ effect_value }}</div>
+                        {% elif skill.positive_effect_type == "lifesteal" %}
+                            <div class="skill-stat">Roubo de Vida: {{ effect_value * 100 }}%</div>
+                        {% elif skill.positive_effect_type == "crit_damage" %}
+                            <div class="skill-stat">Dano Crítico: +{{ effect_value * 100 }}%</div>
+                        {% elif skill.positive_effect_type == "block_bonus" %}
+                            <div class="skill-stat">Bloqueio: +{{ effect_value * 100 }}%</div>
+                        {% elif skill.positive_effect_type == "multi_boost" %}
+                            <div class="skill-stat">Múltiplos Bônus</div>
+                        {% else %}
+                            <div class="skill-stat">Efeito: {{ skill.positive_effect_type }}: {{ effect_value }}</div>
+                        {% endif %}
+                        {% if skill.max_charges is string %}
+                        {% set max_charges = skill.max_charges.strip('[]').split(',')[0]|int %}
+                        {% else %}
+                            {% set max_charges = skill.max_charges %}
+                        {% endif %}
+                        <div class="skill-stat">Cargas: {{ max_charges }}</div>
+                        <div class="skill-stat">Pontos: 0</div>
+                        {% if skill.duration_value is string %}
+                            {% set duration_value = skill.duration_value.replace('[', '').replace(']', '').split(',')[0]|int %}
+                        {% else %}
+                            {% set duration_value = skill.duration_value %}
+                        {% endif %}
+                        {% if skill.duration_type == "attacks" %}
+                            <div class="skill-stat">Duração: {{ duration_value }} ataques</div>
+                        {% elif skill.duration_type == "time" %}
+                            <div class="skill-stat">Duração: {% if duration_value >= 60 %}{{ (duration_value / 60)|int }}h{% if duration_value % 60 > 0 %}{{ duration_value % 60 }}min{% endif %}{% else %}{{ duration_value }}min{% endif %}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="skill-actions">
+                        <form action="{{ url_for('unlock_skill_route') }}" method="post">
+                            <input type="hidden" name="skill_id" value="{{ skill.id }}">
+                            <input type="hidden" name="skill_type" value="special">
+                            <button type="submit" class="action-button unlock-button" {% if player.level < skill.min_level %}disabled{% endif %}>
+                                {% if player.level < skill.min_level %}
+                                    Requer nível {{ skill.min_level }}
+                                {% else %}
+                                    Desbloquear (0 pontos)
+                                {% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

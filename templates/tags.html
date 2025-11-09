@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Gerenciar Tags - Retina Cards{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <h3>Gerenciar Tags</h3>
+    
+    <!-- Formulário para adicionar nova tag -->
+    <form method="POST" action="{{ url_for('cards.add_tag') }}" class="mb-4">
+      <div class="input-group">
+        <input type="text" name="tag_name" class="form-control" placeholder="Nome da nova tag" required>
+        <div class="input-group-append">
+          <button type="submit" class="btn btn-primary">Adicionar Tag</button>
+        </div>
+      </div>
+    </form>
+    
+    <!-- Lista de tags existentes -->
+    <h4>Tags existentes ({{ tags|length }})</h4>
+    {% if tags %}
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Cartões</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tag in tags %}
+              <tr>
+                <td>{{ tag.name }}</td>
+                <td>{{ tag.cards|length }}</td>
+                <td>
+                  <a href="{{ url_for('cards.tag_detail', tag_id=tag.id) }}" class="btn btn-sm btn-info">Ver Cartões</a>
+                  <a href="{{ url_for('cards.rename_tag', tag_id=tag.id) }}" class="btn btn-sm btn-warning">Renomear</a>
+                  <form method="POST" action="{{ url_for('cards.delete_tag', tag_id=tag.id) }}" style="display:inline;">
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja remover esta tag?');">Excluir tag</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p>Nenhuma tag encontrada.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

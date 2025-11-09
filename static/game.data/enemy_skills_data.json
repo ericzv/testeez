@@ -1,0 +1,92 @@
+{
+  "attack_skills": {
+    "1": {
+      "id": 1,
+      "name": "thunderbolt",
+      "icon": "/static/game.data/icons/sk1.png",
+      "activation_sound": "/static/game.data/sounds/fire-on2.mp3",
+      "execution_sound": "/static/game.data/sounds/hit-dull1.mp3",
+      "player_fx_layer_a": "/static/game.data/enemies/hits/skills/lightningfx30f195x220.png",
+      "player_fx_layer_a_frames": 30,
+      "player_fx_layer_a_size": "5850x220",
+      "player_fx_layer_b": "",
+      "damage_range": "1.0-2.0",
+      "charge_interval": 6,
+      "max_charges": 3
+    },
+    "2": {
+      "id": 2,
+      "name": "Explosão Sombria",
+      "icon": "/static/game.data/icons/darkexplosion.png",
+      "activation_sound": "/static/game.data/sounds/darkexplosion1.mp3",
+      "execution_sound": "/static/game.data/sounds/darkexplosion2.mp3",
+      "player_fx_layer_a": "/static/game.data/enemies/hits/skills/purassombra-explosion-128x128-13f.png",
+      "player_fx_layer_a_frames": 13,
+      "player_fx_layer_a_size": "1664x128",
+      "player_fx_layer_b": "",
+      "damage_range": "1.4-1.6",
+      "charge_interval": 8,
+      "max_charges": 3
+    }
+  },
+  "buff_skills": {
+    "50": {
+      "id": 50,
+      "name": "Cura",
+      "icon": "/static/game.data/icons/sk2.png",
+      "activation_sound": "/static/game.data/sounds/fire-on1.mp3",
+      "execution_sound": "/static/game.data/sounds/defeat.mp3",
+      "enemy_skill_fx": "/static/game.data/enemies/buffs/heal.png",
+      "enemy_skill_fx_frames": 16,
+      "enemy_skill_fx_size": "768x64",
+      "effect_type": "heal",
+      "effect_value": 25,
+      "duration_type": "immediate",
+      "duration_value": 1,
+      "charge_interval": 8,
+      "max_charges": 2
+    }
+  },
+  "debuff_skills": {
+    "100": {
+      "id": 100,
+      "name": "decrease_damage",
+      "icon": "/static/game.data/icons/sk3.png",
+      "activation_sound": "/static/game.data/sounds/hit-dull2.mp3",
+      "execution_sound": "/static/game.data/sounds/critical.mp3",
+      "enemy_skill_fx": "/static/game.data/activation/activation1a.png",
+      "enemy_skill_fx_frames": 11,
+      "enemy_skill_fx_size": "1408x128",
+      "player_fx_layer_a": "/static/game.data/character/debuff/decrease_damage_debuff.png",
+      "player_fx_layer_a_frames": 18,
+      "player_fx_layer_a_size": "1152x64",
+      "player_fx_layer_b": "",
+      "effect_type": "decrease_damage",
+      "effect_value": 0.20,
+      "duration_type": "player_attacks",
+      "duration_value": 1,
+      "charge_interval": 8,
+      "max_charges": 5
+    },
+    "101": {
+      "id": 101,
+      "name": "Nictalopia",
+      "icon": "/static/game.data/icons/nictalopia.png",
+      "activation_sound": "/static/game.data/sounds/nictalopia1.mp3",
+      "execution_sound": "/static/game.data/sounds/nictalopia2.mp3",
+      "enemy_skill_fx": "/static/game.data/activation/purassombradebuffcast33x119-19f.png",
+      "enemy_skill_fx_frames": 19,
+      "enemy_skill_fx_size": "627x119",
+      "player_fx_layer_a": "/static/game.data/character/debuff/purassombradebuff76x111-8frames.png",
+      "player_fx_layer_a_frames": 8,
+      "player_fx_layer_a_size": "608x111",
+      "player_fx_layer_b": "",
+      "effect_type": "decrease_damage",
+      "effect_value": 0.20,
+      "duration_type": "player_attacks",
+      "duration_value": 2,
+      "charge_interval": 8,
+      "max_charges": 3
+    }
+  }
+}

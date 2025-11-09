@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <!-- Fundo totalmente transparente (centro vazado) -->
+  <defs>
+    <mask id="borderOnly">
+      <!-- Tudo começa transparente -->
+      <rect x="0" y="0" width="192" height="192" fill="black"></rect>
+      <!-- Desenha a borda como branco (mostra), centro fica preto (esconde) -->
+      <!-- Topo -->
+      <rect x="48" y="0" width="96" height="48" fill="white"></rect>
+      <!-- Base -->
+      <rect x="48" y="144" width="96" height="48" fill="white"></rect>
+      <!-- Esquerda -->
+      <rect x="0" y="48" width="48" height="96" fill="white"></rect>
+      <!-- Direita -->
+      <rect x="144" y="48" width="48" height="96" fill="white"></rect>
+      <!-- Cantos -->
+      <rect x="0" y="0" width="48" height="48" fill="white"></rect>
+      <rect x="144" y="0" width="48" height="48" fill="white"></rect>
+      <rect x="0" y="144" width="48" height="48" fill="white"></rect>
+      <rect x="144" y="144" width="48" height="48" fill="white"></rect>
+      <!-- Centro permanece preto (oculto) -->
+    </mask>
+  </defs>
+
+  <!-- Exporta uma imagem onde só a borda é opaca -->
+  <rect x="0" y="0" width="192" height="192" fill="white" mask="url(#borderOnly)"></rect>
+</svg>

@@ -1,0 +1,70 @@
+{% extends 'gamification/base.html' %}
+
+{% block game_content %}
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="wood-header">
+        <h5 class="card-title mb-0">Retina Cards RPG</h5>
+      </div>
+      <div class="card-body">
+        <div class="text-center mb-4">
+          <!-- Container sem depender de variáveis player -->
+          <div class="nicho-container">
+            <div class="nicho-background"></div>
+            <div class="p1-idle-container">
+              <div class="p1-idle-layer p1-idle-armor"></div>
+              <div class="p1-idle-layer p1-idle-head"></div>
+              <div class="p1-idle-layer p1-idle-eyes-fire"></div>
+              <div class="p1-idle-layer p1-idle-hair"></div>
+              <div class="p1-idle-layer p1-idle-sword"></div>
+            </div>
+          </div>
+          
+          <h4>Bem-vindo ao Retina Cards RPG!</h4>
+        </div>
+        
+        <div class="alert alert-warning">
+          <p>Inicializando o sistema de gamificação...</p>
+          <p>Encontramos um problema técnico ao inicializar o sistema RPG.</p>
+          <p>Por favor, tente novamente em alguns momentos ou use os links abaixo para reconfigurar o sistema.</p>
+          
+          {% if error %}
+          <div class="mt-3">
+            <p><strong>Detalhes do erro:</strong></p>
+            <p class="text-danger">{{ error }}</p>
+          </div>
+          {% endif %}
+        </div>
+        
+        <div class="text-center mt-3">
+          <a href="/" class="btn btn-primary">Voltar para a página inicial</a>
+          <a href="{{ url_for('definir_cristais', quantidade=1000) }}" class="btn btn-warning">Reinicializar sistema</a>
+          <a href="{{ url_for('battle.gamification') }}" class="btn btn-success">Tentar novamente</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Iniciar animações do personagem
+  console.log('Inicializando animações básicas');
+  
+  // Sincronizar camadas de animação
+  const layers = document.querySelectorAll('.p1-idle-layer');
+  layers.forEach(layer => {
+    layer.style.animation = 'none';
+  });
+  
+  document.querySelector('.p1-idle-container').offsetHeight;
+  
+  setTimeout(() => {
+    layers.forEach(layer => {
+      layer.style.animation = 'p1IdleAnimation 0.8s steps(10) infinite';
+    });
+  }, 10);
+});
+</script>
+{% endblock %}

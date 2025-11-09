@@ -1,0 +1,1799 @@
+{% extends 'gamification/base.html' %}
+
+{% block game_content %}
+<div class="skyrim-talents">
+    <!-- Camadas de estrelas -->
+    <div id="stars-layer-1" class="stars-layer"></div>
+    <div id="stars-layer-2" class="stars-layer"></div>
+    <div id="stars-layer-3" class="stars-layer"></div>
+    
+    <!-- Estrela cadente -->
+    <div id="shooting-star"></div>
+    
+    <!-- Navegação -->
+    <a href="/gamification" class="nav-button">
+        <i class="fas fa-arrow-left"></i> Voltar
+    </a>
+    
+    <!-- Barra superior com informações do jogador e botão para modo teste -->
+    <div class="player-info-bar">
+        <div class="player-level">NÍVEL {{ player.level }}</div>
+        <div class="talent-points">PONTOS DE TALENTO: <span id="available-points">{{ player.talent_points }}</span></div>
+        <button id="gain-points-btn" class="admin-btn">Ganhar Pontos</button>
+        <!-- Botão para inicialização de talentos (se necessário) -->
+    </div>
+    
+    <!-- Navegação entre constelações -->
+    <div class="constellation-navigation">
+        <button id="prev-constellation" class="nav-arrow">&#10094;</button>
+        <div id="constellation-title-container">
+            <div id="constellation-title">Draco</div>
+        </div>
+        <button id="next-constellation" class="nav-arrow">&#10095;</button>
+    </div>
+    
+    <!-- Container para as constelações -->
+    <div class="constellations-viewport">
+        <div id="constellations-container">
+            <!-- Constelações geradas via JavaScript -->
+        </div>
+    </div>
+    
+    <!-- Painel de detalhes do talento -->
+    <div id="talent-details" class="talent-details">
+        <h3 id="talent-name">Selecione um Talento</h3>
+        <p id="talent-description">Escolha um talento na constelação para ver seus detalhes.</p>
+        <button id="learn-talent-btn" class="learn-btn disabled">APRENDER</button>
+    </div>
+</div>
+
+<!-- Estilos CSS -->
+<style>
+    .skyrim-talents {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: #000510;
+        color: white;
+        overflow: hidden;
+        font-family: 'Cinzel', serif;
+    }
+    
+    /* Camadas de estrelas */
+    .stars-layer {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        z-index: 0;
+        transition: transform 0.8s ease-out;
+    }
+    
+    .star {
+        position: absolute;
+        background-color: white;
+        border-radius: 50%;
+    }
+    
+    .star.twinkle-slow { animation: twinkle-slow 3s infinite alternate; }
+    .star.twinkle-medium { animation: twinkle-medium 2s infinite alternate; }
+    .star.twinkle-fast { animation: twinkle-fast 1.5s infinite alternate; }
+    
+    @keyframes twinkle-slow { 0% { opacity: 0.3; } 100% { opacity: 0.8; } }
+    @keyframes twinkle-medium { 0% { opacity: 0.4; } 100% { opacity: 1; } }
+    @keyframes twinkle-fast { 0% { opacity: 0.2; } 100% { opacity: 0.9; } }
+    
+    /* Estrela cadente */
+    #shooting-star {
+        position: absolute;
+        width: 2px; height: 2px;
+        background-color: white;
+        border-radius: 50%;
+        transform: rotate(45deg);
+        opacity: 0;
+        z-index: 1;
+        box-shadow: 0 0 20px 2px white;
+        pointer-events: none;
+    }
+    
+    @keyframes shooting-star {
+        0% { opacity: 0; transform: translateX(0) translateY(0) rotate(45deg); }
+        10% { opacity: 1; box-shadow: 0 0 20px 2px white, 0 0 6px 6px rgba(255,255,255,0.5); }
+        100% { opacity: 0; transform: translateX(300px) translateY(300px) rotate(45deg); box-shadow: 0 0 0 0 white; }
+    }
+    
+    /* Barra superior */
+    .player-info-bar {
+        position: absolute;
+        top: 20px; right: 20px;
+        display: flex;
+        gap: 20px;
+        z-index: 5;
+        font-size: 18px;
+    }
+    .talent-points { color: #a0d8ef; }
+    .admin-btn {
+        background: #444;
+        color: #fff;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    
+    /* Navegação entre constelações */
+    .constellation-navigation {
+        position: absolute;
+        top: 70px; left: 0; width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 5;
+    }
+    #constellation-title-container { width: 300px; text-align: center; }
+    #constellation-title {
+        font-size: 28px;
+        text-transform: uppercase;
+        text-shadow: 0 0 15px rgba(255,255,255,0.7);
+        letter-spacing: 2px;
+        display: inline-block;
+    }
+    .nav-arrow {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 10px;
+        opacity: 0.7;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        width: 50px; height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .nav-arrow:hover { opacity: 1; transform: scale(1.2); }
+
+    /* Container de constelações */
+    .constellations-viewport {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+    }
+    #constellations-container {
+        position: relative;
+        width: 100%; height: 100%;
+    }
+    .constellation {
+        position: absolute;
+        width: 100%; height: 100%;
+        top: 0; left: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: transform 0.8s ease, opacity 0.8s ease;
+        pointer-events: none;
+    }
+    .constellation.active {
+        opacity: 1;
+        pointer-events: all;
+        z-index: 2;
+    }
+    .constellation.left { transform: translateX(-100%); }
+    .constellation.right { transform: translateX(100%); }
+    
+    /* Nebulosa central */
+    .constellation-center {
+        position: absolute;
+        width: 120%; height: 120%;
+        left: 50%; top: 50%;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        z-index: 1;
+        opacity: 0.35;
+        filter: blur(50px);
+        animation: pulse-glow 4s ease-in-out infinite alternate;
+    }
+    @keyframes pulse-glow {
+        0% { opacity: 0.25; transform: translate(-50%, -50%) scale(0.95); filter: blur(45px); }
+        100% { opacity: 0.45; transform: translate(-50%, -50%) scale(1.05); filter: blur(55px); }
+    }
+    
+    /* Nós de talento */
+    /* Talentos disponíveis (pulsantes com brilho mais intenso) */
+    .talent-node.available {
+        animation: talent-available-pulse 2s infinite alternate;
+        z-index: 5; /* Aumentar o z-index para ficar acima de outros elementos */
+    }
+    @keyframes talent-available-pulse {
+        0% { box-shadow: 0 0 10px 5px currentColor; transform: translate(-50%, -50%) scale(1); }
+        100% { box-shadow: 0 0 20px 10px currentColor, 0 0 30px 15px rgba(255,255,255,0.5); transform: translate(-50%, -50%) scale(1.3); }
+    }
+    
+    /* Área de clique aumentada */
+    .talent-node::before {
+        content: '';
+        position: absolute;
+        top: -10px; left: -10px;
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        z-index: 2;
+        cursor: pointer;
+    }
+    
+    .talent-node.locked {
+        opacity: 0.4;
+        box-shadow: 0 0 8px 2px rgba(255,255,255,0.4);
+    }
+    .talent-node.unlocked { animation: node-pulse 3s infinite alternate; }
+    .talent-node.selected {
+        width: 16px; height: 16px;
+        box-shadow: 0 0 20px 8px rgba(255,255,255,0.9);
+    }
+    .talent-node:hover {
+        transform: translate(-50%, -50%) scale(1.5);
+        box-shadow: 0 0 20px 8px rgba(255,255,255,0.9);
+        z-index: 4;
+    }
+    .talent-node.root-talent {
+        width: 16px; height: 16px;
+        animation: root-node-pulse 2s infinite alternate;
+        z-index: 3;
+    }
+    @keyframes root-node-pulse {
+        0% { box-shadow: 0 0 15px 5px currentColor; transform: scale(1); }
+        50% { box-shadow: 0 0 25px 10px currentColor; transform: scale(1.2); }
+        100% { box-shadow: 0 0 15px 5px currentColor; transform: scale(1); }
+    }
+    
+    .talent-node {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: all 0.3s ease;
+        z-index: 3;
+        cursor: pointer;
+    }
+    
+    /* Conexões entre talentos */
+    .talent-connection {
+        position: absolute;
+        height: 3px;
+        transform-origin: left center;
+        z-index: 2;
+        pointer-events: none;
+        opacity: 0.1;
+        transition: opacity 0.3s ease;
+    }
+    .talent-connection.unlocked {
+        opacity: 0.8;
+        animation: connection-pulse 3s infinite alternate;
+    }
+    @keyframes connection-pulse {
+        0% { opacity: 0.5; }
+        100% { opacity: 0.9; }
+    }
+    
+    /* Painel de detalhes */
+    .talent-details {
+        position: absolute;
+        bottom: 40px; left: 50%;
+        transform: translateX(-50%);
+        width: 400px;
+        padding: 20px;
+        background-color: rgba(0,0,0,0.6);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 5px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.7);
+        z-index: 5;
+        text-align: center;
+    }
+    #talent-name {
+        margin-top: 0;
+        font-size: 22px;
+        color: white;
+        text-shadow: 0 0 10px rgba(255,255,255,0.5);
+    }
+    #talent-description {
+        margin-bottom: 20px;
+        color: #ddd;
+        font-size: 16px;
+    }
+    .learn-btn {
+        background: linear-gradient(to bottom, #4b6cb7, #182848);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-family: 'Cinzel', serif;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 3px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s;
+    }
+    .learn-btn:hover:not(.disabled) {
+        background: linear-gradient(to bottom, #5d7ec9, #293c6b);
+        box-shadow: 0 0 10px rgba(75,108,183,0.7);
+    }
+    .learn-btn.disabled {
+        background: linear-gradient(to bottom, #4a4a4a, #252525);
+        color: #777;
+        cursor: not-allowed;
+    }
+    
+    /* Cores específicas para cada constelação */
+    .constellation-Draco .talent-node {
+        background-color: #ff7832;
+        box-shadow: 0 0 15px 5px rgba(255,120,50,0.7);
+    }
+    .constellation-Draco .constellation-center {
+        background: radial-gradient(circle, rgba(255,120,50,0.7) 0%, rgba(255,120,50,0) 100%);
+    }
+    .constellation-Draco .talent-connection {
+        background: linear-gradient(90deg, rgba(255,120,50,0.5), rgba(255,120,50,0.8));
+    }
+    
+    .constellation-Hercules .talent-node {
+        background-color: #c88cff;
+        box-shadow: 0 0 15px 5px rgba(200,140,255,0.7);
+    }
+    .constellation-Hercules .constellation-center {
+        background: radial-gradient(circle, rgba(200,140,255,0.7) 0%, rgba(200,140,255,0) 100%);
+    }
+    .constellation-Hercules .talent-connection {
+        background: linear-gradient(90deg, rgba(200,140,255,0.5), rgba(200,140,255,0.8));
+    }
+    
+    .constellation-Aquarius .talent-node {
+        background-color: #41b0e4;
+        box-shadow: 0 0 15px 5px rgba(65,176,228,0.7);
+    }
+    .constellation-Aquarius .constellation-center {
+        background: radial-gradient(circle, rgba(65,176,228,0.7) 0%, rgba(65,176,228,0) 100%);
+    }
+    .constellation-Aquarius .talent-connection {
+        background: linear-gradient(90deg, rgba(65,176,228,0.5), rgba(65,176,228,0.8));
+    }
+    
+    .constellation-Taurus .talent-node {
+        background-color: #85ffa1;
+        box-shadow: 0 0 15px 5px rgba(133,255,161,0.7);
+    }
+    .constellation-Taurus .constellation-center {
+        background: radial-gradient(circle, rgba(133,255,161,0.7) 0%, rgba(133,255,161,0) 100%);
+    }
+    .constellation-Taurus .talent-connection {
+        background: linear-gradient(90deg, rgba(133,255,161,0.5), rgba(133,255,161,0.8));
+    }
+    
+    .constellation-Pegasus .talent-node {
+        background-color: #ffdc87;
+        box-shadow: 0 0 15px 5px rgba(255,220,135,0.7);
+    }
+    .constellation-Pegasus .constellation-center {
+        background: radial-gradient(circle, rgba(255,220,135,0.7) 0%, rgba(255,220,135,0) 100%);
+    }
+    .constellation-Pegasus .talent-connection {
+        background: linear-gradient(90deg, rgba(255,220,135,0.5), rgba(255,220,135,0.8));
+    }
+    
+    .constellation-Phoenix .talent-node {
+        background-color: white;
+        box-shadow: 0 0 15px 5px rgba(255,100,100,1);
+    }
+    .constellation-Phoenix .constellation-center {
+        background: radial-gradient(circle, rgba(255,100,100,0.7) 0%, rgba(255,100,100,0) 100%);
+    }
+    .constellation-Phoenix .talent-connection {
+        background: linear-gradient(90deg, rgba(255,100,100,0.5), rgba(255,100,100,0.8));
+    }
+    
+    @keyframes node-pulse {
+        0% { box-shadow: 0 0 15px 5px currentColor; }
+        50% { box-shadow: 0 0 20px 8px currentColor; }
+        100% { box-shadow: 0 0 15px 5px currentColor; }
+    }
+    @keyframes connection-pulse {
+        0% { opacity: 0.5; }
+        100% { opacity: 0.9; }
+    }
+
+/* Talentos disponíveis (pulsantes) */
+.talent-node.available {
+    animation: talent-available-pulse 2s infinite alternate;
+}
+
+@keyframes talent-available-pulse {
+    0% { box-shadow: 0 0 8px 3px currentColor; transform: translate(-50%, -50%) scale(1); }
+    100% { box-shadow: 0 0 15px 7px currentColor; transform: translate(-50%, -50%) scale(1.2); }
+}
+
+/* Efeito de partículas para aquisição de talento */
+.talent-particles {
+    position: absolute;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.talent-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background-color: white;
+    border-radius: 50%;
+    opacity: 0;
+    transform: scale(1);
+    animation: particle-effect 1.5s ease-out forwards;
+}
+
+@keyframes particle-effect {
+    0% { opacity: 1; transform: scale(1) translate(0, 0); }
+    100% { opacity: 0; transform: scale(0) translate(var(--tx), var(--ty)); }
+}
+
+/* Efeito de flash ao adquirir talento */
+@keyframes talent-acquired-flash {
+    0% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 15px 5px currentColor; }
+    50% { transform: translate(-50%, -50%) scale(2); box-shadow: 0 0 50px 15px white; }
+    100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 15px 5px currentColor; }
+}
+
+</style>
+
+<script>
+const DEBUG = true;
+// Variável global para controlar tentativas de reparo
+let tentativasDeReparo = 0;
+
+function log(...args) {
+    if (DEBUG) {
+        console.log(...args);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Definição de mapeamento de posições dos talentos
+    const talentPositions = {
+        'Draco': [
+            { id: 1, x: 50, y: 50, requires: null },
+            { id: 2, x: 46, y: 43, requires: 1 },
+            { id: 3, x: 42, y: 35, requires: 2 },
+            { id: 4, x: 36, y: 30, requires: 3 },
+            { id: 5, x: 29, y: 28, requires: 4 },
+            { id: 6, x: 22, y: 30, requires: 5 },
+            { id: 7, x: 16, y: 35, requires: 6 },
+            { id: 8, x: 12, y: 42, requires: 7 },
+            { id: 9, x: 14, y: 50, requires: 8 },
+            { id: 10, x: 20, y: 56, requires: 9 },
+            { id: 11, x: 27, y: 60, requires: 10 },
+            { id: 12, x: 35, y: 62, requires: 11 },
+            { id: 13, x: 42, y: 65, requires: 12 },
+            { id: 14, x: 50, y: 66, requires: 13 },
+            { id: 15, x: 58, y: 65, requires: 14 },
+            { id: 16, x: 65, y: 61, requires: 15 },
+            { id: 17, x: 71, y: 56, requires: 16 },
+            { id: 18, x: 76, y: 50, requires: 17 },
+            { id: 19, x: 79, y: 42, requires: 18 },
+            { id: 20, x: 78, y: 34, requires: 19 }
+        ],
+        'Taurus': [
+            { id: 101, x: 50, y: 50, requires: null },
+            { id: 106, x: 42, y: 45, requires: 101 },
+            { id: 109, x: 35, y: 42, requires: 106 },
+            { id: 114, x: 30, y: 38, requires: 109 },
+            { id: 102, x: 27, y: 45, requires: 114 },
+            { id: 110, x: 30, y: 52, requires: 102 },
+            { id: 117, x: 35, y: 58, requires: 110 },
+            { id: 107, x: 42, y: 60, requires: 117 },
+            { id: 116, x: 50, y: 62, requires: 107 },
+            { id: 103, x: 58, y: 60, requires: 116 },
+            { id: 111, x: 65, y: 58, requires: 103 },
+            { id: 118, x: 70, y: 52, requires: 111 },
+            { id: 104, x: 73, y: 45, requires: 118 },
+            { id: 112, x: 70, y: 38, requires: 104 },
+            { id: 105, x: 65, y: 42, requires: 112 },
+            { id: 115, x: 58, y: 45, requires: 105 },
+            { id: 108, x: 54, y: 40, requires: 115 },
+            { id: 119, x: 50, y: 35, requires: 108 },
+            { id: 113, x: 54, y: 30, requires: 119 },
+            { id: 120, x: 60, y: 35, requires: 113 }
+        ],
+        'Aquarius': [
+            { id: 201, x: 30, y: 35, requires: null },
+            { id: 210, x: 35, y: 30, requires: 201 },
+            { id: 206, x: 41, y: 28, requires: 210 },
+            { id: 202, x: 48, y: 30, requires: 206 },
+            { id: 204, x: 54, y: 35, requires: 202 },
+            { id: 211, x: 59, y: 41, requires: 204 },
+            { id: 207, x: 62, y: 48, requires: 211 },
+            { id: 209, x: 62, y: 55, requires: 207 },
+            { id: 218, x: 58, y: 61, requires: 209 },
+            { id: 212, x: 52, y: 66, requires: 218 },
+            { id: 205, x: 45, y: 68, requires: 212 },
+            { id: 208, x: 38, y: 67, requires: 205 },
+            { id: 213, x: 33, y: 62, requires: 208 },
+            { id: 215, x: 31, y: 55, requires: 213 },
+            { id: 216, x: 34, y: 48, requires: 215 },
+            { id: 203, x: 39, y: 42, requires: 216 },
+            { id: 214, x: 47, y: 40, requires: 203 },
+            { id: 217, x: 55, y: 52, requires: 214 },
+            { id: 219, x: 48, y: 58, requires: 217 },
+            { id: 220, x: 40, y: 50, requires: 219 }
+        ],
+        'Hercules': [
+            { id: 301, x: 50, y: 50, requires: null },
+            { id: 307, x: 42, y: 53, requires: 301 },
+            { id: 310, x: 35, y: 48, requires: 307 },
+            { id: 313, x: 28, y: 53, requires: 310 },
+            { id: 302, x: 22, y: 60, requires: 313 },
+            { id: 315, x: 30, y: 67, requires: 302 },
+            { id: 318, x: 38, y: 72, requires: 315 },
+            { id: 303, x: 45, y: 69, requires: 318 },
+            { id: 311, x: 52, y: 65, requires: 303 },
+            { id: 316, x: 55, y: 57, requires: 311 },
+            { id: 304, x: 60, y: 50, requires: 316 },
+            { id: 314, x: 67, y: 46, requires: 304 },
+            { id: 308, x: 74, y: 50, requires: 314 },
+            { id: 305, x: 69, y: 42, requires: 308 },
+            { id: 319, x: 62, y: 37, requires: 305 },
+            { id: 312, x: 55, y: 32, requires: 319 },
+            { id: 306, x: 48, y: 28, requires: 312 },
+            { id: 309, x: 42, y: 34, requires: 306 },
+            { id: 317, x: 40, y: 42, requires: 309 },
+            { id: 320, x: 45, y: 37, requires: 317 }
+        ],
+        'Pegasus': [
+            { id: 401, x: 40, y: 40, requires: null },
+            { id: 413, x: 45, y: 32, requires: 401 },
+            { id: 412, x: 51, y: 25, requires: 413 },
+            { id: 418, x: 60, y: 22, requires: 412 },
+            { id: 407, x: 68, y: 25, requires: 418 },
+            { id: 402, x: 65, y: 32, requires: 407 },
+            { id: 405, x: 72, y: 38, requires: 402 },
+            { id: 409, x: 74, y: 46, requires: 405 },
+            { id: 414, x: 70, y: 54, requires: 409 },
+            { id: 415, x: 62, y: 60, requires: 414 },
+            { id: 403, x: 53, y: 63, requires: 415 },
+            { id: 406, x: 45, y: 60, requires: 403 },
+            { id: 408, x: 38, y: 55, requires: 406 },
+            { id: 410, x: 35, y: 47, requires: 408 },
+            { id: 411, x: 52, y: 53, requires: 410 },
+            { id: 404, x: 60, y: 45, requires: 411 },
+            { id: 416, x: 56, y: 38, requires: 404 },
+            { id: 419, x: 50, y: 30, requires: 416 },
+            { id: 417, x: 45, y: 46, requires: 419 },
+            { id: 420, x: 55, y: 46, requires: 417 }
+        ],
+        'Phoenix': [
+            { id: 501, x: 75, y: 50, requires: null },
+            { id: 502, x: 63, y: 72, requires: null },
+            { id: 503, x: 37, y: 72, requires: null },
+            { id: 504, x: 25, y: 50, requires: null },
+            { id: 505, x: 37, y: 28, requires: null },
+            { id: 506, x: 63, y: 28, requires: null }
+        ]
+    };
+
+    const constellationColors = {
+        'Draco': '#ff7832',
+        'Hercules': '#c88cff',
+        'Aquarius': '#41b0e4',
+        'Taurus': '#85ffa1', 
+        'Pegasus': '#ffdc87',
+        'Phoenix': '#ff6464'
+    };
+
+    // Variáveis de estado
+    let constellations = [];
+    let currentConstellation = 0;
+    let selectedTalent = null;
+    
+    // Gerar estrelas de fundo
+    const starsLayer1 = document.getElementById('stars-layer-1');
+    const starsLayer2 = document.getElementById('stars-layer-2');
+    const starsLayer3 = document.getElementById('stars-layer-3');
+    generateStars(starsLayer1, 100, 1);
+    generateStars(starsLayer2, 150, 2);
+    generateStars(starsLayer3, 200, 3);
+    
+    initShootingStar();
+    
+    // Carregar dados dos talentos do backend
+    fetch('/gamification/get_talent_data')
+        .then(response => response.json())
+        .then(data => {
+            log("Dados recebidos da API:", data);
+            
+            // Verificar se temos dados úteis da API
+            if (Object.keys(data).length === 0 || !data.talents) {
+                log("API retornou dados incompletos. Usando dados locais.");
+                
+                // Aqui convertemos os talentos de skilltree_final.py
+                const talentData = {
+                    "Ofensiva Brutal": [],
+                    "Defesa e Sobrevivência": [],
+                    "Artes Arcanas": [],
+                    "Sorte e Caos": [],
+                    "Mente Estratégica": [],
+                    "Constelação Oculta": []
+                };
+                
+                // Preencher com dados de skilltree_final.py 
+                // Ofensiva Brutal (Draco) - IDs 1-20
+                const ofensivaBrutalNames = [
+                    "Ataque Pesado I", "Golpe Crítico I", "Dano Crítico I", "Bloqueio Ofensivo",
+                    "Vampirismo I", "Ataque Pesado II", "Golpe Crítico II", "Dano Crítico II",
+                    "Vampirismo II", "Ataque Pesado III", "Golpe Crítico III", "Dano Crítico III",
+                    "Ataque Pesado IV", "Golpe Crítico IV", "Dano Crítico IV", "Bloqueio Ofensivo II",
+                    "Vampirismo III", "Ataque Pesado V", "Golpe Crítico V", "Vampirismo Supremo"
+                ];
+
+                const ofensivaBrutalDesc = [
+                    "Aumenta dano base em +0.2x (20%)", "+2% chance de acerto crítico", "Aumenta o bônus de dano do acerto crítico em 10%",
+                    "Aumenta o bloqueio em 2%", "Cura 0,5% HP do dano causado", "Aumenta dano base em +0.2x (20%)",
+                    "+2% chance de acerto crítico", "Aumenta o bônus de dano do acerto crítico em 10%", "Cura 0,5% HP do dano causado",
+                    "Aumenta dano base em +0.2x (20%)", "+2% chance de acerto crítico", "Aumenta o bônus de dano do acerto crítico em 10%",
+                    "Aumenta dano base em +0.2x (20%)", "+2% chance de acerto crítico", "Aumenta o bônus de dano do acerto crítico em 10%",
+                    "Aumenta o bloqueio em 2%", "Cura 0,5% HP do dano causado", "Aumenta dano base em +0.2x (20%)",
+                    "+2% chance de acerto crítico", "Cura 3% HP do dano causado e aumenta o dano em 0.5x (50%)"
+                ];
+
+                // Popular os talentos de Ofensiva Brutal
+                for (let i = 1; i <= 20; i++) {
+                    talentData["Ofensiva Brutal"].push({
+                        id: i,
+                        name: ofensivaBrutalNames[i-1],
+                        description: ofensivaBrutalDesc[i-1]
+                    });
+                }
+
+                // Defesa e Sobrevivência (Taurus) - IDs 101-120
+                const defesaSobrevivenciaNames = [
+                    "Bloqueio I", "Bloqueio II", "Bloqueio III", "Bloqueio IV", "Bloqueio V",
+                    "HP Máximo I", "HP Máximo II", "HP Máximo III", "Vitalidade I", "Vitalidade II",
+                    "Vitalidade III", "Vitalidade IV", "Vitalidade V", "Cura de Batalha I", "Cura de Batalha II",
+                    "Regeneração Dupla", "Cura Matinal I", "Cura Matinal II", "Cura Matinal III", "Renovação Total"
+                ];
+
+                const defesaSobrevivenciaDesc = [
+                    "Aumenta 2% bloqueio", "Aumenta 2% bloqueio", "Aumenta 2% bloqueio", "Aumenta 2% bloqueio", "Aumenta 2% bloqueio",
+                    "+15 HP máximo", "+15 HP máximo", "+15 HP máximo", "+2 Vitalidade", "+2 Vitalidade", 
+                    "+2 Vitalidade", "+2 Vitalidade", "+2 Vitalidade", "Cura 20HP após derrotar um inimigo", "Cura 20HP após derrotar um inimigo",
+                    "Duplica a regeneração de HP se o HP atual for <30%", "Cura 10HP todo início do dia", "Cura 10HP todo início do dia",
+                    "Cura 10HP todo início do dia", "Após derrotar um inimigo, cura completamente o HP"
+                ];
+
+                // Popular os talentos de Defesa e Sobrevivência
+                for (let i = 101; i <= 120; i++) {
+                    talentData["Defesa e Sobrevivência"].push({
+                        id: i,
+                        name: defesaSobrevivenciaNames[i-101],
+                        description: defesaSobrevivenciaDesc[i-101]
+                    });
+                }
+
+                // Artes Arcanas (Aquarius) - IDs 201-220
+                const artesArcanasNames = [
+                    "MP Máximo I", "MP Máximo II", "MP Máximo III", "Regeneração Mágica", "Regeneração Dobrada",
+                    "Concentração I", "Concentração II", "Concentração III", "Recuperação Arcana", "Escudo de Mana I",
+                    "Escudo de Mana II", "Escudo de Mana III", "Escudo de Mana IV", "Escudo de Mana V", "Regeneração Menor",
+                    "Concentração IV", "Concentração V", "Recuperação Mística", "Regeneração Superior", "Conversão de Mana"
+                ];
+
+                const artesArcanasDesc = [
+                    "+15 MP máximo", "+15 MP máximo", "+15 MP máximo", "Regenera 20 MP no início do dia", 
+                    "Duplica a regeneração de MP se MP for <30%", "+2 Concentração", "+2 Concentração", "+2 Concentração",
+                    "Recupera 25MP após derrotar um inimigo", "Escudo de mana: concede defesa de 1% da mana gasta no dia anterior", 
+                    "Escudo de mana: concede defesa de 1% da mana gasta no dia anterior", "Escudo de mana: concede defesa de 1% da mana gasta no dia anterior",
+                    "Escudo de mana: concede defesa de 1% da mana gasta no dia anterior", "Escudo de mana: concede defesa de 1% da mana gasta no dia anterior",
+                    "Regenera 5 MP no início do dia", "+2 Concentração", "+2 Concentração", "Recupera 25MP após derrotar um inimigo",
+                    "Regenera 15 MP no início do dia", "Cura 10% de HP de todo MP consumido em habilidades"
+                ];
+
+                // Popular os talentos de Artes Arcanas
+                for (let i = 201; i <= 220; i++) {
+                    talentData["Artes Arcanas"].push({
+                        id: i,
+                        name: artesArcanasNames[i-201],
+                        description: artesArcanasDesc[i-201]
+                    });
+                }
+
+                // Sorte e Caos (Hercules) - IDs 301-320
+                const sorteCaosNames = [
+                    "Sorte I", "Sorte II", "Sorte III", "Sorte IV", "Sorte V",
+                    "Sorte VI", "Desconto I", "Desconto II", "Desconto III", "Crítico Caótico I",
+                    "Crítico Caótico II", "Crítico Caótico III", "Cura Caótica I", "Cura Caótica II", "Cristais Dobrados I",
+                    "Cristais Dobrados II", "Cristais Dobrados III", "EXP Turbinada I", "EXP Turbinada II", "Ladrão Mestre"
+                ];
+
+                const sorteCaosDesc = [
+                    "+2 Sorte", "+2 Sorte", "+2 Sorte", "+2 Sorte", "+2 Sorte", 
+                    "+2 Sorte", "10% desconto na loja", "10% desconto na loja", "10% desconto na loja", "+5% chance de acerto crítico",
+                    "+5% chance de acerto crítico", "+5% chance de acerto crítico", "5% de chance de curar totalmente HP e MP no início do dia",
+                    "5% de chance de curar totalmente HP e MP no início do dia", "10% de chance de duplicar a quantidade de cristais recebidos",
+                    "10% de chance de duplicar a quantidade de cristais recebidos", "10% de chance de duplicar a quantidade de cristais recebidos",
+                    "Aumenta EXP recebido em 5%", "Aumenta EXP recebido em 5%", 
+                    "20% de chance de conseguir um baú de recompensa ao logar, tendo logado diariamente nos últimos 5 dias"
+                ];
+
+                // Popular os talentos de Sorte e Caos
+                for (let i = 301; i <= 320; i++) {
+                    talentData["Sorte e Caos"].push({
+                        id: i,
+                        name: sorteCaosNames[i-301],
+                        description: sorteCaosDesc[i-301]
+                    });
+                }
+
+                // Mente Estratégica (Pegasus) - IDs 401-420
+                const menteEstrategicaNames = [
+                    "EXP Estratégico I", "EXP Estratégico II", "EXP Estratégico III", "EXP Estratégico IV", "Cura Matinal I",
+                    "Cura Matinal II", "Recuperação Matinal I", "Recuperação Matinal II", "Atributo Adicional I", "Atributo Adicional II",
+                    "Manhã Potente", "Início Revitalizante", "Vitória Pós-Batalha", "Recuperação Pós-Batalha", "Defesa Emergencial I",
+                    "Defesa Emergencial II", "Dano Retaliatório", "EXP Impecável I", "EXP Impecável II", "Privança do Mestre"
+                ];
+
+                const menteEstrategicaDesc = [
+                    "+5% EXP recebido", "+5% EXP recebido", "+5% EXP recebido", "+5% EXP recebido", "Cura +5 HP todo início de dia",
+                    "Cura +5 HP todo início de dia", "Recupera +5 MP todo início de dia", "Recupera +5 MP todo início de dia",
+                    "Recebe 1 ponto de atributo adicional a cada 10 níveis", "Recebe 1 ponto de atributo adicional a cada 10 níveis",
+                    "Cura 20HP se começar o dia com MP cheio", "Recupera 20MP se começar o dia com HP cheio",
+                    "Cura 15 HP ao derrotar um inimigo", "Recupera 10 MP ao derrotar um inimigo",
+                    "Aumenta o bloqueio em 5% se HP atual estiver abaixo de 50% do HP máximo", "Aumenta o bloqueio em 5% se HP atual estiver abaixo de 50% do HP máximo",
+                    "+0.5x dano se o dano causado aos inimigos no dia anterior foi 500 ou mais", "Recebe 10% a mais de EXP ao derrotar um inimigo sem sofrer dano",
+                    "Recebe 10% a mais de EXP ao derrotar um inimigo sem sofrer dano", "+20 Sorte, +15 Vitalidade, +15 Concentração"
+                ];
+
+                // Popular os talentos de Mente Estratégica
+                for (let i = 401; i <= 420; i++) {
+                    talentData["Mente Estratégica"].push({
+                        id: i,
+                        name: menteEstrategicaNames[i-401],
+                        description: menteEstrategicaDesc[i-401]
+                    });
+                }
+
+                // Constelação Oculta (Phoenix) - IDs 501-506
+                const constelacaoOcultaNames = [
+                    "Espada do Verbo", "Juízo Final", "Selo de Luz", "Graça", "Guardião Silencioso", "Inspiração Sagrada"
+                ];
+
+                const constelacaoOcultaDesc = [
+                    "Aumenta o dano base em +1.0", "Aumenta a chance de crítico em 5%",
+                    "Concede +7 HP e +7 MP por golpe carregado", "Aumenta chance de esquiva em 5%",
+                    "Ao iniciar o dia com HP cheio, concede um escudo de 25 HP", "Regenera 3% do HP e 3% do MP a cada 10 minutos de estudo"
+                ];
+
+                // Popular os talentos da Constelação Oculta
+                for (let i = 501; i <= 506; i++) {
+                    talentData["Constelação Oculta"].push({
+                        id: i,
+                        name: constelacaoOcultaNames[i-501],
+                        description: constelacaoOcultaDesc[i-501]
+                    });
+                }
+                
+                // Preparar dados no formato correto para o frontend
+                data = {
+                    "Ofensiva Brutal": {
+                        "id": "Draco",
+                        "name": "Draco",
+                        "oldName": "Ofensiva Brutal",
+                        "talents": talentData["Ofensiva Brutal"]
+                    },
+                    "Defesa e Sobrevivência": {
+                        "id": "Taurus",
+                        "name": "Taurus",
+                        "oldName": "Defesa e Sobrevivência",
+                        "talents": talentData["Defesa e Sobrevivência"]
+                    },
+                    "Artes Arcanas": {
+                        "id": "Aquarius",
+                        "name": "Aquarius",
+                        "oldName": "Artes Arcanas",
+                        "talents": talentData["Artes Arcanas"]
+                    },
+                    "Sorte e Caos": {
+                        "id": "Hercules",
+                        "name": "Hercules", 
+                        "oldName": "Sorte e Caos",
+                        "talents": talentData["Sorte e Caos"]
+                    },
+                    "Mente Estratégica": {
+                        "id": "Pegasus",
+                        "name": "Pegasus",
+                        "oldName": "Mente Estratégica",
+                        "talents": talentData["Mente Estratégica"]
+                    },
+                    "Constelação Oculta": {
+                        "id": "Phoenix",
+                        "name": "Phoenix",
+                        "oldName": "Constelação Oculta",
+                        "talents": talentData["Constelação Oculta"]
+                    }
+                };
+            }
+
+            // Transformar os dados em array de constelações
+            constellations = Object.values(data).map(branch => {
+                const constId = branch.id;
+                
+                log(`Processando constelação ${constId}...`);
+                
+                // Combinar dados de talentos com suas posições
+                const talents = branch.talents.map(talent => {
+                    // Buscar posição pelo ID numérico
+                    const talentId = parseInt(talent.id);
+                    const positions = talentPositions[constId] || [];
+                    const position = positions.find(pos => parseInt(pos.id) === talentId);
+                    
+                    if (!position) {
+                        log(`Posição não encontrada para talento ID ${talent.id} na constelação ${constId}`);
+                        return null;
+                    }
+                    
+                    // Obter a descrição do efeito se estiver disponível
+                    let description = talent.description || "";
+                    
+                    // Se tiver níveis, pegar efeito do primeiro nível
+                    if (talent.levels && talent.levels.length > 0) {
+                        description = talent.levels[0].effect || description;
+                    }
+                    
+                    return {
+                        id: talentId,
+                        name: talent.name || `Talento ${talentId}`,
+                        description: description,
+                        x: position.x,
+                        y: position.y,
+                        requires: position.requires
+                    };
+                }).filter(t => t !== null);
+                
+                return {
+                    id: constId,
+                    name: branch.name,
+                    oldName: branch.oldName,
+                    color: constellationColors[constId],
+                    talents: talents
+                };
+            });
+            
+            log("Constelações processadas:", constellations);
+            
+            // Inicializar a interface
+            initConstellations();
+            hideSecretConstellation();
+            loadUnlockedTalents();
+            
+            // Definir a constelação inicial (posição 3 - Aquarius)
+            updateConstellation(2); // Índice 2 é a terceira posição (0-based)
+            
+            // Verificação adicional para garantir que constelações sejam exibidas
+            setTimeout(garantirConstelacaoVisivel, 500);
+        })
+        .catch(error => {
+            console.error("Erro ao carregar dados dos talentos:", error);
+            // Se falhar, use dados de backup para manter funcionalidade básica
+            initWithBackupData();
+        });
+    
+    function initConstellations() {
+        const constellationsContainer = document.getElementById('constellations-container');
+        if (!constellationsContainer) {
+            console.error("Erro crítico: Container de constelações não encontrado no DOM!");
+            return;
+        }
+        
+        constellationsContainer.innerHTML = ''; // Limpar qualquer conteúdo existente
+        
+        // Gerar os elementos das constelações e nós de talentos
+        constellations.forEach((constellation, index) => {
+            log(`Gerando constelação ${constellation.id} com ${constellation.talents.length} talentos`);
+            
+            // Criar o elemento da constelação
+            const constellationElem = document.createElement('div');
+            constellationElem.className = `constellation constellation-${constellation.id}`;
+            constellationElem.id = `constellation-${constellation.id}`;
+            constellationElem.dataset.index = index;
+            
+            // Nebulosa central
+            const centerGlow = document.createElement('div');
+            centerGlow.className = 'constellation-center';
+            constellationElem.appendChild(centerGlow);
+            
+            // Adicionar ao container
+            constellationsContainer.appendChild(constellationElem);
+            
+            // Criar os nós de talento
+            constellation.talents.forEach(talent => {
+                // Verificar se o talento possui as propriedades necessárias
+                if (!talent.x || !talent.y) {
+                    console.error(`Talento ${talent.id} não possui coordenadas x, y definidas.`);
+                    return; // Pular este talento
+                }
+                
+                const talentNode = document.createElement('div');
+                talentNode.className = 'talent-node locked';
+                if(talent.requires === null || talent.requires === undefined) { 
+                    talentNode.className += ' root-talent'; 
+                }
+                talentNode.id = `talent-${talent.id}`;
+                talentNode.dataset.id = talent.id;
+                talentNode.dataset.name = talent.name || `Talento ${talent.id}`;
+                talentNode.dataset.description = talent.description || "Descrição não disponível.";
+                talentNode.dataset.requires = talent.requires || null;
+                talentNode.style.left = `${talent.x}%`;
+                talentNode.style.top = `${talent.y}%`;
+                talentNode.style.color = constellation.color;
+                
+                constellationElem.appendChild(talentNode);
+                log(`Criado nó de talento ${talent.id} em (${talent.x}%, ${talent.y}%)`);
+            });
+        });
+        
+        log("Criando conexões entre talentos...");
+        // Criar as conexões entre os talentos
+        constellations.forEach(constellation => {
+            const constellationElem = document.getElementById(`constellation-${constellation.id}`);
+            
+            if (!constellationElem) {
+                console.error(`Elemento da constelação ${constellation.id} não encontrado.`);
+                return;
+            }
+            
+            constellation.talents.forEach(talent => {
+                if(talent.requires) {
+                    const requiredTalent = constellation.talents.find(t => t.id === talent.requires);
+                    if(requiredTalent) {
+                        createConnection(constellationElem, requiredTalent, talent);
+                    }
+                }
+            });
+        });
+        
+        // Garantir que as conexões sejam atualizadas após um delay
+        setTimeout(function() {
+            updateAllConnections();
+            log("Conexões atualizadas após inicialização.");
+        }, 500);
+    }
+    
+    // Botões de navegação
+    document.getElementById('prev-constellation').addEventListener('click', () => {
+        // Navegar para a esquerda
+        navigateSequentially('left');
+    });
+    
+    document.getElementById('next-constellation').addEventListener('click', () => {
+        // Navegar para a direita
+        navigateSequentially('right');
+    });
+    
+    // Delegação de eventos para cliques nos talentos
+    document.getElementById('constellations-container').addEventListener('click', function(event) {
+        // Verificar se o clique foi em um nó de talento ou seu pseudo-elemento
+        let targetNode = event.target;
+        while (targetNode && !targetNode.classList?.contains('talent-node')) {
+            if (targetNode === this) return; // Se chegou ao container, sair
+            targetNode = targetNode.parentElement;
+        }
+        
+        if (targetNode && targetNode.dataset && targetNode.dataset.id) {
+            selectTalent(targetNode.dataset.id);
+        }
+    });
+    
+    // Permitir desbloquear talento com duplo‑clique
+    document.getElementById('constellations-container').addEventListener('dblclick', function(event) {
+        let node = event.target;
+        // sobe na árvore até achar o nó de talento ou sair
+        while (node && !node.classList?.contains('talent-node')) {
+            if (node === this) return;
+            node = node.parentElement;
+        }
+        if (!node) return;
+        // seleciona este talento
+        selectTalent(node.dataset.id);
+        // se o botão de aprender estiver ativo, dispara a função
+        const btn = document.getElementById('learn-talent-btn');
+        if (!btn.classList.contains('disabled')) {
+            learnTalent();
+        }
+    });
+
+    document.getElementById('learn-talent-btn').addEventListener('click', learnTalent);
+    
+    // Botão "Modo Teste" para ganhar pontos de talento
+    document.getElementById('gain-points-btn').addEventListener('click', function() {
+        fetch('/gamification/add_talent_points', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                let pointsElem = document.getElementById('available-points');
+                pointsElem.textContent = data.total_points;
+                updateAvailableTalents();
+                if (selectedTalent) {
+                    updateTalentDetails();
+                }
+            } else {
+                alert('Erro ao adicionar pontos: ' + (data.message || 'Erro desconhecido'));
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao comunicar com o servidor');
+        });
+    });
+    
+    function hideSecretConstellation() {
+        const secretIndex = constellations.findIndex(c => c.id === 'Phoenix');
+        if(secretIndex >= 0) {
+            const secretElem = document.getElementById(`constellation-${constellations[secretIndex].id}`);
+            if(secretElem) { 
+                secretElem.style.display = 'none';
+                log("Ocultando constelação secreta Phoenix");
+            }
+        }
+    }
+    
+    function loadUnlockedTalents() {
+        // Carregar talentos desbloqueados
+        fetch('/gamification/get_player_talents')
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                data.talents.forEach(talent => {
+                    const talentNode = document.getElementById(`talent-${talent.id}`);
+                    if(talentNode) {
+                        talentNode.classList.remove('locked');
+                        talentNode.classList.add('unlocked');
+                    }
+                });
+                
+                // Atualizar tudo
+                updateAllConnections();
+                updateAvailableTalents();
+                checkAndToggleSecretConstellation();
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao carregar talentos:', error);
+        });
+    }
+    
+    function updateAvailableTalents() {
+        // Primeiro, remover a classe 'available' de todos os talentos
+        document.querySelectorAll('.talent-node.available').forEach(node => {
+            node.classList.remove('available');
+        });
+        
+        // Obter pontos disponíveis
+        const currentPoints = parseInt(document.getElementById('available-points').textContent) || 0;
+        
+        if (currentPoints <= 0) {
+            log("Sem pontos disponíveis para gastar");
+            return; // Se não há pontos, não há talentos disponíveis
+        }
+        
+        // Verificar quais talentos estão disponíveis
+        document.querySelectorAll('.talent-node.locked').forEach(node => {
+            const requiresId = node.dataset.requires;
+            let requirementsMet = true;
+            
+            if (requiresId && requiresId !== "null") {
+                const requiredNode = document.getElementById(`talent-${requiresId}`);
+                if (!requiredNode || !requiredNode.classList.contains('unlocked')) {
+                    requirementsMet = false;
+                }
+            }
+            
+            // Se os requisitos foram atendidos e o jogador tem pontos, marcar como disponível
+            if (requirementsMet) {
+                node.classList.add('available');
+            }
+        });
+    }
+    
+    function createTalentParticles(talentNode) {
+        // Obter posição do talento
+        const rect = talentNode.getBoundingClientRect();
+        const x = rect.left + rect.width/2;
+        const y = rect.top + rect.height/2;
+        
+        // Criar container de partículas
+        const particlesContainer = document.createElement('div');
+        particlesContainer.className = 'talent-particles';
+        particlesContainer.style.left = `${x}px`;
+        particlesContainer.style.top = `${y}px`;
+        document.body.appendChild(particlesContainer);
+        
+        // Criar partículas
+        const colors = ['#fff', '#ffcc00', '#ff9900', '#ffff00', talentNode.style.color];
+        for(let i = 0; i < 40; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'talent-particle';
+            
+            // Velocidade e ângulo aleatórios
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 50 + Math.random() * 100;
+            const tx = Math.cos(angle) * distance;
+            const ty = Math.sin(angle) * distance;
+            
+            // Definir propriedades CSS
+            particle.style.setProperty('--tx', `${tx}px`);
+            particle.style.setProperty('--ty', `${ty}px`);
+            particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.left = '0px';
+            particle.style.top = '0px';
+            
+            // Tamanho e atraso aleatórios
+            const size = 2 + Math.random() * 4;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.animationDelay = `${Math.random() * 0.2}s`;
+            
+            particlesContainer.appendChild(particle);
+        }
+        
+        // Remover após a animação
+        setTimeout(() => {
+            particlesContainer.remove();
+        }, 2000);
+    }
+    
+    function updateAllConnections() {
+        if(!constellations || constellations.length === 0) {
+            console.error("updateAllConnections: Constelações não inicializadas");
+            return;
+        }
+        
+        log("Atualizando todas as conexões...");
+        
+        // Verificar todas as conexões possíveis
+        constellations.forEach(constellation => {
+            if(!constellation || !constellation.talents) {
+                console.error("Dados de constelação inválidos:", constellation);
+                return;
+            }
+            
+            constellation.talents.forEach(talent => {
+                if(!talent || talent.requires === undefined) return;
+                
+                const sourceNode = document.getElementById(`talent-${talent.requires}`);
+                const targetNode = document.getElementById(`talent-${talent.id}`);
+                
+                if(sourceNode && targetNode) {
+                    const connection = document.getElementById(`connection-${talent.requires}-${talent.id}`);
+                    if(connection) {
+                        try {
+                            // Atualizar a posição da conexão
+                            const constellationElem = sourceNode.parentElement;
+                            if(!constellationElem) {
+                                console.error(`Elemento pai não encontrado para o talento ${talent.requires}`);
+                                return;
+                            }
+                            
+                            const parentRect = constellationElem.getBoundingClientRect();
+                            const fromRect = sourceNode.getBoundingClientRect();
+                            const toRect = targetNode.getBoundingClientRect();
+                            
+                            if(!parentRect.width || !parentRect.height) {
+                                console.warn(`Elemento pai de talento com dimensões inválidas:`, parentRect);
+                                return;
+                            }
+                            
+                            const x1 = (fromRect.left + fromRect.width/2) - parentRect.left;
+                            const y1 = (fromRect.top + fromRect.height/2) - parentRect.top;
+                            const x2 = (toRect.left + toRect.width/2) - parentRect.left;
+                            const y2 = (toRect.top + toRect.height/2) - parentRect.top;
+                            const dx = x2 - x1, dy = y2 - y1;
+                            const length = Math.sqrt(dx*dx + dy*dy);
+                            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                            
+                            connection.style.width = length + 'px';
+                            connection.style.left = x1 + 'px';
+                            connection.style.top = y1 + 'px';
+                            connection.style.transformOrigin = 'left center';
+                            connection.style.transform = `rotate(${angle}deg)`;
+                            
+                            // Atualizar visual da conexão
+                            if(sourceNode.classList.contains('unlocked') && 
+                            targetNode.classList.contains('unlocked')) {
+                                connection.classList.remove('locked');
+                                connection.classList.add('unlocked');
+                            } else {
+                                connection.classList.remove('unlocked');
+                                connection.classList.add('locked');
+                            }
+                        } catch(e) {
+                            console.error(`Erro ao atualizar conexão ${talent.requires}-${talent.id}:`, e);
+                        }
+                    }
+                }
+            });
+        });
+    }
+    
+    function createConnection(constellationElem, fromTalent, toTalent) {
+        const connection = document.createElement('div');
+        connection.className = 'talent-connection locked';
+        connection.id = `connection-${fromTalent.id}-${toTalent.id}`;
+        
+        // Calcular posições iniciais (serão ajustadas depois no updateAllConnections)
+        const fromX = fromTalent.x;
+        const fromY = fromTalent.y;
+        const toX = toTalent.x;
+        const toY = toTalent.y;
+        const dx = toX - fromX;
+        const dy = toY - fromY;
+        const distance = Math.sqrt(dx*dx + dy*dy);
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+        
+        connection.style.width = distance + '%';
+        connection.style.left = fromX + '%';
+        connection.style.top = fromY + '%';
+        connection.style.transformOrigin = 'left center';
+        connection.style.transform = `rotate(${angle}deg)`;
+        
+        constellationElem.insertBefore(connection, constellationElem.firstChild);
+        return connection;
+    }
+    
+    function selectTalent(id) {
+        if(selectedTalent) {
+            const previousNode = document.getElementById(`talent-${selectedTalent}`);
+            if(previousNode) { previousNode.classList.remove('selected'); }
+        }
+        selectedTalent = id;
+        const talentNode = document.getElementById(`talent-${id}`);
+        if(talentNode) { 
+            talentNode.classList.add('selected');
+            updateTalentDetails();
+        }
+    }
+    
+    function updateTalentDetails() {
+        const nameElem = document.getElementById('talent-name');
+        const descElem = document.getElementById('talent-description');
+        const learnBtn = document.getElementById('learn-talent-btn');
+        if(selectedTalent) {
+            const talentNode = document.getElementById(`talent-${selectedTalent}`);
+            if(!talentNode) return;
+            const isUnlocked = talentNode.classList.contains('unlocked');
+            const currentPoints = parseInt(document.getElementById('available-points').textContent) || 0;
+            const canLearn = currentPoints > 0 && !isUnlocked;
+            let requirementsMet = true;
+            const requiresId = talentNode.dataset.requires;
+            if(requiresId && requiresId !== "null") {
+                const requiredNode = document.getElementById(`talent-${requiresId}`);
+                if(!requiredNode || !requiredNode.classList.contains('unlocked')) { 
+                    requirementsMet = false; 
+                }
+            }
+            nameElem.textContent = talentNode.dataset.name;
+            descElem.textContent = talentNode.dataset.description;
+            if(isUnlocked) {
+                learnBtn.classList.add('disabled');
+                learnBtn.textContent = 'APRENDIDO';
+            } else if(canLearn && requirementsMet) {
+                learnBtn.classList.remove('disabled');
+                learnBtn.textContent = 'APRENDER';
+            } else if(!requirementsMet) {
+                learnBtn.classList.add('disabled');
+                learnBtn.textContent = 'REQUISITO NÃO ATENDIDO';
+            } else {
+                learnBtn.classList.add('disabled');
+                learnBtn.textContent = 'PONTOS INSUFICIENTES';
+            }
+        } else {
+            nameElem.textContent = 'Selecione um Talento';
+            descElem.textContent = 'Escolha um talento na constelação para ver seus detalhes.';
+            learnBtn.classList.add('disabled');
+            learnBtn.textContent = 'APRENDER';
+        }
+    }
+    
+    function learnTalent() {
+        const currentPoints = parseInt(document.getElementById('available-points').textContent) || 0;
+        if(!selectedTalent || currentPoints <= 0) return;
+        const talentNode = document.getElementById(`talent-${selectedTalent}`);
+        if(!talentNode || talentNode.classList.contains('unlocked')) return;
+        const requiresId = talentNode.dataset.requires;
+        if(requiresId && requiresId !== "null") {
+            const requiredNode = document.getElementById(`talent-${requiresId}`);
+            if(!requiredNode || !requiredNode.classList.contains('unlocked')) {
+                alert('Você precisa desbloquear o talento requisito primeiro!');
+                return;
+            }
+        }
+        fetch('/gamification/unlock_talent', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ talent_id: selectedTalent })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                // Efeito visual
+                createTalentParticles(talentNode);
+                
+                talentNode.style.animation = 'talent-acquired-flash 0.8s forwards';
+                setTimeout(() => {
+                    talentNode.style.animation = '';
+                    talentNode.classList.remove('locked', 'available');
+                    talentNode.classList.add('unlocked');
+                    
+                    // Atualizar conexões e disponibilidade
+                    updateAllConnections();
+                    updateAvailableTalents();
+                    
+                    // Verificar constelação secreta
+                    checkAndToggleSecretConstellation();
+                }, 800);
+                
+                // Atualizar pontos disponíveis
+                const pointsElem = document.getElementById('available-points');
+                const newPoints = parseInt(pointsElem.textContent) - 1;
+                pointsElem.textContent = newPoints;
+                
+                // Atualizar interface
+                updateTalentDetails();
+            } else {
+                alert('Erro ao desbloquear talento: ' + (data.message || 'Erro desconhecido'));
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao comunicar com o servidor');
+        });
+    }
+    
+    // Função para navegar sequencialmente entre constelações
+    function navigateSequentially(direction) {
+        // Determinar a ordem correta de índices, excluindo a Phoenix
+        let sequentialOrder = [];
+        
+        // Adicionar índices de todas as constelações visíveis (exceto Phoenix)
+        for (let i = 0; i < constellations.length; i++) {
+            if (constellations[i].id !== 'Phoenix') {
+                const elem = document.getElementById(`constellation-${constellations[i].id}`);
+                if (elem && elem.style.display !== 'none') {
+                    sequentialOrder.push(i);
+                }
+            }
+        }
+        
+        // Adicionar Phoenix ao final se estiver visível
+        const phoenixIndex = constellations.findIndex(c => c.id === 'Phoenix');
+        if (phoenixIndex >= 0) {
+            const phoenixElem = document.getElementById(`constellation-${constellations[phoenixIndex].id}`);
+            if (phoenixElem && phoenixElem.style.display !== 'none') {
+                sequentialOrder.push(phoenixIndex);
+            }
+        }
+        
+        // Encontrar a posição atual na sequência
+        const currentPosition = sequentialOrder.indexOf(currentConstellation);
+        if (currentPosition === -1) {
+            log("Erro: Constelação atual não encontrada na sequência");
+            return;
+        }
+        
+        // Determinar o próximo índice na sequência
+        let nextPosition;
+        if (direction === 'right') {
+            nextPosition = (currentPosition + 1) % sequentialOrder.length;
+        } else { // direction === 'left'
+            nextPosition = (currentPosition - 1 + sequentialOrder.length) % sequentialOrder.length;
+        }
+        
+        // Obter o índice real da próxima constelação
+        const nextConstellationIndex = sequentialOrder[nextPosition];
+        
+        // Chamar navigateToConstellation com o índice correto
+        navigateToConstellation(nextConstellationIndex, direction);
+    }
+
+    
+    function navigateToConstellation(index, direction) {
+        // Verificar se o índice está dentro dos limites
+        if (index < 0 || index >= constellations.length) {
+            console.error(`Índice de constelação inválido: ${index}`);
+            return;
+        }
+        
+        // Obter a constelação alvo
+        const targetConstellation = document.getElementById(`constellation-${constellations[index].id}`);
+        log(`Navegando para constelação: ${constellations[index].id}`);
+        
+        if(!targetConstellation || targetConstellation.style.display === 'none') { 
+            console.warn("Constelação alvo não encontrada ou oculta");
+            return; 
+        }
+        
+        // Obter a constelação atual
+        const currentConstellationElem = document.getElementById(`constellation-${constellations[currentConstellation].id}`);
+        
+        // Remover classe ativa da constelação atual
+        if(currentConstellationElem) {
+            log(`Removendo 'active' de ${constellations[currentConstellation].id}`);
+            currentConstellationElem.classList.remove('active');
+            currentConstellationElem.classList.add(direction === 'left' ? 'left' : 'right');
+        }
+        
+        // Reset da constelação alvo antes de animá-la
+        targetConstellation.classList.remove('left', 'right', 'active');
+        // Forçar reflow para garantir que a transição ocorra
+        void targetConstellation.offsetWidth;
+        
+        // Posicionar a constelação alvo do lado oposto da direção
+        targetConstellation.classList.add(direction === 'left' ? 'right' : 'left');
+        // Forçar reflow novamente
+        void targetConstellation.offsetWidth;
+        
+        // Remover classes de posição e tornar ativa
+        targetConstellation.classList.remove('left', 'right');
+        targetConstellation.classList.add('active');
+        
+        // Atualizar estado atual
+        currentConstellation = index;
+        document.getElementById('constellation-title').textContent = constellations[index].oldName;
+        updateStarsForConstellation(index);
+        
+        // Limpar talento selecionado, se houver
+        if(selectedTalent) {
+            const oldTalentNode = document.getElementById(`talent-${selectedTalent}`);
+            if(oldTalentNode) { oldTalentNode.classList.remove('selected'); }
+            selectedTalent = null;
+            updateTalentDetails();
+        }
+        
+        // Garantir que todas as conexões sejam atualizadas após a transição
+        setTimeout(function() {
+            updateAllConnections();
+        }, 300);
+    }
+    
+    function updateConstellation(index) {
+        if (index < 0 || index >= constellations.length) {
+            console.error(`Índice de constelação inválido: ${index}`);
+            return;
+        }
+        
+        // Se a constelação estiver oculta, mostrar a padrão
+        const constellationElem = document.getElementById(`constellation-${constellations[index].id}`);
+        if (constellationElem && constellationElem.style.display === 'none') {
+            // Tentar com Aquarius (índice 2) como padrão
+            if (index !== 2) {
+                updateConstellation(2);
+                return;
+            }
+            // Se Aquarius também estiver oculto, usar a primeira disponível
+            forcarPrimeiraConstelacaoVisivel();
+            return;
+        }
+        
+        // Limpar todas as classes de todas as constelações
+        document.querySelectorAll('.constellation').forEach(elem => { 
+            elem.classList.remove('active','left','right'); 
+        });
+        
+        // Obter a constelação selecionada
+        log(`Atualizando para constelação: ${constellations[index].id}`);
+        
+        // Tornar ativa apenas com classe (não com style)
+        if(constellationElem) { 
+            constellationElem.classList.add('active'); 
+            log(`Adicionada classe 'active' a ${constellations[index].id}`);
+        } else {
+            console.warn(`Constelação ${constellations[index].id} não encontrada no DOM`);
+            forcarPrimeiraConstelacaoVisivel();
+            return;
+        }
+        
+        // Atualizar título e estrelas
+        const titleElement = document.getElementById('constellation-title');
+        if (titleElement) {
+            titleElement.textContent = constellations[index].oldName || constellations[index].name;
+        }
+        
+        currentConstellation = index;
+        updateStarsForConstellation(index);
+        
+        // Garantir que as conexões sejam atualizadas
+        setTimeout(function() {
+            updateAllConnections();
+        }, 100);
+    }
+    
+    function updateStarsForConstellation(index) {
+        starsLayer1.style.transform = `translateX(${-index * 20}px)`;
+        starsLayer2.style.transform = `translateX(${-index * 40}px)`;
+        starsLayer3.style.transform = `translateX(${-index * 60}px)`;
+    }
+    
+    function getVisibleConstellations() {
+        return constellations.map((c, i) => {
+            const elem = document.getElementById(`constellation-${c.id}`);
+            return { index: i, visible: !elem || elem.style.display !== 'none' };
+        }).filter(c => c.visible).map(c => c.index);
+    }
+    
+    function isConstellationComplete(constellationId) {
+        const constellation = constellations.find(c => c.id === constellationId);
+        if(!constellation) return false;
+        const mainTalents = constellation.talents.slice(0,20);
+        return mainTalents.every(talent => {
+            const node = document.getElementById(`talent-${talent.id}`);
+            return node && node.classList.contains('unlocked');
+        });
+    }
+    
+    function checkAndToggleSecretConstellation() {
+        const secretIndex = constellations.findIndex(c => c.id === 'Phoenix');
+        if(secretIndex < 0) return;
+        const secretElem = document.getElementById(`constellation-${constellations[secretIndex].id}`);
+        if(!secretElem) return;
+        const anyComplete = constellations.some(c => c.id !== 'Phoenix' && isConstellationComplete(c.id));
+        secretElem.style.display = anyComplete ? 'flex' : 'none';
+        if(secretElem.style.display === 'none' && currentConstellation === secretIndex) { updateConstellation(2); }
+    }
+    
+    function generateStars(layer, count, size) {
+        for(let i = 0; i < count; i++){
+            const star = document.createElement('div');
+            star.className = 'star';
+            if(Math.random() < 0.35){
+                const twinkleTypes = ['twinkle-slow','twinkle-medium','twinkle-fast'];
+                star.classList.add(twinkleTypes[Math.floor(Math.random() * twinkleTypes.length)]);
+            }
+            star.style.width = `${Math.random() * size + 1}px`;
+            star.style.height = star.style.width;
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.opacity = `${Math.random() * 0.7 + 0.3}`;
+            star.style.boxShadow = `0 0 ${size * 2}px rgba(255,255,255,0.7)`;
+            layer.appendChild(star);
+        }
+    }
+    
+    function initShootingStar() {
+        setInterval(() => {
+            if(Math.random() < 0.2){
+                const shootingStar = document.getElementById('shooting-star');
+                const startX = Math.random() * 80 + 10;
+                const startY = Math.random() * 30;
+                shootingStar.style.top = `${startY}%`;
+                shootingStar.style.left = `${startX}%`;
+                const angle = Math.random() * 30 + 30;
+                const direction = Math.random() < 0.5 ? -1 : 1;
+                shootingStar.style.animation = 'none';
+                void shootingStar.offsetWidth;
+                const duration = Math.random() * 0.5 + 0.5;
+                shootingStar.style.animation = `shooting-star ${duration}s linear forwards`;
+                shootingStar.style.transform = `rotate(${angle * direction}deg)`;
+            }
+        }, 5000);
+    }
+    
+    // Função auxiliar para garantir que pelo menos uma constelação esteja visível
+    function garantirConstelacaoVisivel() {
+        log("Verificando visibilidade das constelações...");
+        
+        // Verificar se existe alguma constelação ativa
+        const constelacoesAtivas = document.querySelectorAll('.constellation.active');
+        
+        if (constelacoesAtivas.length === 0 && constellations && constellations.length > 0) {
+            log("Nenhuma constelação ativa encontrada. Ativando a primeira...");
+            
+            // Encontrar a primeira constelação não-Phoenix
+            let primeiraConstelacaoIndex = -1;
+            for (let i = 0; i < constellations.length; i++) {
+                if (constellations[i].id !== 'Phoenix') {
+                    primeiraConstelacaoIndex = i;
+                    break;
+                }
+            }
+            
+            if (primeiraConstelacaoIndex >= 0) {
+                // Limpar classes de todas as constelações
+                document.querySelectorAll('.constellation').forEach(elem => {
+                    elem.classList.remove('active', 'left', 'right');
+                });
+                
+                // Ativar apenas a primeira constelação com classes (não style direto)
+                const primeiraConstelacao = document.getElementById(`constellation-${constellations[primeiraConstelacaoIndex].id}`);
+                if (primeiraConstelacao) {
+                    primeiraConstelacao.classList.add('active');
+                    currentConstellation = primeiraConstelacaoIndex;
+                    
+                    // Definir o título da constelação
+                    document.getElementById('constellation-title').textContent = constellations[currentConstellation].oldName;
+                    
+                    log("Constelação ativada:", constellations[currentConstellation].id);
+                    
+                    // Atualizar conexões após um breve delay
+                    setTimeout(updateAllConnections, 100);
+                }
+            }
+        }
+    }
+    
+    function forcarPrimeiraConstelacaoVisivel() {
+        // Forçar a primeira constelação a ser visível (exceto Phoenix)
+        for (let i = 0; i < constellations.length; i++) {
+            if (constellations[i].id !== "Phoenix") {
+                // Limpar classes de todas as constelações primeiro
+                document.querySelectorAll('.constellation').forEach(elem => {
+                    elem.classList.remove('active', 'left', 'right');
+                });
+                
+                const constellation = document.getElementById(`constellation-${constellations[i].id}`);
+                if (constellation) {
+                    // Adicionar apenas a classe active, sem definir estilos CSS diretamente
+                    constellation.classList.add('active');
+                    currentConstellation = i;
+                    
+                    const titleElement = document.getElementById('constellation-title');
+                    if (titleElement) {
+                        titleElement.textContent = constellations[i].oldName || constellations[i].name;
+                    }
+                    
+                    log(`Forçada exibição da constelação ${constellations[i].id}`);
+                    break;
+                }
+            }
+        }
+        
+        // Atualizar conexões
+        setTimeout(updateAllConnections, 100);
+    }
+    
+    // Recalcular conexões quando a janela for redimensionada
+    window.addEventListener('resize', function() {
+        updateAllConnections();
+    });
+    
+    // Chamar updateAllConnections após um curto delay para garantir que todos os elementos estejam prontos
+    setTimeout(function() {
+        updateAllConnections();
+    }, 500);
+    
+    function initWithBackupData() {
+        console.warn("Usando dados de backup devido a erro na API");
+        
+        // Dados mínimos para funcionamento básico
+        constellations = [
+            {
+                id: 'Draco',
+                name: 'Draco',
+                oldName: 'Ofensiva Brutal',
+                color: '#ff7832',
+                talents: talentPositions['Draco'].map(pos => ({
+                    id: pos.id,
+                    name: `Talento ${pos.id}`,
+                    description: "Descrição indisponível.",
+                    x: pos.x,
+                    y: pos.y,
+                    requires: pos.requires
+                }))
+            },
+            {
+                id: 'Taurus',
+                name: 'Taurus',
+                oldName: 'Defesa e Sobrevivência',
+                color: '#85ffa1',
+                talents: talentPositions['Taurus'].map(pos => ({
+                    id: pos.id,
+                    name: `Talento ${pos.id}`,
+                    description: "Descrição indisponível.",
+                    x: pos.x,
+                    y: pos.y,
+                    requires: pos.requires
+                }))
+            },
+            {
+                id: 'Aquarius',
+                name: 'Aquarius',
+                oldName: 'Artes Arcanas',
+                color: '#41b0e4',
+                talents: talentPositions['Aquarius'].map(pos => ({
+                    id: pos.id,
+                    name: `Talento ${pos.id}`,
+                    description: "Descrição indisponível.",
+                    x: pos.x,
+                    y: pos.y,
+                    requires: pos.requires
+                }))
+            },
+            {
+                id: 'Hercules',
+                name: 'Hercules',
+                oldName: 'Sorte e Caos',
+                color: '#c88cff',
+                talents: talentPositions['Hercules'].map(pos => ({
+                    id: pos.id,
+                    name: `Talento ${pos.id}`,
+                    description: "Descrição indisponível.",
+                    x: pos.x,
+                    y: pos.y,
+                    requires: pos.requires
+                }))
+            },
+            {
+                id: 'Pegasus',
+                name: 'Pegasus',
+                oldName: 'Mente Estratégica',
+                color: '#ffdc87',
+                talents: talentPositions['Pegasus'].map(pos => ({
+                    id: pos.id,
+                    name: `Talento ${pos.id}`,
+                    description: "Descrição indisponível.",
+                    x: pos.x,
+                    y: pos.y,
+                    requires: pos.requires
+                }))
+            },
+            {
+                id: 'Phoenix',
+                name: 'Phoenix',
+                oldName: 'Constelação Oculta',
+                color: '#ff6464',
+                talents: talentPositions['Phoenix'].map(pos => ({
+                    id: pos.id,
+                    name: `Talento ${pos.id}`,
+                    description: "Descrição indisponível.",
+                    x: pos.x,
+                    y: pos.y,
+                    requires: pos.requires
+                }))
+            }
+        ];
+        
+        initConstellations();
+        hideSecretConstellation();
+        loadUnlockedTalents();
+        updateConstellation(2); // Iniciar na posição 3 (índice 2)
+    }
+    
+    // Verificar constelações após um tempo para garantir que ao menos uma esteja visível
+    setTimeout(verificarConstelacoes, 2000);
+    
+    function verificarConstelacoes() {
+        log("Verificando constelações após 2 segundos...");
+        
+        const constelacoesAtivas = document.querySelectorAll('.constellation.active');
+        if (constelacoesAtivas.length === 0) {
+            log("ALERTA: Ainda sem constelações ativas após 2 segundos!");
+            forcarPrimeiraConstelacaoVisivel();
+        } else {
+            log(`Constelações ativas: ${constelacoesAtivas.length}`);
+        }
+    }
+    
+    // Verificar se as constelações estão visíveis ao carregar a página
+    window.addEventListener('load', function() {
+        setTimeout(garantirConstelacaoVisivel, 500);
+    });
+});
+</script>
+
+{% endblock %}

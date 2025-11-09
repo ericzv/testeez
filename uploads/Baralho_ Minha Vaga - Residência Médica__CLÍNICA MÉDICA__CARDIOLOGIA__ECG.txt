@@ -1,0 +1,6372 @@
+#separator:tab
+#html:true
+"<div class=afirmação>No coração a via&nbsp;<span class=""cloze"" data-cloze=""mais&#x20;r&#xE1;pida"" data-ordinal=""1"">[...]</span> comanda <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> No coração a via&nbsp;<span class=""cloze"" data-ordinal=""1"">mais rápida</span> comanda </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>“Atraso” fisiológico na condução atrioventricular é inscrito no ECG como&nbsp;<span class=""cloze"" data-cloze=""Intervalo&#x20;P&#x2D;R"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> “Atraso” fisiológico na condução atrioventricular é inscrito no ECG como&nbsp;<span class=""cloze"" data-ordinal=""1"">Intervalo P-R</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Despolarização dos átrios é inscrita no ECG como&nbsp;<span class=""cloze"" data-cloze=""Onda&#x20;P"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Despolarização dos átrios é inscrita no ECG como&nbsp;<span class=""cloze"" data-ordinal=""1"">Onda P</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Despolarização dos ventriculos é inscrita no ECG como&nbsp;<span class=""cloze"" data-cloze=""Complexo&#x20;QRS"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Despolarização dos ventriculos é inscrita no ECG como&nbsp;<span class=""cloze"" data-ordinal=""1"">Complexo QRS</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Repolarização dos ventrículos é inscrita no ECG como&nbsp;<span class=""cloze"" data-cloze=""Onda&#x20;T"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Repolarização dos ventrículos é inscrita no ECG como&nbsp;<span class=""cloze"" data-ordinal=""1"">Onda T</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Periodo Refratário é inscrito no ECG como&nbsp;<span class=""cloze"" data-cloze=""Intervalo&#x20;QT"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Periodo Refratário é inscrito no ECG como&nbsp;<span class=""cloze"" data-ordinal=""1"">Intervalo QT</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint201b361c1b5d9575').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint201b361c1b5d9575"" class=hint style=""display: none""><div>Intervalo entre despolarização e repolarização.<br></div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Como calcular Frequência Cardíaca no ECG?<div><br></div><div><span class=""cloze"" data-cloze=""Quadradinhos&#x20;&#x2F;&#x20;1500&#x20;ou&amp;nbsp&#x3B;&lt;br&gt;Quadrad&#xF5;es&#x20;&#x2F;&#x20;300"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Como calcular Frequência Cardíaca no ECG?<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Quadradinhos / 1500 ou&nbsp;<br>Quadradões / 300</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Se a distância R-R for <span class=""cloze"" data-cloze=""&amp;gt&#x3B;5"" data-ordinal=""1"">[...]</span> ""quadradões"" = <span class=""cloze-inactive"" data-ordinal=""2"">Bradicardia</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Se a distância R-R for <span class=""cloze"" data-ordinal=""1"">&gt;5</span> ""quadradões"" = <span class=""cloze-inactive"" data-ordinal=""2"">Bradicardia</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint83b40768b5289c36').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint83b40768b5289c36"" class=hint style=""display: none""><div>&lt; 60 bpm.<br></div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Se a distância R-R for <span class=""cloze-inactive"" data-ordinal=""1"">&gt;5</span> ""quadradões"" = <span class=""cloze"" data-cloze=""Bradicardia"" data-ordinal=""2"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Se a distância R-R for <span class=""cloze-inactive"" data-ordinal=""1"">&gt;5</span> ""quadradões"" = <span class=""cloze"" data-ordinal=""2"">Bradicardia</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint83b40768b5289c36').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint83b40768b5289c36"" class=hint style=""display: none""><div>&lt; 60 bpm.<br></div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Se a distância R-R for <span class=""cloze"" data-cloze=""&amp;lt&#x3B;3"" data-ordinal=""1"">[...]</span> ""quadradões"" = <span class=""cloze-inactive"" data-ordinal=""2"">Taquicardia</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Se a distância R-R for <span class=""cloze"" data-ordinal=""1"">&lt;3</span> ""quadradões"" = <span class=""cloze-inactive"" data-ordinal=""2"">Taquicardia</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Se a distância R-R for <span class=""cloze-inactive"" data-ordinal=""1"">&lt;3</span> ""quadradões"" = <span class=""cloze"" data-cloze=""Taquicardia"" data-ordinal=""2"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Se a distância R-R for <span class=""cloze-inactive"" data-ordinal=""1"">&lt;3</span> ""quadradões"" = <span class=""cloze"" data-ordinal=""2"">Taquicardia</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>No ECG - 1 ""quadradinho"" tem&nbsp;<span class=""cloze"" data-cloze=""40"" data-ordinal=""1"">[...]</span>ms <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> No ECG - 1 ""quadradinho"" tem&nbsp;<span class=""cloze"" data-ordinal=""1"">40</span>ms </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>No ECG -&nbsp;Um ""quadradão"" tem <span class=""cloze"" data-cloze=""5"" data-ordinal=""1"">[...]</span> quadradinhos <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> No ECG -&nbsp;Um ""quadradão"" tem <span class=""cloze"" data-ordinal=""1"">5</span> quadradinhos </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Intervalo PR = <span class=""cloze"" data-cloze=""120&#x2D;200"" data-ordinal=""1"">[...]</span>ms <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Intervalo PR = <span class=""cloze"" data-ordinal=""1"">120-200</span>ms </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint4f8bc9acfecab000').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint4f8bc9acfecab000"" class=hint style=""display: none""><div>3-5 quadradinhos.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>QRS estreito <span class=""cloze"" data-cloze=""&amp;lt&#x3B;&#x20;120"" data-ordinal=""1"">[...]</span> ms <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> QRS estreito <span class=""cloze"" data-ordinal=""1"">&lt; 120</span> ms </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint4e4ed388cdac90ba').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint4e4ed388cdac90ba"" class=hint style=""display: none""><div>3 quadradinhos.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Intervalo QT = <span class=""cloze"" data-cloze=""440"" data-ordinal=""1"">[...]</span> ms <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Intervalo QT = <span class=""cloze"" data-ordinal=""1"">440</span> ms </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>O que ver da Onda P?<div><br /></div><div><span class=""cloze"" data-cloze=""Deve&#x20;estar&#x20;Positiva&#x2C;&#x20;Regular&#x20;e&#x20;Precedendo&#x20;todos&#x20;os&#x20;QRS&#x20;em&#x20;D2"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> O que ver da Onda P?<div><br /></div><div><span class=""cloze"" data-ordinal=""1"">Deve estar Positiva, Regular e Precedendo todos os QRS em D2</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Derivação para ver onda P é&nbsp;<span class=""cloze"" data-cloze=""D2"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Derivação para ver onda P é&nbsp;<span class=""cloze"" data-ordinal=""1"">D2</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Ritmo sinual + QRS alargado = Investigar <span class=""cloze"" data-cloze=""bloqueio&#x20;de&#x20;ramo"" data-ordinal=""1"">[...]</span>&nbsp; <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Ritmo sinual + QRS alargado = Investigar <span class=""cloze"" data-ordinal=""1"">bloqueio de ramo</span>&nbsp; </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Após uma PCR, há perda de consciência após <span class=""cloze"" data-cloze=""3&#x20;segundos&#x2E;"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Após uma PCR, há perda de consciência após <span class=""cloze"" data-ordinal=""1"">3 segundos.</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Taquicardia Sinusal - É considerada uma arritmia? <br><br><span class=""cloze"" data-cloze=""&lt;b&gt;N&#xE3;o&#x20;&#xE9;&#x20;arritmia&lt;&#x2F;b&gt;"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Taquicardia Sinusal - É considerada uma arritmia? <br><br><span class=""cloze"" data-ordinal=""1""><b>Não é arritmia</b></span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint570235ed7a3511ec').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint570235ed7a3511ec"" class=hint style=""display: none""><div>Pegadinha</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Taquicardia Atrial - A onda P está&nbsp;<span class=""cloze"" data-cloze=""Presente&#x2C;&#x20;mas&#x20;anormal"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Taquicardia Atrial - A onda P está&nbsp;<span class=""cloze"" data-ordinal=""1"">Presente, mas anormal</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Flutter Atrial - Onda P&nbsp;<span class=""cloze"" data-cloze=""ausente"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Flutter Atrial - Onda P&nbsp;<span class=""cloze"" data-ordinal=""1"">ausente</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintd11335479f2b1a73').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hintd11335479f2b1a73"" class=hint style=""display: none""><div>Tem é onda F.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Flutter Atrial - Onda F&nbsp;<span class=""cloze"" data-cloze=""negativa"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Flutter Atrial - Onda F&nbsp;<span class=""cloze"" data-ordinal=""1"">negativa</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Flutter Atrial - Onda F nas derivações <span class=""cloze"" data-cloze=""D2&#x20;D3&#x20;aVF"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Flutter Atrial - Onda F nas derivações <span class=""cloze"" data-ordinal=""1"">D2 D3 aVF</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint36e445bbab79c9bf').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint36e445bbab79c9bf"" class=hint style=""display: none"">Parede inferior.</div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Flutter Atrial - Átrios batendo a ±&nbsp;<span class=""cloze"" data-cloze=""300&#x20;bpm"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Flutter Atrial - Átrios batendo a ±&nbsp;<span class=""cloze"" data-ordinal=""1"">300 bpm</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint9edb6303513d2688').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint9edb6303513d2688"" class=hint style=""display: none""><div>Geralmente condução 2:1;<br></div><div>Ventriculos a 150bpm.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Flutter Atrial - Geralmente condução <span class=""cloze"" data-cloze=""2"" data-ordinal=""1"">[...]</span>:1 <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Flutter Atrial - Geralmente condução <span class=""cloze"" data-ordinal=""1"">2</span>:1 </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""2"">Flutter Atrial</span> - Aspecto <span class=""cloze"" data-cloze=""serrilhado"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""2"">Flutter Atrial</span> - Aspecto <span class=""cloze"" data-ordinal=""1"">serrilhado</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Flutter&#x20;Atrial"" data-ordinal=""2"">[ECG]</span> - Aspecto <span class=""cloze-inactive"" data-ordinal=""1"">serrilhado</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""2"">Flutter Atrial</span> - Aspecto <span class=""cloze-inactive"" data-ordinal=""1"">serrilhado</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Extrassístole - Definida por&nbsp;<span class=""cloze"" data-cloze=""QRS&#x20;antes&#x20;da&#x20;hora"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Extrassístole - Definida por&nbsp;<span class=""cloze"" data-ordinal=""1"">QRS antes da hora</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Extrassístole - Qual tipo é maligna?&nbsp;<span class=""cloze"" data-cloze=""Geralmente&#x20;tanto&#x20;atrial&#x20;quanto&#x20;ventricular&#x20;s&#xE3;o&#x20;benignas"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Extrassístole - Qual tipo é maligna?&nbsp;<span class=""cloze"" data-ordinal=""1"">Geralmente tanto atrial quanto ventricular são benignas</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Extrassístole Ventriculares -&nbsp;<span class=""cloze"" data-cloze=""N&#xE3;o&#x20;precedidas"" data-ordinal=""1"">[...]</span> por onda P <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Extrassístole Ventriculares -&nbsp;<span class=""cloze"" data-ordinal=""1"">Não precedidas</span> por onda P </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint086f3c23a7c75e2e').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint086f3c23a7c75e2e"" class=hint style=""display: none""><div>+ QRS alargado.<br></div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Extrassístole Atrial -&nbsp;<span class=""cloze"" data-cloze=""Precedidas"" data-ordinal=""1"">[...]</span> por onda P <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Extrassístole Atrial -&nbsp;<span class=""cloze"" data-ordinal=""1"">Precedidas</span> por onda P </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Bigenimismo Ventricular =&nbsp;<span class=""cloze"" data-cloze=""1&#x20;sinusal&#x20;&#x2D;&#x20;1&#x20;extrassistole&#x20;&#x2D;&#x20;1&#x20;sinusal"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Bigenimismo Ventricular =&nbsp;<span class=""cloze"" data-ordinal=""1"">1 sinusal - 1 extrassistole - 1 sinusal</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Trigenimismo Ventricular =&nbsp;<span class=""cloze"" data-cloze=""2&#x20;sinusal&#x20;&#x2D;&#x20;1&#x20;extrassistole&#x20;&#x2D;&#x20;2&#x20;sinusal"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Trigenimismo Ventricular =&nbsp;<span class=""cloze"" data-ordinal=""1"">2 sinusal - 1 extrassistole - 2 sinusal</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Extrassístole Ventricular Pareada =&nbsp;<span class=""cloze"" data-cloze=""Duas&#x20;extrass&#xED;stoles&#x20;ventriculares&#x20;juntas&#x20;&#x28;em&#x20;pares&#x29;"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Extrassístole Ventricular Pareada =&nbsp;<span class=""cloze"" data-ordinal=""1"">Duas extrassístoles ventriculares juntas (em pares)</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Taquicardia&#x20;Ventricular"" data-ordinal=""1"">[...]</span> = Três ou mais extrassístoles ventriculares juntas <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""1"">Taquicardia Ventricular</span> = Três ou mais extrassístoles ventriculares juntas </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Taquicardia Ventricular - Sustentada quando<div><br /></div><div><span class=""cloze"" data-cloze=""&amp;gt&#x3B;30s&#x20;&lt;u&gt;ou&lt;&#x2F;u&gt;&amp;nbsp&#x3B;Inst&#xE1;vel"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Taquicardia Ventricular - Sustentada quando<div><br /></div><div><span class=""cloze"" data-ordinal=""1"">&gt;30s <u>ou</u>&nbsp;Instável</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Trata extrassistoles ventriculares?&nbsp;<span class=""cloze"" data-cloze=""Quando&#x20;sintom&#xE1;ticas"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Trata extrassistoles ventriculares?&nbsp;<span class=""cloze"" data-ordinal=""1"">Quando sintomáticas</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Uma taquicardia é instável quando (5)<div><br></div><div><span class=""cloze"" data-cloze=""Congest&#xE3;o&lt;br&gt;EAP&lt;br&gt;Angina&lt;br&gt;Hipotens&#xE3;o&lt;br&gt;S&#xED;ncope"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Uma taquicardia é instável quando (5)<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Congestão<br>EAP<br>Angina<br>Hipotensão<br>Síncope</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""2"">Taquicardia Ventricular</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze"" data-cloze=""Taquicardia&lt;br&gt;RR&#x20;regular&lt;br&gt;Sem&#x20;Onda&#x20;P&#x20;&#x28;escondida&#x29;&lt;br&gt;QRS&#x20;alargado"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""2"">Taquicardia Ventricular</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Taquicardia<br>RR regular<br>Sem Onda P (escondida)<br>QRS alargado</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Taquicardia&#x20;Ventricular"" data-ordinal=""2"">[...]</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Taquicardia<br>RR regular<br>Sem Onda P (escondida)<br>QRS alargado</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""2"">Taquicardia Ventricular</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Taquicardia<br>RR regular<br>Sem Onda P (escondida)<br>QRS alargado</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Taquicardia Ventricular - Monomórfica ou Polimórfica?<div><br></div><div><span class=""cloze"" data-cloze=""Morfologia&#x20;&#xFA;nica&#x20;do&#x20;QRS&#x20;&#x3D;&#x20;Monom&#xF3;rfica&lt;&#x2F;div&gt;&lt;div&gt;Mais&#x20;de&#x20;uma&#x20;morfologia&#x20;no&#x20;QRS&#x20;&#x3D;&#x20;Polim&#xF3;rfica"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Taquicardia Ventricular - Monomórfica ou Polimórfica?<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Morfologia única do QRS = Monomórfica</div><div>Mais de uma morfologia no QRS = Polimórfica</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Torsades des Pointes é um subtipo de&nbsp;<span class=""cloze"" data-cloze=""Taquicardia&#x20;Ventricular&#x20;Polim&#xF3;rfica"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Torsades des Pointes é um subtipo de&nbsp;<span class=""cloze"" data-ordinal=""1"">Taquicardia Ventricular Polimórfica</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""2"">Torsades des Pointes</span> - Predisposição no ECG: <span class=""cloze"" data-cloze=""QT&#x20;Longo&#x20;&#x28;&amp;gt&#x3B;440ms&#x29;"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""2"">Torsades des Pointes</span> - Predisposição no ECG: <span class=""cloze"" data-ordinal=""1"">QT Longo (&gt;440ms)</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Torsades&#x20;des&#x20;Pointes"" data-ordinal=""2"">[...]</span> - Predisposição no ECG: <span class=""cloze-inactive"" data-ordinal=""1"">QT Longo (&gt;440ms)</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""2"">Torsades des Pointes</span> - Predisposição no ECG: <span class=""cloze-inactive"" data-ordinal=""1"">QT Longo (&gt;440ms)</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Medicamentos que&nbsp;<span class=""cloze"" data-cloze=""aumentam&#x20;o&#x20;intervalo&#x20;QT"" data-ordinal=""1"">[...]</span> predispõe a morte subita por&nbsp;Torsades des Pointes <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Medicamentos que&nbsp;<span class=""cloze"" data-ordinal=""1"">aumentam o intervalo QT</span> predispõe a morte subita por&nbsp;Torsades des Pointes </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Torsades des Pointes - Tratamento<div><br></div><div><span class=""cloze"" data-cloze=""Sulfato&#x20;de&#x20;Magn&#xE9;sio"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Torsades des Pointes - Tratamento<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Sulfato de Magnésio</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Circuito de reentrada cede com&nbsp;<span class=""cloze"" data-cloze=""Choque"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Circuito de reentrada cede com&nbsp;<span class=""cloze"" data-ordinal=""1"">Choque</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""2"">Fibrilação Ventricular</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze"" data-cloze=""Sem&#x20;QRS&lt;br&gt;An&#xE1;rquico"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""2"">Fibrilação Ventricular</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Sem QRS<br>Anárquico</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Fibrila&#xE7;&#xE3;o&#x20;Ventricular"" data-ordinal=""2"">[...]</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Sem QRS<br>Anárquico</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""2"">Fibrilação Ventricular</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Sem QRS<br>Anárquico</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""2"">Fibrilação Ventricular</span> - Frequência ventricular&nbsp;<span class=""cloze"" data-cloze=""400&#x2D;600&#x20;bpm&amp;nbsp&#x3B;"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""2"">Fibrilação Ventricular</span> - Frequência ventricular&nbsp;<span class=""cloze"" data-ordinal=""1"">400-600 bpm&nbsp;</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Fibrila&#xE7;&#xE3;o&#x20;Ventricular"" data-ordinal=""1"">[...]</span> - Principal mecanismo de PCR em adultos <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""1"">Fibrilação Ventricular</span> - Principal mecanismo de PCR em adultos </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Ventriculo fibrilando será um ventriculo <span class=""cloze"" data-cloze=""infartando"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Ventriculo fibrilando será um ventriculo <span class=""cloze"" data-ordinal=""1"">infartando</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Fibrilação Ventricular - Abordagem<div><br /></div><div><span class=""cloze"" data-cloze=""RCP&#x20;&#x2B;&#x20;Choque&#x20;el&#xE9;trico"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Fibrilação Ventricular - Abordagem<div><br /></div><div><span class=""cloze"" data-ordinal=""1"">RCP + Choque elétrico</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""2"">Fibrilação Atrial</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze"" data-cloze=""Sem&#x20;onda&#x20;P&lt;br&gt;QRS&#x20;estreito&lt;br&gt;R&#x2D;R&#x20;Irregular"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""2"">Fibrilação Atrial</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Sem onda P<br>QRS estreito<br>R-R Irregular</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Fibrila&#xE7;&#xE3;o&#x20;Atrial"" data-ordinal=""2"">[...]</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Sem onda P<br>QRS estreito<br>R-R Irregular</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""2"">Fibrilação Atrial</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Sem onda P<br>QRS estreito<br>R-R Irregular</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Fibrilação Atrial - Risco de&nbsp;<span class=""cloze"" data-cloze=""embolia"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Fibrilação Atrial - Risco de&nbsp;<span class=""cloze"" data-ordinal=""1"">embolia</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""2"">Taquicardia Supraventricular</span> - Dois mecanismos<div><br></div><div><span class=""cloze"" data-cloze=""Reentrada&#x20;Nodal&lt;br&gt;Via&#x20;Acess&#xF3;ria"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""2"">Taquicardia Supraventricular</span> - Dois mecanismos<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Reentrada Nodal<br>Via Acessória</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Taquicardia&#x20;Supraventricular"" data-ordinal=""2"">[...]</span> - Dois mecanismos<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Reentrada Nodal<br>Via Acessória</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""2"">Taquicardia Supraventricular</span> - Dois mecanismos<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Reentrada Nodal<br>Via Acessória</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Taquicardia Supraventricular - Paciente geralmente é&nbsp;<span class=""cloze"" data-cloze=""mulher&#x20;jovem&#x20;sadia"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Taquicardia Supraventricular - Paciente geralmente é&nbsp;<span class=""cloze"" data-ordinal=""1"">mulher jovem sadia</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint1913c2cd364edf71').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint1913c2cd364edf71"" class=hint style=""display: none""><div><span style=""vertical-align: super;"">Taquicardia da Carolina</span></div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Taquicardia Supraventricular - Reentrada Nodal<div>Predisposição:&nbsp;<span class=""cloze"" data-cloze=""Presen&#xE7;a&#x20;de&#x20;segunda&#x20;via&#x20;nodal&#x20;&#x28;Alfa&#x20;e&#x20;Beta&#x29;"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Taquicardia Supraventricular - Reentrada Nodal<div>Predisposição:&nbsp;<span class=""cloze"" data-ordinal=""1"">Presença de segunda via nodal (Alfa e Beta)</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Taquicardia Supraventricular - Reentrada Nodal - VIAS<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""2"">Beta</span>: Conduz mais&nbsp;<span class=""cloze"" data-cloze=""rapidamente"" data-ordinal=""1"">[...]</span></div><div>&nbsp;período refratário&nbsp;<span class=""cloze"" data-cloze=""maior"" data-ordinal=""1"">[...]</span></div><div><br></div><div><span class=""cloze-inactive"" data-ordinal=""2"">Alfa</span>: Conduz mais&nbsp;<span class=""cloze"" data-cloze=""lentamente"" data-ordinal=""1"">[...]</span>&nbsp;</div><div>período refratário&nbsp;<span class=""cloze"" data-cloze=""curto"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Taquicardia Supraventricular - Reentrada Nodal - VIAS<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""2"">Beta</span>: Conduz mais&nbsp;<span class=""cloze"" data-ordinal=""1"">rapidamente</span></div><div>&nbsp;período refratário&nbsp;<span class=""cloze"" data-ordinal=""1"">maior</span></div><div><br></div><div><span class=""cloze-inactive"" data-ordinal=""2"">Alfa</span>: Conduz mais&nbsp;<span class=""cloze"" data-ordinal=""1"">lentamente</span>&nbsp;</div><div>período refratário&nbsp;<span class=""cloze"" data-ordinal=""1"">curto</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Taquicardia Supraventricular - Reentrada Nodal - VIAS<div><br></div><div><span class=""cloze"" data-cloze=""Beta"" data-ordinal=""2"">[...]</span>: Conduz mais&nbsp;<span class=""cloze-inactive"" data-ordinal=""1"">rapidamente</span></div><div>&nbsp;período refratário&nbsp;<span class=""cloze-inactive"" data-ordinal=""1"">maior</span></div><div><br></div><div><span class=""cloze"" data-cloze=""Alfa"" data-ordinal=""2"">[...]</span>: Conduz mais&nbsp;<span class=""cloze-inactive"" data-ordinal=""1"">lentamente</span>&nbsp;</div><div>período refratário&nbsp;<span class=""cloze-inactive"" data-ordinal=""1"">curto</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Taquicardia Supraventricular - Reentrada Nodal - VIAS<div><br></div><div><span class=""cloze"" data-ordinal=""2"">Beta</span>: Conduz mais&nbsp;<span class=""cloze-inactive"" data-ordinal=""1"">rapidamente</span></div><div>&nbsp;período refratário&nbsp;<span class=""cloze-inactive"" data-ordinal=""1"">maior</span></div><div><br></div><div><span class=""cloze"" data-ordinal=""2"">Alfa</span>: Conduz mais&nbsp;<span class=""cloze-inactive"" data-ordinal=""1"">lentamente</span>&nbsp;</div><div>período refratário&nbsp;<span class=""cloze-inactive"" data-ordinal=""1"">curto</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Taquicardia&#x20;Supraventricular"" data-ordinal=""1"">[...]</span> - Clínica: Palpitação súbita que dura apenas alguns segundos <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""1"">Taquicardia Supraventricular</span> - Clínica: Palpitação súbita que dura apenas alguns segundos </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Taquicardia Supraventricular - Via Acessória<div>Predisposição:&nbsp;<span class=""cloze"" data-cloze=""Presen&#xE7;a&#x20;de&#x20;via&#x20;acess&#xF3;ria"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Taquicardia Supraventricular - Via Acessória<div>Predisposição:&nbsp;<span class=""cloze"" data-ordinal=""1"">Presença de via acessória</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""2"">Padrão Pré-excitação</span>&nbsp;- Como é o ECG?<div><br /></div><div><span class=""cloze"" data-cloze=""Intervalo&#x20;PR&#x20;curto&#x20;&#x2B;&#x20;Onda&#x20;Delta"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""2"">Padrão Pré-excitação</span>&nbsp;- Como é o ECG?<div><br /></div><div><span class=""cloze"" data-ordinal=""1"">Intervalo PR curto + Onda Delta</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint371ef037c2ac0f2d').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint371ef037c2ac0f2d"" class=hint style=""display: none""><div>Onda P perto do QRS<br></div><div>Corcova no QRS</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Padr&#xE3;o&#x20;Pr&#xE9;&#x2D;excita&#xE7;&#xE3;o"" data-ordinal=""2"">[...]</span>&nbsp;- Como é o ECG?<div><br /></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Intervalo PR curto + Onda Delta</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""2"">Padrão Pré-excitação</span>&nbsp;- Como é o ECG?<div><br /></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Intervalo PR curto + Onda Delta</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint371ef037c2ac0f2d').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint371ef037c2ac0f2d"" class=hint style=""display: none""><div>Onda P perto do QRS<br></div><div>Corcova no QRS</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><div><span class=""cloze-inactive"" data-ordinal=""2"">Síndrome de Wolff-Parkinson-White</span> - Características do ECG</div><div><br></div><span class=""cloze"" data-cloze=""Padr&#xE3;o&#x20;de&#x20;Excita&#xE7;&#xE3;o&#x20;em&#x20;ritmo&#x20;sinusal&#x20;&#x2B;&#x20;Taquicardia&#x20;parox&#xED;stica&#x20;de&#x20;repeti&#xE7;&#xE3;o"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <div><span class=""cloze-inactive"" data-ordinal=""2"">Síndrome de Wolff-Parkinson-White</span> - Características do ECG</div><div><br></div><span class=""cloze"" data-ordinal=""1"">Padrão de Excitação em ritmo sinusal + Taquicardia paroxística de repetição</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><div><span class=""cloze"" data-cloze=""S&#xED;ndrome&#x20;de&#x20;Wolff&#x2D;Parkinson&#x2D;White"" data-ordinal=""2"">[...]</span> - Características do ECG</div><div><br></div><span class=""cloze-inactive"" data-ordinal=""1"">Padrão de Excitação em ritmo sinusal + Taquicardia paroxística de repetição</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <div><span class=""cloze"" data-ordinal=""2"">Síndrome de Wolff-Parkinson-White</span> - Características do ECG</div><div><br></div><span class=""cloze-inactive"" data-ordinal=""1"">Padrão de Excitação em ritmo sinusal + Taquicardia paroxística de repetição</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Taquiarritmia em idoso com IAM geralmente é&nbsp;<span class=""cloze"" data-cloze=""TV"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Taquiarritmia em idoso com IAM geralmente é&nbsp;<span class=""cloze"" data-ordinal=""1"">TV</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Taquicardia com RR irregular sem Onda P =&nbsp;<span class=""cloze"" data-cloze=""Fibrila&#xE7;&#xE3;o&#x20;Atrial"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Taquicardia com RR irregular sem Onda P =&nbsp;<span class=""cloze"" data-ordinal=""1"">Fibrilação Atrial</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>TV Monomórfica Sustentada <i>Instável - </i>Conduta: <span class=""cloze"" data-cloze=""Cardiovers&#xE3;o&#x20;El&#xE9;trica"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> TV Monomórfica Sustentada <i>Instável - </i>Conduta: <span class=""cloze"" data-ordinal=""1"">Cardioversão Elétrica</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>TV Monomórfica Sustentada&nbsp;<i>Estável</i><i>&nbsp;-&nbsp;</i>Conduta: <span class=""cloze"" data-cloze=""Amiodarona&#x20;&#x2F;&#x20;Procainamida"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> TV Monomórfica Sustentada&nbsp;<i>Estável</i><i>&nbsp;-&nbsp;</i>Conduta: <span class=""cloze"" data-ordinal=""1"">Amiodarona / Procainamida</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>TV Monomórfica Sustentada<i>&nbsp;-&nbsp;Tratamento&nbsp;<u>pós-emergência</u>: </i><span class=""cloze"" data-cloze=""Se&#x20;causa&#x20;n&#xE3;o&#x20;revers&#xED;vel&#x3A;&#x20;&lt;b&gt;B&lt;u&gt;B&#x20;&#x2B;&#x20;Cardiodesfibrilador&#x20;implant&#xE1;vel&lt;&#x2F;u&gt;&lt;&#x2F;b&gt;"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> TV Monomórfica Sustentada<i>&nbsp;-&nbsp;Tratamento&nbsp;<u>pós-emergência</u>: </i><span class=""cloze"" data-ordinal=""1"">Se causa não reversível: <b>B<u>B + Cardiodesfibrilador implantável</u></b></span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Flutter Atrial&nbsp;<i>Instável -&nbsp;</i>Conduta: <span class=""cloze"" data-cloze=""Cardiovers&#xE3;o&#x20;El&#xE9;trica"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Flutter Atrial&nbsp;<i>Instável -&nbsp;</i>Conduta: <span class=""cloze"" data-ordinal=""1"">Cardioversão Elétrica</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Flutter Atrial&nbsp;<i>Estável -&nbsp;</i>Conduta: <span class=""cloze"" data-cloze=""Cardiovers&#xE3;o&#x20;El&#xE9;trica&#x20;&#x28;50J&#x29;&amp;nbsp&#x3B;&lt;u&gt;ou&lt;&#x2F;u&gt;&amp;nbsp&#x3B;Ibutilida&#x2F;Amiodarona"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Flutter Atrial&nbsp;<i>Estável -&nbsp;</i>Conduta: <span class=""cloze"" data-ordinal=""1"">Cardioversão Elétrica (50J)&nbsp;<u>ou</u>&nbsp;Ibutilida/Amiodarona</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Flutter Atrial <i><u>Crônico/de&nbsp;Repetição</u>&nbsp;-&nbsp;</i>Conduta:&nbsp;<div><br></div><div><span class=""cloze"" data-cloze=""Abla&#xE7;&#xE3;o&lt;br&gt;Anticoagula&#xE7;&#xE3;o"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Flutter Atrial <i><u>Crônico/de&nbsp;Repetição</u>&nbsp;-&nbsp;</i>Conduta:&nbsp;<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Ablação<br>Anticoagulação</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Fibrilação Atrial&nbsp;<i>Estável -&nbsp;</i>Conduta<div><br /></div><div><span class=""cloze"" data-cloze=""Reduz&#x20;FC&#x20;&#x2B;&#x20;Anticoagula&#xE7;&#xE3;o&lt;div&gt;Controle&#x20;do&#x20;Ritmo&#x20;quando&#x20;refrat&#xE1;rios&amp;nbsp&#x3B;"" data-ordinal=""1"">[...]</span></div></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Fibrilação Atrial&nbsp;<i>Estável -&nbsp;</i>Conduta<div><br /></div><div><span class=""cloze"" data-ordinal=""1"">Reduz FC + Anticoagulação<div>Controle do Ritmo quando refratários&nbsp;</span></div></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Fibrilação Atrial<i>&nbsp;-&nbsp;</i>Regras na cardioversão<div><br /></div><div><span class=""cloze"" data-cloze=""Instala&#xE7;&#xE3;o&amp;nbsp&#x3B;&amp;lt&#x3B;48h&#x20;&#x3D;&#x20;Cardioverte&lt;br&#x20;&#x2F;&gt;&lt;br&#x20;&#x2F;&gt;Instala&#xE7;&#xE3;o&#x20;&amp;gt&#x3B;48h&#x20;&#x3D;&#x20;ECO&lt;br&#x20;&#x2F;&gt;Se&#x20;tiver&#x20;trombo&#x2C;&#x20;Warfarin&#x20;3&#x2D;4s&lt;br&#x20;&#x2F;&gt;Sem&#x20;trombo&#x2C;&#x20;cardioverte"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Fibrilação Atrial<i>&nbsp;-&nbsp;</i>Regras na cardioversão<div><br /></div><div><span class=""cloze"" data-ordinal=""1"">Instalação&nbsp;&lt;48h = Cardioverte<br /><br />Instalação &gt;48h = ECO<br />Se tiver trombo, Warfarin 3-4s<br />Sem trombo, cardioverte</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintb11dd61bbc52307c').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hintb11dd61bbc52307c"" class=hint style=""display: none""><div>ECO indisponível = Warfarin 3-4s.<br></div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Fibrilação Atrial<i>&nbsp;- Passos para Cardioversão</i><div><i><br /></i></div><div><i>1)&nbsp;Se &gt;48h:&nbsp;</i><span class=""cloze"" data-cloze=""&lt;b&gt;V&#xEA;&#x20;se&#x20;tem&#x20;trombo&lt;&#x2F;b&gt;&#x20;no&#x20;ECO&#x20;&#x28;Warfarin&#x20;3&#x2D;4s&#x20;se&#x20;tiver&#x29;"" data-ordinal=""1"">[...]</span></div><div><br /></div><div><i>2)&nbsp;</i><b>Reversão</b>&nbsp;com&nbsp;<span class=""cloze"" data-cloze=""Amiodarona"" data-ordinal=""1"">[...]</span></div><div><br /></div><div><i>3)&nbsp;</i><b>Anticoagulação pós-reversão</b>&nbsp;<span class=""cloze"" data-cloze=""por&#x20;4s&#x20;ou&#x20;cr&#xF4;nica&#x20;&#x28;se&#x20;alto&#x20;risco&#x20;no&#x20;CHA&lt;sub&gt;2&lt;&#x2F;sub&gt;DS&lt;sub&gt;2&lt;&#x2F;sub&gt;VAS&#x29;"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Fibrilação Atrial<i>&nbsp;- Passos para Cardioversão</i><div><i><br /></i></div><div><i>1)&nbsp;Se &gt;48h:&nbsp;</i><span class=""cloze"" data-ordinal=""1""><b>Vê se tem trombo</b> no ECO (Warfarin 3-4s se tiver)</span></div><div><br /></div><div><i>2)&nbsp;</i><b>Reversão</b>&nbsp;com&nbsp;<span class=""cloze"" data-ordinal=""1"">Amiodarona</span></div><div><br /></div><div><i>3)&nbsp;</i><b>Anticoagulação pós-reversão</b>&nbsp;<span class=""cloze"" data-ordinal=""1"">por 4s ou crônica (se alto risco no CHA<sub>2</sub>DS<sub>2</sub>VAS)</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Fibrilação Atrial - Controle da frequência tem como FC meta <span class=""cloze"" data-cloze=""&amp;lt&#x3B;110bpm"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Fibrilação Atrial - Controle da frequência tem como FC meta <span class=""cloze"" data-ordinal=""1"">&lt;110bpm</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Fibrilação Atrial&nbsp;- Anticoagulação com <span class=""cloze"" data-cloze=""Warfarin&#x20;ou&#x20;Novos&#x20;anticoagulantes"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Fibrilação Atrial&nbsp;- Anticoagulação com <span class=""cloze"" data-ordinal=""1"">Warfarin ou Novos anticoagulantes</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Fibrilação Atrial&nbsp;- Tratamento da FA recorrente é&nbsp;<span class=""cloze"" data-cloze=""Abla&#xE7;&#xE3;o&#x20;do&#x20;n&#xF3;&#x20;A&#x2D;V&#x20;&#x2B;&#x20;Marca&#x2D;passo"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Fibrilação Atrial&nbsp;- Tratamento da FA recorrente é&nbsp;<span class=""cloze"" data-ordinal=""1"">Ablação do nó A-V + Marca-passo</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Taquicardia Supraventricular <i>Instável&nbsp;</i>- Tratamento&nbsp;= <span class=""cloze"" data-cloze=""Choque"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Taquicardia Supraventricular <i>Instável&nbsp;</i>- Tratamento&nbsp;= <span class=""cloze"" data-ordinal=""1"">Choque</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Taquicardia Supraventricular&nbsp;<i>Estável&nbsp;</i>- Tratamento<div><br></div><div><span class=""cloze"" data-cloze=""Manobra&#x20;vagal&#x20;→&#x20;Adenosina&#x20;S&#x2F;N"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Taquicardia Supraventricular&nbsp;<i>Estável&nbsp;</i>- Tratamento<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Manobra vagal → Adenosina S/N</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""2"">Taquicardia Supraventricular</span><i>&nbsp;</i>- Manobra Vagal reverte <span class=""cloze"" data-cloze=""50"" data-ordinal=""1"">[...]</span>% <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""2"">Taquicardia Supraventricular</span><i>&nbsp;</i>- Manobra Vagal reverte <span class=""cloze"" data-ordinal=""1"">50</span>% </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Taquicardia&#x20;Supraventricular"" data-ordinal=""2"">[...]</span><i>&nbsp;</i>- Manobra Vagal reverte <span class=""cloze-inactive"" data-ordinal=""1"">50</span>% <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""2"">Taquicardia Supraventricular</span><i>&nbsp;</i>- Manobra Vagal reverte <span class=""cloze-inactive"" data-ordinal=""1"">50</span>% </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Taquicardia Supraventricular&nbsp;<i>Recorrente&nbsp;</i>- Tratamento = <span class=""cloze"" data-cloze=""Cura&#x20;com&#x20;Abla&#xE7;&#xE3;o"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Taquicardia Supraventricular&nbsp;<i>Recorrente&nbsp;</i>- Tratamento = <span class=""cloze"" data-ordinal=""1"">Cura com Ablação</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Manobra Vagal (TSV) feita com&nbsp;<span class=""cloze"" data-cloze=""Manobra&#x20;de&#x20;valsava&#x20;&#x28;expira&#xE7;&#xE3;o&#x20;for&#xE7;ada&#x20;15s&#x29;&#x20;&lt;i&gt;modificada&#x20;&#x28;Faz&#x20;valsalva&#x20;e&#x20;quando&#x20;termina&#x2C;&#x20;deita&#x20;e&#x20;levanta&#x20;as&#x20;pernas&#x29;&lt;&#x2F;i&gt;"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Manobra Vagal (TSV) feita com&nbsp;<span class=""cloze"" data-ordinal=""1"">Manobra de valsava (expiração forçada 15s) <i>modificada (Faz valsalva e quando termina, deita e levanta as pernas)</i></span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><div>ECG - Frequência cardíaca por intervalos entre QRS</div>
+<div><br /></div>
+<div>1 quadradão = <span class=""cloze"" data-cloze=""300"" data-ordinal=""1"">[...]</span> bpm</div>
+<div>2 quadradões = <span class=""cloze"" data-cloze=""150"" data-ordinal=""1"">[...]</span> bpm</div>
+<div>3 quadradões = <span class=""cloze"" data-cloze=""100"" data-ordinal=""1"">[...]</span> bpm</div>
+<div>4 quadradões = <span class=""cloze"" data-cloze=""75"" data-ordinal=""1"">[...]</span> bpm</div>
+<div>5 quadradões = <span class=""cloze"" data-cloze=""60"" data-ordinal=""1"">[...]</span> bpm</div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <div>ECG - Frequência cardíaca por intervalos entre QRS</div>
+<div><br /></div>
+<div>1 quadradão = <span class=""cloze"" data-ordinal=""1"">300</span> bpm</div>
+<div>2 quadradões = <span class=""cloze"" data-ordinal=""1"">150</span> bpm</div>
+<div>3 quadradões = <span class=""cloze"" data-ordinal=""1"">100</span> bpm</div>
+<div>4 quadradões = <span class=""cloze"" data-ordinal=""1"">75</span> bpm</div>
+<div>5 quadradões = <span class=""cloze"" data-ordinal=""1"">60</span> bpm</div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>A repolarização dos <b>átrios</b> no ECG&nbsp;<span class=""cloze"" data-cloze=""Est&#xE1;&#x20;escondida&#x20;no&#x20;QRS"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> A repolarização dos <b>átrios</b> no ECG&nbsp;<span class=""cloze"" data-ordinal=""1"">Está escondida no QRS</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hinta434fd750ccc1392').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hinta434fd750ccc1392"" class=hint style=""display: none""><div>Então não veremos nenhuma onda específica.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Quando <span class=""cloze"" data-cloze=""o&#x20;n&#xF3;&#x20;sinusal&#x20;falha"" data-ordinal=""1"">[...]</span>, surge <span class=""cloze-inactive"" data-ordinal=""2"">um ritmo de escape</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Quando <span class=""cloze"" data-ordinal=""1"">o nó sinusal falha</span>, surge <span class=""cloze-inactive"" data-ordinal=""2"">um ritmo de escape</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Ritmos de escape:&nbsp;<span class=""cloze"" data-cloze=""&#x28;Idio&#x29;juncional&#x2C;&#x20;&#x28;Idio&#x29;atrial&#x20;e&#x20;&#x28;Idio&#x29;ventricular"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Ritmos de escape:&nbsp;<span class=""cloze"" data-ordinal=""1"">(Idio)juncional, (Idio)atrial e (Idio)ventricular</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Ritmo de escape maligno é o&nbsp;<span class=""cloze"" data-cloze=""Idioventricular"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Ritmo de escape maligno é o&nbsp;<span class=""cloze"" data-ordinal=""1"">Idioventricular</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Ritmo Idio<span class=""cloze"" data-cloze=""juncional"" data-ordinal=""1"">[...]</span><div><br /></div><div>QRS <span class=""cloze-inactive"" data-ordinal=""2"">Estreito</span></div><div>FC <span class=""cloze-inactive"" data-ordinal=""2"">40-60</span></div><div>Onda P&nbsp;<span class=""cloze-inactive"" data-ordinal=""2"">Não aparece / É retrograda (P') / Negativa em D2 / Colada ao QRS (logo antes - PR curto - ou depois - P')</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Ritmo Idio<span class=""cloze"" data-ordinal=""1"">juncional</span><div><br /></div><div>QRS <span class=""cloze-inactive"" data-ordinal=""2"">Estreito</span></div><div>FC <span class=""cloze-inactive"" data-ordinal=""2"">40-60</span></div><div>Onda P&nbsp;<span class=""cloze-inactive"" data-ordinal=""2"">Não aparece / É retrograda (P') / Negativa em D2 / Colada ao QRS (logo antes - PR curto - ou depois - P')</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint721f54bbf77b47af').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint721f54bbf77b47af"" class=hint style=""display: none""><div>Aqui o ritmo está saindo do meio do coração, na junção AV. Como está a meia distância do átrio e do ventriculo, os dois se despolarizam mais ou menos ao mesmo tempo (PR curto) ou o estimulo pode demorar mais para chegar no átrio do que no ventriculo (P' - depois do QRS). Pode tambem ter despolarização simultânea atrio e ventriculo (P não aparece, escondida no QRS). A onda P é negativa porque o estimulo vem de baixo para cima.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Ritmo Idio<span class=""cloze-inactive"" data-ordinal=""1"">juncional</span><div><br /></div><div>QRS <span class=""cloze"" data-cloze=""Estreito"" data-ordinal=""2"">[...]</span></div><div>FC <span class=""cloze"" data-cloze=""40&#x2D;60"" data-ordinal=""2"">[...]</span></div><div>Onda P&nbsp;<span class=""cloze"" data-cloze=""N&#xE3;o&#x20;aparece&#x20;&#x2F;&#x20;&#xC9;&#x20;retrograda&#x20;&#x28;P&#x27;&#x29;&#x20;&#x2F;&#x20;Negativa&#x20;em&#x20;D2&#x20;&#x2F;&#x20;Colada&#x20;ao&#x20;QRS&#x20;&#x28;logo&#x20;antes&#x20;&#x2D;&#x20;PR&#x20;curto&#x20;&#x2D;&#x20;ou&#x20;depois&#x20;&#x2D;&#x20;P&#x27;&#x29;"" data-ordinal=""2"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Ritmo Idio<span class=""cloze-inactive"" data-ordinal=""1"">juncional</span><div><br /></div><div>QRS <span class=""cloze"" data-ordinal=""2"">Estreito</span></div><div>FC <span class=""cloze"" data-ordinal=""2"">40-60</span></div><div>Onda P&nbsp;<span class=""cloze"" data-ordinal=""2"">Não aparece / É retrograda (P') / Negativa em D2 / Colada ao QRS (logo antes - PR curto - ou depois - P')</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint721f54bbf77b47af').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint721f54bbf77b47af"" class=hint style=""display: none""><div>Aqui o ritmo está saindo do meio do coração, na junção AV. Como está a meia distância do átrio e do ventriculo, os dois se despolarizam mais ou menos ao mesmo tempo (PR curto) ou o estimulo pode demorar mais para chegar no átrio do que no ventriculo (P' - depois do QRS). Pode tambem ter despolarização simultânea atrio e ventriculo (P não aparece, escondida no QRS). A onda P é negativa porque o estimulo vem de baixo para cima.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Ritmo Idio<span class=""cloze"" data-cloze=""atrial"" data-ordinal=""1"">[...]</span><div><br /></div><div>QRS <span class=""cloze-inactive"" data-ordinal=""2"">Estreito</span></div><div>FC <span class=""cloze-inactive"" data-ordinal=""2"">40-60</span></div><div>Onda P&nbsp;<span class=""cloze-inactive"" data-ordinal=""2"">Morfologia diferente</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Ritmo Idio<span class=""cloze"" data-ordinal=""1"">atrial</span><div><br /></div><div>QRS <span class=""cloze-inactive"" data-ordinal=""2"">Estreito</span></div><div>FC <span class=""cloze-inactive"" data-ordinal=""2"">40-60</span></div><div>Onda P&nbsp;<span class=""cloze-inactive"" data-ordinal=""2"">Morfologia diferente</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint57f9a7874dae9d41').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint57f9a7874dae9d41"" class=hint style=""display: none""><div>Como o escape vem do átrio, a onda P está mutante.<br></div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Ritmo Idio<span class=""cloze-inactive"" data-ordinal=""1"">atrial</span><div><br /></div><div>QRS <span class=""cloze"" data-cloze=""Estreito"" data-ordinal=""2"">[...]</span></div><div>FC <span class=""cloze"" data-cloze=""40&#x2D;60"" data-ordinal=""2"">[...]</span></div><div>Onda P&nbsp;<span class=""cloze"" data-cloze=""Morfologia&#x20;diferente"" data-ordinal=""2"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Ritmo Idio<span class=""cloze-inactive"" data-ordinal=""1"">atrial</span><div><br /></div><div>QRS <span class=""cloze"" data-ordinal=""2"">Estreito</span></div><div>FC <span class=""cloze"" data-ordinal=""2"">40-60</span></div><div>Onda P&nbsp;<span class=""cloze"" data-ordinal=""2"">Morfologia diferente</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint57f9a7874dae9d41').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint57f9a7874dae9d41"" class=hint style=""display: none""><div>Como o escape vem do átrio, a onda P está mutante.<br></div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Ritmo <span class=""cloze"" data-cloze=""Bradicardia&#x20;Atrial&#x20;Multifocal&#x20;&#x28;Marca&#x2D;passo&#x20;migrat&#xF3;ria&#x20;bradic&#xE1;rdico&#x29;"" data-ordinal=""1"">[...]</span><div><br></div><div>QRS <span class=""cloze-inactive"" data-ordinal=""2"">Estreito</span><br><div>FC <span class=""cloze-inactive"" data-ordinal=""2"">40-60</span></div></div><div>Onda P <span class=""cloze-inactive"" data-ordinal=""2"">com três ou mais morfologias diferentes</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Ritmo <span class=""cloze"" data-ordinal=""1"">Bradicardia Atrial Multifocal (Marca-passo migratória bradicárdico)</span><div><br></div><div>QRS <span class=""cloze-inactive"" data-ordinal=""2"">Estreito</span><br><div>FC <span class=""cloze-inactive"" data-ordinal=""2"">40-60</span></div></div><div>Onda P <span class=""cloze-inactive"" data-ordinal=""2"">com três ou mais morfologias diferentes</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Ritmo <span class=""cloze-inactive"" data-ordinal=""1"">Bradicardia Atrial Multifocal (Marca-passo migratória bradicárdico)</span><div><br></div><div>QRS <span class=""cloze"" data-cloze=""Estreito"" data-ordinal=""2"">[...]</span><br><div>FC <span class=""cloze"" data-cloze=""40&#x2D;60"" data-ordinal=""2"">[...]</span></div></div><div>Onda P <span class=""cloze"" data-cloze=""com&#x20;tr&#xEA;s&#x20;ou&#x20;mais&#x20;morfologias&#x20;diferentes"" data-ordinal=""2"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Ritmo <span class=""cloze-inactive"" data-ordinal=""1"">Bradicardia Atrial Multifocal (Marca-passo migratória bradicárdico)</span><div><br></div><div>QRS <span class=""cloze"" data-ordinal=""2"">Estreito</span><br><div>FC <span class=""cloze"" data-ordinal=""2"">40-60</span></div></div><div>Onda P <span class=""cloze"" data-ordinal=""2"">com três ou mais morfologias diferentes</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Ritmo Idio<span class=""cloze"" data-cloze=""Ventricular"" data-ordinal=""1"">[...]</span><div><br /></div><div>QRS&nbsp;<span class=""cloze-inactive"" data-ordinal=""2"">Alargado</span></div><div>FC&nbsp;<span class=""cloze-inactive"" data-ordinal=""2"">&lt;40</span></div><div>Onda P&nbsp;<span class=""cloze-inactive"" data-ordinal=""2"">Com ou sem onda P</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Ritmo Idio<span class=""cloze"" data-ordinal=""1"">Ventricular</span><div><br /></div><div>QRS&nbsp;<span class=""cloze-inactive"" data-ordinal=""2"">Alargado</span></div><div>FC&nbsp;<span class=""cloze-inactive"" data-ordinal=""2"">&lt;40</span></div><div>Onda P&nbsp;<span class=""cloze-inactive"" data-ordinal=""2"">Com ou sem onda P</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint9f3f50ad2d919f4f').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint9f3f50ad2d919f4f"" class=hint style=""display: none"">Maligno porque a FC é muito baixa.</div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Ritmo Idio<span class=""cloze-inactive"" data-ordinal=""1"">Ventricular</span><div><br /></div><div>QRS&nbsp;<span class=""cloze"" data-cloze=""Alargado"" data-ordinal=""2"">[...]</span></div><div>FC&nbsp;<span class=""cloze"" data-cloze=""&amp;lt&#x3B;40"" data-ordinal=""2"">[...]</span></div><div>Onda P&nbsp;<span class=""cloze"" data-cloze=""Com&#x20;ou&#x20;sem&#x20;onda&#x20;P"" data-ordinal=""2"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Ritmo Idio<span class=""cloze-inactive"" data-ordinal=""1"">Ventricular</span><div><br /></div><div>QRS&nbsp;<span class=""cloze"" data-ordinal=""2"">Alargado</span></div><div>FC&nbsp;<span class=""cloze"" data-ordinal=""2"">&lt;40</span></div><div>Onda P&nbsp;<span class=""cloze"" data-ordinal=""2"">Com ou sem onda P</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint9f3f50ad2d919f4f').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint9f3f50ad2d919f4f"" class=hint style=""display: none"">Maligno porque a FC é muito baixa.</div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Taquicardias de escape e suas causas<div><br></div><div><span class=""cloze"" data-cloze=""Ritmo&#x20;idiojuncional&#x20;&lt;i&gt;acelerado&lt;&#x2F;i&gt;"" data-ordinal=""1"">[...]</span>&nbsp;- <span class=""cloze-inactive"" data-ordinal=""2"">Intoxicação digitálica</span></div><div><div><span class=""cloze"" data-cloze=""Ritmo&#x20;idioventricular&#x20;&lt;i&gt;acelerado&lt;&#x2F;i&gt;"" data-ordinal=""1"">[...]</span><i>&nbsp;-</i> <span class=""cloze-inactive"" data-ordinal=""2"">Fase aguda do IAM</span></div></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Taquicardias de escape e suas causas<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Ritmo idiojuncional <i>acelerado</i></span>&nbsp;- <span class=""cloze-inactive"" data-ordinal=""2"">Intoxicação digitálica</span></div><div><div><span class=""cloze"" data-ordinal=""1"">Ritmo idioventricular <i>acelerado</i></span><i>&nbsp;-</i> <span class=""cloze-inactive"" data-ordinal=""2"">Fase aguda do IAM</span></div></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Ritmos de escape geralmente fazer&nbsp;<span class=""cloze"" data-cloze=""Bradi"" data-ordinal=""1"">[...]</span>cardia <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Ritmos de escape geralmente fazer&nbsp;<span class=""cloze"" data-ordinal=""1"">Bradi</span>cardia </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Ritmos de escape geralmente são&nbsp;<span class=""cloze"" data-cloze=""ben"" data-ordinal=""1"">[...]</span>ignos <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Ritmos de escape geralmente são&nbsp;<span class=""cloze"" data-ordinal=""1"">ben</span>ignos </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Arritmia&#x20;Sinusal"" data-ordinal=""1"">[...]</span> ECG<div><br /></div><div><span class=""cloze-inactive"" data-ordinal=""2"">Onda P normal</div><div>QRS normal</div><div>Variabilidade P-P</div><div><i>Pode ter relação com Respiração</i></span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""1"">Arritmia Sinusal</span> ECG<div><br /></div><div><span class=""cloze-inactive"" data-ordinal=""2"">Onda P normal</div><div>QRS normal</div><div>Variabilidade P-P</div><div><i>Pode ter relação com Respiração</i></span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintfea3da8e00ffd809').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hintfea3da8e00ffd809"" class=hint style=""display: none"">+ em criança.</div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""1"">Arritmia Sinusal</span> ECG<div><br /></div><div><span class=""cloze"" data-cloze=""Onda&#x20;P&#x20;normal&lt;&#x2F;div&gt;&lt;div&gt;QRS&#x20;normal&lt;&#x2F;div&gt;&lt;div&gt;Variabilidade&#x20;P&#x2D;P&lt;&#x2F;div&gt;&lt;div&gt;&lt;i&gt;Pode&#x20;ter&#x20;rela&#xE7;&#xE3;o&#x20;com&#x20;Respira&#xE7;&#xE3;o&lt;&#x2F;i&gt;"" data-ordinal=""2"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""1"">Arritmia Sinusal</span> ECG<div><br /></div><div><span class=""cloze"" data-ordinal=""2"">Onda P normal</div><div>QRS normal</div><div>Variabilidade P-P</div><div><i>Pode ter relação com Respiração</i></span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintfea3da8e00ffd809').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hintfea3da8e00ffd809"" class=hint style=""display: none"">+ em criança.</div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Arritmia&nbsp;<span class=""cloze"" data-cloze=""Bloqueio&#x20;Sinoatrial&#x20;2&#xBA;&#x20;grau"" data-ordinal=""1"">[...]</span> - Como é o ECG?<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""2"">Pausa sinusal</div><div>TIPO I - Wenckerbach: vai reduzindo intervalo P-P até pausa</div><div>TIPO II - Pausa abrupta sem alteração dos P-P anteriores</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Arritmia&nbsp;<span class=""cloze"" data-ordinal=""1"">Bloqueio Sinoatrial 2º grau</span> - Como é o ECG?<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""2"">Pausa sinusal</div><div>TIPO I - Wenckerbach: vai reduzindo intervalo P-P até pausa</div><div>TIPO II - Pausa abrupta sem alteração dos P-P anteriores</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Arritmia&nbsp;<span class=""cloze-inactive"" data-ordinal=""1"">Bloqueio Sinoatrial 2º grau</span> - Como é o ECG?<div><br></div><div><span class=""cloze"" data-cloze=""Pausa&#x20;sinusal&lt;&#x2F;div&gt;&lt;div&gt;TIPO&#x20;I&#x20;&#x2D;&#x20;Wenckerbach&#x3A;&#x20;vai&#x20;reduzindo&#x20;intervalo&#x20;P&#x2D;P&#x20;at&#xE9;&#x20;pausa&lt;&#x2F;div&gt;&lt;div&gt;TIPO&#x20;II&#x20;&#x2D;&#x20;Pausa&#x20;abrupta&#x20;sem&#x20;altera&#xE7;&#xE3;o&#x20;dos&#x20;P&#x2D;P&#x20;anteriores"" data-ordinal=""2"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Arritmia&nbsp;<span class=""cloze-inactive"" data-ordinal=""1"">Bloqueio Sinoatrial 2º grau</span> - Como é o ECG?<div><br></div><div><span class=""cloze"" data-ordinal=""2"">Pausa sinusal</div><div>TIPO I - Wenckerbach: vai reduzindo intervalo P-P até pausa</div><div>TIPO II - Pausa abrupta sem alteração dos P-P anteriores</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>O bloqueio sinoatrial que pode aparecer no ECG é o BSA de <span class=""cloze"" data-cloze=""2&#xBA;&#x20;grau"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> O bloqueio sinoatrial que pode aparecer no ECG é o BSA de <span class=""cloze"" data-ordinal=""1"">2º grau</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Bradicardia sinusal ECG<div><br></div><div><span class=""cloze"" data-cloze=""FC&#x20;&amp;lt&#x3B;&#x20;60&lt;&#x2F;div&gt;&lt;div&gt;Onda&#x20;P&#x20;positiva&#x20;em&#x20;D2&#x20;precedendo&#x20;QRS&#x20;&#x2F;&#x20;QRS&#x20;estreito"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Bradicardia sinusal ECG<div><br></div><div><span class=""cloze"" data-ordinal=""1"">FC &lt; 60</div><div>Onda P positiva em D2 precedendo QRS / QRS estreito</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Tilt test induz&nbsp;<span class=""cloze"" data-cloze=""vagotonia&#x20;&#x28;sincope&#x29;"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Tilt test induz&nbsp;<span class=""cloze"" data-ordinal=""1"">vagotonia (sincope)</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>O reflexo de&nbsp;<span class=""cloze"" data-cloze=""Bezold&#x2D;Jarisch"" data-ordinal=""1"">[...]</span> é responsável pelas bradiarritmias pós-IAM <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> O reflexo de&nbsp;<span class=""cloze"" data-ordinal=""1"">Bezold-Jarisch</span> é responsável pelas bradiarritmias pós-IAM </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Bradiarritmias sinusais benignas - Tratamento<div><br></div><div><span class=""cloze"" data-cloze=""Assintom&#xE1;tico&#x20;&#x3D;&#x20;n&#xE3;o&#x20;trata&lt;&#x2F;div&gt;&lt;div&gt;&lt;br&gt;&lt;&#x2F;div&gt;&lt;div&gt;Sintom&#xE1;tico&#x20;&#x3D;&amp;nbsp&#x3B;&lt;u&gt;Atropina&lt;&#x2F;u&gt;&amp;nbsp&#x3B;→&#x20;Marca&#x2D;passo&#x20;se&#x20;refrat&#xE1;rio"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Bradiarritmias sinusais benignas - Tratamento<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Assintomático = não trata</div><div><br></div><div>Sintomático =&nbsp;<u>Atropina</u>&nbsp;→ Marca-passo se refratário</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Causa mais comum de sincope em pacientes jovens é&nbsp;<span class=""cloze"" data-cloze=""S&#xED;ncope&#x20;vasovagal&#x20;&#x2F;&#x20;Neurocardiog&#xEA;nica"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Causa mais comum de sincope em pacientes jovens é&nbsp;<span class=""cloze"" data-ordinal=""1"">Síncope vasovagal / Neurocardiogênica</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Investigação de síncope<div><br></div><div>Síncope <span class=""cloze-inactive"" data-ordinal=""2"">Vasovagal / neurocardiogênica</span> = <span class=""cloze"" data-cloze=""Tilt&#x2D;Test"" data-ordinal=""1"">[...]</span><br></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Investigação de síncope<div><br></div><div>Síncope <span class=""cloze-inactive"" data-ordinal=""2"">Vasovagal / neurocardiogênica</span> = <span class=""cloze"" data-ordinal=""1"">Tilt-Test</span><br></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Investigação de síncope<div><br></div><div>Síncope <span class=""cloze"" data-cloze=""Vasovagal&#x20;&#x2F;&#x20;neurocardiog&#xEA;nica"" data-ordinal=""2"">[...]</span> = <span class=""cloze-inactive"" data-ordinal=""1"">Tilt-Test</span><br></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Investigação de síncope<div><br></div><div>Síncope <span class=""cloze"" data-ordinal=""2"">Vasovagal / neurocardiogênica</span> = <span class=""cloze-inactive"" data-ordinal=""1"">Tilt-Test</span><br></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""2"">Síncope vasovagal</span> - Profilaxia<div><br></div><div><span class=""cloze"" data-cloze=""Betabloqueador&#x20;&#x2F;&#x20;Fludrocortisona&#x20;→&#x20;Marca&#x20;passo&#x20;definitivo&#x20;dupla&#x2D;c&#xE2;mara&#x20;&#x28;DDDR&#x29;"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""2"">Síncope vasovagal</span> - Profilaxia<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Betabloqueador / Fludrocortisona → Marca passo definitivo dupla-câmara (DDDR)</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""S&#xED;ncope&#x20;vasovagal"" data-ordinal=""2"">[...]</span> - Profilaxia<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Betabloqueador / Fludrocortisona → Marca passo definitivo dupla-câmara (DDDR)</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""2"">Síncope vasovagal</span> - Profilaxia<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Betabloqueador / Fludrocortisona → Marca passo definitivo dupla-câmara (DDDR)</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Síndrome da Hipersensibilidade do seio carotideo - HISTORIA CLÁSSICA: <span class=""cloze"" data-cloze=""S&#xED;ncope&#x20;ao&#x20;virar&#x20;o&#x20;pesoco&#xE7;o&#x20;&#x2F;&#x20;usar&#x20;colarinho&#x20;apertado"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Síndrome da Hipersensibilidade do seio carotideo - HISTORIA CLÁSSICA: <span class=""cloze"" data-ordinal=""1"">Síncope ao virar o pesocoço / usar colarinho apertado</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Síndrome da Hipersensibilidade do seio carotideo -&nbsp;Diagnóstico feito com&nbsp;<span class=""cloze"" data-cloze=""compress&#xE3;o&#x20;do&#x20;seio&#x20;carot&#xED;deo&#x20;10s"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Síndrome da Hipersensibilidade do seio carotideo -&nbsp;Diagnóstico feito com&nbsp;<span class=""cloze"" data-ordinal=""1"">compressão do seio carotídeo 10s</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Síndrome da Hipersensibilidade do seio carotideo -&nbsp;Duas entidades<div><br></div><div><span class=""cloze"" data-cloze=""Hipersensibilidade&#x20;&lt;u&gt;cardioinibitoria&lt;&#x2F;u&gt;&#x20;do&#x20;seio&#x20;carotideo&#x20;&#x28;pausa&#x20;sinusal&#x20;ao&#x20;fazer&#x20;massagem&#x29;&lt;&#x2F;div&gt;&lt;div&gt;&lt;br&gt;&lt;&#x2F;div&gt;&lt;div&gt;Hipersensibilidade&#x20;&lt;u&gt;vasodepressora&lt;&#x2F;u&gt;&#x20;do&#x20;seio&#x20;carotideo&#x20;&#x28;queda&#x20;da&#x20;PA&#x20;ao&#x20;fazer&#x20;massagem&#x29;"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Síndrome da Hipersensibilidade do seio carotideo -&nbsp;Duas entidades<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Hipersensibilidade <u>cardioinibitoria</u> do seio carotideo (pausa sinusal ao fazer massagem)</div><div><br></div><div>Hipersensibilidade <u>vasodepressora</u> do seio carotideo (queda da PA ao fazer massagem)</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Síndrome da Hipersensibilidade do seio carotideo -&nbsp;<div><br /></div><div>Tratamento da hipersensibilidade cardioinibitoria =&nbsp;<span class=""cloze"" data-cloze=""Marca&#x2D;passo&#x20;definitivo"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Síndrome da Hipersensibilidade do seio carotideo -&nbsp;<div><br /></div><div>Tratamento da hipersensibilidade cardioinibitoria =&nbsp;<span class=""cloze"" data-ordinal=""1"">Marca-passo definitivo</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""2"">Doença do Nó Sinusal</span> - Causa sindrome&nbsp;<span class=""cloze"" data-cloze=""Taqui&#x2D;bradi"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""2"">Doença do Nó Sinusal</span> - Causa sindrome&nbsp;<span class=""cloze"" data-ordinal=""1"">Taqui-bradi</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Doen&#xE7;a&#x20;do&#x20;N&#xF3;&#x20;Sinusal"" data-ordinal=""2"">[...]</span> - Causa sindrome&nbsp;<span class=""cloze-inactive"" data-ordinal=""1"">Taqui-bradi</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""2"">Doença do Nó Sinusal</span> - Causa sindrome&nbsp;<span class=""cloze-inactive"" data-ordinal=""1"">Taqui-bradi</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""2"">Doença do Nó Sinusal</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze"" data-cloze=""Bradi&#x20;sinusal&#x20;cronica&#x20;inapropriada&lt;&#x2F;div&gt;&lt;div&gt;Pausas&#x20;sinusais&#x20;longas&#x20;&#x28;&amp;gt&#x3B;3s&#x29;&lt;&#x2F;div&gt;&lt;div&gt;Bloqueio&#x20;sinoatrial"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""2"">Doença do Nó Sinusal</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Bradi sinusal cronica inapropriada</div><div>Pausas sinusais longas (&gt;3s)</div><div>Bloqueio sinoatrial</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Doen&#xE7;a&#x20;do&#x20;N&#xF3;&#x20;Sinusal"" data-ordinal=""2"">[...]</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Bradi sinusal cronica inapropriada</div><div>Pausas sinusais longas (&gt;3s)</div><div>Bloqueio sinoatrial</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""2"">Doença do Nó Sinusal</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Bradi sinusal cronica inapropriada</div><div>Pausas sinusais longas (&gt;3s)</div><div>Bloqueio sinoatrial</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""2"">Toda sincope bradicárdica</span> é chamada de <span class=""cloze"" data-cloze=""S&#xED;ndrome&#x20;de&#x20;Stoke&#x2D;Adams"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""2"">Toda sincope bradicárdica</span> é chamada de <span class=""cloze"" data-ordinal=""1"">Síndrome de Stoke-Adams</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Toda&#x20;sincope&#x20;bradic&#xE1;rdica"" data-ordinal=""2"">[...]</span> é chamada de <span class=""cloze-inactive"" data-ordinal=""1"">Síndrome de Stoke-Adams</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""2"">Toda sincope bradicárdica</span> é chamada de <span class=""cloze-inactive"" data-ordinal=""1"">Síndrome de Stoke-Adams</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Bradicardia = FC &lt;&nbsp;<span class=""cloze"" data-cloze=""50"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Bradicardia = FC &lt;&nbsp;<span class=""cloze"" data-ordinal=""1"">50</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""2"">Arritmia Sinusal</span> = <span class=""cloze"" data-cloze=""Altera&#xE7;&#xE3;o&#x20;da&#x20;FC&#x20;com&#x20;respira&#xE7;&#xE3;o"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""2"">Arritmia Sinusal</span> = <span class=""cloze"" data-ordinal=""1"">Alteração da FC com respiração</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Arritmia&#x20;Sinusal"" data-ordinal=""2"">[...]</span> = <span class=""cloze-inactive"" data-ordinal=""1"">Alteração da FC com respiração</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""2"">Arritmia Sinusal</span> = <span class=""cloze-inactive"" data-ordinal=""1"">Alteração da FC com respiração</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Bradicardia Sinusal - Tratamento da refratária à atropina<div><br /></div><div><span class=""cloze"" data-cloze=""Marca&#x2D;passo&#x20;&#x2F;&#x20;Aminas"" data-ordinal=""1"">[2]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Bradicardia Sinusal - Tratamento da refratária à atropina<div><br /></div><div><span class=""cloze"" data-ordinal=""1"">Marca-passo / Aminas</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint3ba8f6233063499c').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint3ba8f6233063499c"" class=hint style=""display: none""><div>Bradi sinusal refratária trata = Bradicardias malignas.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>BAV&nbsp;<span class=""cloze"" data-cloze=""supra"" data-ordinal=""1"">[...]</span>-hissiano = BENIGNO <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> BAV&nbsp;<span class=""cloze"" data-ordinal=""1"">supra</span>-hissiano = BENIGNO </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>BAV&nbsp;<span class=""cloze"" data-cloze=""infra&#x2F;intra"" data-ordinal=""1"">[...]</span>-hissiano = MALIGNO <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> BAV&nbsp;<span class=""cloze"" data-ordinal=""1"">infra/intra</span>-hissiano = MALIGNO </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>BAV que se encontram <span class=""cloze"" data-cloze=""acima"" data-ordinal=""1"">[...]</span> do feixe de Hiss respodem bem a atropina <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> BAV que se encontram <span class=""cloze"" data-ordinal=""1"">acima</span> do feixe de Hiss respodem bem a atropina </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>BAV que se encontram <span class=""cloze"" data-cloze=""abaixo&#x2F;dentro"" data-ordinal=""1"">[...]</span> do feixe de Hiss respodem mal a atropina <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> BAV que se encontram <span class=""cloze"" data-ordinal=""1"">abaixo/dentro</span> do feixe de Hiss respodem mal a atropina </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint37ff3db8934c0d60').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint37ff3db8934c0d60"" class=hint style=""display: none""><div>INTRA-INFRA = Ruim.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>BAV Benignos:<div><br></div><div><span class=""cloze"" data-cloze=""BAV&#x20;1&#xBA;&#x20;e&#x20;BAV&#x20;2&#xBA;&#x20;Mobitz&#x20;I"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> BAV Benignos:<div><br></div><div><span class=""cloze"" data-ordinal=""1"">BAV 1º e BAV 2º Mobitz I</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>BAV Malignos:<div><br></div><div><span class=""cloze"" data-cloze=""BAV&#x20;3&#xBA;&#x20;e&#x20;BAV&#x20;2&#xBA;&#x20;Mobitz&#x20;II"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> BAV Malignos:<div><br></div><div><span class=""cloze"" data-ordinal=""1"">BAV 3º e BAV 2º Mobitz II</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Bloqueio de algumas ondas P =&nbsp;<span class=""cloze"" data-cloze=""BAV&#x20;2&#xBA;"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Bloqueio de algumas ondas P =&nbsp;<span class=""cloze"" data-ordinal=""1"">BAV 2º</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hinta51c15296db6dc15').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hinta51c15296db6dc15"" class=hint style=""display: none""><div>Se é Mobitz 1 ou 2 depende do intervalo PR (progressivamente maior = 1).</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><div>BAV <span class=""cloze-inactive"" data-ordinal=""2"">1º Grau</span>&nbsp;- Como é o ECG?</div><div><br /></div><div><span class=""cloze"" data-cloze=""PR&#x20;&amp;gt&#x3B;&#x20;200&#x20;ms&lt;div&gt;Onda&#x20;P&#x20;seguida&#x20;de&#x20;QRS"" data-ordinal=""1"">[...]</span></div></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <div>BAV <span class=""cloze-inactive"" data-ordinal=""2"">1º Grau</span>&nbsp;- Como é o ECG?</div><div><br /></div><div><span class=""cloze"" data-ordinal=""1"">PR &gt; 200 ms<div>Onda P seguida de QRS</span></div></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint784f35026e4c1869').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint784f35026e4c1869"" class=hint style=""display: none""><div>(Onda P demora para chegar no QRS);<br></div><div>Não há bloqueio, só diminuição da velocidade;</div><div>Benigno (responde a atropina).</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><div>BAV <span class=""cloze"" data-cloze=""1&#xBA;&#x20;Grau"" data-ordinal=""2"">[...]</span>&nbsp;- Como é o ECG?</div><div><br /></div><div><span class=""cloze-inactive"" data-ordinal=""1"">PR &gt; 200 ms<div>Onda P seguida de QRS</span></div></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <div>BAV <span class=""cloze"" data-ordinal=""2"">1º Grau</span>&nbsp;- Como é o ECG?</div><div><br /></div><div><span class=""cloze-inactive"" data-ordinal=""1"">PR &gt; 200 ms<div>Onda P seguida de QRS</span></div></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint784f35026e4c1869').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint784f35026e4c1869"" class=hint style=""display: none""><div>(Onda P demora para chegar no QRS);<br></div><div>Não há bloqueio, só diminuição da velocidade;</div><div>Benigno (responde a atropina).</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><div>BAV <span class=""cloze"" data-cloze=""2&#xBA;&#x20;Grau&#x20;–&#x20;Mobitz&#x20;I&#x20;&#x28;Wenckebach&#x29;"" data-ordinal=""1"">[...]</span>&nbsp;- Como é o ECG?</div><div><br /></div><div><span class=""cloze-inactive"" data-ordinal=""2"">Vai alargando PR progressivamente até que bloqueia<br />Algumas ondas P sem QRS a seguir</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <div>BAV <span class=""cloze"" data-ordinal=""1"">2º Grau – Mobitz I (Wenckebach)</span>&nbsp;- Como é o ECG?</div><div><br /></div><div><span class=""cloze-inactive"" data-ordinal=""2"">Vai alargando PR progressivamente até que bloqueia<br />Algumas ondas P sem QRS a seguir</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintf56f44f16558b9e7').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hintf56f44f16558b9e7"" class=hint style=""display: none""><div>Benigna (responde a atropina).</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><div>BAV <span class=""cloze-inactive"" data-ordinal=""1"">2º Grau – Mobitz I (Wenckebach)</span>&nbsp;- Como é o ECG?</div><div><br /></div><div><span class=""cloze"" data-cloze=""Vai&#x20;alargando&#x20;PR&#x20;progressivamente&#x20;at&#xE9;&#x20;que&#x20;bloqueia&lt;br&#x20;&#x2F;&gt;Algumas&#x20;ondas&#x20;P&#x20;sem&#x20;QRS&#x20;a&#x20;seguir"" data-ordinal=""2"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <div>BAV <span class=""cloze-inactive"" data-ordinal=""1"">2º Grau – Mobitz I (Wenckebach)</span>&nbsp;- Como é o ECG?</div><div><br /></div><div><span class=""cloze"" data-ordinal=""2"">Vai alargando PR progressivamente até que bloqueia<br />Algumas ondas P sem QRS a seguir</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintf56f44f16558b9e7').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hintf56f44f16558b9e7"" class=hint style=""display: none""><div>Benigna (responde a atropina).</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><div>BAV <span class=""cloze-inactive"" data-ordinal=""2"">2 º Grau - Mobitz II</span>&nbsp;- Como é o ECG?</div><div><br></div><div><span class=""cloze"" data-cloze=""PR&#x20;normal&lt;br&gt;Algumas&#x20;ondas&#x20;P&#x20;n&#xE3;o&#x20;seguidas&#x20;de&#x20;QRS"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <div>BAV <span class=""cloze-inactive"" data-ordinal=""2"">2 º Grau - Mobitz II</span>&nbsp;- Como é o ECG?</div><div><br></div><div><span class=""cloze"" data-ordinal=""1"">PR normal<br>Algumas ondas P não seguidas de QRS</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint9fed8468b9dc2fb3').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint9fed8468b9dc2fb3"" class=hint style=""display: none""><div>(Não “avisa” que vai bloquear);<br></div>Maligna (Não responde a atropina).<span style=""color: lightgrey""><small><br>      </small></span> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><div>BAV <span class=""cloze"" data-cloze=""2&#x20;&#xBA;&#x20;Grau&#x20;&#x2D;&#x20;Mobitz&#x20;II"" data-ordinal=""2"">[...]</span>&nbsp;- Como é o ECG?</div><div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">PR normal<br>Algumas ondas P não seguidas de QRS</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <div>BAV <span class=""cloze"" data-ordinal=""2"">2 º Grau - Mobitz II</span>&nbsp;- Como é o ECG?</div><div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">PR normal<br>Algumas ondas P não seguidas de QRS</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint9fed8468b9dc2fb3').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint9fed8468b9dc2fb3"" class=hint style=""display: none""><div>(Não “avisa” que vai bloquear);<br></div>Maligna (Não responde a atropina).<span style=""color: lightgrey""><small><br>      </small></span> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><div>BAV <span class=""cloze-inactive"" data-ordinal=""2"">3º Grau</span>&nbsp;- Como é o ECG?</div><div><br></div><div><span class=""cloze"" data-cloze=""Onda&#x20;P&#x20;entra&#x20;e&#x20;sai&#x20;do&#x20;QRS&#x20;&#x28;Dissocia&#xE7;&#xE3;o&#x20;Atrioventricular&#x29;"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <div>BAV <span class=""cloze-inactive"" data-ordinal=""2"">3º Grau</span>&nbsp;- Como é o ECG?</div><div><br></div><div><span class=""cloze"" data-ordinal=""1"">Onda P entra e sai do QRS (Dissociação Atrioventricular)</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><div>BAV <span class=""cloze"" data-cloze=""3&#xBA;&#x20;Grau"" data-ordinal=""2"">[...]</span>&nbsp;- Como é o ECG?</div><div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Onda P entra e sai do QRS (Dissociação Atrioventricular)</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <div>BAV <span class=""cloze"" data-ordinal=""2"">3º Grau</span>&nbsp;- Como é o ECG?</div><div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Onda P entra e sai do QRS (Dissociação Atrioventricular)</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>BAV 1º grau e 2º grau Mobitz 1 - Tratamento<div><br></div><div><span class=""cloze"" data-cloze=""Assintom&#xE1;tico&#x20;&#x3D;&#x20;Observa&lt;br&gt;Sintom&#xE1;tico&#x20;&#x3D;&#x20;Atropina&#x20;→&#x20;Se&#x20;refrat&#xE1;rio&#x3A;&#x20;Marca&#x2D;passo&#x20;&#x2F;&#x20;Adrenalina&#x20;&#x2F;&#x20;Dopamina"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> BAV 1º grau e 2º grau Mobitz 1 - Tratamento<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Assintomático = Observa<br>Sintomático = Atropina → Se refratário: Marca-passo / Adrenalina / Dopamina</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>BAV 3º grau e 2º grau Mobitz 2 - Tratamento<div><br /></div><div><span class=""cloze"" data-cloze=""Marca&#x2D;passo&#x20;&#x2B;&#x20;Dopamina&#x2F;Adrenalina"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> BAV 3º grau e 2º grau Mobitz 2 - Tratamento<div><br /></div><div><span class=""cloze"" data-ordinal=""1"">Marca-passo + Dopamina/Adrenalina</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint06de897c6abbe439').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint06de897c6abbe439"" class=hint style=""display: none""><i style=""vertical-align: super; ""><div><sup></sup></div></i><div>Atropina não funciona aqui.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Marca-passo definitivo é <span class=""cloze"" data-cloze=""tripla"" data-ordinal=""1"">[...]</span>-câmara (<span class=""cloze"" data-cloze=""1&#x20;no&#x20;&#xE1;trio&#x20;e&#x20;2&#x20;nos&#x20;ventriculos"" data-ordinal=""1"">[...]</span>) <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Marca-passo definitivo é <span class=""cloze"" data-ordinal=""1"">tripla</span>-câmara (<span class=""cloze"" data-ordinal=""1"">1 no átrio e 2 nos ventriculos</span>) </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Marca-passo em FA (Como fica) = <span class=""cloze"" data-cloze=""N&#xE3;o&#x20;bota&#x20;cabo&#x20;no&#x20;&#xE1;trio&#x2C;&#x20;so&#x20;nos&#x20;dois&#x20;ventr&#xED;culos&#x21;"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Marca-passo em FA (Como fica) = <span class=""cloze"" data-ordinal=""1"">Não bota cabo no átrio, so nos dois ventrículos!</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Marca-passo definitivo ou temporário?<div><br /></div><div><span class=""cloze"" data-cloze=""Condi&#xE7;&#xE3;o&#x20;cronica&#x20;irrevers&#xED;vel&#x20;&#x3D;&#x20;Definitivo&lt;&#x2F;div&gt;&lt;div&gt;Condi&#xE7;&#xE3;o&#x20;reversivel&#x20;&#x2F;&#x20;transit&#xF3;ria&#x20;&#x3D;&#x20;Tempor&#xE1;rio"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Marca-passo definitivo ou temporário?<div><br /></div><div><span class=""cloze"" data-ordinal=""1"">Condição cronica irreversível = Definitivo</div><div>Condição reversivel / transitória = Temporário</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Taquicardia Atrial - taquicardia com alteração em&nbsp;<span class=""cloze"" data-cloze=""Onda&#x20;P"" data-ordinal=""1"">[...]</span><br> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Taquicardia Atrial - taquicardia com alteração em&nbsp;<span class=""cloze"" data-ordinal=""1"">Onda P</span><br> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Reentrada exige 3 pré requisitos:&nbsp;<div><br /></div><div><span class=""cloze"" data-cloze=""&#x28;1&#x29;&amp;nbsp&#x3B;&#xC1;reas&#x20;adjacentes&#x20;com&#x20;per&#xED;odos&#x20;refrat&#xE1;rios&#x20;diferente&lt;br&#x20;&#x2F;&gt;&#x28;2&#x29;&#x20;&#xC1;reas&#x20;de&#x20;condu&#xE7;&#xE3;o&#x20;lentificada&lt;br&#x20;&#x2F;&gt;&#x28;3&#x29;&#x20;Gatilho&#x20;&#x28;ex&#x3A;&#x20;extrass&#xED;stole&#x29;"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Reentrada exige 3 pré requisitos:&nbsp;<div><br /></div><div><span class=""cloze"" data-ordinal=""1"">(1)&nbsp;Áreas adjacentes com períodos refratários diferente<br />(2) Áreas de condução lentificada<br />(3) Gatilho (ex: extrassístole)</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""FA&#x20;desencadeada&#x20;por&#x20;&#xC1;lcool"" data-ordinal=""1"">[...]</span>= <span class=""cloze-inactive"" data-ordinal=""2"">Holiday Heart Syndrome</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""1"">FA desencadeada por Álcool</span>= <span class=""cloze-inactive"" data-ordinal=""2"">Holiday Heart Syndrome</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""1"">FA desencadeada por Álcool</span>= <span class=""cloze"" data-cloze=""Holiday&#x20;Heart&#x20;Syndrome"" data-ordinal=""2"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""1"">FA desencadeada por Álcool</span>= <span class=""cloze"" data-ordinal=""2"">Holiday Heart Syndrome</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Na FA, <span class=""cloze"" data-cloze=""o&#x20;risco&#x20;cardioemb&#xF3;lico&#x20;&#x28;CHA&lt;sub&gt;2&lt;&#x2F;sub&gt;DS&lt;sub&gt;2&lt;&#x2F;sub&gt;&#x2D;VASC&#x29;"" data-ordinal=""1"">[...]</span> deve ser sempre avaliado após cardioversão <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Na FA, <span class=""cloze"" data-ordinal=""1"">o risco cardioembólico (CHA<sub>2</sub>DS<sub>2</sub>-VASC)</span> deve ser sempre avaliado após cardioversão </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint3556c44d99d82f48').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint3556c44d99d82f48"" class=hint style=""display: none""><div>Antes da cardioversão: vê ECO - se trombo = 3-4 s warfarin;<br></div><div>Depois: ver o risco. Se alto = warfarin +4 semanas (ou para sempre).</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>CHA2DS2-VASC - Critérios<div><br></div><div><div><span class=""cloze"" data-cloze=""Congest&#xE3;o&lt;br&gt;Hipertens&#xE3;o&lt;br&gt;Age&amp;nbsp&#x3B;&amp;gt&#x3B;&#x20;75&#x20;&#x28;2&#x29;&lt;br&gt;Diabetes&lt;br&gt;Stroke&#x20;&#x2F;&#x20;AIT&#x20;&#x28;2&#x29;&lt;&#x2F;div&gt;&lt;div&gt;Vasculopatia&lt;br&gt;Age&amp;nbsp&#x3B;&amp;gt&#x3B;&#x20;65&lt;br&gt;Sex&amp;nbsp&#x3B;Category&amp;nbsp&#x3B;feminino"" data-ordinal=""1"">[...]</span></div></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> CHA2DS2-VASC - Critérios<div><br></div><div><div><span class=""cloze"" data-ordinal=""1"">Congestão<br>Hipertensão<br>Age&nbsp;&gt; 75 (2)<br>Diabetes<br>Stroke / AIT (2)</div><div>Vasculopatia<br>Age&nbsp;&gt; 65<br>Sex&nbsp;Category&nbsp;feminino</span></div></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Sinais de <span class=""cloze-inactive"" data-ordinal=""2"">aumento do AE</span> no ECG:<div><br /></div><div><span class=""cloze"" data-cloze=""Onda&#x20;P&#x20;larga&#x20;e&#x20;bifida&#x20;em&#x20;D2&lt;br&#x20;&#x2F;&gt;&#xCD;ndice&#x20;de&#x20;Morris&#x20;&#x2D;&#x20;em&#x20;V1"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Sinais de <span class=""cloze-inactive"" data-ordinal=""2"">aumento do AE</span> no ECG:<div><br /></div><div><span class=""cloze"" data-ordinal=""1"">Onda P larga e bifida em D2<br />Índice de Morris - em V1</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint8a0e404191ba36ab').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint8a0e404191ba36ab"" class=hint style=""display: none""><div>Índice de Morris = Aumento da área negativa da onda P (fica com área &gt;1 quadradinho);</div><div>Onda P <u>larga e bifida</u> = ""P mitrale"".</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Sinais de <span class=""cloze"" data-cloze=""aumento&#x20;do&#x20;AE"" data-ordinal=""2"">[...]</span> no ECG:<div><br /></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Onda P larga e bifida em D2<br />Índice de Morris - em V1</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Sinais de <span class=""cloze"" data-ordinal=""2"">aumento do AE</span> no ECG:<div><br /></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Onda P larga e bifida em D2<br />Índice de Morris - em V1</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint8a0e404191ba36ab').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint8a0e404191ba36ab"" class=hint style=""display: none""><div>Índice de Morris = Aumento da área negativa da onda P (fica com área &gt;1 quadradinho);</div><div>Onda P <u>larga e bifida</u> = ""P mitrale"".</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Sobrecarga&#x20;de&#x20;VE"" data-ordinal=""1"">[...]</span> no ECG:<div><br /></div><div><span class=""cloze-inactive"" data-ordinal=""2"">V5/V6<br />Inversão Assimétrica da Onda T<br />↑ QRS exageradamente alto</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""1"">Sobrecarga de VE</span> no ECG:<div><br /></div><div><span class=""cloze-inactive"" data-ordinal=""2"">V5/V6<br />Inversão Assimétrica da Onda T<br />↑ QRS exageradamente alto</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintb3c3dd041ce8afd7').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hintb3c3dd041ce8afd7"" class=hint style=""display: none""><div>Esse é o Padrão Strain (Sobrecarga de VE);<br></div><div><div>Assimétrico = Onda T sobe rápida e desce devagar.</div></div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""1"">Sobrecarga de VE</span> no ECG:<div><br /></div><div><span class=""cloze"" data-cloze=""V5&#x2F;V6&lt;br&#x20;&#x2F;&gt;Invers&#xE3;o&#x20;Assim&#xE9;trica&#x20;da&#x20;Onda&#x20;T&lt;br&#x20;&#x2F;&gt;↑&#x20;QRS&#x20;exageradamente&#x20;alto"" data-ordinal=""2"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""1"">Sobrecarga de VE</span> no ECG:<div><br /></div><div><span class=""cloze"" data-ordinal=""2"">V5/V6<br />Inversão Assimétrica da Onda T<br />↑ QRS exageradamente alto</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintb3c3dd041ce8afd7').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hintb3c3dd041ce8afd7"" class=hint style=""display: none""><div>Esse é o Padrão Strain (Sobrecarga de VE);<br></div><div><div>Assimétrico = Onda T sobe rápida e desce devagar.</div></div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Primeiro sinal ECG da isquemia =&nbsp;<span class=""cloze"" data-cloze=""Altera&#xE7;&#xF5;es&#x20;na&#x20;repolariza&#xE7;&#xE3;o&#x20;ventricular&#x20;&#x28;Onda&#x20;T&#x20;invertida&#x2F;pontiaguda&#x20;sim&#xE9;trica&#x29;"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Primeiro sinal ECG da isquemia =&nbsp;<span class=""cloze"" data-ordinal=""1"">Alterações na repolarização ventricular (Onda T invertida/pontiaguda simétrica)</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Indício no ECG de infarto prévio&nbsp;<span class=""cloze"" data-cloze=""Onda&#x20;Q&#x20;patol&#xF3;gica"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Indício no ECG de infarto prévio&nbsp;<span class=""cloze"" data-ordinal=""1"">Onda Q patológica</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintf3c614e53398a0c1').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hintf3c614e53398a0c1"" class=hint style=""display: none"">Complexo QRS sem onda R.</div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>IAMSST&nbsp;- Como é o ECG?<div><br /></div><div><span class=""cloze"" data-cloze=""Invers&#xE3;o&#x20;sim&#xE9;trica&#x20;da&#x20;Onda&#x20;T&lt;br&#x20;&#x2F;&gt;Onda&#x20;T&#x20;apiculada&lt;br&#x20;&#x2F;&gt;Infra&#x2D;ST&#x20;&amp;gt&#x3B;&#x20;0&#x2C;5mm"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> IAMSST&nbsp;- Como é o ECG?<div><br /></div><div><span class=""cloze"" data-ordinal=""1"">Inversão simétrica da Onda T<br />Onda T apiculada<br />Infra-ST &gt; 0,5mm</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Pericadite - Como é o ECG?<div><br /></div><div><span class=""cloze"" data-cloze=""Supra&#x2D;ST&#x20;&quot;difuso&quot;&lt;br&#x20;&#x2F;&gt;Infra&#x20;PR"" data-ordinal=""2"">[2]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Pericadite - Como é o ECG?<div><br /></div><div><span class=""cloze"" data-ordinal=""2"">Supra-ST ""difuso""<br />Infra PR</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>IAMST - Correspondência anatômica e eletrocardiográfica<div><br></div><div>Derivações <span class=""cloze-inactive"" data-ordinal=""2"">D1, aVL</span> = <span class=""cloze"" data-cloze=""Parede&#x20;Lateral&#x20;Alta"" data-ordinal=""1"">[Localização]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> IAMST - Correspondência anatômica e eletrocardiográfica<div><br></div><div>Derivações <span class=""cloze-inactive"" data-ordinal=""2"">D1, aVL</span> = <span class=""cloze"" data-ordinal=""1"">Parede Lateral Alta</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintae502b7c724fcd22').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hintae502b7c724fcd22"" class=hint style=""display: none""><div>avL (Lateral).</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>IAMST - Correspondência anatômica e eletrocardiográfica<div><br></div><div>Derivações <span class=""cloze"" data-cloze=""D1&#x2C;&#x20;aVL"" data-ordinal=""2"">[...]</span> = <span class=""cloze-inactive"" data-ordinal=""1"">Parede Lateral Alta</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> IAMST - Correspondência anatômica e eletrocardiográfica<div><br></div><div>Derivações <span class=""cloze"" data-ordinal=""2"">D1, aVL</span> = <span class=""cloze-inactive"" data-ordinal=""1"">Parede Lateral Alta</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintae502b7c724fcd22').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hintae502b7c724fcd22"" class=hint style=""display: none""><div>avL (Lateral).</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>IAMST -&nbsp;
+
+Correspondência anatômica e eletrocardiográfica<div><br></div><div>Derivações&nbsp;<span class=""cloze-inactive"" data-ordinal=""2"">D2, D3, aVF</span>&nbsp;=&nbsp;<span class=""cloze"" data-cloze=""Parede&#x20;Inferior"" data-ordinal=""1"">[Localização]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> IAMST -&nbsp;
+
+Correspondência anatômica e eletrocardiográfica<div><br></div><div>Derivações&nbsp;<span class=""cloze-inactive"" data-ordinal=""2"">D2, D3, aVF</span>&nbsp;=&nbsp;<span class=""cloze"" data-ordinal=""1"">Parede Inferior</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>IAMST -&nbsp;
+
+Correspondência anatômica e eletrocardiográfica<div><br></div><div>Derivações&nbsp;<span class=""cloze"" data-cloze=""D2&#x2C;&#x20;D3&#x2C;&#x20;aVF"" data-ordinal=""2"">[...]</span>&nbsp;=&nbsp;<span class=""cloze-inactive"" data-ordinal=""1"">Parede Inferior</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> IAMST -&nbsp;
+
+Correspondência anatômica e eletrocardiográfica<div><br></div><div>Derivações&nbsp;<span class=""cloze"" data-ordinal=""2"">D2, D3, aVF</span>&nbsp;=&nbsp;<span class=""cloze-inactive"" data-ordinal=""1"">Parede Inferior</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>IAMST - Suspeita de IAM de <span class=""cloze-inactive"" data-ordinal=""2"">parede dorsal</span> no ECG é:<div><br></div><div><span class=""cloze"" data-cloze=""Infra&#x2D;ST&#x20;V1&#x2D;V5&#x20;&#x28;espelho&#x29;"" data-ordinal=""1"">[...]</span></div><div><br></div><div>Pedir então a derivação: <span class=""cloze-inactive"" data-ordinal=""2"">V7-V8</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> IAMST - Suspeita de IAM de <span class=""cloze-inactive"" data-ordinal=""2"">parede dorsal</span> no ECG é:<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Infra-ST V1-V5 (espelho)</span></div><div><br></div><div>Pedir então a derivação: <span class=""cloze-inactive"" data-ordinal=""2"">V7-V8</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>IAMST - Suspeita de IAM de <span class=""cloze"" data-cloze=""parede&#x20;dorsal"" data-ordinal=""2"">[...]</span> no ECG é:<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Infra-ST V1-V5 (espelho)</span></div><div><br></div><div>Pedir então a derivação: <span class=""cloze"" data-cloze=""V7&#x2D;V8"" data-ordinal=""2"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> IAMST - Suspeita de IAM de <span class=""cloze"" data-ordinal=""2"">parede dorsal</span> no ECG é:<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Infra-ST V1-V5 (espelho)</span></div><div><br></div><div>Pedir então a derivação: <span class=""cloze"" data-ordinal=""2"">V7-V8</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>ECG: V1 à V6 deve ser progressivamente <span class=""cloze"" data-cloze=""negativo&#x20;para&#x20;positivo"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> ECG: V1 à V6 deve ser progressivamente <span class=""cloze"" data-ordinal=""1"">negativo para positivo</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><img src=""B59C0168-5DAA-4297-B3D0-C57621F51AF6.jpg""><br><div><br></div><div>O que é esse QRS?&nbsp;<span class=""cloze"" data-cloze=""BRD&#x20;&#x28;R&#x20;R&#x27;&#x20;→&#x20;Orelha&#x20;de&#x20;cachorro&#x29;"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <img src=""B59C0168-5DAA-4297-B3D0-C57621F51AF6.jpg""><br><div><br></div><div>O que é esse QRS?&nbsp;<span class=""cloze"" data-ordinal=""1"">BRD (R R' → Orelha de cachorro)</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>TEP - Achado mais comum no ECG: <span class=""cloze"" data-cloze=""Taquicardia&#x20;sinusal"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> TEP - Achado mais comum no ECG: <span class=""cloze"" data-ordinal=""1"">Taquicardia sinusal</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>TEP - Achado mais especifico no ECG: <span class=""cloze"" data-cloze=""S1Q3T3"" data-ordinal=""1"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> TEP - Achado mais especifico no ECG: <span class=""cloze"" data-ordinal=""1"">S1Q3T3</span> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint2987658e9ceb8f8a').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint2987658e9ceb8f8a"" class=hint style=""display: none""><div><b>É quando encontra, ao mesmo tempo:</b><br></div><div><u>Onda S em DI</u>&nbsp;(a negativa após QRS);</div><div><u>Onda Q em DIII(</u>a positiva após QRS);</div><div><u>Onda T invertida em DIII</u><i>.</i></div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>ECG <span class=""cloze-inactive"" data-ordinal=""2"">Sobrecarga Cardíaca Direita</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze"" data-cloze=""Onda&#x20;P&#x20;alta&#x20;e&#x20;pontiaguda&#x20;&#x28;&amp;gt&#x3B;2&#x2C;5mm&#x29;&lt;br&gt;R&#x20;&amp;gt&#x3B;&#x20;S&#x20;em&#x20;V1&lt;br&gt;Desvio&#x20;QRS&#x20;para&#x20;direita&lt;br&gt;BRD"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> ECG <span class=""cloze-inactive"" data-ordinal=""2"">Sobrecarga Cardíaca Direita</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Onda P alta e pontiaguda (&gt;2,5mm)<br>R &gt; S em V1<br>Desvio QRS para direita<br>BRD</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>ECG <span class=""cloze"" data-cloze=""Sobrecarga&#x20;Card&#xED;aca&#x20;Direita"" data-ordinal=""2"">[...]</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Onda P alta e pontiaguda (&gt;2,5mm)<br>R &gt; S em V1<br>Desvio QRS para direita<br>BRD</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> ECG <span class=""cloze"" data-ordinal=""2"">Sobrecarga Cardíaca Direita</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Onda P alta e pontiaguda (&gt;2,5mm)<br>R &gt; S em V1<br>Desvio QRS para direita<br>BRD</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Fibrila&#xE7;&#xE3;o&#x20;Ventricular"" data-ordinal=""2"">[...]</span> - Frequência ventricular&nbsp;<span class=""cloze-inactive"" data-ordinal=""1"">400-600 bpm&nbsp;</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""2"">Fibrilação Ventricular</span> - Frequência ventricular&nbsp;<span class=""cloze-inactive"" data-ordinal=""1"">400-600 bpm&nbsp;</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Quando <span class=""cloze-inactive"" data-ordinal=""1"">o nó sinusal falha</span>, surge <span class=""cloze"" data-cloze=""um&#x20;ritmo&#x20;de&#x20;escape"" data-ordinal=""2"">[...]</span> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Quando <span class=""cloze-inactive"" data-ordinal=""1"">o nó sinusal falha</span>, surge <span class=""cloze"" data-ordinal=""2"">um ritmo de escape</span> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Taquicardia&#x20;Supraventricular"" data-ordinal=""2"">[...]</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Taquicardia&nbsp;<br>Onda P ausente<br>RR regular</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""2"">Taquicardia Supraventricular</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Taquicardia&nbsp;<br>Onda P ausente<br>RR regular</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""2"">Taquicardia Supraventricular</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze"" data-cloze=""Taquicardia&amp;nbsp&#x3B;&lt;br&gt;Onda&#x20;P&#x20;ausente&lt;br&gt;RR&#x20;regular"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""2"">Taquicardia Supraventricular</span>&nbsp;- Como é o ECG?<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Taquicardia&nbsp;<br>Onda P ausente<br>RR regular</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Sequência de análise de um ECG<div><br /></div><div><span class=""cloze"" data-cloze=""Frequ&#xEA;ncia&lt;br&#x20;&#x2F;&gt;Ritmo&lt;br&#x20;&#x2F;&gt;Eixo&lt;br&#x20;&#x2F;&gt;I&lt;br&#x20;&#x2F;&gt;O&lt;br&#x20;&#x2F;&gt;S"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Sequência de análise de um ECG<div><br /></div><div><span class=""cloze"" data-ordinal=""1"">Frequência<br />Ritmo<br />Eixo<br />I<br />O<br />S</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintfb017e25f610daa0').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hintfb017e25f610daa0"" class=hint style=""display: none""><div>""SISTEMA"" <u>IOS</u> = Avaliar ondas e intervalos: P / PR / QRS / ST / ONDA T / INTERVALO QT.<br></div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""2"">QT curto</span> - Causas<div><br /></div><div><span class=""cloze"" data-cloze=""HiperK&lt;br&#x20;&#x2F;&gt;HiperCa&lt;br&#x20;&#x2F;&gt;Digit&#xE1;licos"" data-ordinal=""1"">[3]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""2"">QT curto</span> - Causas<div><br /></div><div><span class=""cloze"" data-ordinal=""1"">HiperK<br />HiperCa<br />Digitálicos</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint7c64a45fc6be92ad').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint7c64a45fc6be92ad"" class=hint style=""display: none""><div>QT Curto = ↑Calemia ↑Calcemia.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""QT&#x20;curto"" data-ordinal=""2"">[ECG]</span> - Causas<div><br /></div><div><span class=""cloze-inactive"" data-ordinal=""1"">HiperK<br />HiperCa<br />Digitálicos</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""2"">QT curto</span> - Causas<div><br /></div><div><span class=""cloze-inactive"" data-ordinal=""1"">HiperK<br />HiperCa<br />Digitálicos</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint7c64a45fc6be92ad').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint7c64a45fc6be92ad"" class=hint style=""display: none""><div>QT Curto = ↑Calemia ↑Calcemia.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Taquicardias de escape e suas causas<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Ritmo idiojuncional <i>acelerado</i></span>&nbsp;- <span class=""cloze"" data-cloze=""Intoxica&#xE7;&#xE3;o&#x20;digit&#xE1;lica"" data-ordinal=""2"">[Causa]</span></div><div><div><span class=""cloze-inactive"" data-ordinal=""1"">Ritmo idioventricular <i>acelerado</i></span><i>&nbsp;-</i> <span class=""cloze"" data-cloze=""Fase&#x20;aguda&#x20;do&#x20;IAM"" data-ordinal=""2"">[Causa]</span></div></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Taquicardias de escape e suas causas<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Ritmo idiojuncional <i>acelerado</i></span>&nbsp;- <span class=""cloze"" data-ordinal=""2"">Intoxicação digitálica</span></div><div><div><span class=""cloze-inactive"" data-ordinal=""1"">Ritmo idioventricular <i>acelerado</i></span><i>&nbsp;-</i> <span class=""cloze"" data-ordinal=""2"">Fase aguda do IAM</span></div></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Padrão S1Q3T3 no ECG:<div><br /></div><div><span class=""cloze"" data-cloze=""Onda&#x20;S&#x20;presente&#x20;em&#x20;D1&lt;br&#x20;&#x2F;&gt;Onda&#x20;Q&#x20;presente&#x20;em&#x20;D3&lt;br&#x20;&#x2F;&gt;Onda&#x20;T&#x20;invertida&#x20;em&#x20;D3"" data-ordinal=""1"">[Como é]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Padrão S1Q3T3 no ECG:<div><br /></div><div><span class=""cloze"" data-ordinal=""1"">Onda S presente em D1<br />Onda Q presente em D3<br />Onda T invertida em D3</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint9174ab19906ee292').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint9174ab19906ee292"" class=hint style=""display: none""><div><img src=""S1Q3T3-Pulmonary-Embolism-ECG-EKG-Classic-Pattern.jpg""></div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>ECG da hipercalemia - Ordem das alterações<div><br></div><div><span class=""cloze"" data-cloze=""Onda&#x20;T&#x20;apiculada"" data-ordinal=""1"">[...]</span> → <span class=""cloze"" data-cloze=""Achatamento&#x20;da&#x20;Onda&#x20;P"" data-ordinal=""1"">[...]</span> → <span class=""cloze"" data-cloze=""QRS&#x20;alargado"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> ECG da hipercalemia - Ordem das alterações<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Onda T apiculada</span> → <span class=""cloze"" data-ordinal=""1"">Achatamento da Onda P</span> → <span class=""cloze"" data-ordinal=""1"">QRS alargado</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""2"">Bloqueio divisional anterossuperior (Hemibloqueio anterior esquerdo)</span><div><br></div><div>Altamente indicativo de&nbsp;<span class=""cloze"" data-cloze=""Doen&#xE7;a&#x20;de&#x20;Chagas&#x20;Cr&#xF4;nica"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""2"">Bloqueio divisional anterossuperior (Hemibloqueio anterior esquerdo)</span><div><br></div><div>Altamente indicativo de&nbsp;<span class=""cloze"" data-ordinal=""1"">Doença de Chagas Crônica</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Bloqueio&#x20;divisional&#x20;anterossuperior&#x20;&#x28;Hemibloqueio&#x20;anterior&#x20;esquerdo&#x29;"" data-ordinal=""2"">[ECG]</span><div><br></div><div>Altamente indicativo de&nbsp;<span class=""cloze-inactive"" data-ordinal=""1"">Doença de Chagas Crônica</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""2"">Bloqueio divisional anterossuperior (Hemibloqueio anterior esquerdo)</span><div><br></div><div>Altamente indicativo de&nbsp;<span class=""cloze-inactive"" data-ordinal=""1"">Doença de Chagas Crônica</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Hipocalemia - Alterações ECG<div><br></div><div><span class=""cloze"" data-cloze=""↑&#x20;Onda&#x20;P&lt;br&gt;↓&#x20;Onda&#x20;T&lt;br&gt;↑&#x20;Onda&#x20;U&lt;br&gt;Infradesnivelamento&#x20;de&#x20;ST&lt;br&gt;QRS&#x20;alargado"" data-ordinal=""1"">[5]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia Provas::PSU::2025
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Hipocalemia - Alterações ECG<div><br></div><div><span class=""cloze"" data-ordinal=""1"">↑ Onda P<br>↓ Onda T<br>↑ Onda U<br>Infradesnivelamento de ST<br>QRS alargado</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintbb6ac2dad552f8e0').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hintbb6ac2dad552f8e0"" class=hint style=""display: none""><img alt=""Alterações eletrocardiográficas na hipocalemia."" src=""91-EletrolitosECG-Figura1.jpg""><br><strong><br></strong>TADE Clinicagem.&nbsp;<strong>Eletrocardiograma nos distúrbios eletrolíticos</strong>. Disponível em:&nbsp;<a href=""https://www.tadeclinicagem.com.br/guia/315/eletrocardiograma-nos-disturbios-eletroliticos/"">https://www.tadeclinicagem.com.br/guia/315/eletrocardiograma-nos-disturbios-eletroliticos/</a>. Acesso em: 3 dez. 2024.</div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Hipercalemia - Alterações ECG<div><br></div><div><span class=""cloze"" data-cloze=""↓&#x20;Onda&#x20;P&lt;br&gt;↑&#x20;Onda&#x20;T&#x20;apiculada&#x20;&#x28;em&#x20;tenda&#x29;&lt;br&gt;Prolongamento&#x20;de&#x20;PR&lt;br&gt;Infradesnivelamento&#x20;de&#x20;ST&lt;br&gt;QRS&#x20;alargado"" data-ordinal=""1"">[5]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Hipercalemia - Alterações ECG<div><br></div><div><span class=""cloze"" data-ordinal=""1"">↓ Onda P<br>↑ Onda T apiculada (em tenda)<br>Prolongamento de PR<br>Infradesnivelamento de ST<br>QRS alargado</span></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintfc0cd8dd7ffa9133').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hintfc0cd8dd7ffa9133"" class=hint style=""display: none""><img alt=""Eletrocardiograma nos Distúrbios Eletrolíticos | Guia TdC"" src=""91-EletrolitosECG-Figura2.jpg""><br><br>TADE Clinicagem. <strong>Eletrocardiograma nos distúrbios eletrolíticos</strong>. Disponível em: <a href=""https://www.tadeclinicagem.com.br/guia/315/eletrocardiograma-nos-disturbios-eletroliticos/"">https://www.tadeclinicagem.com.br/guia/315/eletrocardiograma-nos-disturbios-eletroliticos/</a>. Acesso em: 3 dez. 2024.</div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Hipercalemia - Conduta em <span class=""cloze-inactive"" data-ordinal=""2"">ECG alterado</span><div><br></div><div><span class=""cloze"" data-cloze=""Gluconato&#x20;de&#x20;C&#xE1;lcio"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Hipercalemia - Conduta em <span class=""cloze-inactive"" data-ordinal=""2"">ECG alterado</span><div><br></div><div><span class=""cloze"" data-ordinal=""1"">Gluconato de Cálcio</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Hipercalemia - Conduta em <span class=""cloze"" data-cloze=""ECG&#x20;alterado"" data-ordinal=""2"">[...]</span><div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Gluconato de Cálcio</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Hipercalemia - Conduta em <span class=""cloze"" data-ordinal=""2"">ECG alterado</span><div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Gluconato de Cálcio</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze-inactive"" data-ordinal=""2"">Displasia Arritmogênica do VD</span> - ECG<div><br></div><div><span class=""cloze"" data-cloze=""Onda&#x20;&#xE9;psilon"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze-inactive"" data-ordinal=""2"">Displasia Arritmogênica do VD</span> - ECG<div><br></div><div><span class=""cloze"" data-ordinal=""1"">Onda épsilon</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Pericardite Aguda - ECG<br><div><br></div><div><span class=""cloze"" data-cloze=""Pan&#x2D;Supra&#x2D;ST&#x20;&lt;u&gt;c&#xF4;ncavo&lt;&#x2F;u&gt;&lt;&#x2F;div&gt;&lt;div&gt;Infra&#x2D;PR"" data-ordinal=""1"">[...]</span><br></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Pericardite Aguda - ECG<br><div><br></div><div><span class=""cloze"" data-ordinal=""1"">Pan-Supra-ST <u>côncavo</u></div><div>Infra-PR</span><br></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Fases do IAM no ECG<div><br /></div><div>Hiperaguda:&nbsp;<span class=""cloze"" data-cloze=""Supra&#x2D;ST&#x20;&#x2F;&#x20;T&#x20;apiculada"" data-ordinal=""1"">[...]</span><br />Subaguda:&nbsp;<span class=""cloze"" data-cloze=""Supra&#x2D;ST&#x20;convexo&#x20;&#x2F;&#x20;T&#x20;invertida"" data-ordinal=""1"">[...]</span><br />Crônica:&nbsp;<span class=""cloze"" data-cloze=""Onda&#x20;Q"" data-ordinal=""1"">[...]</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Fases do IAM no ECG<div><br /></div><div>Hiperaguda:&nbsp;<span class=""cloze"" data-ordinal=""1"">Supra-ST / T apiculada</span><br />Subaguda:&nbsp;<span class=""cloze"" data-ordinal=""1"">Supra-ST convexo / T invertida</span><br />Crônica:&nbsp;<span class=""cloze"" data-ordinal=""1"">Onda Q</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><span class=""cloze"" data-cloze=""Displasia&#x20;Arritmog&#xEA;nica&#x20;do&#x20;VD"" data-ordinal=""2"">[...]</span> - ECG<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Onda épsilon</span></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <span class=""cloze"" data-ordinal=""2"">Displasia Arritmogênica do VD</span> - ECG<div><br></div><div><span class=""cloze-inactive"" data-ordinal=""1"">Onda épsilon</span></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""FA"" data-ordinal=""1"">[...]</span><div><br></div><div><img src=""paste-f7be5a646ace7333879ff9a2e7f7c216337f8e67.jpg""><br></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">FA</span><div><br></div><div><img src=""paste-f7be5a646ace7333879ff9a2e7f7c216337f8e67.jpg""><br></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><div>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""BAVT"" data-ordinal=""1"">[...]</span></div><div><br></div><img src=""paste-703c9f5efce15f0273d74f474789a68ea7736513.jpg""> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <div>Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">BAVT</span></div><div><br></div><img src=""paste-703c9f5efce15f0273d74f474789a68ea7736513.jpg""> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""Torsades&#x20;des&#x20;Pointes"" data-ordinal=""1"">[...]</span><div><br></div><div><img src=""paste-b133694d5dc8f66683f17e8b65f800e9bd006b1a.jpg""><br></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">Torsades des Pointes</span><div><br></div><div><img src=""paste-b133694d5dc8f66683f17e8b65f800e9bd006b1a.jpg""><br></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""Taquicardia&#x20;ventricular&#x20;monom&#xF3;rfica"" data-ordinal=""1"">[...]</span><div><br></div><div><img src=""paste-41991895252993.jpg""></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">Taquicardia ventricular monomórfica</span><div><br></div><div><img src=""paste-41991895252993.jpg""></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint3ab1ce3754d5892c').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint3ab1ce3754d5892c"" class=hint style=""display: none"">Taquicardia com QRS alargado;<div>Sem onda P;<br>QRS iguais.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""Fibrila&#xE7;&#xE3;o&#x20;Ventricular"" data-ordinal=""1"">[...]</span><div><br /></div><div><img src=""paste-42047729827841.jpg"" /></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">Fibrilação Ventricular</span><div><br /></div><div><img src=""paste-42047729827841.jpg"" /></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hinte227d2c5f76ec16e').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hinte227d2c5f76ec16e"" class=hint style=""display: none"">Ritmo anárquico.</div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""Flutter&#x20;Atrial"" data-ordinal=""1"">[...]</span><div><br /></div><div><img src=""paste-43568148250625.jpg"" /></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">Flutter Atrial</span><div><br /></div><div><img src=""paste-43568148250625.jpg"" /></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint186edc15d1cc3f48').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint186edc15d1cc3f48"" class=hint style=""display: none""><div>Onda F, aspecto serrilhado.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""Fibrila&#xE7;&#xE3;o&#x20;Atrial"" data-ordinal=""1"">[...]</span><div><br /></div><div><img src=""paste-43636867727361.jpg"" /></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">Fibrilação Atrial</span><div><br /></div><div><img src=""paste-43636867727361.jpg"" /></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hinta9f32a230d99e3e0').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hinta9f32a230d99e3e0"" class=hint style=""display: none"">Ritmo irregular;<div>Ausência de Onda P.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""Fibrila&#xE7;&#xE3;o&#x20;Atrial"" data-ordinal=""1"">[...]</span><div><br /></div><div><img src=""paste-45256070397953.jpg"" /></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">Fibrilação Atrial</span><div><br /></div><div><img src=""paste-45256070397953.jpg"" /></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint38650f653eb50c94').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint38650f653eb50c94"" class=hint style=""display: none""><div>Ritmo irregular;<br></div><div>Ausência de Onda P.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""Flutter&#x20;Atrial"" data-ordinal=""1"">[...]</span><div><br></div><div><img src=""paste-45307610005505.jpg""></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">Flutter Atrial</span><div><br></div><div><img src=""paste-45307610005505.jpg""></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint186edc15d1cc3f48').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint186edc15d1cc3f48"" class=hint style=""display: none""><div>Onda F, aspecto serrilhado.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""BAV&#x20;2&#xB0;&#x20;Grau&#x20;Mobitz&#x20;I"" data-ordinal=""1"">[...]</span><div><br /></div><div><img src=""paste-46523085750273.jpg"" /></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">BAV 2° Grau Mobitz I</span><div><br /></div><div><img src=""paste-46523085750273.jpg"" /></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint99a662ba0e1ec4ed').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint99a662ba0e1ec4ed"" class=hint style=""display: none""><div>Alargamento progressivo do Intervalo PR até bloquear um Complexo QRS.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""BAV&#x20;2&#xB0;&#x20;Grau&#x20;Mobitz&#x20;II"" data-ordinal=""1"">[...]</span><div><br /></div><div><img src=""paste-46630459932673.jpg"" /></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">BAV 2° Grau Mobitz II</span><div><br /></div><div><img src=""paste-46630459932673.jpg"" /></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hinte4d9551d766a4ae2').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hinte4d9551d766a4ae2"" class=hint style=""display: none""><div>Bloqueia um Complexo QRS sem aumentar progressivamente o Intervalo PR.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""BAV&#x20;1&#xB0;&#x20;Grau"" data-ordinal=""1"">[...]</span><div><br /></div><div><img src=""paste-46686294507521.jpg"" /></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">BAV 1° Grau</span><div><br /></div><div><img src=""paste-46686294507521.jpg"" /></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintc1d9ea4ead047f5b').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hintc1d9ea4ead047f5b"" class=hint style=""display: none""><div>Intervalo PR aumentado.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""BAVT"" data-ordinal=""1"">[...]</span><div><br /></div><div><img src=""paste-46737834115073.jpg"" /></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">BAVT</span><div><br /></div><div><img src=""paste-46737834115073.jpg"" /></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hinta77e1d13e146181c').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hinta77e1d13e146181c"" class=hint style=""display: none""><div>Dissociação atrio-ventricular;</div><div>Onda P e Complexo QRS são independentes.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""TSV"" data-ordinal=""1"">[...]</span><div><br /></div><div><img src=""paste-46793668689921.jpg"" /></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">TSV</span><div><br /></div><div><img src=""paste-46793668689921.jpg"" /></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint84ad0dc968302151').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint84ad0dc968302151"" class=hint style=""display: none""><div>Taquicardia com QRS estreito;</div><div>Ausência de Onda P.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""Fibrila&#xE7;&#xE3;o&#x20;Atrial"" data-ordinal=""1"">[...]</span><div><br /></div><div><img src=""paste-47008417054721.jpg"" /></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">Fibrilação Atrial</span><div><br /></div><div><img src=""paste-47008417054721.jpg"" /></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintb24accf4112fc9db').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hintb24accf4112fc9db"" class=hint style=""display: none""><div>Ritmo irregular;</div><div>Ausência de onda P.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><div>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""Taquicardia&#x20;Atrial&#x20;Multifocal"" data-ordinal=""1"">[...]</span></div><div><br /></div><img src=""paste-47064251629569.jpg"" /> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <div>Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">Taquicardia Atrial Multifocal</span></div><div><br /></div><img src=""paste-47064251629569.jpg"" /> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint31cbcb0dfce4213a').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint31cbcb0dfce4213a"" class=hint style=""display: none"">Taquicardia;<br>QRS curto;<br>Onda P presente, mas com morfologias diferentes entre elas.</div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><div>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""Torsades&#x20;de&#x20;Pointes"" data-ordinal=""1"">[...]</span></div><div><br /></div><img src=""paste-51311974285313.jpg"" /> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <div>Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">Torsades de Pointes</span></div><div><br /></div><img src=""paste-51311974285313.jpg"" /> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><div><div>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""Flutter&#x20;Atrial"" data-ordinal=""1"">[...]</span></div><div><br /></div><img src=""paste-51350628990977.jpg"" /></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <div><div>Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">Flutter Atrial</span></div><div><br /></div><img src=""paste-51350628990977.jpg"" /></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hint6a04fc55b13617fb').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hint6a04fc55b13617fb"" class=hint style=""display: none""><div>Ausência de Onda P;</div><div>Onda F, padrão serrilhado;</div><div>Proporção atrial:ventricular de 2:1.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação><div>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""TV&#x20;Polim&#xF3;rfica"" data-ordinal=""1"">[...]</span></div><div><br /></div><img src=""paste-51445118271489.jpg"" /> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> <div>Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">TV Polimórfica</span></div><div><br /></div><img src=""paste-51445118271489.jpg"" /> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""Fibrila&#xE7;&#xE3;o&#x20;Atrial"" data-ordinal=""1"">[...]</span><div><br /></div><div><img src=""paste-51500952846337.jpg"" /></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">Fibrilação Atrial</span><div><br /></div><div><img src=""paste-51500952846337.jpg"" /></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""Fibrila&#xE7;&#xE3;o&#x20;Atrial"" data-ordinal=""1"">[...]</span><div><br></div><div><img src=""paste-51552492453889.jpg""></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">Fibrilação Atrial</span><div><br></div><div><img src=""paste-51552492453889.jpg""></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""Taquicardia&#x20;ventricular&#x20;monom&#xF3;rfica"" data-ordinal=""1"">[...]</span><div><br></div><div><img src=""paste-53223234732033.jpg""></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">Taquicardia ventricular monomórfica</span><div><br></div><div><img src=""paste-53223234732033.jpg""></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintb834d9847e9135c2').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hintb834d9847e9135c2"" class=hint style=""display: none"">Taquicardia com QRS alargado;<div>Sem onda P;<br>QRS iguais.</div></div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""BAVT"" data-ordinal=""1"">[...]</span><div><br /></div><div><img src=""paste-54447300411393.jpg"" /></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">BAVT</span><div><br /></div><div><img src=""paste-54447300411393.jpg"" /></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""Fibrila&#xE7;&#xE3;o&#x20;Atrial"" data-ordinal=""1"">[...]</span><div><br></div><div><img src=""paste-54498840018945.jpg""></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">Fibrilação Atrial</span><div><br></div><div><img src=""paste-54498840018945.jpg""></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""BAVT"" data-ordinal=""1"">[...]</span><div><br></div><div><img src=""paste-54550379626497.jpg""></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">BAVT</span><div><br></div><div><img src=""paste-54550379626497.jpg""></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""BAVT"" data-ordinal=""1"">[...]</span><div><br></div><div><img src=""paste-56324201119745.jpg""></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">BAVT</span><div><br></div><div><img src=""paste-56324201119745.jpg""></div> </div>
+
+
+
+</div>
+
+</div><br>
+
+<div class=direito>"
+"<div class=afirmação>Diagnóstico:&nbsp;<span class=""cloze"" data-cloze=""BAV&#x20;2&#xB0;&#x20;Grau&#x20;Mobitz&#x20;II"" data-ordinal=""1"">[...]</span><div><br /></div><div><img src=""paste-56380035694593.jpg"" /></div> <br>
+
+
+</div>
+
+<!--<div class=tags>
+
+TAGS: @minhavaga_residencia
+
+</div>-->
+
+
+
+
+
+
+
+"	"<div class=afirmação> Diagnóstico:&nbsp;<span class=""cloze"" data-ordinal=""1"">BAV 2° Grau Mobitz II</span><div><br /></div><div><img src=""paste-56380035694593.jpg"" /></div> </div>
+
+
+
+<div class=""esquema"">
+<a class=hint href=""#""
+onclick=""this.style.display='none';
+document.getElementById('hintf3415df9873b22bc').style.display='block';
+return false;"">
+✚ Saiba mais</a>
+<div id=""hintf3415df9873b22bc"" class=hint style=""display: none""><div>Bloqueio de um complexo QRS <i>sem aumento progressivo </i>do Intervalo PR.</div> </div>
+</div></div>
+
+</div><br>
+
+<div class=direito>"

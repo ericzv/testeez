@@ -1,0 +1,491 @@
+{% extends 'gamification/base.html' %}
+
+{% block game_content %}
+<div class="row">
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="wood-header">
+        <h5 class="card-title mb-0">Seu Personagem</h5>
+      </div>
+      <div class="card-body text-center">
+        <div class="text-center mb-3" style="margin: 30px auto;">
+          <div class="nicho-container">
+            <div class="nicho-background"></div>
+            
+            <div class="p1-idle-container">
+              <div class="p1-idle-layer p1-idle-armor"></div>
+              
+              <div class="p1-idle-layer p1-idle-head"></div>
+              
+              {% if player.current_helmet %}
+                <div class="p1-idle-layer p1-idle-head-{{ player.current_helmet.name|replace(' ', '-') }}" style="display: block;"></div>
+              {% else %}
+                <div class="p1-idle-layer p1-idle-head-none" style="display: block;"></div>
+              {% endif %}
+              
+              {% if player.current_eyes %}
+                <div class="p1-idle-layer p1-idle-eyes-{{ player.current_eyes.name|replace(' ', '-') }}" style="display: block;"></div>
+              {% else %}
+                <div class="p1-idle-layer p1-idle-eyes-none" style="display: block;"></div>
+              {% endif %}
+              
+              <div class="p1-idle-layer p1-idle-hair"></div>
+              <div class="p1-idle-layer p1-idle-sword"></div>
+              <div class="p1-idle-layer p1-idle-soulgem"></div>
+            </div>
+          </div>
+          {% set title_info = get_player_title(player.level) %}
+          <h4>{{ title_info[0] }}</h4>
+          <p class="text-muted small">{{ title_info[1] }}</p>
+          <p>Nível {{ player.level }}</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card mt-4">
+      <div class="wood-header">
+        <h5 class="card-title mb-0">Status do Personagem</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>HP:</strong> {{ player.hp }} / {{ player.max_hp }}</p>
+            
+            {% set base_resistance = player.resistance %}
+            {% set equip_resistance = 0 %}
+            
+            {% if player.current_helmet %}
+                {% set equip_resistance = equip_resistance + player.current_helmet.defense_bonus %}
+            {% endif %}
+            
+            {% set total_resistance = base_resistance + equip_resistance %}
+            <p><strong>Defesa:</strong> {{ calculate_resistance_block(total_resistance) | round(1) }}% de bloqueio ({{ calculate_resistance_block(base_resistance) | round(1) }}% + {{ (calculate_resistance_block(total_resistance) - calculate_resistance_block(base_resistance)) | round(1) }}%)</p>
+          </div>
+          <div class="col-md-6">
+            {% set base_damage = 1.0 %}
+            {% set attr_damage = player.damage_bonus %}
+            {% set equip_damage = 0.0 %}
+            {% if player.current_sword %}
+                {% set equip_damage = equip_damage + player.current_sword.damage_bonus %}
+            {% endif %}
+            {% set total_damage = base_damage + attr_damage + equip_damage %}
+            
+            <p><strong>Dano base:</strong> {{ "%.2f"|format(total_damage) }} ({{ "%.2f"|format(base_damage + attr_damage) }} + {{ "%.2f"|format(equip_damage) }})</p>
+            
+            {% set attr_luck = player.luck %}
+            {% set equip_luck = 0 %}
+            {% set total_luck = attr_luck + equip_luck %}
+            
+            <p><strong>Sorte:</strong> {{ total_luck }} ({{ attr_luck }} + {{ equip_luck }})</p>
+            <p><strong>Nível:</strong> {{ player.level }} ({{ player.experience }}/{{ get_exp_for_next_level(player.level) }} XP)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6">
+    <div class="card">
+      <div class="wood-header">
+        <h5 class="card-title mb-0">Equipamentos</h5>
+      </div>
+      <div class="card-body">
+        <ul class="nav nav-tabs" id="equipmentTabs" role="tablist">
+          <li class="nav-item">
+            <a class="nav-link active" id="head-tab" data-toggle="tab" href="#head" role="tab" aria-controls="head" aria-selected="true">Cabeça</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="eyes-tab" data-toggle="tab" href="#eyes" role="tab" aria-controls="eyes" aria-selected="false">Olhos</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="armor-tab" data-toggle="tab" href="#armor" role="tab" aria-controls="armor" aria-selected="false">Armadura</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="sword-tab" data-toggle="tab" href="#sword" role="tab" aria-controls="sword" aria-selected="false">Espada</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="hair-tab" data-toggle="tab" href="#hair" role="tab" aria-controls="hair" aria-selected="false">Cabelo</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="soulgem-tab" data-toggle="tab" href="#soulgem" role="tab" aria-controls="soulgem" aria-selected="false">Soul Gem</a>
+          </li>
+        </ul>
+        
+        <div class="tab-content mt-3" id="equipmentTabContent">
+          <div class="tab-pane fade show active" id="head" role="tabpanel" aria-labelledby="head-tab">
+            <div class="equipment-grid">
+              <div class="equipment-item {% if not player.current_helmet %}equipped{% endif %}">
+                <div class="equipment-icon">
+                  <div class="icon-placeholder" title="Sem Capacete"></div>
+                </div>
+                <div class="equipment-info">
+                  <h5>Sem Capacete <span class="item-rarity rarity-common">Comum</span></h5>
+                  <p>Sem proteção para a cabeça.</p>
+                  <div class="equipment-attributes">
+                    <span class="attribute">Defesa: +0</span>
+                  </div>
+                </div>
+                <div class="equipment-action">
+                  <form action="{{ url_for('equip_item_route') }}" method="POST">
+                    <input type="hidden" name="type" value="helmet">
+                    <input type="hidden" name="item" value="0">
+                    <button type="submit" class="btn btn-sm {% if not player.current_helmet %}btn-success disabled{% else %}btn-primary{% endif %}">
+                      {% if not player.current_helmet %}Equipado{% else %}Equipar{% endif %}
+                    </button>
+                  </form>
+                </div>
+              </div>
+              
+              {% for equipment in equipments %}
+                {% if equipment.equipment_type == 'helmet' %}
+                  <div class="equipment-item {% if player.current_helmet_id == equipment.id %}equipped{% endif %}">
+                    <div class="equipment-icon">
+                      <div class="icon-placeholder" title="{{ equipment.name }}"></div>
+                    </div>
+                    <div class="equipment-info">
+                      <h5>{{ equipment.name }} <span class="item-rarity rarity-{{ equipment.rarity|lower }}">{{ equipment.rarity }}</span></h5>
+                      <p>{{ equipment.description }}</p>
+                      <div class="equipment-attributes">
+                        <span class="attribute">Defesa: +{{ equipment.defense_bonus }} resistência</span>
+                      </div>
+                    </div>
+                    <div class="equipment-action">
+                      <form action="{{ url_for('equip_item_route') }}" method="POST">
+                        <input type="hidden" name="type" value="helmet">
+                        <input type="hidden" name="item" value="{{ equipment.id }}">
+                        <button type="submit" class="btn btn-sm {% if player.current_helmet_id == equipment.id %}btn-success disabled{% else %}btn-primary{% endif %}">
+                          {% if player.current_helmet_id == equipment.id %}Equipado{% else %}Equipar{% endif %}
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+          
+          <div class="tab-pane fade" id="eyes" role="tabpanel" aria-labelledby="eyes-tab">
+            <div class="equipment-grid">
+              {% for equipment in equipments %}
+                {% if equipment.equipment_type == 'eyes' %}
+                  <div class="equipment-item {% if player.current_eyes_id == equipment.id %}equipped{% endif %}">
+                    <div class="equipment-info">
+                      <h5>{{ equipment.name }} <span class="item-rarity rarity-{{ equipment.rarity|lower }}">{{ equipment.rarity }}</span></h5>
+                      <p>{{ equipment.description }}</p>
+                      <div class="equipment-attributes">
+                        <span class="attribute">Precisão: +{{ equipment.damage_bonus }}</span>
+                      </div>
+                    </div>
+                    <div class="equipment-action">
+                      <form action="{{ url_for('equip_item_route') }}" method="POST">
+                        <input type="hidden" name="type" value="eyes">
+                        <input type="hidden" name="item" value="{{ equipment.id }}">
+                        <button type="submit" class="btn btn-sm {% if player.current_eyes_id == equipment.id %}btn-success disabled{% else %}btn-primary{% endif %}">
+                          {% if player.current_eyes_id == equipment.id %}Equipado{% else %}Equipar{% endif %}
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+          
+          <div class="tab-pane fade" id="armor" role="tabpanel" aria-labelledby="armor-tab">
+            <div class="alert alert-info">
+              Você possui apenas a armadura padrão. Mais opções serão desbloqueadas conforme seu progresso.
+            </div>
+            <div class="equipment-grid">
+              {% for equipment in equipments %}
+                {% if equipment.equipment_type == 'armor' %}
+                  <div class="equipment-item {% if player.current_armor_id == equipment.id %}equipped{% endif %}">
+                    <div class="equipment-info">
+                      <h5>{{ equipment.name }} <span class="item-rarity rarity-{{ equipment.rarity|lower }}">{{ equipment.rarity }}</span></h5>
+                      <p>{{ equipment.description }}</p>
+                      <div class="equipment-attributes">
+                        <span class="attribute">Defesa: +{{ equipment.defense_bonus }}</span>
+                      </div>
+                    </div>
+                    <div class="equipment-action">
+                      <form action="{{ url_for('equip_item_route') }}" method="POST">
+                        <input type="hidden" name="type" value="armor">
+                        <input type="hidden" name="item" value="{{ equipment.id }}">
+                        <button type="submit" class="btn btn-sm {% if player.current_armor_id == equipment.id %}btn-success disabled{% else %}btn-primary{% endif %}">
+                          {% if player.current_armor_id == equipment.id %}Equipado{% else %}Equipar{% endif %}
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+          
+          <div class="tab-pane fade" id="sword" role="tabpanel" aria-labelledby="sword-tab">
+            <div class="alert alert-info">Mais espadas serão desbloqueadas conforme seu progresso.</div>
+          </div>
+          
+          <div class="tab-pane fade" id="hair" role="tabpanel" aria-labelledby="hair-tab">
+            <div class="alert alert-info">Mais estilos de cabelo serão desbloqueados conforme seu progresso.</div>
+          </div>
+          
+          <div class="tab-pane fade" id="soulgem" role="tabpanel" aria-labelledby="soulgem-tab">
+            <div class="alert alert-info">Mais Soul Gems serão desbloqueadas conforme seu progresso.</div>
+          </div>
+          
+          </div>
+        </div>
+      </div>
+    </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+  console.log('Script de equipamentos inicializado');
+  
+  // Adicionar manipuladores de eventos a todos os botões "Equipar"
+  const equipForms = document.querySelectorAll('form[action*="equip_item_route"]');
+  
+  equipForms.forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault(); // Impedir o envio normal do formulário
+      
+      const formData = new FormData(this);
+      const itemType = formData.get('type');
+      const itemId = formData.get('item');
+      
+      console.log('Equipando:', itemType, itemId);
+      
+      // Atualizar visualmente os sprites imediatamente
+      updateAllCharacterSprites(itemType, itemId);
+      
+      // Atualizar botões e estilo dos itens
+      updateEquipmentUIState(itemType, itemId);
+      
+      // Enviar para o servidor
+      fetch(this.action, {
+  method: 'POST',
+  body: formData,
+  headers: {
+    'X-Requested-With': 'XMLHttpRequest' // Identifica como uma requisição AJAX
+  }
+})
+.then(response => {
+  if (!response.ok) {
+    throw new Error('Erro na requisição');
+  }
+  return response.json(); // Processar a resposta como JSON
+})
+.then(data => {
+  console.log('Resposta do servidor:', data);
+  if (data.success) {
+    showNotification('Item equipado com sucesso!', 'success');
+  } else {
+    showNotification('Erro ao equipar item: ' + data.message, 'error');
+  }
+})
+.catch(error => {
+  console.error('Erro:', error);
+  showNotification('Erro ao equipar item', 'error');
+});
+    });
+  });
+
+  // Função para atualizar TODOS os sprites do personagem na página
+  function updateAllCharacterSprites(itemType, itemId) {
+  console.log(`Atualizando sprites para ${itemType}=${itemId}`);
+  
+  // Primeiro, vamos identificar todos os containers de personagem na página
+  const characterContainers = document.querySelectorAll('.p1-idle-container');
+  
+  characterContainers.forEach(container => {
+    // Para cada container, primeiro atualizamos a visibilidade das camadas
+    if (itemType === 'helmet') {
+      container.querySelectorAll('.p1-idle-head-open-helmet').forEach(layer => {
+        layer.style.display = itemId === '0' ? 'none' : (container.querySelector(`form input[name="item"][value="${itemId}"]`) ? 'block' : 'none');
+      });
+      
+      container.querySelectorAll('.p1-idle-head-close-helmet').forEach(layer => {
+        layer.style.display = itemId === '2' ? 'block' : 'none';
+      });
+      
+      container.querySelectorAll('.p1-idle-head-touca').forEach(layer => {
+        layer.style.display = itemId === '4' ? 'block' : 'none';
+      });
+    }
+    
+    if (itemType === 'eyes') {
+      container.querySelectorAll('.p1-idle-eyes-fire').forEach(layer => {
+        layer.style.display = itemId === '0' ? 'block' : 'none';
+      });
+      
+      container.querySelectorAll('.p1-idle-eyes-white').forEach(layer => {
+        layer.style.display = itemId === '6' ? 'block' : 'none';
+      });
+    }
+    
+    // Agora, vamos sincronizar todas as animações reiniciando-as
+    syncLayerAnimations(container);
+  });
+
+}
+function syncLayerAnimations(container) {
+  // Obter todas as camadas visíveis neste container
+  const layers = container.querySelectorAll('.p1-idle-layer');
+  
+  // Temporariamente remover a animação de todas as camadas
+  layers.forEach(layer => {
+    layer.style.animation = 'none';
+  });
+  
+  // Force um reflow para garantir que a remoção da animação seja processada
+  container.offsetHeight;
+  
+  // Restaurar a animação em todas as camadas simultaneamente
+  setTimeout(() => {
+    layers.forEach(layer => {
+      layer.style.animation = 'p1IdleAnimation 0.8s steps(10) infinite';
+    });
+  }, 10);
+}
+  }
+
+  // Função para atualizar a interface (botões e classes)
+  function updateEquipmentUIState(itemType, itemId) {
+    // Selecionar todos os itens do mesmo tipo
+    const items = document.querySelectorAll(`.equipment-item form input[name="type"][value="${itemType}"]`);
+    
+    items.forEach(input => {
+      const itemContainer = input.closest('.equipment-item');
+      const itemForm = input.closest('form');
+      const thisItemId = itemForm.querySelector('input[name="item"]').value;
+      const button = itemForm.querySelector('button');
+      
+      if (thisItemId === itemId) {
+        // Item selecionado
+        itemContainer.classList.add('equipped');
+        button.classList.remove('btn-primary');
+        button.classList.add('btn-success', 'disabled');
+        button.textContent = 'Equipado';
+      } else {
+        // Item não selecionado
+        itemContainer.classList.remove('equipped');
+        button.classList.remove('btn-success', 'disabled');
+        button.classList.add('btn-primary');
+        button.textContent = 'Equipar';
+      }
+    });
+  }
+
+  // Função para mostrar notificações
+  function showNotification(message, type = 'success') {
+    // Remover notificações existentes
+    const existingToast = document.querySelector('.toast-message');
+    if (existingToast) {
+      existingToast.remove();
+    }
+    
+    // Criar nova notificação
+    const toast = document.createElement('div');
+    toast.className = `toast-message toast-${type}`;
+    toast.textContent = message;
+    
+    // Adicionar ao DOM
+    document.body.appendChild(toast);
+    
+    // Mostrar e depois esconder
+    setTimeout(() => {
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          toast.remove();
+        }, 300);
+      }, 3000);
+    }, 10);
+  }
+});
+</script>
+
+<style>
+/* Estilo para os itens de equipamento */
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.equipment-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  display: flex;
+  align-items: flex-start;
+  background-color: #f9f9f9;
+  transition: all 0.3s ease;
+}
+
+.equipment-item.equipped {
+  border-color: #28a745;
+  background-color: rgba(40, 167, 69, 0.1);
+  box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+}
+
+.equipment-icon {
+  flex: 0 0 64px;
+  height: 64px;
+  margin-right: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-placeholder {
+  width: 64px;
+  height: 64px;
+  background-color: #eee;
+  border-radius: 4px;
+}
+
+.item-content {
+  flex: 1;
+}
+
+.item-content h5 {
+  margin-top: 0;
+  color: #333;
+}
+
+.item-description {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.item-effect {
+  font-weight: bold;
+  font-size: 0.85rem;
+  color: #28a745;
+  margin-bottom: 5px;
+}
+
+.item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.item-quantity {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.use-item-btn {
+  font-size: 0.85rem;
+  padding: 0.25rem 0.5rem;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% block title %}Resultados do Estudo Personalizado - Retina Cards{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <h3 class="text-center mb-4">Resultados do Estudo Personalizado</h3>
+    
+    <ul class="nav nav-tabs" id="resultTabs" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link active" id="summary-tab" data-toggle="tab" href="#summary" role="tab">Resumo</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="errei-tab" data-toggle="tab" href="#errei" role="tab">Errei ({{ results.errei|length }})</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="dificil-tab" data-toggle="tab" href="#dificil" role="tab">Difícil ({{ results.difícil|length }})</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="facil-tab" data-toggle="tab" href="#facil" role="tab">Fácil ({{ results.facil|length }})</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="muito_facil-tab" data-toggle="tab" href="#muito_facil" role="tab">Muito Fácil ({{ results.muito_facil|length }})</a>
+      </li>
+    </ul>
+    
+    <div class="tab-content mt-3" id="resultTabsContent">
+      <!-- Aba de Resumo -->
+      <div class="tab-pane fade show active p-3" id="summary" role="tabpanel">
+        <div class="card">
+          <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Resumo da Sessão</h5>
+          </div>
+          <div class="card-body">
+            <ul class="list-group">
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                Total de cartões estudados
+                <span class="badge badge-primary badge-pill">{{ results.errei|length + results.difícil|length + results.facil|length + results.muito_facil|length }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                Errei
+                <span class="badge badge-danger badge-pill">{{ results.errei|length }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                Difícil
+                <span class="badge badge-warning badge-pill">{{ results.difícil|length }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                Fácil
+                <span class="badge badge-success badge-pill">{{ results.facil|length }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                Muito Fácil
+                <span class="badge badge-primary badge-pill">{{ results.muito_facil|length }}</span>
+              </li>
+            </ul>
+            <div class="alert alert-info mt-3">
+              <small>Esta sessão de estudo personalizado não afetou o calendário de repetição espaçada dos cartões.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Aba Errei - Lista Simplificada -->
+      <div class="tab-pane fade" id="errei" role="tabpanel">
+        {% if results.errei %}
+          <div class="alert alert-danger">
+            <strong>Cartões que você errou:</strong>
+          </div>
+          <div class="list-group">
+            {% for card in results.errei %}
+              <div class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                  <h5 class="mb-1">Cartão #{{ card.id }}</h5>
+                  <small>{{ card.deck.name }}</small>
+                </div>
+                <p class="mb-1"><strong>Pergunta:</strong> {{ card.front | process_front | panel_preview | safe }}</p>
+                <div class="d-flex justify-content-end">
+                  <a href="{{ url_for('cards.card_detail', card_id=card.id) }}" class="btn btn-sm btn-info">Ver Detalhes</a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="alert alert-info mt-3">
+            Não há cartões nesta categoria.
+          </div>
+        {% endif %}
+      </div>
+      
+      <!-- Aba Difícil - Lista Simplificada -->
+      <div class="tab-pane fade" id="dificil" role="tabpanel">
+        {% if results.difícil %}
+          <div class="alert alert-warning">
+            <strong>Cartões que você achou difíceis:</strong>
+          </div>
+          <div class="list-group">
+            {% for card in results.difícil %}
+              <div class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                  <h5 class="mb-1">Cartão #{{ card.id }}</h5>
+                  <small>{{ card.deck.name }}</small>
+                </div>
+                <p class="mb-1"><strong>Pergunta:</strong> {{ card.front | process_front | panel_preview | safe }}</p>
+                <div class="d-flex justify-content-end">
+                  <a href="{{ url_for('cards.card_detail', card_id=card.id) }}" class="btn btn-sm btn-info">Ver Detalhes</a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="alert alert-info mt-3">
+            Não há cartões nesta categoria.
+          </div>
+        {% endif %}
+      </div>
+      
+      <!-- Aba Fácil - Lista Simplificada -->
+      <div class="tab-pane fade" id="facil" role="tabpanel">
+        {% if results.facil %}
+          <div class="alert alert-success">
+            <strong>Cartões que você achou fáceis:</strong>
+          </div>
+          <div class="list-group">
+            {% for card in results.facil %}
+              <div class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                  <h5 class="mb-1">Cartão #{{ card.id }}</h5>
+                  <small>{{ card.deck.name }}</small>
+                </div>
+                <p class="mb-1"><strong>Pergunta:</strong> {{ card.front | process_front | panel_preview | safe }}</p>
+                <div class="d-flex justify-content-end">
+                  <a href="{{ url_for('cards.card_detail', card_id=card.id) }}" class="btn btn-sm btn-info">Ver Detalhes</a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="alert alert-info mt-3">
+            Não há cartões nesta categoria.
+          </div>
+        {% endif %}
+      </div>
+      
+      <!-- Aba Muito Fácil - Lista Simplificada -->
+      <div class="tab-pane fade" id="muito_facil" role="tabpanel">
+        {% if results.muito_facil %}
+          <div class="alert alert-primary">
+            <strong>Cartões que você achou muito fáceis:</strong>
+          </div>
+          <div class="list-group">
+            {% for card in results.muito_facil %}
+              <div class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                  <h5 class="mb-1">Cartão #{{ card.id }}</h5>
+                  <small>{{ card.deck.name }}</small>
+                </div>
+                <p class="mb-1"><strong>Pergunta:</strong> {{ card.front | process_front | panel_preview | safe }}</p>
+                <div class="d-flex justify-content-end">
+                  <a href="{{ url_for('cards.cards.card_detail', card_id=card.id) }}" class="btn btn-sm btn-info">Ver Detalhes</a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="alert alert-info mt-3">
+            Não há cartões nesta categoria.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    
+    <div class="mt-4 text-center">
+      <a href="{{ url_for('cards.custom_study') }}" class="btn btn-primary">Nova Sessão de Estudo Personalizado</a>
+      <a href="{{ url_for('cards.study_lobby') }}" class="btn btn-secondary">Voltar ao Menu Principal</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

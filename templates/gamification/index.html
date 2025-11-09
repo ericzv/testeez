@@ -1,0 +1,205 @@
+{% extends 'gamification/base.html' %}
+
+{% block game_content %}
+<div class="row">
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="wood-header">
+        <h5 class="card-title mb-0">Status do Jogador</h5>
+      </div>
+      <div class="card-body">
+        <div class="text-center mb-3">
+          <div class="nicho-container">
+            <!-- Fundo do nicho (sprite) -->
+            <div class="nicho-background"></div>
+            
+            <!-- Container existente do personagem -->
+            <div class="p1-idle-container">
+              <!-- Camada base da armadura -->
+              <div class="p1-idle-layer p1-idle-armor"></div>
+              
+              <!-- Camada base da cabeça (sempre visível) -->
+              <div class="p1-idle-layer p1-idle-head"></div>
+              
+              <!-- Equipamentos de cabeça (visíveis conforme equipados) -->
+              <div class="p1-idle-layer p1-idle-head-open-helmet" style="display: {% if player.equipped_helmet == 'open-helmet' %}block{% else %}none{% endif %}"></div>
+              <div class="p1-idle-layer p1-idle-head-close-helmet" style="display: {% if player.equipped_helmet == 'close-helmet' %}block{% else %}none{% endif %}"></div>
+              <div class="p1-idle-layer p1-idle-head-touca" style="display: {% if player.equipped_helmet == 'touca' %}block{% else %}none{% endif %}"></div>
+              
+              <!-- Olhos (visíveis conforme equipados) -->
+              <div class="p1-idle-layer p1-idle-eyes-fire" style="display: {% if player.equipped_eyes == 'fire' or not player.equipped_eyes %}block{% else %}none{% endif %}"></div>
+              <div class="p1-idle-layer p1-idle-eyes-white" style="display: {% if player.equipped_eyes == 'white' %}block{% else %}none{% endif %}"></div>
+              
+              <!-- Camadas adicionais -->
+              <div class="p1-idle-layer p1-idle-hair"></div>
+              <div class="p1-idle-layer p1-idle-sword"></div>
+              <div class="p1-idle-layer p1-idle-soulgem"></div>
+            </div>
+          </div>
+          {% set title_info = get_player_title(player.level) %}
+          <h4>{{ title_info[0] }}</h4>
+          <p class="text-muted small">{{ title_info[1] }}</p>
+          <p>Nível {{ player.level }}</p>
+        </div>        
+        
+        <h5>Atributos:</h5>
+        <ul class="list-group mb-3">
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            HP
+            <span class="badge badge-primary badge-pill">{{ player.hp }} / {{ player.max_hp }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Dano Base
+            <span class="badge badge-danger badge-pill">{{ (1 + player.damage_bonus) | round(1) }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Cristais de Memória
+            <span class="badge badge-success badge-pill">{{ player.crystals }}</span>
+          </li>
+        </ul>
+        
+        <div class="progress mb-2">
+          <div class="progress-bar bg-success" role="progressbar" style="width: {{ (player.experience / get_exp_for_next_level(player.level) * 100)|round(1) }}%">
+            XP: {{ player.experience }} / {{ get_exp_for_next_level(player.level) }}
+          </div>
+        </div>
+        <small class="text-muted">{{ get_exp_for_next_level(player.level) - player.experience }} XP restantes para o próximo nível</small>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="wood-header">
+        <h5 class="card-title mb-0">Orbes de Tempo</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-6">
+            <h6 class="text-center">Orbe das Lembranças</h6>
+            <div class="time-orb-container">
+              <div class="time-orb">
+                <div class="time-orb-fill" style="height: {{ time_orb_percent }}%;"></div>
+                <div class="time-orb-text">{{ time_to_reward }}m restantes</div>
+              </div>
+            </div>
+            <p class="text-center mt-2 small">A cada 30 minutos de estudo, ganhe 1 Cristal de Memória</p>
+          </div>
+          <div class="col-6">
+            <h6 class="text-center">Ampulheta das Eras</h6>
+            <div class="hourglass-container">
+              <div class="hourglass">
+                <div class="hourglass-fill" style="height: {{ eras_percent }}%;"></div>
+              </div>
+              <div class="hourglass-text">{{ eras_total_hours }}h / {{ next_milestone }}h</div>
+            </div>
+            <p class="text-center mt-2 small">Recompensas especiais aos 20h, 50h e 100h</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="wood-header">
+        <h5 class="card-title mb-0">Boss Atual: {{ boss.name }}</h5>
+      </div>
+      <div class="card-body">
+        <div class="text-center mb-3">
+          <div class="nicho-container">
+            <!-- Fundo do nicho (sprite) -->
+            <div class="nicho-background"></div>
+            
+            <!-- Sprite do boss -->
+            <div class="sprite-frame boss-idle" style="transform: scale(1);"></div>
+          </div>
+          <h5>{{ boss.name }}</h5>
+          <p class="text-muted">{{ boss.description }}</p>
+        </div>
+        
+        <div class="progress mb-3">
+          <div class="progress-bar bg-danger" role="progressbar" style="width: {{ (boss.hp / boss.max_hp * 100)|round(1) }}%">
+            HP: {{ boss.hp }} / {{ boss.max_hp }}
+          </div>
+        </div>
+        
+        <div class="alert alert-info">
+          <p class="mb-0"><strong>Como derrotar:</strong> Estude cartões de revisão e aplique o dano acumulado na tela de batalha!</p>
+        </div>
+      </div>
+      <div class="card-footer text-center">
+        <a href="{{ url_for('battle') }}" class="btn btn-danger">Batalhar!</a>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="wood-header">
+        <h5 class="card-title mb-0">Região Atual: Floresta da Ignorância</h5>
+      </div>
+      <div class="card-body">
+        <div class="text-center mb-3">
+          <img src="{{ url_for('static', filename='bg.media/FLORESTA.png') }}" style="max-width: 100%; border-radius: 5px;" alt="Floresta da Ignorância">
+        </div>
+        <p class="card-text">
+          Um local onde habitam criaturas nascidas da ignorância e falta de conhecimento. 
+          Cada boss derrotado te aproxima da próxima região.
+        </p>
+      </div>
+      <div class="card-footer">
+        <div class="progress" title="Progresso na região atual">
+          <div class="progress-bar bg-success" role="progressbar" 
+               style="width: {{ ((player.current_boss_id - 1) / 19 * 100)|round(1) if player.region == 1 else 100 }}%">
+            {{ player.current_boss_id - 1 if player.region == 1 else 19 }}/19 Bosses
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="wood-header">
+        <h5 class="card-title mb-0">Como Jogar</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-4">
+            <h5>Ganhe Experiência</h5>
+            <p>Estudando cartões <strong>novos</strong>, você ganha 2 pontos de XP. Acumule XP para subir de nível!</p>
+          </div>
+          <div class="col-md-4">
+            <h5>Derrote Bosses</h5>
+            <p>Revisando cartões, você acumula pontos de dano (1 ponto por revisão). Na tela de batalha, aplique esse dano aos bosses!</p>
+          </div>
+          <div class="col-md-4">
+            <h5>Melhore seu Personagem</h5>
+            <p>Use Cristais de Memória para comprar itens na loja e fortalecer seu personagem.</p>
+          </div>
+        </div>
+        <div class="alert alert-warning mt-3">
+          <strong>Atenção!</strong> Você perde HP por cada dia sem estudar. Se seu HP chegar a zero, você perderá todo o progresso!
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Verificar estado dos equipamentos em todas as páginas
+  document.addEventListener('DOMContentLoaded', function() {
+    // Você pode expandir isso para obter valores reais do backend posteriormente
+    const equippedHelmet = '{{ session.get("equipped_helmet", "none") }}';
+    const helmets = document.querySelectorAll('.p1-idle-head-helmet');
+    
+    helmets.forEach(helmet => {
+      if (equippedHelmet === 'open-helmet') {
+        helmet.style.display = 'block';
+      } else {
+        helmet.style.display = 'none';
+      }
+    });
+  });
+  </script>
+
+{% endblock %}

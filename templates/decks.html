@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}Baralhos - Retina Cards{% endblock %}
+{% block content %}
+<div class="container">
+  <h2>Meus Baralhos</h2>
+  
+  <!-- Formulário para adicionar um novo baralho -->
+  <div class="mb-3">
+    <form method="POST" action="{{ url_for('cards.decks') }}" style="display: inline-block;">
+      <div class="input-group">
+        <input type="text" name="deck_name" class="form-control" placeholder="Nome do novo baralho">
+        <div class="input-group-append">
+          <button type="submit" class="btn btn-primary">Adicionar baralho</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  
+  <ul class="list-group">
+    {% macro render_deck(deck, level=1) %}
+      {# Define a cor de fundo com base no nível (1: branco, 2: #f2f2f2, 3: #e6e6e6, 4: #d9d9d9, 5 ou mais: #cccccc) #}
+      {% if level == 1 %}
+         {% set bg_color = "#ffffff" %}
+      {% elif level == 2 %}
+         {% set bg_color = "#f2f2f2" %}
+      {% elif level == 3 %}
+         {% set bg_color = "#e6e6e6" %}
+      {% elif level == 4 %}
+         {% set bg_color = "#d9d9d9" %}
+      {% else %}
+         {% set bg_color = "#cccccc" %}
+      {% endif %}
+      <li class="list-group-item" style="background-color: {{ bg_color }}; cursor: pointer; padding: 10px;" onclick="event.stopPropagation(); window.location='{{ url_for('cards.panel', deck_id=deck.id) }}';">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center;">
+            {% if deck.children.count() > 0 %}
+              <button type="button" class="btn btn-sm btn-outline-info mr-2 toggleBtn" id="toggleBtn-{{ deck.id }}" onclick="toggleSubdecks({{ deck.id }}, this); event.stopPropagation();">+</button>
+            {% else %}
+              <span style="display:inline-block; width: 34px;"></span>
+            {% endif %}
+            <span>{{ deck.name }}</span>
+            <span>
+              (
+              <span style="color: blue;">{{ count_cards_recursive(deck)[0] }}</span> +
+              <span style="color: gray;">{{ count_cards_recursive(deck)[1] }}</span> +
+              <span style="color: green;">{{ count_cards_recursive(deck)[2] }}</span>
+              )
+            </span>
+          </div>
+          <div>
+            <!-- Novo botão "Renomear" -->
+            <a href="{{ url_for('cards.rename_deck', deck_id=deck.id) }}" class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation();">Renomear</a>
+            <a href="{{ url_for('cards.change_deck_parent', deck_id=deck.id) }}" class="btn btn-sm btn-outline-secondary ml-2" onclick="event.stopPropagation();">Mover</a>
+            <button type="button" class="btn btn-danger btn-sm ml-2" onclick="event.stopPropagation(); confirmDeletion({{ deck.id }});">Excluir</button>
+          </div>
+        </div>
+        {% if deck.children.count() > 0 %}
+          <ul id="subdeck-{{ deck.id }}" style="display: none; margin-top: 10px; list-style-type: none; padding-left: 20px;">
+            {% for child in deck.children %}
+              {{ render_deck(child, level+1) }}
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </li>
+    {% endmacro %}
+    
+    {% for deck in decks %}
+      {{ render_deck(deck, 1) }}
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function toggleSubdecks(deckId, btn) {
+  var el = document.getElementById('subdeck-' + deckId);
+  if (el.style.display === 'none' || el.style.display === '') {
+    el.style.display = 'block';
+    btn.innerText = '-';
+  } else {
+    el.style.display = 'none';
+    btn.innerText = '+';
+  }
+}
+function confirmDeletion(deckId) {
+  if (confirm("Todos os cartões deste baralho serão perdidos. Você tem certeza que deseja excluir o baralho?")) {
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = "/delete_deck/" + deckId;
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
+</script>
+{% endblock %}

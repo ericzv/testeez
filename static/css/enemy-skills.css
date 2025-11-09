@@ -1,0 +1,296 @@
+/* ===== HUD EXPANDIDO PARA SKILLS ===== */
+
+.enemy-charges-hud {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9000;
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.enemy-charges-hud.visible {
+    opacity: 1;
+}
+
+/* Container dos timers (lado esquerdo) */
+.timers-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Timer de ataque normal */
+.charge-timer {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #ff6b6b;
+    border-radius: 10px;
+    padding: 8px 15px;
+    color: #fff;
+    font-family: 'Cinzel', serif;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+    min-width: 180px;
+}
+
+/* Timers de skills */
+.skill-timer {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #9b59b6;
+    border-radius: 10px;
+    padding: 8px 15px;
+    color: #fff;
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 0 15px rgba(155, 89, 182, 0.5);
+    min-width: 180px;
+}
+
+/* Container das filas (lado direito) */
+.charges-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+}
+
+/* Fila de ataques normais + skills de ataque */
+.charges-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #ff9500;
+    border-radius: 25px;
+    padding: 8px 15px;
+    box-shadow: 0 0 15px rgba(255, 149, 0, 0.4);
+    min-height: 40px;
+}
+
+/* Fila de buff/debuff */
+.buff-debuff-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #e74c3c;
+    border-radius: 25px;
+    padding: 8px 15px;
+    box-shadow: 0 0 15px rgba(231, 76, 60, 0.4);
+    min-height: 40px;
+}
+
+/* Ícones de cargas de ataque normal */
+.attack-charge-icon {
+    width: 32px;
+    height: 32px;
+    background-image: url('/static/game.data/icons/attackcharge.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: drop-shadow(0 0 8px rgba(255, 149, 0, 0.8));
+    animation: charge-pulse 2s ease-in-out infinite;
+}
+
+/* Ícones de cargas de skills */
+.skill-charge-icon {
+    width: 32px;
+    height: 32px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: drop-shadow(0 0 8px rgba(155, 89, 182, 0.8));
+    animation: skill-pulse 2.5s ease-in-out infinite;
+}
+
+/* Animações */
+@keyframes charge-pulse {
+    0%, 100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 8px rgba(255, 149, 0, 0.8));
+    }
+    50% {
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 12px rgba(255, 149, 0, 1));
+    }
+}
+
+@keyframes skill-pulse {
+    0%, 100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 8px rgba(155, 89, 182, 0.8));
+    }
+    50% {
+        transform: scale(1.15);
+        filter: drop-shadow(0 0 15px rgba(155, 89, 182, 1));
+    }
+}
+
+/* Buffs ativos no inimigo */
+.enemy-active-buffs {
+    position: fixed;
+    top: 150px;
+    right: 20px;
+    z-index: 8000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 200px;
+}
+
+.enemy-buff-icon {
+    width: 40px;
+    height: 40px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: 2px solid #27ae60;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.7);
+    filter: drop-shadow(0 0 8px rgba(39, 174, 96, 0.6));
+    animation: buff-glow 3s ease-in-out infinite;
+}
+
+@keyframes buff-glow {
+    0%, 100% {
+        filter: drop-shadow(0 0 8px rgba(39, 174, 96, 0.6));
+        border-color: #27ae60;
+    }
+    50% {
+        filter: drop-shadow(0 0 15px rgba(39, 174, 96, 1));
+        border-color: #2ecc71;
+    }
+}
+
+/* Textos quando não há cargas/buffs */
+.no-charges-text, .no-buffs-text {
+    color: #888;
+    font-style: italic;
+    font-size: 12px;
+    text-align: center;
+}
+
+/* ===== ANIMAÇÕES DE SKILLS ===== */
+
+/* Container para efeitos de ativação no inimigo */
+.enemy-skill-fx {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(2);
+    width: 64px;
+    height: 64px;
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    z-index: 200;
+    pointer-events: none;
+    opacity: 0;
+    overflow: hidden;
+}
+
+/* Efeitos no personagem - layers FX */
+.character-fx-layer .skill-debuff-fx {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(2);
+    width: 64px;
+    height: 64px;
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0;
+}
+
+
+/* ANIMAÇÕES DE HIT DOS BOSSES - CORRIGIDAS PARA DESAPARECER */
+
+/* Purassombra - blackhit */
+.hit-animation.blackhit-32-32-5f-160x32 {
+    width: 32px;
+    height: 32px;
+    background-image: url('/static/game.data/enemies/hits/blackhit-32-32-5f-160x32.png');
+    background-size: 160px 32px;
+    animation: blackhit-animation 0.5s steps(5);
+    image-rendering: pixelated;
+}
+
+@keyframes blackhit-animation {
+    0% { background-position-x: 0; opacity: 1; }
+    90% { background-position-x: -128px; opacity: 1; }
+    100% { background-position-x: -160px; opacity: 0; }
+}
+
+/* Heresiarca - yellowhit */
+.hit-animation.yellowhit-32-32-5f-160x32 {
+    width: 32px;
+    height: 32px;
+    background-image: url('/static/game.data/enemies/hits/yellowhit-32-32-5f-160x32.png');
+    background-size: 160px 32px;
+    animation: yellowhit-animation 0.5s steps(5);
+    image-rendering: pixelated;
+}
+
+@keyframes yellowhit-animation {
+    0% { background-position-x: 0; opacity: 1; }
+    90% { background-position-x: -128px; opacity: 1; }
+    100% { background-position-x: -160px; opacity: 0; }
+}
+
+/* Alma Negra - greenhit */
+.hit-animation.greenhit-32-32-5f-160x32 {
+    width: 32px;
+    height: 32px;
+    background-image: url('/static/game.data/enemies/hits/greenhit-32-32-5f-160x32.png');
+    background-size: 160px 32px;
+    animation: greenhit-animation 0.5s steps(5);
+    image-rendering: pixelated;
+}
+
+@keyframes greenhit-animation {
+    0% { background-position-x: 0; opacity: 1; }
+    90% { background-position-x: -128px; opacity: 1; }
+    100% { background-position-x: -160px; opacity: 0; }
+}
+
+/* Formofagus - purplehit */
+.hit-animation.purplehit-32-32-5f-160x32 {
+    width: 32px;
+    height: 32px;
+    background-image: url('/static/game.data/enemies/hits/purplehit-32-32-5f-160x32.png');
+    background-size: 160px 32px;
+    animation: purplehit-animation 0.5s steps(5);
+    image-rendering: pixelated;
+}
+
+@keyframes purplehit-animation {
+    0% { background-position-x: 0; opacity: 1; }
+    90% { background-position-x: -128px; opacity: 1; }
+    100% { background-position-x: -160px; opacity: 0; }
+}
+
+/* Nefasto - redhit */
+.hit-animation.redhit-32-32-5f-160x32 {
+    width: 32px;
+    height: 32px;
+    background-image: url('/static/game.data/enemies/hits/redhit-32-32-5f-160x32.png');
+    background-size: 160px 32px;
+    animation: redhit-animation 0.5s steps(5);
+    image-rendering: pixelated;
+}
+
+@keyframes redhit-animation {
+    0% { background-position-x: 0; opacity: 1; }
+    90% { background-position-x: -128px; opacity: 1; }
+    100% { background-position-x: -160px; opacity: 0; }
+}

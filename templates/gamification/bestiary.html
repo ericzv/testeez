@@ -1,0 +1,153 @@
+{% extends 'gamification/base.html' %}
+
+{% block game_content %}
+<div class="row">
+  <div class="col-12">
+    <div class="card mb-4">
+      <div class="wood-header">
+        <h5 class="card-title mb-0">Bestiário</h5>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info">
+          <p>Este é o seu registro de criaturas derrotadas. Cada vez que você vence um boss, ele é adicionado ao seu bestiário.</p>
+        </div>
+        
+        {% if bosses %}
+          <div class="bestiary-grid">
+            {% for boss in bosses %}
+              <div class="bestiary-card">
+                <!-- Substituir a imagem estática pelo sprite animado -->
+                <div class="boss-portrait-animated">
+                  <div class="sprite-frame boss-idle boss-{{ boss.id }}-idle"></div>
+                </div>
+                <h5>{{ boss.name }}</h5>
+                <p class="text-muted small">{{ boss.description }}</p>
+                <div class="progress mb-2">
+                  <div class="progress-bar bg-danger" role="progressbar" style="width: 100%">
+                    HP: {{ boss.max_hp }}
+                  </div>
+                </div>
+                <p class="small">Região: 
+                  {% if boss.region == 1 %}
+                    Floresta da Ignorância
+                  {% elif boss.region == 2 %}
+                    Castelo do Esquecimento
+                  {% elif boss.region == 3 %}
+                    Deserto do Oblívio
+                  {% elif boss.region == 4 %}
+                    Montanhas da Distração
+                  {% elif boss.region == 5 %}
+                    Lago da Amnésia
+                  {% endif %}
+                </p>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-5">
+            <h4>Seu bestiário está vazio!</h4>
+            <p>Continue estudando e revisando cartões para derrotar bosses e preencher seu bestiário.</p>
+            <a href="{{ url_for('study_lobby') }}" class="btn btn-primary mt-3">Ir para a Sessão de Estudo</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="wood-header">
+        <h5 class="card-title mb-0">Progresso do Bestiário</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3">
+            <h5>Floresta da Ignorância</h5>
+            <div class="progress mb-2">
+              <div class="progress-bar bg-success" role="progressbar" 
+                   style="width: {{ (bosses|selectattr('region', 'eq', 1)|list|length / 19 * 100)|round(1) }}%">
+                {{ bosses|selectattr('region', 'eq', 1)|list|length }}/19
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-3">
+            <h5>Castelo do Esquecimento</h5>
+            <div class="progress mb-2">
+              <div class="progress-bar bg-info" role="progressbar" 
+                   style="width: {{ (bosses|selectattr('region', 'eq', 2)|list|length / 20 * 100)|round(1) }}%">
+                {{ bosses|selectattr('region', 'eq', 2)|list|length }}/20
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-3">
+            <h5>Deserto do Oblívio</h5>
+            <div class="progress mb-2">
+              <div class="progress-bar bg-warning" role="progressbar" 
+                   style="width: {{ (bosses|selectattr('region', 'eq', 3)|list|length / 20 * 100)|round(1) }}%">
+                {{ bosses|selectattr('region', 'eq', 3)|list|length }}/20
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-3">
+            <h5>Montanhas da Distração</h5>
+            <div class="progress mb-2">
+              <div class="progress-bar bg-danger" role="progressbar" 
+                   style="width: {{ (bosses|selectattr('region', 'eq', 4)|list|length / 20 * 100)|round(1) }}%">
+                {{ bosses|selectattr('region', 'eq', 4)|list|length }}/20
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="text-center mt-3">
+          <p>Total de bosses derrotados: <strong>{{ bosses|length }}/100</strong></p>
+          
+          {% if bosses|length == 100 %}
+            <div class="alert alert-success">
+              <h4>Parabéns!</h4>
+              <p>Você completou o bestiário e derrotou todos os bosses!</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Estilo específico para os bosses no bestiário */
+.bestiary-card .boss-portrait-animated {
+  width: 130px;
+  height: 160px;
+  margin: 0 auto 10px auto;
+  border: none;
+  padding: 3px;
+  background-color: transparent;
+  overflow: visible !important;
+  position: relative;
+}
+
+.bestiary-card .sprite-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) !important;
+}
+
+/* Por enquanto todos os bosses usam a mesma sprite, mas no futuro cada boss terá sua própria */
+.boss-1-idle, .boss-2-idle, .boss-3-idle, .boss-4-idle, .boss-5-idle,
+.boss-6-idle, .boss-7-idle, .boss-8-idle, .boss-9-idle, .boss-10-idle,
+.boss-11-idle, .boss-12-idle, .boss-13-idle, .boss-14-idle, .boss-15-idle,
+.boss-16-idle, .boss-17-idle, .boss-18-idle, .boss-19-idle, .boss-20-idle {
+  width: 130px;
+  height: 160px;
+  background-image: url('/static/game.data/boss1.png');
+  animation: bossIdle 0.4s steps(3) infinite;
+}
+</style>
+{% endblock %}

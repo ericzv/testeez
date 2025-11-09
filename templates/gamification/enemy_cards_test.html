@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Modelos de Cards - Roguelike</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Montserrat:wght@400;600;700&family=Griffy&family=Creepster&family=MedievalSharp&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(circle at center, #0f0f23, #000000);
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .test-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .test-header h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            color: #f1c40f;
+            text-shadow: 0 0 20px rgba(241, 196, 15, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .test-header p {
+            color: #bbb;
+            font-size: 1.2rem;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .card-label {
+            font-family: 'Cinzel', serif;
+            color: #f1c40f;
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        /* === MODELO 1: VERTICAL CLÁSSICO COM CHAMA DESLIZANTE === */
+        .model-1 {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border: 3px solid #4a235a;
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            height: 400px;
+        }
+
+        .model-1::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(142, 68, 173, 0.4), transparent);
+            transition: left 0.8s ease;
+        }
+
+        .model-1:hover::before {
+            left: 100%;
+        }
+
+        .model-1:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(142, 68, 173, 0.6);
+        }
+
+        /* === MODELO 2: HORIZONTAL WIDE === */
+        .model-2 {
+            background: linear-gradient(145deg, #2c1810, #1a1a1a);
+            border: 2px solid #8b4513;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            height: 150px;
+            transition: all 0.3s ease;
+        }
+
+        .model-2:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 25px rgba(139, 69, 19, 0.6);
+        }
+
+        .model-2 .sprite-section {
+            flex-shrink: 0;
+        }
+
+        .model-2 .info-section {
+            flex: 1;
+        }
+
+        .model-2 .stats-horizontal {
+            display: flex;
+            gap: 15px;
+            margin: 10px 0;
+        }
+
+        /* === MODELO 3: CIRCULAR === */
+        .model-3 {
+            background: radial-gradient(circle, #1e3a5f, #0f1419);
+            border: 4px solid #87ceeb;
+            border-radius: 50%;
+            width: 280px;
+            height: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            transition: all 0.4s ease;
+            margin: 0 auto;
+        }
+
+        .model-3::after {
+            content: '❄';
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 24px;
+            color: #87ceeb;
+            animation: snowflake-spin 3s infinite linear;
+        }
+
+        .model-3:hover {
+            transform: scale(1.05) rotateZ(2deg);
+            box-shadow: 0 0 40px rgba(135, 206, 235, 0.8);
+        }
+
+        @keyframes snowflake-spin {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.3); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        /* === MODELO 4: HEXAGONAL === */
+        .model-4 {
+            background: linear-gradient(135deg, #2a4d3a, #1e3a2e);
+            width: 280px;
+            height: 280px;
+            clip-path: polygon(25% 6.7%, 75% 6.7%, 100% 50%, 75% 93.3%, 25% 93.3%, 0% 50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            transition: all 0.4s ease;
+            margin: 0 auto;
+            border: 3px solid #32cd32;
+        }
+
+        .model-4:hover {
+            transform: scale(1.08) rotate(6deg);
+            box-shadow: 0 0 30px rgba(50, 205, 50, 0.7);
+        }
+
+        /* === MODELO 5: LAYOUT EM CAMADAS === */
+        .model-5 {
+            background: linear-gradient(145deg, #2c2c54, #40407a);
+            border-radius: 20px;
+            position: relative;
+            height: 350px;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .model-5 .top-layer {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .model-5 .middle-layer {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .model-5 .bottom-layer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .model-5:hover {
+            transform: translateY(-10px) rotateX(10deg);
+            box-shadow: 0 20px 40px rgba(64, 64, 122, 0.6);
+        }
+
+        /* === MODELO 6: MINIMALISTA COM BRILHO PULSANTE FORTE === */
+        .model-6 {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 25px;
+            position: relative;
+            transition: all 0.3s ease;
+            height: 320px;
+        }
+
+        .model-6::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(50, 205, 50, 0.3) 0%, transparent 70%);
+            border-radius: 8px;
+            animation: toxic-pulse 2s infinite alternate;
+        }
+
+        .model-6:hover {
+            border-color: #32cd32;
+            box-shadow: 0 0 30px rgba(50, 205, 50, 0.8);
+        }
+
+        @keyframes toxic-pulse {
+            0% { opacity: 0.3; transform: scale(0.95); }
+            100% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        /* === MODELO 7: PARALLAX 3D === */
+        .model-7 {
+            background: linear-gradient(145deg, #2c1810, #8b6914);
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            padding: 20px;
+            height: 380px;
+            position: relative;
+            transition: all 0.4s ease;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+
+        .model-7 .parallax-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+            transform: translateZ(-50px);
+            transition: transform 0.3s ease;
+        }
+
+        .model-7 .parallax-content {
+            position: relative;
+            z-index: 2;
+            transform: translateZ(0);
+            transition: transform 0.3s ease;
+        }
+
+        .model-7:hover .parallax-bg {
+            transform: translateZ(-50px) translate(-10px, -5px);
+        }
+
+        .model-7:hover .parallax-content {
+            transform: translateZ(10px);
+        }
+
+        .model-7:hover {
+            transform: rotateY(5deg) rotateX(5deg);
+            box-shadow: 0 20px 40px rgba(255, 215, 0, 0.6);
+        }
+
+        /* === MODELO 8: PARTÍCULAS FLUTUANTES === */
+        .model-8 {
+            background: linear-gradient(145deg, #0f0f2a, #1a1a3a);
+            border: 2px solid #4169e1;
+            border-radius: 12px;
+            padding: 20px;
+            height: 360px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .model-8::before {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 4px;
+            height: 4px;
+            background: #00bfff;
+            border-radius: 50%;
+            box-shadow: 
+                20px 10px 0 #00bfff,
+                -15px 30px 0 #87ceeb,
+                40px -10px 0 #4169e1,
+                -30px -20px 0 #00bfff,
+                60px 40px 0 #87ceeb;
+            animation: lightning-particles 4s infinite linear;
+        }
+
+        .model-8:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 0 35px rgba(65, 105, 225, 0.8);
+            animation: electric-buzz 0.1s infinite;
+        }
+
+        @keyframes lightning-particles {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-300px) rotate(360deg); }
+        }
+
+        @keyframes electric-buzz {
+            0%, 100% { transform: translateY(-8px); }
+            50% { transform: translateY(-8px) translate(1px, 1px); }
+        }
+
+        /* === MODELO 9: CARTA DE TARÔ === */
+        .model-9 {
+            background: linear-gradient(145deg, #4a1a4a, #2d1b69);
+            border: 4px solid #daa520;
+            border-radius: 12px;
+            padding: 15px;
+            height: 450px;
+            width: 280px;
+            margin: 0 auto;
+            position: relative;
+            transition: all 0.4s ease;
+            box-shadow: 0 0 20px rgba(218, 165, 32, 0.3);
+        }
+
+        .model-9::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            bottom: 15px;
+            border: 2px solid rgba(218, 165, 32, 0.5);
+            border-radius: 8px;
+        }
+
+        .model-9 .tarot-header {
+            text-align: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(218, 165, 32, 0.3);
+            margin-bottom: 15px;
+        }
+
+        .model-9 .tarot-footer {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+            text-align: center;
+            padding-top: 10px;
+            border-top: 1px solid rgba(218, 165, 32, 0.3);
+        }
+
+        .model-9:hover {
+            transform: translateY(-10px) rotateY(10deg);
+            box-shadow: 0 20px 40px rgba(218, 165, 32, 0.6);
+        }
+
+        /* === MODELO 10: BORDAS IRREGULARES COM GOTEJAMENTO === */
+        .model-10 {
+            background: linear-gradient(145deg, #4a1a1a, #2c0f0f);
+            border: 3px solid #dc143c;
+            padding: 20px;
+            height: 380px;
+            position: relative;
+            transition: all 0.3s ease;
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 95% 90%, 90% 95%, 85% 90%, 80% 95%, 75% 90%, 70% 95%, 0 95%);
+        }
+
+        .model-10::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 20%;
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 12px solid #dc143c;
+            animation: blood-drip 3s infinite;
+        }
+
+        .model-10::before {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 60%;
+            width: 0;
+            height: 0;
+            border-left: 3px solid transparent;
+            border-right: 3px solid transparent;
+            border-top: 8px solid #dc143c;
+            animation: blood-drip 3s infinite 1s;
+        }
+
+        .model-10:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 0 30px rgba(220, 20, 60, 0.7);
+        }
+
+        @keyframes blood-drip {
+            0%, 80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(20px); }
+        }
+
+        /* === MODELO 11: FLUTUANTE 3D === */
+        .model-11 {
+            background: linear-gradient(145deg, #2d2d5f, #1a1a2e);
+            border: 3px solid #9370db;
+            border-radius: 20px;
+            padding: 20px;
+            height: 360px;
+            position: relative;
+            transition: all 0.6s ease;
+            animation: float-idle 4s infinite ease-in-out;
+        }
+
+        .model-11::before {
+            content: '✧';
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            font-size: 16px;
+            color: #9370db;
+            animation: ethereal-float 3s infinite ease-in-out;
+        }
+
+        .model-11::after {
+            content: '✦';
+            position: absolute;
+            top: 70%;
+            right: 15%;
+            font-size: 12px;
+            color: #ba55d3;
+            animation: ethereal-float 3s infinite ease-in-out 1.5s;
+        }
+
+        .model-11:hover {
+            transform: translateY(-15px) rotateX(10deg) rotateY(-5deg);
+            box-shadow: 0 25px 50px rgba(147, 112, 219, 0.6);
+        }
+
+        @keyframes float-idle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        @keyframes ethereal-float {
+            0%, 100% { transform: translateY(0) scale(1); opacity: 0.7; }
+            50% { transform: translateY(-20px) scale(1.3); opacity: 1; }
+        }
+
+        /* === MODELO 12: MÍSTICO COM RUNA ATRÁS === */
+        .model-12 {
+            background: linear-gradient(145deg, #2f2f2f, #1a1a1a);
+            border: 4px solid #daa520;
+            border-radius: 12px;
+            padding: 20px;
+            height: 380px;
+            position: relative;
+            transition: all 0.4s ease;
+            overflow: hidden;
+        }
+
+        .model-12::before {
+            content: '⧨';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 150px;
+            color: rgba(218, 165, 32, 0.1);
+            z-index: 1;
+            animation: rune-rotate 8s infinite linear;
+        }
+
+        .model-12 .content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .model-12:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 0 40px rgba(218, 165, 32, 0.7);
+        }
+
+        @keyframes rune-rotate {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* === SPRITES ANIMADAS === */
+        .enemy-sprite-container {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 15px;
+            position: relative;
+            transform: scaleX(-1);
+        }
+
+        .enemy-sprite-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-repeat: no-repeat;
+            background-position: 0 0;
+            background-size: 1100px 100px; /* 11 frames × 100px */
+            animation: enemy-idle 0.8s steps(11) infinite;
+            image-rendering: pixelated;
+        }
+
+        /* Diferentes efeitos de sprite */
+        .sprite-outline .enemy-sprite-layer {
+            filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 6px #fff);
+        }
+
+        .sprite-glow .enemy-sprite-layer {
+            filter: drop-shadow(0 0 10px #00ffff);
+        }
+
+        .sprite-fire .enemy-sprite-layer {
+            filter: drop-shadow(0 0 8px #ff6b35) hue-rotate(15deg);
+        }
+
+        .sprite-shadow .enemy-sprite-layer {
+            filter: drop-shadow(0 0 5px #9370db) brightness(0.8);
+        }
+
+        @keyframes enemy-idle {
+            from { background-position: 0 0; }
+            to { background-position: -1100px 0; }
+        }
+
+        /* === ELEMENTOS COMUNS === */
+        .enemy-name {
+            font-family: 'Cinzel', serif;
+            font-size: 1.3rem;
+            text-align: center;
+            margin-bottom: 15px;
+            color: #f8f9fa;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .enemy-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        .stat {
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-bottom: 2px;
+        }
+
+        .choose-btn {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Cinzel', serif;
+        }
+
+        .choose-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .rarity-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid;
+        }
+
+        .rounds-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc2626;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border: 2px solid white;
+            z-index: 10;
+        }
+
+        /* Cores de raridade */
+        .rarity-comum { border-color: #9ca3af; color: #9ca3af; }
+        .rarity-raro { border-color: #3b82f6; color: #3b82f6; }
+        .rarity-epico { border-color: #8b5cf6; color: #8b5cf6; }
+        .rarity-lendario { border-color: #f59e0b; color: #f59e0b; }
+
+        /* Fontes alternativas */
+        .font-griffy { font-family: 'Griffy', cursive; }
+        .font-creepster { font-family: 'Creepster', cursive; }
+        .font-medieval { font-family: 'MedievalSharp', cursive; }
+
+        /* Responsividade para modelos específicos */
+        .model-3, .model-4, .model-9 {
+            justify-self: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-header">
+        <h1>🃏 Teste de Modelos de Cards</h1>
+        <p>Modelos completamente diferentes - Escolha layouts, efeitos e estilos</p>
+    </div>
+
+    <div class="cards-grid">
+        <!-- MODELO 1: VERTICAL CLÁSSICO COM CHAMA DESLIZANTE -->
+        <div>
+            <div class="card-label">1. Vertical Clássico (Chama Deslizante)</div>
+            <div class="enemy-card model-1">
+                <div class="rarity-badge rarity-epico">ÉPICO</div>
+                <div class="rounds-badge">2/3</div>
+                <div class="enemy-name">Lorde das Sombras</div>
+                <div class="enemy-sprite-container sprite-shadow">
+                    <div class="enemy-sprite-layer" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEwMCIgaGVpZ2h0PSIxMDAiIHZpZXdCb3g9IjAgMCAxMTAwIDEwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxwYXR0ZXJuIGlkPSJlbmVteVNwcml0ZSIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiPgo8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzMzMzMzMyIvPgo8Y2lyY2xlIGN4PSI1MCIgY3k9IjMwIiByPSIxNSIgZmlsbD0iIzY2NjY2NiIvPgo8cmVjdCB4PSI0MCIgeT0iNDAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIzMCIgZmlsbD0iIzQ0NDQ0NCIvPgo8cmVjdCB4PSIzNSIgeT0iNDUiIHdpZHRoPSIzMCIgaGVpZ2h0PSI1IiBmaWxsPSIjNTU1NTU1Ii8+CjxyZWN0IHg9IjQ1IiB5PSI3MCIgd2lkdGg9IjUiIGhlaWdodD0iMjAiIGZpbGw9IiM0NDQ0NDQiLz4KPHJlY3QgeD0iNTAiIHk9IjcwIiB3aWR0aD0iNSIgaGVpZ2h0PSIyMCIgZmlsbD0iIzQ0NDQ0NCIvPgo8L3BhdHRlcm4+CjwvZGVmcz4KPHJlY3Qgd2lkdGg9IjExMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2VuZW15U3ByaXRlKSIvPgo8L3N2Zz4=');"></div>
+                </div>
+                <div class="enemy-stats">
+                    <div class="stat">
+                        <span class="stat-label">HP</span>
+                        <span>145</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">DANO</span>
+                        <span>32</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">POSTURA</span>
+                        <span>28</span>
+                    </div>
+                </div>
+                <button class="choose-btn">Escolher</button>
+            </div>
+        </div>
+
+        <!-- MODELO 2: HORIZONTAL WIDE -->
+        <div>
+            <div class="card-label">2. Horizontal Wide</div>
+            <div class="enemy-card model-2">
+                <div class="sprite-section">
+                    <div class="enemy-sprite-container sprite-fire" style="width: 80px; height: 80px; margin: 0;">
+                        <div class="enemy-sprite-layer" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODgwIiBoZWlnaHQ9IjgwIiB2aWV3Qm94PSIwIDAgODgwIDgwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZGVmcz4KPHN0eWxlPi5lbmVteS1mcmFtZSB7IGZpbGw6ICNkYzJmMzY7IHN0cm9rZTogIzAwMDsgc3Ryb2tlLXdpZHRoOiAxOyB9PC9zdHlsZT4KPC9kZWZzPgo8ZyBjbGFzcz0iZW5lbXktZnJhbWUiPgo8Y2lyY2xlIGN4PSI0MCIgY3k9IjI1IiByPSIxMiIvPgo8cmVjdCB4PSIzMCIgeT0iMzAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyNSIvPgo8cmVjdCB4PSIyNSIgeT0iMzUiIHdpZHRoPSIzMCIgaGVpZ2h0PSI0Ii8+CjxyZWN0IHg9IjM2IiB5PSI1NSIgd2lkdGg9IjQiIGhlaWdodD0iMTUiLz4KPHJlY3QgeD0iNDAiIHk9IjU1IiB3aWR0aD0iNCIgaGVpZ2h0PSIxNSIvPgo8L2c+Cjx1c2UgaHJlZj0iI2VuZW15LWZyYW1lIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg4MCwwKSIvPgo8dXNlIGhyZWY9IiNlbmVteS1mcmFtZSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYwLDApIi8+Cjx1c2UgaHJlZj0iI2VuZW15LWZyYW1lIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNDAsMCkiLz4KPHN2Zz4='); background-size: 880px 80px;"></div>
+                    </div>
+                </div>
+                <div class="info-section">
+                    <div class="enemy-name font-medieval">Ogro Guerreiro</div>
+                    <div class="stats-horizontal">
+                        <span><strong>HP:</strong> 180</span>
+                        <span><strong>DANO:</strong> 40</span>
+                        <span><strong>POSTURA:</strong> 35</span>
+                    </div>
+                    <button class="choose-btn">Escolher</button>
+                </div>
+                <div class="rarity-badge rarity-comum">COMUM</div>
+                <div class="rounds-badge">1/3</div>
+            </div>
+        </div>
+
+        <!-- MODELO 3: CIRCULAR COM FLOCO DE NEVE -->
+        <div>
+            <div class="card-label">3. Circular (Floco Girando)</div>
+            <div class="enemy-card model-3">
+                <div class="rarity-badge rarity-raro">RARO</div>
+                <div class="rounds-badge">3/3</div>
+                <div class="enemy-name font-griffy">Cristal Glacial</div>
+                <div class="enemy-sprite-container sprite-glow" style="width: 70px; height: 70px;">
+                    <div class="enemy-sprite-layer" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzcwIiBoZWlnaHQ9IjcwIiB2aWV3Qm94PSIwIDAgNzcwIDcwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZGVmcz4KPHN0eWxlPi5pY2UtZW5lbXkgeyBmaWxsOiAjODdjZWViOyBzdHJva2U6ICMwMGJmZmY7IHN0cm9rZS13aWR0aDogMTsgfTwvc3R5bGU+CjwvZGVmcz4KPGcgY2xhc3M9ImljZS1lbmVteSI+Cjxwb2x5Z29uIHBvaW50cz0iMzUsMTAgNDUsMjAgNTUsMTUgNTAsMzAgNDAsMzUgMzAsMzAgMjUsMTUgMzAsMjAiLz4KPHJlY3QgeD0iMzAiIHk9IjM1IiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiLz4KPHJlY3QgeD0iMzMiIHk9IjU1IiB3aWR0aD0iNyIgaGVpZ2h0PSIxMCIvPgo8cmVjdCB4PSI0MCIgeT0iNTUiIHdpZHRoPSI3IiBoZWlnaHQ9IjEwIi8+CjwvZz4KPHN2Zz4='); background-size: 770px 70px;"></div>
+                </div>
+                <div style="font-size: 0.8rem; margin-top: 10px;">
+                    <div><strong>HP:</strong> 95</div>
+                    <div><strong>DANO:</strong> 30</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODELO 4: HEXAGONAL -->
+        <div>
+            <div class="card-label">4. Hexagonal</div>
+            <div class="enemy-card model-4">
+                <div class="enemy-name font-creepster">Víbora</div>
+                <div class="enemy-sprite-container sprite-outline" style="width: 60px; height: 60px;">
+                    <div class="enemy-sprite-layer" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjYwIiBoZWlnaHQ9IjYwIiB2aWV3Qm94PSIwIDAgNjYwIDYwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZGVmcz4KPHN0eWxlPi5zbmFrZSB7IGZpbGw6ICMzMmNkMzI7IHN0cm9rZTogIzAwNjQwMDsgc3Ryb2tlLXdpZHRoOiAxOyB9PC9zdHlsZT4KPC9kZWZzPgo8ZyBjbGFzcz0ic25ha2UiPgo8ZWxsaXBzZSBjeD0iMzAiIGN5PSIyMCIgcng9IjgiIHJ5PSI2Ii8+CjxwYXRoIGQ9Ik0yNSAyNSBRMzAgMzUgMzUgMzAgUTMwIDQwIDI1IDM1IFEzMCA0NSAzNSA0MCBRMzAgNTAgMjUgNDUiLz4KPC9nPgo8L3N2Zz4='); background-size: 660px 60px;"></div>
+                </div>
+                <div style="font-size: 0.7rem;">
+                    <div>HP: 75</div>
+                    <div>DANO: 28</div>
+                </div>
+                <div class="rarity-badge rarity-raro">RARO</div>
+                <div class="rounds-badge">1/3</div>
+            </div>
+        </div>
+
+        <!-- MODELO 5: LAYOUT EM CAMADAS -->
+        <div>
+            <div class="card-label">5. Layout em Camadas</div>
+            <div class="enemy-card model-5">
+                <div class="top-layer">
+                    <div class="rarity-badge rarity-epico">ÉPICO</div>
+                    <div class="rounds-badge">2/3</div>
+                </div>
+                <div class="middle-layer">
+                    <div class="enemy-name">Elemental Místico</div>
+                    <div class="enemy-sprite-container sprite-shadow" style="width: 90px; height: 90px;">
+                        <div class="enemy-sprite-layer" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTkwIiBoZWlnaHQ9IjkwIiB2aWV3Qm94PSIwIDAgOTkwIDkwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZGVmcz4KPHN0eWxlPi5teXN0aWMgeyBmaWxsOiAjOTM3MGRiOyBzdHJva2U6ICM0YjAwODI7IHN0cm9rZS13aWR0aDogMTsgfTwvc3R5bGU+CjwvZGVmcz4KPGcgY2xhc3M9Im15c3RpYyI+CjxjaXJjbGUgY3g9IjQ1IiBjeT0iMzAiIHI9IjE1Ii8+CjxyZWN0IHg9IjM1IiB5PSI0MCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjI1Ii8+CjxwYXRoIGQ9Ik0zMCA0NSBMNjAgNDUgTDU1IDUwIEwzNSA1MCBaIi8+CjxyZWN0IHg9IjQwIiB5PSI2NSIgd2lkdGg9IjUiIGhlaWdodD0iMTUiLz4KPHJlY3QgeD0iNDUiIHk9IjY1IiB3aWR0aD0iNSIgaGVpZ2h0PSIxNSIvPgo8L2c+Cjwvc3ZnPg=='); background-size: 990px 90px;"></div>
+                    </div>
+                </div>
+                <div class="bottom-layer">
+                    <div class="enemy-stats">
+                        <span>HP: 120</span>
+                        <span>DANO: 38</span>
+                        <span>POSTURA: 20</span>
+                    </div>
+                    <button class="choose-btn">Escolher</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODELO 6: MINIMALISTA COM BRILHO PULSANTE FORTE -->
+        <div>
+            <div class="card-label">6. Minimalista (Brilho Pulsante Forte)</div>
+            <div class="enemy-card model-6">
+                <div class="rarity-badge rarity-raro">RARO</div>
+                <div class="rounds-badge">1/3</div>
+                <div class="enemy-name">Ente Tóxico</div>
+                <div class="enemy-sprite-container sprite-glow" style="margin: 20px auto;">
+                    <div class="enemy-sprite-layer" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEwMCIgaGVpZ2h0PSIxMDAiIHZpZXdCb3g9IjAgMCAxMTAwIDEwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxzdHlsZT4udG94aWMgeyBmaWxsOiAjMzJjZDMyOyBzdHJva2U6ICMwMDgwMDA7IHN0cm9rZS13aWR0aDogMTsgfTwvc3R5bGU+CjwvZGVmcz4KPGcgY2xhc3M9InRveGljIj4KPGVsbGlwc2UgY3g9IjUwIiBjeT0iMzAiIHJ4PSIxOCIgcnk9IjE1Ii8+CjxyZWN0IHg9IjM1IiB5PSI0MCIgd2lkdGg9IjMwIiBoZWlnaHQ9IjMwIi8+CjxjaXJjbGUgY3g9IjQyIiBjeT0iNTAiIHI9IjMiLz4KPGNpcmNsZSBjeD0iNTgiIGN5PSI1MCIgcj0iMyIvPgo8cmVjdCB4PSI0NSIgeT0iNzAiIHdpZHRoPSI1IiBoZWlnaHQ9IjE1Ii8+CjxyZWN0IHg9IjUwIiB5PSI3MCIgd2lkdGg9IjUiIGhlaWdodD0iMTUiLz4KPC9nPgo8L3N2Zz4=');"></div>
+                </div>
+                <div class="enemy-stats">
+                    <div class="stat">
+                        <span class="stat-label">HP</span>
+                        <span>75</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">DANO</span>
+                        <span>28</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">POSTURA</span>
+                        <span>18</span>
+                    </div>
+                </div>
+                <button class="choose-btn">Escolher</button>
+            </div>
+        </div>
+
+        <!-- MODELO 7: PARALLAX 3D -->
+        <div>
+            <div class="card-label">7. Parallax 3D</div>
+            <div class="enemy-card model-7">
+                <div class="parallax-bg"></div>
+                <div class="parallax-content">
+                    <div class="rarity-badge rarity-lendario">LENDÁRIO</div>
+                    <div class="rounds-badge">3/3</div>
+                    <div class="enemy-name">Dragão Ancestral</div>
+                    <div class="enemy-sprite-container sprite-fire" style="margin: 15px auto;">
+                        <div class="enemy-sprite-layer" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEwMCIgaGVpZ2h0PSIxMDAiIHZpZXdCb3g9IjAgMCAxMTAwIDEwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxzdHlsZT4uZHJhZ29uIHsgZmlsbDogI2ZmZDcwMDsgc3Ryb2tlOiAjZjM5YzEyOyBzdHJva2Utd2lkdGg6IDI7IH08L3N0eWxlPgo8L2RlZnM+CjxnIGNsYXNzPSJkcmFnb24iPgo8ZWxsaXBzZSBjeD0iNTAiIGN5PSIyNSIgcng9IjIwIiByeT0iMTUiLz4KPHBvbHlnb24gcG9pbnRzPSIzMCw0MCA3MCw0MCA2NSw2MCAzNSw2MCIvPgo8cGF0aCBkPSJNMjAgMzUgTDMwIDQ1IEwyNSA1NSBMMTUgNDUgWiIvPgo8cGF0aCBkPSJNNzAgNDUgTDgwIDM1IEw4NSA0NSBMNzUgNTUgWiIvPgo8cmVjdCB4PSI0NiIgeT0iNjAiIHdpZHRoPSI0IiBoZWlnaHQ9IjIwIi8+CjxyZWN0IHg9IjUwIiB5PSI2MCIgd2lkdGg9IjQiIGhlaWdodD0iMjAiLz4KPC9nPgo8L3N2Zz4=');"></div>
+                    </div>
+                    <div class="enemy-stats">
+                        <div class="stat">
+                            <span class="stat-label">HP</span>
+                            <span>250</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">DANO</span>
+                            <span>55</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">POSTURA</span>
+                            <span>45</span>
+                        </div>
+                    </div>
+                    <button class="choose-btn">Escolher</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODELO 8: PARTÍCULAS FLUTUANTES -->
+        <div>
+            <div class="card-label">8. Partículas Flutuantes</div>
+            <div class="enemy-card model-8">
+                <div class="rarity-badge rarity-raro">RARO</div>
+                <div class="rounds-badge">1/3</div>
+                <div class="enemy-name">Tempestade Viva</div>
+                <div class="enemy-sprite-container sprite-glow" style="margin: 20px auto;">
+                    <div class="enemy-sprite-layer" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEwMCIgaGVpZ2h0PSIxMDAiIHZpZXdCb3g9IjAgMCAxMTAwIDEwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxzdHlsZT4ubGlnaHRuaW5nIHsgZmlsbDogIzAwYmZmZjsgc3Ryb2tlOiAjNDE2OWUxOyBzdHJva2Utd2lkdGg6IDE7IH08L3N0eWxlPgo8L2RlZnM+CjxnIGNsYXNzPSJsaWdodG5pbmciPgo8cGF0aCBkPSJNNDAgMTUgTDYwIDE1IEw1NSAzNSBMNjUgMzUgTDQ1IDY1IEw1MCA0NSBMNDAgNDUgWiIvPgo8Y2lyY2xlIGN4PSI1MiIgY3k9IjMwIiByPSI4Ii8+CjxyZWN0IHg9IjQ1IiB5PSI2NSIgd2lkdGg9IjUiIGhlaWdodD0iMTUiLz4KPHJlY3QgeD0iNTAiIHk9IjY1IiB3aWR0aD0iNSIgaGVpZ2h0PSIxNSIvPgo8L2c+Cjwvc3ZnPg==');"></div>
+                </div>
+                <div class="enemy-stats">
+                    <div class="stat">
+                        <span class="stat-label">HP</span>
+                        <span>85</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">DANO</span>
+                        <span>48</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">POSTURA</span>
+                        <span>12</span>
+                    </div>
+                </div>
+                <button class="choose-btn">Escolher</button>
+            </div>
+        </div>
+
+        <!-- MODELO 9: CARTA DE TARÔ -->
+        <div>
+            <div class="card-label">9. Carta de Tarô</div>
+            <div class="enemy-card model-9">
+                <div class="rarity-badge rarity-lendario">LENDÁRIO</div>
+                <div class="rounds-badge">2/3</div>
+                <div class="tarot-header">
+                    <div class="enemy-name font-medieval">O NECROMANTE</div>
+                </div>
+                <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <div class="enemy-sprite-container sprite-shadow" style="margin: 10px auto;">
+                        <div class="enemy-sprite-layer" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEwMCIgaGVpZ2h0PSIxMDAiIHZpZXdCb3g9IjAgMCAxMTAwIDEwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxzdHlsZT4ubmVjcm8geyBmaWxsOiAjNGIwMDgyOyBzdHJva2U6ICMwMDAwMDA7IHN0cm9rZS13aWR0aDogMTsgfTwvc3R5bGU+CjwvZGVmcz4KPGcgY2xhc3M9Im5lY3JvIj4KPGVsbGlwc2UgY3g9IjUwIiBjeT0iMjAiIHJ4PSIxNSIgcnk9IjEyIi8+CjxyZWN0IHg9IjM4IiB5PSIzMCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjMwIi8+CjxwYXRoIGQ9Ik0zMCAzNSBMNzAgMzUgTDY1IDQ1IEwzNSA0NSBaIi8+CjxwYXRoIGQ9Ik00NSA2MCBMNTC41IDc1IEw0Ny41IDc1IFoiLz4KPHA...=');"></div>
+                    </div>
+                </div>
+                <div class="tarot-footer">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+                        <span>HP: 200</span>
+                        <span>DANO: 40</span>
+                        <span>POSTURA: 25</span>
+                    </div>
+                    <button class="choose-btn" style="margin-top: 10px;">Escolher</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODELO 10: BORDAS IRREGULARES COM GOTEJAMENTO -->
+        <div>
+            <div class="card-label">10. Bordas Irregulares (Gotejamento)</div>
+            <div class="enemy-card model-10">
+                <div class="rarity-badge rarity-epico">ÉPICO</div>
+                <div class="rounds-badge">3/3</div>
+                <div class="enemy-name">Conde Sanguinário</div>
+                <div class="enemy-sprite-container sprite-shadow" style="margin: 15px auto;">
+                    <div class="enemy-sprite-layer" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEwMCIgaGVpZ2h0PSIxMDAiIHZpZXdCb3g9IjAgMCAxMTAwIDEwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxzdHlsZT4udmFtcGlyZSB7IGZpbGw6ICNkYzE0M2M7IHN0cm9rZTogIzgwMDAwMDsgc3Ryb2tlLXdpZHRoOiAxOyB9PC9zdHlsZT4KPC9kZWZzPgo8ZyBjbGFzcz0idmFtcGlyZSI+CjxlbGxpcHNlIGN4PSI1MCIgY3k9IjI1IiByeD0iMTgiIHJ5PSIxNSIvPgo8cmVjdCB4PSIzNSIgeT0iMzUiIHdpZHRoPSIzMCIgaGVpZ2h0PSIyNSIvPgo8cGF0aCBkPSJNMzAgNDAgTDcwIDQwIEw2NSA1MCAMMzUgNTAgWiIvPgo8cmVjdCB4PSI0NCIgeT0iNjAiIHdpZHRoPSI2IiBoZWlnaHQ9IjE1Ii8+CjxyZWN0IHg9IjUwIiB5PSI2MCIgd2lkdGg9IjYiIGhlaWdodD0iMTUiLz4KPC9nPgo8L3N2Zz4=');"></div>
+                </div>
+                <div class="enemy-stats">
+                    <div class="stat">
+                        <span class="stat-label">HP</span>
+                        <span>160</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">DANO</span>
+                        <span>35</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">POSTURA</span>
+                        <span>30</span>
+                    </div>
+                </div>
+                <button class="choose-btn">Escolher</button>
+            </div>
+        </div>
+
+        <!-- MODELO 11: FLUTUANTE 3D -->
+        <div>
+            <div class="card-label">11. Flutuante 3D (Partículas Etéreas)</div>
+            <div class="enemy-card model-11">
+                <div class="rarity-badge rarity-lendario">LENDÁRIO</div>
+                <div class="rounds-badge">2/3</div>
+                <div class="enemy-name">Espírito Etéreo</div>
+                <div class="enemy-sprite-container sprite-glow" style="margin: 20px auto;">
+                    <div class="enemy-sprite-layer" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEwMCIgaGVpZ2h0PSIxMDAiIHZpZXdCb3g9IjAgMCAxMTAwIDEwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxzdHlsZT4uc3Bpcml0IHsgZmlsbDogIzliNTlmNjsgc3Ryb2tlOiAjNjkzN2Q5OyBzdHJva2Utd2lkdGg6IDE7IG9wYWNpdHk6IDAuODsgfTwvc3R5bGU+CjwvZGVmcz4KPGcgY2xhc3M9InNwaXJpdCI+CjxwYXRoIGQ9Ik0zNSAyMCBRNTAgMTAgNjUgMjAgUTYwIDM1IDUwIDQwIFE0MCAzNSAzNSAyMCBaIi8+CjxyZWN0IHg9IjQyIiB5PSI0MCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjIwIi8+CjxwYXRoIGQ9Ik0zOCA0NSBMNjIgNDUgTDU4IDU1IEw0MiA1NSBaIi8+CjxwYXRoIGQ9Ik00NiA2MCBMNTQ...='opacity="0.9');"></div>
+                </div>
+                <div class="enemy-stats">
+                    <div class="stat">
+                        <span class="stat-label">HP</span>
+                        <span>200</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">DANO</span>
+                        <span>40</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">POSTURA</span>
+                        <span>25</span>
+                    </div>
+                </div>
+                <button class="choose-btn">Escolher</button>
+            </div>
+        </div>
+
+        <!-- MODELO 12: MÍSTICO COM RUNA ATRÁS -->
+        <div>
+            <div class="card-label">12. Místico (Runa Atrás da Sprite)</div>
+            <div class="enemy-card model-12">
+                <div class="content">
+                    <div class="rarity-badge rarity-lendario">LENDÁRIO</div>
+                    <div class="rounds-badge">1/3</div>
+                    <div class="enemy-name font-medieval">Guardião Rúnico</div>
+                    <div class="enemy-sprite-container sprite-outline" style="margin: 20px auto; z-index: 2; position: relative;">
+                        <div class="enemy-sprite-layer" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEwMCIgaGVpZ2h0PSIxMDAiIHZpZXdCb3g9IjAgMCAxMTAwIDEwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxzdHlsZT4ucnVuZS1ndWFyZCB7IGZpbGw6ICNkYWE1MjA7IHN0cm9rZTogIzgwNjAwMDsgc3Ryb2tlLXdpZHRoOiAyOyB9PC9zdHlsZT4KPC9kZWZzPgo8ZyBjbGFzcz0icnVuZS1ndWFyZCI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iMjUiIHI9IjE1Ii8+CjxyZWN0IHg9IjM4IiB5PSIzNSIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI1Ii8+CjxwYXRoIGQ9Ik0zMCA0MCBMNTBBNDBNIDA0NSBRNDUgNTAgNTAgNDUgUTU1IDUwIDYwIDQ1IEw3MCA0MCBMNjUgNTAgTDM1IDUwIFoiLz4KPHJlY3QgeD0iNDQiIHk9IjYwIiB3aWR0aD0iNiIgaGVpZ2h0PSIxNSIvPgo8cmVjdCB4PSI1MCIgeT0iNjAiIHdpZHRoPSI2IiBoZWlnaHQ9IjE1Ii8+CjwvZz4KPC9zdmc+');"></div>
+                    </div>
+                    <div class="enemy-stats">
+                        <div class="stat">
+                            <span class="stat-label">HP</span>
+                            <span>220</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">DANO</span>
+                            <span>50</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">POSTURA</span>
+                            <span>38</span>
+                        </div>
+                    </div>
+                    <button class="choose-btn">Escolher</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.enemy-card');
+            
+            cards.forEach(card => {
+                card.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+            
+            // Animação de entrada
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animation = 'cardEnter 0.6s ease-out forwards';
+                    }
+                });
+            });
+            
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(50px)';
+                observer.observe(card);
+            });
+        });
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes cardEnter {
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block title %}Estatísticas - Retina Cards{% endblock %}
+{% block content %}
+<div class="container text-center">
+  <h2>Estatísticas</h2>
+  <hr>
+  
+  <!-- Seção: Estudo diário (indentado com bullet points) -->
+  <h3>Estudo diário</h3>
+  <ul class="list-unstyled">
+    <li>Cartões estudados hoje: <strong>{{ daily_cards }}</strong></li>
+    <li>Taxa de acerto hoje: <strong>{{ daily_accuracy }}%</strong></li>
+    <li>Dias consecutivos: <strong>{{ current_streak }}</strong></li>
+  </ul>
+  
+  <!-- Heatmap movido para cima -->
+  <div style="margin-top: 20px; margin-bottom: 20px;">
+    <img src="{{ url_for('cards.statistics_heatmap') }}" alt="Heatmap de estudos" style="max-width: 100%;">
+  </div>
+  
+  <hr>
+  
+  <!-- Seção: Estatísticas da coleção -->
+  <h3>Estatísticas da coleção</h3>
+  <ul class="list-unstyled">
+    <li>Total de cartões: <strong>{{ total_cards }}</strong></li>
+    <li>Cartões novos: <strong style="color: blue;">{{ new_cards }}</strong></li>
+    <li>Cartões em intervalo: <strong style="color: gray;">{{ in_date }}</strong></li>
+    <li>Cartões a revisar: <strong style="color: green;">{{ due_cards }}</strong></li>
+    <li>Cartões suspensos: <strong style="color: orange;">{{ suspended_cards }}</strong></li>
+  </ul>
+  
+  <hr>
+  
+  <!-- Seção: Previsão de revisões -->
+  <h3>Previsão de revisões</h3>
+  <div style="margin-bottom: 10px;">
+    <button id="forecastBtn30days" class="btn btn-sm btn-primary active">30 dias</button>
+    <button id="forecastBtn1year" class="btn btn-sm btn-outline-primary">1 ano</button>
+  </div>
+  <div style="margin-top: 10px;">
+    <img id="forecastImage" src="{{ url_for('cards.forecast_chart', period='30days') }}" alt="Previsão de revisões" style="max-width: 100%;">
+  </div>
+  
+  <hr>
+  
+  <!-- Seção: Histórico de revisões com gráfico de linhas -->
+  <h3>Histórico de revisões</h3>
+  <div style="margin-bottom: 10px;">
+    <button id="historyBtn1month" class="btn btn-sm btn-success active">1 mês</button>
+    <button id="historyBtn12months" class="btn btn-sm btn-outline-success">12 meses</button>
+  </div>
+  <div style="margin-top: 10px;">
+    <img id="historyImage" src="{{ url_for('cards.revision_history_chart', period='1month') }}" alt="Histórico de revisões" style="max-width: 100%;">
+  </div>
+  
+  <hr>
+  
+  <!-- Seção: Log de revisões (listagem diária) com botão para toggle -->
+  <h3>Log de revisões</h3>
+  <button id="toggleLogBtn" class="btn btn-secondary">Mostrar Log de Revisões</button>
+  <div id="logContainer" style="display: none; margin-top: 20px;">
+    <ul class="list-unstyled">
+      {% for ds in all_stats %}
+        {% set accuracy = (ds.correct_count / ds.cards_studied * 100) if ds.cards_studied > 0 else 0 %}
+        <li>
+          {{ ds.date.strftime('%d/%m/%Y') }} - {{ ds.cards_studied }} revisões (taxa de acerto: {{ accuracy|round(1) }}%)
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+// Toggle para o log de revisões
+document.getElementById('toggleLogBtn').addEventListener('click', function() {
+    var logContainer = document.getElementById('logContainer');
+    if (logContainer.style.display === 'none') {
+        logContainer.style.display = 'block';
+        this.textContent = 'Ocultar Log de Revisões';
+    } else {
+        logContainer.style.display = 'none';
+        this.textContent = 'Mostrar Log de Revisões';
+    }
+});
+
+// Toggle para os botões de período de previsão
+document.getElementById('forecastBtn30days').addEventListener('click', function() {
+    document.getElementById('forecastBtn30days').classList.add('btn-primary');
+    document.getElementById('forecastBtn30days').classList.remove('btn-outline-primary');
+    document.getElementById('forecastBtn1year').classList.add('btn-outline-primary');
+    document.getElementById('forecastBtn1year').classList.remove('btn-primary');
+    document.getElementById('forecastImage').src = "{{ url_for('cards.forecast_chart', period='30days') }}";
+});
+
+document.getElementById('forecastBtn1year').addEventListener('click', function() {
+    document.getElementById('forecastBtn1year').classList.add('btn-primary');
+    document.getElementById('forecastBtn1year').classList.remove('btn-outline-primary');
+    document.getElementById('forecastBtn30days').classList.add('btn-outline-primary');
+    document.getElementById('forecastBtn30days').classList.remove('btn-primary');
+    document.getElementById('forecastImage').src = "{{ url_for('cards.forecast_chart', period='1year') }}";
+});
+
+// Toggle para os botões de período do histórico
+document.getElementById('historyBtn1month').addEventListener('click', function() {
+    document.getElementById('historyBtn1month').classList.add('btn-success');
+    document.getElementById('historyBtn1month').classList.remove('btn-outline-success');
+    document.getElementById('historyBtn12months').classList.add('btn-outline-success');
+    document.getElementById('historyBtn12months').classList.remove('btn-success');
+    document.getElementById('historyImage').src = "{{ url_for('cards.revision_history_chart', period='1month') }}";
+});
+
+document.getElementById('historyBtn12months').addEventListener('click', function() {
+    document.getElementById('historyBtn12months').classList.add('btn-success');
+    document.getElementById('historyBtn12months').classList.remove('btn-outline-success');
+    document.getElementById('historyBtn1month').classList.add('btn-outline-success');
+    document.getElementById('historyBtn1month').classList.remove('btn-success');
+    document.getElementById('historyImage').src = "{{ url_for('cards.revision_history_chart', period='12months') }}";
+});
+</script>
+{% endblock %}
