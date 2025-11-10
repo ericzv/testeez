@@ -3687,7 +3687,7 @@ function testVladAnimations() {
             console.log(`Testando animação: ${anim}`);
             applyCharacterAnimation(anim);
             index++;
-            setTimeout(nextAnimation, 2000);
+            setTimeout(nextAnimation, 1400); // OTIMIZADO: 2000ms → 1400ms
         } else {
             console.log('Teste concluído - voltando para idle');
             applyCharacterAnimation('idle');
@@ -3723,7 +3723,7 @@ function updateDamageDisplay(correctDamage, isCritical) {
     battleArena.appendChild(damageNumber);
 
     // Remover após animação
-    setTimeout(() => { damageNumber.remove(); }, 2000);
+    setTimeout(() => { damageNumber.remove(); }, 1400); // OTIMIZADO: 2000ms → 1400ms
 }
 
 function saveBossDamage(skill, damage, isCritical) {
@@ -4106,8 +4106,8 @@ async function executeEnemyAttackSequence() {
             });
         }
         
-        // Aguardar estabilização da nova view
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Aguardar estabilização da nova view (OTIMIZADO: 1000ms → 700ms)
+        await new Promise(resolve => setTimeout(resolve, 700));
         
         console.log("3. Iniciando loop de ataques");
         // Loop de ataques
@@ -4150,8 +4150,8 @@ async function executeAttackLoop() {
         
         console.log(`Executando ataque. Cargas restantes: ${statusData.status.charges_count}`);
         
-        // Intervalo de 2s antes do ataque
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Intervalo antes do ataque (OTIMIZADO: 2000ms → 1400ms)
+        await new Promise(resolve => setTimeout(resolve, 1400));
         
         // Executar um ataque
         const attackResult = await executeSingleEnemyAttack();
@@ -4163,8 +4163,8 @@ async function executeAttackLoop() {
             return;
         }
         
-        // Intervalo de 2s após o ataque
-        await new Promise(resolve => setTimeout(resolve, 1200));
+        // Intervalo após o ataque (OTIMIZADO: 1200ms → 840ms)
+        await new Promise(resolve => setTimeout(resolve, 840));
     }
 }
 
@@ -4310,7 +4310,7 @@ async function executeSingleEnemyAttack() {
             }
 
             // Aguardar tempo suficiente para ambas as animações
-            await new Promise(resolve => setTimeout(resolve, 1200));
+            await new Promise(resolve => setTimeout(resolve, 840));
             
             // Atualizar HP na interface e mostrar marcador (COMUM PARA AMBOS)
             if (result.player_hp !== undefined) {
@@ -4441,8 +4441,8 @@ function showPlayerDamageMarker(damage, isDodge = false) {
 async function handlePlayerDeath() {
     console.log("Processando morte do jogador");
     
-    // Aguardar animação de morte terminar (3.4 segundos)
-    await new Promise(resolve => setTimeout(resolve, 3400));
+    // Aguardar animação de morte terminar (OTIMIZADO: 3400ms → 2000ms)
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Personagem desaparece
     const character = document.getElementById('character');
@@ -4572,7 +4572,7 @@ async function executeBuffDebuffSkillsSequence() {
                 
                 // Aguardar intervalo entre skills (exceto na última)
                 if (i < data.executed_skills.length - 1) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise(resolve => setTimeout(resolve, 700));
                 }
             }
             
@@ -4805,7 +4805,7 @@ async function executeSkillAnimation(skill) {
                 console.log(`⏱️ Tempo total da sequência de debuff: ${totalTime}ms`);
                 setTimeout(resolve, totalTime);
             } else {
-                setTimeout(resolve, 1200);
+                setTimeout(resolve, 840); // OTIMIZADO: 1200ms → 840ms
             }
             
         }, 800); // Delay apenas para attack skills

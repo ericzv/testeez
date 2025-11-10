@@ -11,7 +11,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // 🌑 SHADOW/SOMBRA - Ninja, Ladrão
     // ========================================
     "shadow_damage": {
-        duration: 1600,
+        duration: 1120, // OTIMIZADO: 1600ms → 1120ms (-30%)
         name: "Dano Sombrio",
         create: function(app) {
             const container = new PIXI.Container();
@@ -187,7 +187,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // 🔮 ARCANE/ARCANO - Mago, Arcanista
     // ========================================
     "arcane_damage": {
-        duration: 1600,
+        duration: 1120, // OTIMIZADO: 1600ms → 1120ms (-30%)
         name: "Dano Arcano",
         create: function(app) {
             const container = new PIXI.Container();
@@ -419,7 +419,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // ✨ DIVINE/DIVINO - Clérigo
     // ========================================
     "divine_damage": {
-        duration: 1600,
+        duration: 1120, // OTIMIZADO: 1600ms → 1120ms (-30%)
         name: "Dano Divino",
         create: function(app) {
             const container = new PIXI.Container();
@@ -607,7 +607,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // 💪 BRUTAL/FÍSICO - Berserker, Guerreiro
     // ========================================
     "brutal_damage": {
-        duration: 1200,
+        duration: 840, // OTIMIZADO: 1200ms → 840ms (-30%)
         name: "Dano Brutal",
         create: function(app) {
             const container = new PIXI.Container();
@@ -794,7 +794,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // 🐺 FERAL/BESTIAL - Lobisomem
     // ========================================
     "feral_damage": {
-        duration: 1600,
+        duration: 1120, // OTIMIZADO: 1600ms → 1120ms (-30%)
         name: "Dano Feral",
         create: function(app) {
             const container = new PIXI.Container();
@@ -999,7 +999,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // 🩸 BLOOD/SANGUE - Vampiro
     // ========================================
     "blood_damage": {
-        duration: 1600,
+        duration: 1120, // OTIMIZADO: 1600ms → 1120ms (-30%)
         name: "Dano Sanguíneo",
         create: function(app) {
             const container = new PIXI.Container();
@@ -1238,7 +1238,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // ⚡ ELECTRIC/ELÉTRICO - Elemental
     // ========================================
     "electric_damage": {
-        duration: 1600,
+        duration: 1120, // OTIMIZADO: 1600ms → 1120ms (-30%)
         name: "Dano Elétrico",
         create: function(app) {
             const container = new PIXI.Container();

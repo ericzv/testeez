@@ -2716,7 +2716,7 @@
   }
   
   .submenu.visible .skill-button:nth-child(3) {
-    transition-delay: 0.5s;
+    transition-delay: 0.35s; /* OTIMIZADO: 0.5s → 0.35s (-30%) */
   }
   
   .submenu.visible .skill-button:nth-child(4) {
@@ -2760,21 +2760,21 @@
     opacity: 1;
     transform: translateX(0) rotate(var(--rotate-angle));
     transition-delay: 0s;
-    animation: buttonShake 0.3s 0.3s;
+    animation: buttonShake 0.3s 0.21s; /* OTIMIZADO: 0.3s → 0.21s (-30%) */
   }
   
   .action-menu.visible #special-button {
     opacity: 1;
     transform: translateX(0) rotate(var(--rotate-angle));
-    transition-delay: 0.5s;
-    animation: buttonShake 0.3s 0.8s;
+    transition-delay: 0.35s; /* OTIMIZADO: 0.5s → 0.35s (-30%) */
+    animation: buttonShake 0.3s 0.56s; /* OTIMIZADO: 0.8s → 0.56s (-30%) */
   }
   
   .action-menu.visible #inventory-button {
     opacity: 1;
     transform: translateX(0) rotate(var(--rotate-angle));
-    transition-delay: 1.0s;
-    animation: buttonShake 0.3s 1.3s;
+    transition-delay: 0.7s; /* OTIMIZADO: 1.0s → 0.7s (-30%) */
+    animation: buttonShake 0.3s 0.91s; /* OTIMIZADO: 1.3s → 0.91s (-30%) */
   }
   
   .menu-buttons {
@@ -2871,25 +2871,25 @@
     transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     transition-delay: 0.3s;
     /* Shake termina em 0.5s + 0.3s = 0.8s. Novo delay para dynamic: 1.0s */
-    animation: buttonShake 0.3s 0.5s, button1-dynamic 4.2s ease-in-out 1.0s infinite;
+    animation: buttonShake 0.3s 0.5s, button1-dynamic 4.2s ease-in-out 0.7s infinite; /* OTIMIZADO: 1.0s → 0.7s (-30%) */
   }
   
   .zoom-view .action-menu.visible #special-button {
     opacity: 1;
     transform: translateX(0) rotate(var(--rotate-angle));
     transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    transition-delay: 0.5s;
+    transition-delay: 0.35s; /* OTIMIZADO: 0.5s → 0.35s (-30%) */
      /* Shake termina em 1.0s + 0.3s = 1.3s. Novo delay para dynamic: 1.5s */
-    animation: buttonShake 0.3s 1.0s, button2-dynamic 4.4s ease-in-out 1.5s infinite;
+    animation: buttonShake 0.3s 0.7s, /* OTIMIZADO: 1.0s → 0.7s (-30%) */ button2-dynamic 4.4s ease-in-out 1.05s infinite; /* OTIMIZADO: 1.5s → 1.05s (-30%) */
   }
   
   .zoom-view .action-menu.visible #inventory-button {
     opacity: 1;
     transform: translateX(0) rotate(var(--rotate-angle));
     transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    transition-delay: 1.0s;
+    transition-delay: 0.7s; /* OTIMIZADO: 1.0s → 0.7s (-30%) */
     /* Shake termina em 1.5s + 0.3s = 1.8s. Novo delay para dynamic: 2.0s */
-    animation: buttonShake 0.3s 1.5s, button3-dynamic 4.6s ease-in-out 2.0s infinite;
+    animation: buttonShake 0.3s 1.05s, /* OTIMIZADO: 1.5s → 1.05s (-30%) */ button3-dynamic 4.6s ease-in-out 1.4s infinite; /* OTIMIZADO: 2.0s → 1.4s (-30%) */
   }
   
   /* Animação combinada para botões na zoom-view */
@@ -3219,22 +3219,22 @@
   
   .zoom-view #attack-submenu.visible .skill-button:nth-child(1) {
     transition-delay: 0.1s;
-    animation: buttonShake 0.3s 0.5s;
+    animation: buttonShake 0.3s 0.35s; /* OTIMIZADO: 0.5s → 0.35s (-30%) */
   }
   
   .zoom-view #attack-submenu.visible .skill-button:nth-child(2) {
-    transition-delay: 0.5s; /* 0.1 + 0.4 */
-    animation: buttonShake 0.3s 0.9s;
+    transition-delay: 0.35s; /* OTIMIZADO: 0.5s → 0.35s (-30%) */ /* 0.1 + 0.4 */
+    animation: buttonShake 0.3s 0.63s; /* OTIMIZADO: 0.9s → 0.63s (-30%) */
   }
   
   .zoom-view #attack-submenu.visible .skill-button:nth-child(3) {
     transition-delay: 0.9s; /* 0.5 + 0.4 */
-    animation: buttonShake 0.3s 1.3s;
+    animation: buttonShake 0.3s 0.91s; /* OTIMIZADO: 1.3s → 0.91s (-30%) */
   }
   
   .zoom-view #attack-submenu.visible .skill-button:nth-child(4) {
     transition-delay: 1.3s; /* 0.9 + 0.4 */
-    animation: buttonShake 0.3s 1.7s;
+    animation: buttonShake 0.3s 1.19s; /* OTIMIZADO: 1.7s → 1.19s (-30%) */
   }
   
   .zoom-view-leaving .skill-button,
@@ -3275,7 +3275,7 @@
   }
   
   .submenu.visible .skill-button:nth-child(3) {
-    transition-delay: 0.5s;
+    transition-delay: 0.35s; /* OTIMIZADO: 0.5s → 0.35s (-30%) */
   }
   
   .submenu.visible .skill-button:nth-child(4) {

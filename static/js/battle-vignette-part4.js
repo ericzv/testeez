@@ -16,7 +16,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "sneaky_attack_vignette": {
         name: "Ataque Sorrateiro",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(75),
             emitterType: "burst",
@@ -219,7 +219,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "shadow_strike_vignette": {
         name: "Golpe nas Sombras",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(85),
             emitterType: "burst",
@@ -444,7 +444,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "treacherous_stab_vignette": {
         name: "Apunhalada Traiçoeira",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(95),
             emitterType: "burst",
@@ -700,7 +700,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "dark_energy_vignette": {
         name: "Energia Escura",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(120),
             emitterType: "burst",
@@ -941,7 +941,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "bloody_claws_vignette": {
         name: "Garras Sangrentas",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(140),
             emitterType: "burst",
@@ -1191,7 +1191,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "embrace_of_darkness_vignette": {
         name: "Abraço da Escuridão",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(160),
             emitterType: "circle",
@@ -1436,7 +1436,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "kiss_of_death_vignette": {
         name: "Beijo da Morte",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(180),
             emitterType: "circle",
@@ -1705,7 +1705,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "precise_strike_vignette": {
         name: "Golpe Preciso",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(100),
             emitterType: "burst",
@@ -1958,7 +1958,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "vital_strike_vignette": {
         name: "Ataque Vital",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(110),
             emitterType: "burst",
@@ -2220,7 +2220,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "hidden_dagger_vignette": {
         name: "Punhal Oculto",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(90),
             emitterType: "burst",
@@ -2492,7 +2492,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "masters_strike_vignette": {
         name: "Golpe do Mestre",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(200),
             emitterType: "circle",

@@ -9,7 +9,7 @@ const ATTACK_EFFECTS = {
     // Ataque Básico - Efeito neutro com faíscas
     "ataque_basico_front": {
         type: "combined",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 32,
             lifetime: { min: 0.9, max: 1.5 },
@@ -37,7 +37,7 @@ const ATTACK_EFFECTS = {
     
     "ataque_basico_back": {
         type: "filters",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 18,
             lifetime: { min: 1.2, max: 1.8 },
@@ -61,7 +61,7 @@ const ATTACK_EFFECTS = {
     // Sobrecarga de Energia - Efeito elétrico intenso
     "sobrecarga_energia_front": {
         type: "combined",
-        duration: 1500,
+        duration: 1050, // OTIMIZADO: 1500ms → 1050ms (-30%)
         particles: {
             count: 45,
             lifetime: { min: 0.8, max: 1.4 },
@@ -89,7 +89,7 @@ const ATTACK_EFFECTS = {
     
     "sobrecarga_energia_back": {
         type: "filters",
-        duration: 1500,
+        duration: 1050, // OTIMIZADO: 1500ms → 1050ms (-30%)
         particles: {
             count: 28,
             lifetime: { min: 1.3, max: 2.1 },
@@ -113,7 +113,7 @@ const ATTACK_EFFECTS = {
     // Projétil Arcano - Partículas mágicas girando
     "projetil_arcano_front": {
         type: "combined",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 38,
             lifetime: { min: 1.0, max: 1.7 },
@@ -142,7 +142,7 @@ const ATTACK_EFFECTS = {
     
     "projetil_arcano_back": {
         type: "filters",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 22,
             lifetime: { min: 1.4, max: 2.2 },
@@ -166,7 +166,7 @@ const ATTACK_EFFECTS = {
     // Explosão Arcana - Efeito explosivo com runas
     "explosao_arcana_front": {
         type: "combined",
-        duration: 1600,
+        duration: 1120, // OTIMIZADO: 1600ms → 1120ms (-30%)
         particles: {
             count: 65,
             lifetime: { min: 0.9, max: 1.6 },
@@ -194,7 +194,7 @@ const ATTACK_EFFECTS = {
     
     "explosao_arcana_back": {
         type: "filters",
-        duration: 1600,
+        duration: 1120, // OTIMIZADO: 1600ms → 1120ms (-30%)
         particles: {
             count: 32,
             lifetime: { min: 1.5, max: 2.3 },
@@ -218,7 +218,7 @@ const ATTACK_EFFECTS = {
     // Raio Elemental - Efeito linear elétrico
     "raio_elemental_front": {
         type: "combined",
-        duration: 1400,
+        duration: 980, // OTIMIZADO: 1400ms → 980ms (-30%)
         particles: {
             count: 42,
             lifetime: { min: 0.6, max: 1.2 },
@@ -246,7 +246,7 @@ const ATTACK_EFFECTS = {
     
     "raio_elemental_back": {
         type: "filters",
-        duration: 1400,
+        duration: 980, // OTIMIZADO: 1400ms → 980ms (-30%)
         particles: {
             count: 25,
             lifetime: { min: 1.1, max: 1.8 },
@@ -270,7 +270,7 @@ const ATTACK_EFFECTS = {
     // Martelo Divino - Impacto celestial
     "martelo_divino_front": {
         type: "combined",
-        duration: 1500,
+        duration: 1050, // OTIMIZADO: 1500ms → 1050ms (-30%)
         particles: {
             count: 40,
             lifetime: { min: 0.8, max: 1.5 },
@@ -298,7 +298,7 @@ const ATTACK_EFFECTS = {
     
     "martelo_divino_back": {
         type: "filters",
-        duration: 1500,
+        duration: 1050, // OTIMIZADO: 1500ms → 1050ms (-30%)
         particles: {
             count: 24,
             lifetime: { min: 1.3, max: 2.0 },
@@ -322,7 +322,7 @@ const ATTACK_EFFECTS = {
     // Julgamento Celestial - Raios divinos descendentes
     "julgamento_celestial_front": {
         type: "combined",
-        duration: 1600,
+        duration: 1120, // OTIMIZADO: 1600ms → 1120ms (-30%)
         particles: {
             count: 55,
             lifetime: { min: 1.0, max: 1.8 },
@@ -350,7 +350,7 @@ const ATTACK_EFFECTS = {
     
     "julgamento_celestial_back": {
         type: "filters",
-        duration: 1600,
+        duration: 1120, // OTIMIZADO: 1600ms → 1120ms (-30%)
         particles: {
             count: 30,
             lifetime: { min: 1.5, max: 2.4 },
@@ -374,7 +374,7 @@ const ATTACK_EFFECTS = {
     // Ataque Frenético - Velocidade furiosa
     "ataque_frenetico_front": {
         type: "combined",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 70,
             lifetime: { min: 0.7, max: 1.3 },
@@ -402,7 +402,7 @@ const ATTACK_EFFECTS = {
     
     "ataque_frenetico_back": {
         type: "filters",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 42,
             lifetime: { min: 1.2, max: 1.9 },
@@ -426,7 +426,7 @@ const ATTACK_EFFECTS = {
     // Golpe Sangrento - Efeito de sangue
     "golpe_sangrento_front": {
         type: "combined",
-        duration: 1550,
+        duration: 1085, // OTIMIZADO: 1550ms → 1085ms (-30%)
         particles: {
             count: 50,
             lifetime: { min: 0.8, max: 1.5 },
@@ -454,7 +454,7 @@ const ATTACK_EFFECTS = {
     
     "golpe_sangrento_back": {
         type: "filters",
-        duration: 1550,
+        duration: 1085, // OTIMIZADO: 1550ms → 1085ms (-30%)
         particles: {
             count: 32,
             lifetime: { min: 1.3, max: 2.1 },
@@ -478,7 +478,7 @@ const ATTACK_EFFECTS = {
     // Devastação Primordial - Ultimate berserker
     "devastacao_primordial_front": {
         type: "combined",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 120,
             lifetime: { min: 1.2, max: 2.2 },
@@ -506,7 +506,7 @@ const ATTACK_EFFECTS = {
     
     "devastacao_primordial_back": {
         type: "filters",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 70,
             lifetime: { min: 1.6, max: 2.6 },
@@ -530,7 +530,7 @@ const ATTACK_EFFECTS = {
     // Mordida Mortal - Ataque feroz
     "mordida_mortal_front": {
         type: "combined",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 48,
             lifetime: { min: 0.7, max: 1.3 },
@@ -558,7 +558,7 @@ const ATTACK_EFFECTS = {
     
     "mordida_mortal_back": {
         type: "filters",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 30,
             lifetime: { min: 1.2, max: 1.9 },
@@ -582,7 +582,7 @@ const ATTACK_EFFECTS = {
     // Ataque Feral - Selvageria pura
     "ataque_feral_front": {
         type: "combined",
-        duration: 1400,
+        duration: 980, // OTIMIZADO: 1400ms → 980ms (-30%)
         particles: {
             count: 55,
             lifetime: { min: 0.6, max: 1.2 },
@@ -610,7 +610,7 @@ const ATTACK_EFFECTS = {
     
     "ataque_feral_back": {
         type: "filters",
-        duration: 1400,
+        duration: 980, // OTIMIZADO: 1400ms → 980ms (-30%)
         particles: {
             count: 34,
             lifetime: { min: 1.1, max: 1.8 },
@@ -634,7 +634,7 @@ const ATTACK_EFFECTS = {
     // Frenesi Lunar - Ultimate lobisomem
     "frenesi_lunar_front": {
         type: "combined",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 95,
             lifetime: { min: 1.3, max: 2.3 },
@@ -662,7 +662,7 @@ const ATTACK_EFFECTS = {
     
     "frenesi_lunar_back": {
         type: "filters",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 58,
             lifetime: { min: 1.6, max: 2.6 },
@@ -686,7 +686,7 @@ const ATTACK_EFFECTS = {
     // Golpe nas Sombras - Ataque sorrateiro
     "golpe_nas_sombras_front": {
         type: "combined",
-        duration: 1400,
+        duration: 980, // OTIMIZADO: 1400ms → 980ms (-30%)
         particles: {
             count: 36,
             lifetime: { min: 0.6, max: 1.2 },
@@ -714,7 +714,7 @@ const ATTACK_EFFECTS = {
     
     "golpe_nas_sombras_back": {
         type: "filters",
-        duration: 1400,
+        duration: 980, // OTIMIZADO: 1400ms → 980ms (-30%)
         particles: {
             count: 22,
             lifetime: { min: 1.1, max: 1.8 },
@@ -738,7 +738,7 @@ const ATTACK_EFFECTS = {
     // Apunhalada Traiçoeira - Golpe rápido e preciso
     "apunhalada_traiceira_front": {
         type: "combined",
-        duration: 1350,
+        duration: 945, // OTIMIZADO: 1350ms → 945ms (-30%)
         particles: {
             count: 32,
             lifetime: { min: 0.5, max: 1.1 },
@@ -766,7 +766,7 @@ const ATTACK_EFFECTS = {
     
     "apunhalada_traiceira_back": {
         type: "filters",
-        duration: 1350,
+        duration: 945, // OTIMIZADO: 1350ms → 945ms (-30%)
         particles: {
             count: 20,
             lifetime: { min: 1.0, max: 1.7 },
@@ -790,7 +790,7 @@ const ATTACK_EFFECTS = {
     // Golpe Preciso - Técnica refinada
     "golpe_preciso_front": {
         type: "combined",
-        duration: 1400,
+        duration: 980, // OTIMIZADO: 1400ms → 980ms (-30%)
         particles: {
             count: 34,
             lifetime: { min: 0.6, max: 1.2 },
@@ -818,7 +818,7 @@ const ATTACK_EFFECTS = {
     
     "golpe_preciso_back": {
         type: "filters",
-        duration: 1400,
+        duration: 980, // OTIMIZADO: 1400ms → 980ms (-30%)
         particles: {
             count: 22,
             lifetime: { min: 1.1, max: 1.8 },
@@ -842,7 +842,7 @@ const ATTACK_EFFECTS = {
     // Ataque Vital - Golpe crítico
     "ataque_vital_front": {
         type: "combined",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 40,
             lifetime: { min: 0.7, max: 1.3 },
@@ -870,7 +870,7 @@ const ATTACK_EFFECTS = {
     
     "ataque_vital_back": {
         type: "filters",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 26,
             lifetime: { min: 1.2, max: 1.9 },
@@ -894,7 +894,7 @@ const ATTACK_EFFECTS = {
     // Punhal Oculto - Ataque das sombras
     "punhal_oculto_front": {
         type: "combined",
-        duration: 1350,
+        duration: 945, // OTIMIZADO: 1350ms → 945ms (-30%)
         particles: {
             count: 28,
             lifetime: { min: 0.5, max: 1.1 },
@@ -922,7 +922,7 @@ const ATTACK_EFFECTS = {
     
     "punhal_oculto_back": {
         type: "filters",
-        duration: 1350,
+        duration: 945, // OTIMIZADO: 1350ms → 945ms (-30%)
         particles: {
             count: 18,
             lifetime: { min: 1.0, max: 1.7 },
@@ -946,7 +946,7 @@ const ATTACK_EFFECTS = {
     // Golpe do Mestre - Ultimate ladrão
     "golpe_mestre_front": {
         type: "combined",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 85,
             lifetime: { min: 1.3, max: 2.2 },
@@ -974,7 +974,7 @@ const ATTACK_EFFECTS = {
     
     "golpe_mestre_back": {
         type: "filters",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 52,
             lifetime: { min: 1.6, max: 2.6 },
@@ -998,7 +998,7 @@ const ATTACK_EFFECTS = {
     // Garras Sangrentas - Ataque visceral
     "garras_sangrentas_front": {
         type: "combined",
-        duration: 1500,
+        duration: 1050, // OTIMIZADO: 1500ms → 1050ms (-30%)
         particles: {
             count: 42,
             lifetime: { min: 0.7, max: 1.3 },
@@ -1026,7 +1026,7 @@ const ATTACK_EFFECTS = {
     
     "garras_sangrentas_back": {
         type: "filters",
-        duration: 1500,
+        duration: 1050, // OTIMIZADO: 1500ms → 1050ms (-30%)
         particles: {
             count: 28,
             lifetime: { min: 1.2, max: 1.9 },
@@ -1050,7 +1050,7 @@ const ATTACK_EFFECTS = {
     // Abraço da Escuridão - Envolvimento sombrio
     "abraco_escuridao_front": {
         type: "combined",
-        duration: 1550,
+        duration: 1085, // OTIMIZADO: 1550ms → 1085ms (-30%)
         particles: {
             count: 50,
             lifetime: { min: 0.8, max: 1.5 },
@@ -1078,7 +1078,7 @@ const ATTACK_EFFECTS = {
     
     "abraco_escuridao_back": {
         type: "filters",
-        duration: 1550,
+        duration: 1085, // OTIMIZADO: 1550ms → 1085ms (-30%)
         particles: {
             count: 32,
             lifetime: { min: 1.3, max: 2.1 },
@@ -1102,7 +1102,7 @@ const ATTACK_EFFECTS = {
     // Beijo da Morte - Ultimate vampiro
     "beijo_morte_front": {
         type: "combined",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 80,
             lifetime: { min: 1.3, max: 2.3 },
@@ -1130,7 +1130,7 @@ const ATTACK_EFFECTS = {
     
     "beijo_morte_back": {
         type: "filters",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 48,
             lifetime: { min: 1.6, max: 2.6 },
@@ -1154,7 +1154,7 @@ const ATTACK_EFFECTS = {
     // Fúria Selvagem - Berserker attack
     "furia_selvagem_front": {
         type: "combined",
-        duration: 1550,
+        duration: 1085, // OTIMIZADO: 1550ms → 1085ms (-30%)
         particles: {
             count: 58,
             lifetime: { min: 0.8, max: 1.4 },
@@ -1182,7 +1182,7 @@ const ATTACK_EFFECTS = {
     
     "furia_selvagem_back": {
         type: "filters",
-        duration: 1550,
+        duration: 1085, // OTIMIZADO: 1550ms → 1085ms (-30%)
         particles: {
             count: 36,
             lifetime: { min: 1.3, max: 2.1 },
@@ -1206,7 +1206,7 @@ const ATTACK_EFFECTS = {
     // Garra Bestial - Lobisomem attack
     "garra_bestial_front": {
         type: "combined",
-        duration: 1400,
+        duration: 980, // OTIMIZADO: 1400ms → 980ms (-30%)
         particles: {
             count: 45,
             lifetime: { min: 0.7, max: 1.3 },
@@ -1234,7 +1234,7 @@ const ATTACK_EFFECTS = {
     
     "garra_bestial_back": {
         type: "filters",
-        duration: 1400,
+        duration: 980, // OTIMIZADO: 1400ms → 980ms (-30%)
         particles: {
             count: 28,
             lifetime: { min: 1.2, max: 1.9 },
@@ -1258,7 +1258,7 @@ const ATTACK_EFFECTS = {
     // Chama Purificadora - Fogo sagrado
     "chama_purificadora_front": {
         type: "combined",
-        duration: 1500,
+        duration: 1050, // OTIMIZADO: 1500ms → 1050ms (-30%)
         particles: {
             count: 52,
             lifetime: { min: 0.7, max: 1.4 },
@@ -1286,7 +1286,7 @@ const ATTACK_EFFECTS = {
     
     "chama_purificadora_back": {
         type: "filters",
-        duration: 1500,
+        duration: 1050, // OTIMIZADO: 1500ms → 1050ms (-30%)
         particles: {
             count: 32,
             lifetime: { min: 1.2, max: 1.9 },
@@ -1310,7 +1310,7 @@ const ATTACK_EFFECTS = {
     // Apoteose Divina - Ultimate divino
     "apoteose_divina_front": {
         type: "combined",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 95,
             lifetime: { min: 1.3, max: 2.3 },
@@ -1338,7 +1338,7 @@ const ATTACK_EFFECTS = {
     
     "apoteose_divina_back": {
         type: "filters",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 48,
             lifetime: { min: 1.6, max: 2.6 },
@@ -1362,7 +1362,7 @@ const ATTACK_EFFECTS = {
     // Corte Preciso - Ronin ataque
     "corte_preciso_front": {
         type: "combined",
-        duration: 1350,
+        duration: 945, // OTIMIZADO: 1350ms → 945ms (-30%)
         particles: {
             count: 28,
             lifetime: { min: 0.5, max: 1.0 },
@@ -1390,7 +1390,7 @@ const ATTACK_EFFECTS = {
     
     "corte_preciso_back": {
         type: "filters",
-        duration: 1350,
+        duration: 945, // OTIMIZADO: 1350ms → 945ms (-30%)
         particles: {
             count: 16,
             lifetime: { min: 0.9, max: 1.6 },
@@ -1414,7 +1414,7 @@ const ATTACK_EFFECTS = {
     // Lâmina de Vento - Ronin especial
     "lamina_vento_front": {
         type: "combined",
-        duration: 1400,
+        duration: 980, // OTIMIZADO: 1400ms → 980ms (-30%)
         particles: {
             count: 38,
             lifetime: { min: 0.6, max: 1.2 },
@@ -1442,7 +1442,7 @@ const ATTACK_EFFECTS = {
     
     "lamina_vento_back": {
         type: "filters",
-        duration: 1400,
+        duration: 980, // OTIMIZADO: 1400ms → 980ms (-30%)
         particles: {
             count: 22,
             lifetime: { min: 1.1, max: 1.8 },
@@ -1466,7 +1466,7 @@ const ATTACK_EFFECTS = {
     // Golpe Ascendente - Ronin finalizador
     "golpe_ascendente_front": {
         type: "combined",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 34,
             lifetime: { min: 0.7, max: 1.3 },
@@ -1494,7 +1494,7 @@ const ATTACK_EFFECTS = {
     
     "golpe_ascendente_back": {
         type: "filters",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 20,
             lifetime: { min: 1.2, max: 1.9 },
@@ -1518,7 +1518,7 @@ const ATTACK_EFFECTS = {
     // Corte do Vazio - Samurai ataque
     "corte_vazio_front": {
         type: "combined",
-        duration: 1500,
+        duration: 1050, // OTIMIZADO: 1500ms → 1050ms (-30%)
         particles: {
             count: 44,
             lifetime: { min: 0.7, max: 1.3 },
@@ -1546,7 +1546,7 @@ const ATTACK_EFFECTS = {
     
     "corte_vazio_back": {
         type: "filters",
-        duration: 1500,
+        duration: 1050, // OTIMIZADO: 1500ms → 1050ms (-30%)
         particles: {
             count: 28,
             lifetime: { min: 1.3, max: 2.0 },
@@ -1570,7 +1570,7 @@ const ATTACK_EFFECTS = {
     // Corte do Dragão - Samurai especial
     "corte_dragao_front": {
         type: "combined",
-        duration: 1550,
+        duration: 1085, // OTIMIZADO: 1550ms → 1085ms (-30%)
         particles: {
             count: 55,
             lifetime: { min: 0.8, max: 1.4 },
@@ -1598,7 +1598,7 @@ const ATTACK_EFFECTS = {
     
     "corte_dragao_back": {
         type: "filters",
-        duration: 1550,
+        duration: 1085, // OTIMIZADO: 1550ms → 1085ms (-30%)
         particles: {
             count: 34,
             lifetime: { min: 1.3, max: 2.1 },
@@ -1622,7 +1622,7 @@ const ATTACK_EFFECTS = {
     // Dança das Lâminas - Samurai múltiplo
     "danca_laminas_front": {
         type: "combined",
-        duration: 1600,
+        duration: 1120, // OTIMIZADO: 1600ms → 1120ms (-30%)
         particles: {
             count: 68,
             lifetime: { min: 0.9, max: 1.5 },
@@ -1650,7 +1650,7 @@ const ATTACK_EFFECTS = {
     
     "danca_laminas_back": {
         type: "filters",
-        duration: 1600,
+        duration: 1120, // OTIMIZADO: 1600ms → 1120ms (-30%)
         particles: {
             count: 40,
             lifetime: { min: 1.4, max: 2.2 },
@@ -1674,7 +1674,7 @@ const ATTACK_EFFECTS = {
     // Caminho do Vazio Absoluto - Samurai ultimate
     "caminho_vazio_absoluto_front": {
         type: "combined",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 105,
             lifetime: { min: 1.3, max: 2.3 },
@@ -1702,7 +1702,7 @@ const ATTACK_EFFECTS = {
     
     "caminho_vazio_absoluto_back": {
         type: "filters",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 52,
             lifetime: { min: 1.6, max: 2.6 },
@@ -1726,7 +1726,7 @@ const ATTACK_EFFECTS = {
     // Golpe das Sombras - Ninja ataque
     "golpe_sombras_front": {
         type: "combined",
-        duration: 1400,
+        duration: 980, // OTIMIZADO: 1400ms → 980ms (-30%)
         particles: {
             count: 40,
             lifetime: { min: 0.7, max: 1.3 },
@@ -1754,7 +1754,7 @@ const ATTACK_EFFECTS = {
     
     "golpe_sombras_back": {
         type: "filters",
-        duration: 1400,
+        duration: 980, // OTIMIZADO: 1400ms → 980ms (-30%)
         particles: {
             count: 24,
             lifetime: { min: 1.2, max: 1.9 },
@@ -1778,7 +1778,7 @@ const ATTACK_EFFECTS = {
     // Lâmina Envenenada - Ninja especial
     "lamina_envenenada_front": {
         type: "combined",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 45,
             lifetime: { min: 0.8, max: 1.4 },
@@ -1806,7 +1806,7 @@ const ATTACK_EFFECTS = {
     
     "lamina_envenenada_back": {
         type: "filters",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 28,
             lifetime: { min: 1.3, max: 2.0 },
@@ -1830,7 +1830,7 @@ const ATTACK_EFFECTS = {
     // Técnica do Assassino - Ninja finalizador
     "tecnica_assassino_front": {
         type: "combined",
-        duration: 1500,
+        duration: 1050, // OTIMIZADO: 1500ms → 1050ms (-30%)
         particles: {
             count: 50,
             lifetime: { min: 0.7, max: 1.3 },
@@ -1858,7 +1858,7 @@ const ATTACK_EFFECTS = {
     
     "tecnica_assassino_back": {
         type: "filters",
-        duration: 1500,
+        duration: 1050, // OTIMIZADO: 1500ms → 1050ms (-30%)
         particles: {
             count: 34,
             lifetime: { min: 1.3, max: 2.1 },
@@ -1882,7 +1882,7 @@ const ATTACK_EFFECTS = {
     // Execução nas Sombras - Ninja ultimate
     "execucao_sombras_front": {
         type: "combined",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 90,
             lifetime: { min: 1.3, max: 2.3 },
@@ -1910,7 +1910,7 @@ const ATTACK_EFFECTS = {
     
     "execucao_sombras_back": {
         type: "filters",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 48,
             lifetime: { min: 1.6, max: 2.6 },
@@ -1938,7 +1938,7 @@ const ATTACK_EFFECTS = {
     // Golpe Devastador - Ataque poderoso com impacto
     "golpe_devastador_front": {
         type: "combined",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 52,
             lifetime: { min: 0.9, max: 1.6 },
@@ -1966,7 +1966,7 @@ const ATTACK_EFFECTS = {
     
     "golpe_devastador_back": {
         type: "filters",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 32,
             lifetime: { min: 1.2, max: 1.9 },
@@ -1990,7 +1990,7 @@ const ATTACK_EFFECTS = {
     // Giro Mortal - Ataque circular com velocidade
     "giro_mortal_front": {
         type: "combined",
-        duration: 1500,
+        duration: 1050, // OTIMIZADO: 1500ms → 1050ms (-30%)
         particles: {
             count: 65,
             lifetime: { min: 1.0, max: 1.7 },
@@ -2018,7 +2018,7 @@ const ATTACK_EFFECTS = {
     
     "giro_mortal_back": {
         type: "filters",
-        duration: 1500,
+        duration: 1050, // OTIMIZADO: 1500ms → 1050ms (-30%)
         particles: {
             count: 38,
             lifetime: { min: 1.3, max: 2.0 },
@@ -2042,7 +2042,7 @@ const ATTACK_EFFECTS = {
     // Golpe Impiedoso - Ataque cruel com força
     "golpe_impiedoso_front": {
         type: "combined",
-        duration: 1400,
+        duration: 980, // OTIMIZADO: 1400ms → 980ms (-30%)
         particles: {
             count: 48,
             lifetime: { min: 0.8, max: 1.5 },
@@ -2070,7 +2070,7 @@ const ATTACK_EFFECTS = {
     
     "golpe_impiedoso_back": {
         type: "filters",
-        duration: 1400,
+        duration: 980, // OTIMIZADO: 1400ms → 980ms (-30%)
         particles: {
             count: 28,
             lifetime: { min: 1.1, max: 1.8 },
@@ -2098,7 +2098,7 @@ const ATTACK_EFFECTS = {
     // Chama Purificadora - Fogo sagrado que purifica
     "chama_purificadora_front": {
         type: "combined",
-        duration: 1550,
+        duration: 1085, // OTIMIZADO: 1550ms → 1085ms (-30%)
         particles: {
             count: 58,
             lifetime: { min: 0.8, max: 1.5 },
@@ -2126,7 +2126,7 @@ const ATTACK_EFFECTS = {
     
     "chama_purificadora_back": {
         type: "filters",
-        duration: 1550,
+        duration: 1085, // OTIMIZADO: 1550ms → 1085ms (-30%)
         particles: {
             count: 34,
             lifetime: { min: 1.2, max: 1.9 },
@@ -2150,7 +2150,7 @@ const ATTACK_EFFECTS = {
     // Apoteose Divina - Ultimate clérigo com poder celestial máximo
     "apoteose_divina_front": {
         type: "combined",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 105,
             lifetime: { min: 1.3, max: 2.3 },
@@ -2178,7 +2178,7 @@ const ATTACK_EFFECTS = {
     
     "apoteose_divina_back": {
         type: "filters",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 55,
             lifetime: { min: 1.6, max: 2.6 },
@@ -2206,7 +2206,7 @@ const ATTACK_EFFECTS = {
     // Fissão Arcana - Divisão da energia mágica
     "fissao_arcana_front": {
         type: "combined",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 52,
             lifetime: { min: 0.9, max: 1.6 },
@@ -2234,7 +2234,7 @@ const ATTACK_EFFECTS = {
     
     "fissao_arcana_back": {
         type: "filters",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 32,
             lifetime: { min: 1.2, max: 1.9 },
@@ -2258,7 +2258,7 @@ const ATTACK_EFFECTS = {
     // Implosão Mágica - Colapso da energia arcana
     "implosao_magica_front": {
         type: "combined",
-        duration: 1500,
+        duration: 1050, // OTIMIZADO: 1500ms → 1050ms (-30%)
         particles: {
             count: 68,
             lifetime: { min: 1.0, max: 1.8 },
@@ -2286,7 +2286,7 @@ const ATTACK_EFFECTS = {
     
     "implosao_magica_back": {
         type: "filters",
-        duration: 1500,
+        duration: 1050, // OTIMIZADO: 1500ms → 1050ms (-30%)
         particles: {
             count: 42,
             lifetime: { min: 1.3, max: 2.1 },
@@ -2310,7 +2310,7 @@ const ATTACK_EFFECTS = {
     // Tempestade Elemental - Fúria dos elementos
     "tempestade_elemental_front": {
         type: "combined",
-        duration: 1600,
+        duration: 1120, // OTIMIZADO: 1600ms → 1120ms (-30%)
         particles: {
             count: 75,
             lifetime: { min: 1.0, max: 1.7 },
@@ -2338,7 +2338,7 @@ const ATTACK_EFFECTS = {
     
     "tempestade_elemental_back": {
         type: "filters",
-        duration: 1600,
+        duration: 1120, // OTIMIZADO: 1600ms → 1120ms (-30%)
         particles: {
             count: 48,
             lifetime: { min: 1.2, max: 2.0 },
@@ -2362,7 +2362,7 @@ const ATTACK_EFFECTS = {
     // Singularidade Arcana - Ultimate arcanista com buraco negro mágico
     "singularidade_arcana_front": {
         type: "combined",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 120,
             lifetime: { min: 1.5, max: 2.5 },
@@ -2390,7 +2390,7 @@ const ATTACK_EFFECTS = {
     
     "singularidade_arcana_back": {
         type: "filters",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 68,
             lifetime: { min: 1.8, max: 2.8 },
@@ -2418,7 +2418,7 @@ const ATTACK_EFFECTS = {
     // Corte Preciso - Precisão absoluta da katana
     "corte_preciso_front": {
         type: "combined",
-        duration: 1350,
+        duration: 945, // OTIMIZADO: 1350ms → 945ms (-30%)
         particles: {
             count: 28,
             lifetime: { min: 0.6, max: 1.2 },
@@ -2446,7 +2446,7 @@ const ATTACK_EFFECTS = {
     
     "corte_preciso_back": {
         type: "filters",
-        duration: 1350,
+        duration: 945, // OTIMIZADO: 1350ms → 945ms (-30%)
         particles: {
             count: 18,
             lifetime: { min: 0.9, max: 1.6 },
@@ -2470,7 +2470,7 @@ const ATTACK_EFFECTS = {
     // Lâmina de Vento - Corte com velocidade do vento
     "lamina_vento_front": {
         type: "combined",
-        duration: 1400,
+        duration: 980, // OTIMIZADO: 1400ms → 980ms (-30%)
         particles: {
             count: 38,
             lifetime: { min: 0.6, max: 1.2 },
@@ -2498,7 +2498,7 @@ const ATTACK_EFFECTS = {
     
     "lamina_vento_back": {
         type: "filters",
-        duration: 1400,
+        duration: 980, // OTIMIZADO: 1400ms → 980ms (-30%)
         particles: {
             count: 22,
             lifetime: { min: 1.1, max: 1.8 },
@@ -2522,7 +2522,7 @@ const ATTACK_EFFECTS = {
     // Golpe Ascendente - Movimento ascendente poderoso
     "golpe_ascendente_front": {
         type: "combined",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 34,
             lifetime: { min: 0.7, max: 1.3 },
@@ -2550,7 +2550,7 @@ const ATTACK_EFFECTS = {
     
     "golpe_ascendente_back": {
         type: "filters",
-        duration: 1450,
+        duration: 1015, // OTIMIZADO: 1450ms → 1015ms (-30%)
         particles: {
             count: 20,
             lifetime: { min: 1.2, max: 1.9 },
@@ -2578,7 +2578,7 @@ const ATTACK_EFFECTS = {
     // Corte do Vazio - Técnica do vazio absoluto
     "corte_vazio_front": {
         type: "combined",
-        duration: 1500,
+        duration: 1050, // OTIMIZADO: 1500ms → 1050ms (-30%)
         particles: {
             count: 44,
             lifetime: { min: 0.8, max: 1.5 },
@@ -2606,7 +2606,7 @@ const ATTACK_EFFECTS = {
     
     "corte_vazio_back": {
         type: "filters",
-        duration: 1500,
+        duration: 1050, // OTIMIZADO: 1500ms → 1050ms (-30%)
         particles: {
             count: 28,
             lifetime: { min: 1.3, max: 2.0 },
@@ -2630,7 +2630,7 @@ const ATTACK_EFFECTS = {
     // Corte do Dragão - Poder ancestral do dragão
     "corte_dragao_front": {
         type: "combined",
-        duration: 1550,
+        duration: 1085, // OTIMIZADO: 1550ms → 1085ms (-30%)
         particles: {
             count: 55,
             lifetime: { min: 0.8, max: 1.4 },
@@ -2658,7 +2658,7 @@ const ATTACK_EFFECTS = {
     
     "corte_dragao_back": {
         type: "filters",
-        duration: 1550,
+        duration: 1085, // OTIMIZADO: 1550ms → 1085ms (-30%)
         particles: {
             count: 34,
             lifetime: { min: 1.2, max: 2.0 },
@@ -2682,7 +2682,7 @@ const ATTACK_EFFECTS = {
     // Dança das Lâminas - Múltiplos cortes elegantes
     "danca_laminas_front": {
         type: "combined",
-        duration: 1600,
+        duration: 1120, // OTIMIZADO: 1600ms → 1120ms (-30%)
         particles: {
             count: 68,
             lifetime: { min: 1.0, max: 1.7 },
@@ -2710,7 +2710,7 @@ const ATTACK_EFFECTS = {
     
     "danca_laminas_back": {
         type: "filters",
-        duration: 1600,
+        duration: 1120, // OTIMIZADO: 1600ms → 1120ms (-30%)
         particles: {
             count: 40,
             lifetime: { min: 1.4, max: 2.2 },
@@ -2734,7 +2734,7 @@ const ATTACK_EFFECTS = {
     // Caminho do Vazio Absoluto - Ultimate samurai de transcendência
     "caminho_vazio_absoluto_front": {
         type: "combined",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 105,
             lifetime: { min: 1.5, max: 2.5 },
@@ -2762,7 +2762,7 @@ const ATTACK_EFFECTS = {
     
     "caminho_vazio_absoluto_back": {
         type: "filters",
-        duration: 2000,
+        duration: 1400, // OTIMIZADO: 2000ms → 1400ms (-30%)
         particles: {
             count: 52,
             lifetime: { min: 1.8, max: 2.8 },

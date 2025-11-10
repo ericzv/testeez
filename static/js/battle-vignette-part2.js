@@ -16,7 +16,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "precise_cut_vignette": {
         name: "Corte Preciso",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(85),
             emitterType: "burst",
@@ -199,7 +199,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "wind_blade_vignette": {
         name: "Lâmina de Vento",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(120),
             emitterType: "burst",
@@ -375,7 +375,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "ascending_strike_vignette": {
         name: "Golpe Ascendente",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(95),
             emitterType: "burst",
@@ -582,7 +582,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "void_cut_vignette": {
         name: "Corte do Vazio",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(90),
             emitterType: "burst",
@@ -775,7 +775,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
 "dragon_cut_vignette": {
         name: "Corte do Dragão",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(140),
             emitterType: "burst",
@@ -991,7 +991,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "blade_dance_vignette": {
         name: "Dança das Lâminas",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(110),
             emitterType: "burst",
@@ -1194,7 +1194,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "absolute_void_path_vignette": {
         name: "Caminho do Vazio Absoluto",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(160),
             emitterType: "circle",
@@ -1422,7 +1422,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "shadow_strike_vignette": {
         name: "Golpe das Sombras",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(200),
             emitterType: "burst",
@@ -1614,7 +1614,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "poisoned_blade_vignette": {
         name: "Lâmina Envenenada",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(95),
             emitterType: "burst",
@@ -1845,7 +1845,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "assassin_technique_vignette": {
         name: "Técnica do Assassino",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(80),
             emitterType: "burst",
@@ -2048,7 +2048,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "shadow_execution_vignette": {
         name: "Execução nas Sombras",
-        duration: 5000,
+        duration: 3500, // OTIMIZADO: 5000ms → 3500ms (-30%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(140),
             emitterType: "circle",
