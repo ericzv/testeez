@@ -223,12 +223,13 @@ def update_card_review(card, response):
     return was_new
 
 
+# DEPRECATED: Sistema de níveis/XP será removido
 def get_exp_for_next_level(current_level):
-    """Calculate experience needed for the next level.
-    Formula ajustada para uma progressão mais suave.
-    Começando em 50 XP para o nível 1 e aumentando linearmente 5 XP por nível.
-    """
-    return 50 + (current_level - 1) * 5
+    """DEPRECATED: Esta função será removida. Sistema de níveis não é mais usado."""
+    import warnings
+    warnings.warn("get_exp_for_next_level está deprecated e será removido", DeprecationWarning)
+    from core.formulas import get_exp_for_next_level as new_func
+    return new_func(current_level)
 
 
 def days_until_review(next_review):

@@ -181,9 +181,15 @@ def calculate_luck_bonus(luck, rarity):
 def calculate_max_hp(vitality):
     return 80
 
+# DEPRECATED: Sistema de níveis/XP será removido
+# Se você ainda precisa desta função, importe de core.formulas
+# from core.formulas import get_exp_for_next_level
 def get_exp_for_next_level(level):
-    """Calcula a experiência necessária para o próximo nível"""
-    return int(100 * (level ** 1.5))
+    """DEPRECATED: Esta função será removida. Sistema de níveis não é mais usado."""
+    import warnings
+    warnings.warn("get_exp_for_next_level está deprecated e será removido", DeprecationWarning)
+    from core.formulas import get_exp_for_next_level as new_func
+    return new_func(level)
 
 # ----- MODELOS DE BANCO DE DADOS -----
 

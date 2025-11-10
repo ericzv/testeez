@@ -781,16 +781,14 @@ RARITY_WEIGHTS = {
     'first_relic': {
         'common': 50,
         'rare': 35,
-        'rare': 10,
-        'epic': 5,
-        'legendary': 0
+        'epic': 10,  # Corrigido: era 'rare' duplicado
+        'legendary': 5  # Corrigido: era 0, aumentado para 5
     },
     'last_boss': {
         'common': 20,
         'rare': 35,
-        'rare': 25,
-        'epic': 15,
-        'legendary': 5
+        'epic': 25,  # Corrigido: era 'rare' duplicado
+        'legendary': 20  # Corrigido: era 5, aumentado para 20
     }
 }
 
