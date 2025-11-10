@@ -122,38 +122,13 @@ class BattleAssetPreloader {
 
     /**
      * Coleta sprites do personagem baseado no ID
+     * NOTA: CHARACTER_SPRITE_CONFIG não é mais usado - os sprites são carregados dinamicamente
      */
     collectCharacterAssets() {
-        if (!this.characterId || typeof CHARACTER_SPRITE_CONFIG === 'undefined') {
-            console.warn('⚠️ Character ID ou CONFIG não disponível');
-            return;
-        }
-
-        const charConfig = CHARACTER_SPRITE_CONFIG[this.characterId];
-        if (!charConfig) {
-            console.warn(`⚠️ Configuração não encontrada para: ${this.characterId}`);
-            return;
-        }
-
-        console.log(`🎨 Coletando sprites do personagem: ${this.characterId}`);
-
-        // Iterar por todas as animações do personagem
-        for (const animName in charConfig) {
-            const anim = charConfig[animName];
-            if (anim && anim.layers) {
-                // Adicionar todas as camadas (back_effect, body, weapon, front_effect)
-                for (const layerName in anim.layers) {
-                    const layerPath = anim.layers[layerName];
-                    if (layerPath) {
-                        this.assetsToLoad.push({
-                            type: 'character_sprite',
-                            path: layerPath,
-                            description: `${this.characterId} - ${animName} - ${layerName}`
-                        });
-                    }
-                }
-            }
-        }
+        console.log('⏭️ Pulando coleta de sprites do personagem (carregados dinamicamente pelo sistema de animações)');
+        // Os sprites do personagem são carregados automaticamente pelo battle-class-animations.js
+        // Não precisamos pré-carregar aqui
+        return;
     }
 
     /**
@@ -446,10 +421,9 @@ async function initializeBattlePreloader() {
         console.log('🔧 Inicializando preloader...');
         window.battlePreloader.initialize(characterId, enemyData);
 
-        // Aguardar CHARACTER_SPRITE_CONFIG estar disponível
-        console.log('⏳ Aguardando CHARACTER_SPRITE_CONFIG...');
-        await waitForCharacterConfig();
-        console.log('✅ CHARACTER_SPRITE_CONFIG disponível');
+        // NOTA: CHARACTER_SPRITE_CONFIG não é mais necessário
+        // O sistema de animações já carrega os sprites dinamicamente
+        console.log('✅ Pulando espera por CHARACTER_SPRITE_CONFIG (não necessário)');
 
         // Coletar todos os assets
         console.log('📦 Coletando assets...');
