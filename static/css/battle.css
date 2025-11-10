@@ -4617,6 +4617,26 @@
       user-select: none;
   }
 
+  /* Animação do marcador de dano absorvido pela barreira */
+  @keyframes barrier-absorbed-float {
+      0% {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0px) scale(1);
+      }
+      50% {
+          opacity: 1;
+          transform: translateX(-50%) translateY(-30px) scale(1.1);
+      }
+      100% {
+          opacity: 0;
+          transform: translateX(-50%) translateY(-60px) scale(0.9);
+      }
+  }
+
+  .barrier-absorbed-marker {
+      user-select: none;
+  }
+
 
   /* BOSSES */
   .boss-container .boss-sprite-idle {

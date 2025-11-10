@@ -189,24 +189,31 @@ def execute_enemy_skill_attack(player, enemy, skill_data):
                 'action_consumed': skill_data
             }
         else:
-            # Lógica normal (damage_result é int)
-            damage_dealt = damage_result
-            
+            # Lógica normal - damage_result pode ser int ou dict
+            if isinstance(damage_result, dict):
+                damage_dealt = damage_result.get('damage_to_hp', 0)
+                damage_absorbed = damage_result.get('damage_absorbed', 0)
+            else:
+                # Compatibilidade com retorno antigo (int)
+                damage_dealt = damage_result
+                damage_absorbed = 0
+
             # Verificar se jogador morreu
             player_died = player.hp <= 0
-            
+
             # Determinar resultado
-            if damage_dealt == 0:
+            if damage_dealt == 0 and damage_absorbed == 0:
                 attack_result = 'dodged'
             elif player_died:
                 attack_result = 'death'
             else:
                 attack_result = 'damage'
-            
+
             return {
                 'success': True,
                 'attack_result': attack_result,
                 'damage_dealt': damage_dealt,
+                'damage_absorbed': damage_absorbed,
                 'player_hp': player.hp,
                 'player_max_hp': player.max_hp,
                 'player_barrier': player.barrier,
@@ -277,31 +284,38 @@ def execute_enemy_attack(player, enemy):
                 'is_skill_attack': False
             }
         else:
-            # Lógica normal (damage_result é int)
-            damage_dealt = damage_result
-            
+            # Lógica normal - damage_result pode ser int ou dict
+            if isinstance(damage_result, dict):
+                damage_dealt = damage_result.get('damage_to_hp', 0)
+                damage_absorbed = damage_result.get('damage_absorbed', 0)
+            else:
+                # Compatibilidade com retorno antigo (int)
+                damage_dealt = damage_result
+                damage_absorbed = 0
+
             # Verificar se jogador morreu
             player_died = player.hp <= 0
-            
+
             if player_died:
                 # Limpar todas as cargas restantes se jogador morreu
                 enemy.attack_charges_count = 0
                 enemy.action_queue = '[]'
                 if hasattr(enemy, 'buff_debuff_queue'):
                     enemy.buff_debuff_queue = '[]'
-            
+
             # Determinar tipo de resultado
-            if damage_dealt == 0:
+            if damage_dealt == 0 and damage_absorbed == 0:
                 attack_result = 'dodged'
             elif player_died:
                 attack_result = 'death'
             else:
                 attack_result = 'damage'
-            
+
             result = {
                 'success': True,
                 'attack_result': attack_result,
                 'damage_dealt': damage_dealt,
+                'damage_absorbed': damage_absorbed,
                 'player_hp': player.hp,
                 'player_max_hp': player.max_hp,
                 'player_barrier': player.barrier,

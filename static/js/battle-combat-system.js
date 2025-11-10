@@ -4327,6 +4327,11 @@ async function executeSingleEnemyAttack() {
                 } else if (result.damage_dealt > 0) {
                     showPlayerDamageMarker(result.damage_dealt, false);
                 }
+
+                // Mostrar marcador de dano absorvido pela barreira
+                if (result.damage_absorbed > 0) {
+                    showBarrierAbsorbedMarker(result.damage_absorbed);
+                }
                 
                 updateStats(); // <-- Isso agora vai ler a barreira = 0 e corrigir o CSS
             }
@@ -4398,11 +4403,11 @@ function removeChargeFromHUD() {
 function showPlayerDamageMarker(damage, isDodge = false) {
     const character = document.getElementById('character');
     if (!character) return;
-    
+
     // Criar elemento do marcador
     const damageMarker = document.createElement('div');
     damageMarker.className = 'player-damage-marker';
-    
+
     if (isDodge) {
         damageMarker.textContent = 'Esquiva!';
         damageMarker.style.color = '#00ff00';
@@ -4412,7 +4417,7 @@ function showPlayerDamageMarker(damage, isDodge = false) {
         damageMarker.style.color = '#ff4444';
         damageMarker.style.textShadow = '0 0 10px #ff4444, 2px 2px 4px rgba(0,0,0,0.8)';
     }
-    
+
     // Posicionamento
     const characterRect = character.getBoundingClientRect();
     damageMarker.style.cssText += `
@@ -4427,13 +4432,49 @@ function showPlayerDamageMarker(damage, isDodge = false) {
         pointer-events: none;
         animation: player-damage-float 2s ease-out forwards;
     `;
-    
+
     document.body.appendChild(damageMarker);
-    
+
     // Remover após animação
     setTimeout(() => {
         if (damageMarker.parentNode) {
             damageMarker.remove();
+        }
+    }, 2000);
+}
+
+function showBarrierAbsorbedMarker(damageAbsorbed) {
+    const character = document.getElementById('character');
+    if (!character || damageAbsorbed <= 0) return;
+
+    // Criar elemento do marcador
+    const absorbMarker = document.createElement('div');
+    absorbMarker.className = 'barrier-absorbed-marker';
+    absorbMarker.textContent = `${damageAbsorbed}`;
+    absorbMarker.style.color = '#4da6ff';
+    absorbMarker.style.textShadow = '0 0 10px #4da6ff, 2px 2px 4px rgba(0,0,0,0.8)';
+
+    // Posicionamento - um pouco deslocado para não sobrepor o marcador de dano
+    const characterRect = character.getBoundingClientRect();
+    absorbMarker.style.cssText += `
+        position: fixed;
+        left: ${characterRect.left + characterRect.width / 2 + 40}px;
+        top: ${characterRect.top - 20}px;
+        transform: translateX(-50%);
+        font-family: 'Cinzel', serif;
+        font-size: 20px;
+        font-weight: bold;
+        z-index: 200;
+        pointer-events: none;
+        animation: barrier-absorbed-float 2s ease-out forwards;
+    `;
+
+    document.body.appendChild(absorbMarker);
+
+    // Remover após animação
+    setTimeout(() => {
+        if (absorbMarker.parentNode) {
+            absorbMarker.remove();
         }
     }, 2000);
 }
