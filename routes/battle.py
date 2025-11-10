@@ -642,7 +642,7 @@ def select_enemy():
         # Buscar inimigo selecionado
         enemy = GenericEnemy.query.get(enemy_id)
         if enemy:
-            from routes.enemy_attacks import get_next_actions
+            from routes.battle_modules.battle_turns import get_next_actions
 
             # Resetar contador de turnos
             enemy.battle_turn_counter = 0
