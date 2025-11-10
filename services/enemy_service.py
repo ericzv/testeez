@@ -84,7 +84,7 @@ class EnemyService:
 
     def handle_enemy_defeat(self, player_id: int, enemy_id: int) -> Dict[str, Any]:
         """
-        Processa derrota do inimigo.
+        Processa derrota do inimigo (usa PlayerProgress).
 
         Args:
             player_id: ID do player
@@ -93,24 +93,55 @@ class EnemyService:
         Returns:
             Dict com recompensas e info
         """
+        from models import PlayerProgress, EnemyTheme, GenericEnemy
+        from routes.battle_modules.enemy_generation import generate_enemy_by_theme, ensure_minimum_enemies, get_minimum_enemy_count
+
         player = self.player_repo.get_by_id_or_fail(player_id)
-        enemy = self.enemy_repo.get_current_enemy_or_fail(player_id)
 
-        # Marcar como derrotado
-        self.enemy_repo.mark_as_defeated(enemy)
+        # Obter progresso
+        progress = PlayerProgress.query.filter_by(player_id=player_id).first()
+        if not progress:
+            progress = PlayerProgress(player_id=player_id)
+            db.session.add(progress)
 
-        # Atualizar contador do player
-        player.enemies_defeated += 1
+        # Gerar inimigos iniciais se necessário
+        if GenericEnemy.query.filter_by(is_available=True).count() == 0:
+            themes = EnemyTheme.query.all()
+            if themes:
+                for i in range(3):
+                    theme = themes[i % len(themes)]
+                    generate_enemy_by_theme(theme.id, 1)
 
-        # Aplicar hooks de relíquias (on_kill)
-        from routes.relics.hooks import trigger_relic_hooks
-        trigger_relic_hooks(player_id, 'on_kill', {'enemy': enemy})
+        # Incrementar contador (usa PlayerProgress, não Player!)
+        progress.generic_enemies_defeated += 1
+        progress.current_boss_phase += 1
+
+        # Verificar milestone de boss
+        is_boss_milestone = progress.generic_enemies_defeated % 20 == 0
+
+        # Resetar fase se passou de 20
+        if progress.current_boss_phase > 20:
+            progress.current_boss_phase = 1
+
+        # Garantir mínimo de inimigos
+        if not is_boss_milestone:
+            available_count = GenericEnemy.query.filter_by(is_available=True).count()
+            minimum_required = get_minimum_enemy_count(player_id)
+
+            if available_count < minimum_required:
+                ensure_minimum_enemies(progress, minimum_required)
+
+        # Limpar seleção em milestone
+        if is_boss_milestone:
+            progress.selected_enemy_id = None
 
         db.session.commit()
 
-        logger.info(f"Player {player_id} defeated enemy {enemy_id}")
+        logger.info(f"Player {player_id} defeated enemy. Total: {progress.generic_enemies_defeated}")
 
         return {
             'enemy_defeated': True,
-            'total_enemies_defeated': player.enemies_defeated
+            'enemies_defeated': progress.generic_enemies_defeated,
+            'is_boss_milestone': is_boss_milestone,
+            'message': 'Boss milestone atingido!' if is_boss_milestone else 'Inimigo derrotado!'
         }
