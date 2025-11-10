@@ -81,32 +81,31 @@ class EnemyRepository:
     @staticmethod
     def get_available_enemies(player_id: int) -> List[GenericEnemy]:
         """
-        Retorna lista de inimigos disponíveis para seleção.
+        Retorna lista de inimigos disponíveis para seleção (globais).
 
         Args:
-            player_id: ID do player
+            player_id: ID do player (não usado, inimigos são globais)
 
         Returns:
             Lista de GenericEnemy disponíveis
         """
         return GenericEnemy.query.filter_by(
-            player_id=player_id,
             is_available=True
         ).order_by(GenericEnemy.enemy_number).all()
 
     @staticmethod
     def create_generic_enemy(player_id: int, **kwargs) -> GenericEnemy:
         """
-        Cria novo inimigo genérico.
+        Cria novo inimigo genérico (inimigos são globais, não por player).
 
         Args:
-            player_id: ID do player
+            player_id: ID do player (não usado, inimigos são globais)
             **kwargs: Atributos do inimigo
 
         Returns:
             GenericEnemy criado
         """
-        enemy = GenericEnemy(player_id=player_id, **kwargs)
+        enemy = GenericEnemy(**kwargs)
         db.session.add(enemy)
         db.session.flush()
         return enemy
@@ -124,7 +123,7 @@ class EnemyRepository:
             EnemyNotFoundException: Se inimigo não existir ou não estiver disponível
         """
         enemy = GenericEnemy.query.get(enemy_id)
-        if not enemy or not enemy.is_available or enemy.player_id != player_id:
+        if not enemy or not enemy.is_available:
             raise EnemyNotFoundException(enemy_id)
 
         progress = PlayerProgress.query.filter_by(player_id=player_id).first()
