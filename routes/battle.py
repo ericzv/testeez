@@ -82,6 +82,8 @@ def get_authenticated_player_id() -> int:
         from models import Player
         player = Player(
             name="Jogador",
+            email="jogador@local.dev",
+            password="",
             character_id=None,
             level=1,
             experience=0,
