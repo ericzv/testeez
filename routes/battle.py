@@ -166,9 +166,8 @@ def battle():
             flash('Nenhum inimigo selecionado!', 'error')
             return redirect(url_for('battle.gamification'))
 
-        # Hooks de relíquias
-        from routes.relics import hooks as relic_hooks
-        relic_hooks.on_combat_start(player, enemy)
+        # NÃO chamar on_combat_start aqui! Isso reseta energia.
+        # on_combat_start só deve ser chamado ao selecionar inimigo (select_enemy)
 
         # Carregar skills
         try:
@@ -667,6 +666,11 @@ def select_enemy():
             for available_enemy in available_enemies:
                 available_enemy.is_new = False
 
+            # Chamar on_combat_start AQUI (quando inimigo é selecionado)
+            from routes.relics import hooks as relic_hooks
+            player = player_repo.get_by_id(player_id)
+            relic_hooks.on_combat_start(player, enemy)
+
             db.session.commit()
 
         return jsonify({
@@ -883,6 +887,7 @@ def get_battle_data():
                 'max_hp': player.max_hp,
                 'energy': player.energy,
                 'max_energy': player.max_energy,
+                'barrier': getattr(player, 'barrier', 0),  # FIX: Adicionar barreira
                 'strength': player.strength,
                 'resistance': player.resistance,
                 'luck': player.luck,
@@ -1110,6 +1115,12 @@ def end_player_turn():
 
         if not enemy:
             return jsonify({'success': False, 'error': 'Nenhum inimigo em combate'}), 404
+
+        # FIX BUG #3: Resetar barreira no final do turno do player
+        # A barreira só dura durante o turno do player
+        player.barrier = 0
+        logger.info(f"Barreira resetada no final do turno do player")
+        db.session.commit()
 
         from routes.battle_modules.battle_turns import process_enemy_turn
 
