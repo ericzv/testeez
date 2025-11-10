@@ -147,23 +147,73 @@ def battle():
     try:
         player_id = get_authenticated_player_id()
         player = player_repo.get_by_id(player_id)
-        enemy = get_current_battle_enemy(player_id)
 
+        # Verificar se escolheu personagem
+        if not player.character_id:
+            flash('Escolha um personagem primeiro!', 'warning')
+            return redirect(url_for('choose_character_route'))
+
+        # Buscar ou criar progresso
+        progress = PlayerProgress.query.filter_by(player_id=player_id).first()
+        if not progress:
+            progress = PlayerProgress(player_id=player_id)
+            db.session.add(progress)
+            db.session.commit()
+
+        # Buscar inimigo atual
+        enemy = get_current_battle_enemy(player_id)
         if not enemy:
+            flash('Nenhum inimigo selecionado!', 'error')
             return redirect(url_for('battle.gamification'))
+
+        # Hooks de relíquias
+        from routes.relics import hooks as relic_hooks
+        relic_hooks.on_combat_start(player, enemy)
+
+        # Carregar skills
+        try:
+            attack_skills = get_player_attacks(player_id) or []
+            special_skills = get_player_specials(player_id) or []
+        except Exception:
+            attack_skills = []
+            special_skills = []
 
         # Recalcular cache se necessário
         calculate_attack_cache(player_id)
 
+        # Renderizar com todos os dados esperados pelo template
         return render_template(
             'gamification/battle.html',
             player=player,
-            enemy=enemy
+            player_attack_skills=attack_skills[:4],
+            player_special_skills=special_skills[:4],
+            current_boss={
+                'id': enemy.id,
+                'name': enemy.name,
+                'hp': enemy.hp,
+                'max_hp': enemy.max_hp
+            },
+            player_hp=player.hp,
+            player_max_hp=player.max_hp,
+            session_points=session.get('session_revision_count', 0),
+            boss_hp=enemy.hp,
+            boss_max_hp=enemy.max_hp,
+            player_strength=player.strength,
+            player_damage_bonus=player.damage_bonus,
+            player_luck=player.luck,
+            player_crit_bonus=0.05,
+            player_resistance=player.resistance,
+            player_block_bonus=0,
+            player_damage_multiplier=player.damage_multiplier,
+            player_dodge_chance=0,
+            player_class='Nenhuma',
+            player_subclass='Nenhuma'
         )
 
     except Exception as e:
         logger.exception("Error in battle page")
-        return str(e), 500
+        flash(f'Erro: {str(e)}', 'error')
+        return redirect(url_for('battle.gamification'))
 
 
 @battle_bp.route("/api/damage_boss", methods=['POST'])
@@ -297,26 +347,94 @@ def generate_initial_enemies():
 @battle_bp.route("/api/get_available_enemies", methods=['GET'])
 @battle_bp.route("/get_available_enemies", methods=['GET'])  # Compatibilidade
 def get_available_enemies():
-    """Retorna inimigos disponíveis"""
+    """Retorna inimigos disponíveis OU boss se for milestone"""
     try:
         player_id = get_authenticated_player_id()
+
+        # Obter progresso
+        progress = PlayerProgress.query.filter_by(player_id=player_id).first()
+        if not progress:
+            progress = PlayerProgress(player_id=player_id)
+            db.session.add(progress)
+            db.session.commit()
+
+        # Verificar milestone de boss
+        next_enemy_number = progress.generic_enemies_defeated + 1
+        if next_enemy_number % 20 == 0:
+            from models import LastBoss
+            active_boss = LastBoss.query.filter_by(is_active=True).first()
+
+            if active_boss:
+                return jsonify({
+                    'success': True,
+                    'enemies': [],
+                    'boss': {
+                        'id': active_boss.id,
+                        'name': active_boss.name,
+                        'hp': active_boss.current_hp,
+                        'max_hp': active_boss.max_hp,
+                        'damage': active_boss.damage,
+                        'posture': active_boss.posture,
+                        'block_percentage': active_boss.block_percentage,
+                        'sprite_idle': active_boss.sprite_idle,
+                        'sprite_frames': active_boss.sprite_frames,
+                        'sprite_size': active_boss.sprite_size,
+                        'reward_crystals': active_boss.reward_crystals,
+                        'is_boss': True,
+                        'rarity': 'boss'
+                    },
+                    'is_boss_fight': True,
+                    'selected_enemy_id': None
+                })
+
+        # Lógica normal: inimigos genéricos
         enemies = enemy_service.get_available_enemies(player_id)
+
+        # Garantir mínimo de inimigos
+        from routes.battle_modules.enemy_generation import get_minimum_enemy_count, ensure_minimum_enemies
+        minimum_required = get_minimum_enemy_count(player_id)
+        if len(enemies) < minimum_required:
+            ensure_minimum_enemies(progress, minimum_required)
+            enemies = enemy_service.get_available_enemies(player_id)
+
+        # Converter para formato completo esperado pelo frontend
+        enemies_data = []
+        for enemy in enemies:
+            enemies_data.append({
+                'id': enemy.id,
+                'name': enemy.name,
+                'enemy_number': enemy.enemy_number,
+                'rarity': enemy.rarity,
+                'hp': enemy.hp,
+                'max_hp': enemy.max_hp,
+                'damage': enemy.damage,
+                'posture': enemy.posture,
+                'block_percentage': enemy.block_percentage,
+                'rounds_remaining': enemy.rounds_remaining,
+                'initial_rounds': enemy.initial_rounds,
+                'sprite_back': enemy.sprite_back,
+                'sprite_body': enemy.sprite_body,
+                'sprite_head': enemy.sprite_head,
+                'sprite_weapon': enemy.sprite_weapon,
+                'rarity_name': ['', 'Comum', 'Raro', 'Épico', 'Lendário'][enemy.rarity],
+                'equipment_rank': enemy.equipment_rank or '',
+                'is_new': getattr(enemy, 'is_new', False),
+                'reward_type': getattr(enemy, 'reward_type', 'crystals'),
+                'reward_icon': getattr(enemy, 'reward_icon', 'crystal.png'),
+                'is_boss': False
+            })
 
         return jsonify({
             'success': True,
-            'enemies': [{
-                'id': e.id,
-                'name': e.name,
-                'hp': e.hp,
-                'max_hp': e.max_hp,
-                'number': e.enemy_number,
-                'theme': e.theme_id
-            } for e in enemies]
+            'enemies': enemies_data,
+            'boss': None,
+            'is_boss_fight': False,
+            'selected_enemy_id': progress.selected_enemy_id
         })
 
     except Exception as e:
         logger.exception("Error getting available enemies")
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 
 @battle_bp.route("/api/get_battle_data", methods=['GET'])
