@@ -89,8 +89,8 @@ def get_authenticated_player_id() -> int:
             experience=0,
             hp=80,
             max_hp=80,
-            energy=100,
-            max_energy=100
+            energy=10,
+            max_energy=10
         )
         db.session.add(player)
         db.session.commit()
@@ -990,12 +990,16 @@ def check_relic_state(relic_id):
         ).first()
 
         if not player_relic:
-            return jsonify({'success': False, 'error': 'Relíquia não encontrada'}), 404
+            return jsonify({
+                'success': True,
+                'has_relic': False,
+                'state_data': {}
+            })
 
         return jsonify({
             'success': True,
-            'relic': {
-                'id': player_relic.relic_id,
+            'has_relic': True,
+            'state_data': {
                 'counter': player_relic.counter,
                 'is_active': player_relic.is_active
             }
