@@ -438,44 +438,107 @@ def get_available_enemies():
 
 
 @battle_bp.route("/api/get_battle_data", methods=['GET'])
+@battle_bp.route("/get_battle_data", methods=['GET'])  # Compatibilidade
 def get_battle_data():
-    """Retorna dados completos da batalha"""
+    """API para obter dados completos de batalha"""
     try:
         player_id = get_authenticated_player_id()
         player = player_repo.get_by_id(player_id)
-        enemy = enemy_repo.get_current_enemy(player_id)
 
-        if not enemy:
-            raise NoActiveEnemyException()
+        # Buscar progresso
+        progress = PlayerProgress.query.filter_by(player_id=player_id).first()
+        if not progress:
+            progress = PlayerProgress(player_id=player_id)
+            db.session.add(progress)
+            db.session.commit()
 
-        # Buscar skills do cache
-        attacks = get_player_attacks(player_id)
+        # Buscar inimigo ou boss atual
+        boss_data = None
+        current_enemy = get_current_battle_enemy(player_id)
+
+        if progress.selected_boss_id:
+            from models import LastBoss
+            current_boss = LastBoss.query.get(progress.selected_boss_id)
+            if current_boss and current_boss.is_active:
+                boss_data = {
+                    'id': current_boss.id,
+                    'name': current_boss.name,
+                    'hp': current_boss.current_hp,
+                    'max_hp': current_boss.max_hp,
+                    'description': f"Boss Especial - {current_boss.name}",
+                    'sprite_idle': current_boss.sprite_idle,
+                    'sprite_frames': current_boss.sprite_frames,
+                    'sprite_size': current_boss.sprite_size,
+                    'is_boss': True,
+                    'boss_type': 'last_boss'
+                }
+
+        if not boss_data and current_enemy:
+            boss_data = {
+                'id': current_enemy.id,
+                'name': current_enemy.name,
+                'hp': current_enemy.hp,
+                'max_hp': current_enemy.max_hp,
+                'description': f"Inimigo Nível {getattr(current_enemy, 'enemy_number', '?')}",
+                'sprite_layers': {
+                    'back': getattr(current_enemy, 'sprite_back', None),
+                    'body': getattr(current_enemy, 'sprite_body', 'body1.png'),
+                    'head': getattr(current_enemy, 'sprite_head', 'head1.png'),
+                    'weapon': getattr(current_enemy, 'sprite_weapon', 'weapon1.png')
+                },
+                'is_boss': False,
+                'boss_type': 'generic'
+            }
+
+        if not boss_data:
+            return jsonify({'success': False, 'message': 'Nenhum inimigo disponível'}), 404
+
+        # Obter buffs ativos
+        from characters import ActiveBuff
+        active_buffs = ActiveBuff.query.filter_by(player_id=player_id).all()
+
+        crit_chance_buff = sum(b.crit_chance_bonus for b in active_buffs if b.crit_chance_bonus)
+        crit_damage_buff = sum(b.crit_damage_bonus for b in active_buffs if b.crit_damage_bonus)
+        dodge_buff = sum(b.dodge_bonus for b in active_buffs if b.dodge_bonus)
+        block_buff = sum(b.block_bonus for b in active_buffs if b.block_bonus)
+        damage_buff = sum(b.damage_bonus for b in active_buffs if b.damage_bonus)
+
+        # Obter skills
+        attacks = get_player_attacks(player_id) or []
+        specials = get_player_specials(player_id) or []
 
         return jsonify({
             'success': True,
             'player': {
                 'id': player.id,
+                'name': player.name,
                 'hp': player.hp,
                 'max_hp': player.max_hp,
                 'energy': player.energy,
                 'max_energy': player.max_energy,
-                'barrier': getattr(player, 'barrier', 0)
+                'strength': player.strength,
+                'resistance': player.resistance,
+                'luck': player.luck,
+                'damage_bonus': player.damage_bonus + damage_buff,
+                'damage_multiplier': player.damage_multiplier,
+                'critical_chance_bonus': player.critical_chance_bonus + crit_chance_buff,
+                'critical_damage_bonus': player.critical_damage_bonus + crit_damage_buff,
+                'block_bonus': player.block_bonus + block_buff,
+                'dodge_chance': dodge_buff
             },
-            'enemy': {
-                'id': enemy.id,
-                'name': enemy.name,
-                'hp': enemy.hp,
-                'max_hp': enemy.max_hp,
-                'number': getattr(enemy, 'enemy_number', 0)
-            },
-            'attacks': attacks
+            'boss': boss_data,
+            'attacks': attacks[:4],
+            'specials': specials[:4],
+            'active_buffs': [{
+                'name': b.name,
+                'turns_remaining': b.turns_remaining,
+                'description': b.description
+            } for b in active_buffs]
         })
 
-    except GameException as e:
-        return jsonify({'success': False, 'error': str(e)}), e.code
     except Exception as e:
         logger.exception("Error getting battle data")
-        return jsonify({'success': False, 'error': 'Erro interno'}), 500
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 
 @battle_bp.route("/api/player_attacks", methods=['GET'])
