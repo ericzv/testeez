@@ -176,6 +176,8 @@ def execute_enemy_skill_attack(player, enemy, skill_data):
                 'damage_dealt': damage_result['damage_dealt'],
                 'player_hp': player.hp,
                 'player_max_hp': player.max_hp,
+                'player_energy': player.energy,  # FIX: Adicionar energia
+                'player_max_energy': player.max_energy,  # FIX: Adicionar max energia
                 'player_barrier': player.barrier,
                 'player_died': False,
                 'lazaro_revived': True,
@@ -191,10 +193,10 @@ def execute_enemy_skill_attack(player, enemy, skill_data):
         else:
             # Lógica normal (damage_result é int)
             damage_dealt = damage_result
-            
+
             # Verificar se jogador morreu
             player_died = player.hp <= 0
-            
+
             # Determinar resultado
             if damage_dealt == 0:
                 attack_result = 'dodged'
@@ -202,13 +204,15 @@ def execute_enemy_skill_attack(player, enemy, skill_data):
                 attack_result = 'death'
             else:
                 attack_result = 'damage'
-            
+
             return {
                 'success': True,
                 'attack_result': attack_result,
                 'damage_dealt': damage_dealt,
                 'player_hp': player.hp,
                 'player_max_hp': player.max_hp,
+                'player_energy': player.energy,  # FIX: Adicionar energia
+                'player_max_energy': player.max_energy,  # FIX: Adicionar max energia
                 'player_barrier': player.barrier,
                 'player_died': player_died,
                 'skill_id': skill_data.get('skill_id'),
@@ -267,6 +271,8 @@ def execute_enemy_attack(player, enemy):
                 'damage_dealt': damage_result['damage_dealt'],
                 'player_hp': player.hp,
                 'player_max_hp': player.max_hp,
+                'player_energy': player.energy,  # FIX: Adicionar energia
+                'player_max_energy': player.max_energy,  # FIX: Adicionar max energia
                 'player_barrier': player.barrier,
                 'player_died': False,
                 'lazaro_revived': True,
@@ -304,6 +310,8 @@ def execute_enemy_attack(player, enemy):
                 'damage_dealt': damage_dealt,
                 'player_hp': player.hp,
                 'player_max_hp': player.max_hp,
+                'player_energy': player.energy,  # FIX: Adicionar energia
+                'player_max_energy': player.max_energy,  # FIX: Adicionar max energia
                 'player_barrier': player.barrier,
                 'player_died': player_died,
                 'charges_remaining': enemy.attack_charges_count,

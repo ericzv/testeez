@@ -38,8 +38,12 @@ class RewardService:
         # Determinar tipo de recompensa
         reward_type = determine_enemy_reward_type()
 
-        # Calcular valores
-        enemy_number = enemy_data.get('number', player.enemies_defeated)
+        # Calcular valores - FIX: usar PlayerProgress, não player.enemies_defeated
+        from models import PlayerProgress
+        progress = PlayerProgress.query.filter_by(player_id=player_id).first()
+        enemies_defeated_count = progress.generic_enemies_defeated if progress else 1
+
+        enemy_number = enemy_data.get('number', enemies_defeated_count)
         rarity = enemy_data.get('rarity', 1)
         equipment_bonus = 0  # TODO: calcular
 
