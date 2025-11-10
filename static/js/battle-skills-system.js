@@ -4,6 +4,105 @@
 // Cache global para evitar repopulação
 window.SKILLS_ALREADY_POPULATED = false;
 
+// Processar habilidades pré-carregadas (renderização instantânea)
+function processPreloadedSkills(data, attackOptions) {
+    if (!data || !data.success || !data.attacks || data.attacks.length === 0) {
+        attackOptions.innerHTML = '<div class="skill-button"><div>Nenhum ataque disponível</div></div>';
+        return;
+    }
+
+    // Limpar e popular diretamente
+    attackOptions.innerHTML = '';
+    attackOptions.dataset.loading = 'false';
+
+    console.log(`⚡ Renderizando ${data.attacks.length} habilidades instantaneamente...`);
+
+    // Copiar o código de criação de botões do .then() original
+    data.attacks.forEach((skill) => {
+        // Registrar no cache
+        window.SKILL_LOOKUP[skill.id] = skill;
+        window.SKILL_LOOKUP[skill.name.toLowerCase()] = skill;
+
+        const button = document.createElement('button');
+        button.classList.add('skill-button');
+
+        // Adicionar dados como atributos
+        button.dataset.skillId = skill.id;
+        button.dataset.damageModifier = skill.damage_modifier;
+        if (skill.energy_cost !== undefined) button.dataset.energyCost = skill.energy_cost;
+        if (skill.projectile_type) button.dataset.projectileType = skill.projectile_type;
+        if (skill.beam_type) button.dataset.beamType = skill.beam_type;
+        if (skill.sound_activation) button.dataset.soundActivation = skill.sound_activation;
+        if (skill.vignette) button.dataset.vignette = skill.vignette;
+        if (skill.boss_damage_overlay) button.dataset.bossDamageOverlay = skill.boss_damage_overlay;
+        if (skill.sound_prep_1) button.dataset.soundPrep1 = skill.sound_prep_1;
+        if (skill.sound_prep_2) button.dataset.soundPrep2 = skill.sound_prep_2;
+        if (skill.sound_attack) button.dataset.soundAttack = skill.sound_attack;
+        if (skill.sound_effect_1) button.dataset.soundEffect1 = skill.sound_effect_1;
+        if (skill.sound_effect_2) button.dataset.soundEffect2 = skill.sound_effect_2;
+        if (skill.animation_fx_a) button.dataset.fxA = skill.animation_fx_a;
+        if (skill.animation_fx_b) button.dataset.fxB = skill.animation_fx_b;
+        if (skill.animation_attack) button.dataset.animationAttack = skill.animation_attack;
+        if (skill.attack_sequence) button.dataset.attackSequence = skill.attack_sequence;
+
+        // Verificar disponibilidade
+        let disabled = false;
+        if (skill.is_disabled) {
+            disabled = true;
+            button.classList.add('relic-disabled');
+            const relicIcon = document.createElement('img');
+            relicIcon.src = '/static/game.data/relics/relic_24.png';
+            relicIcon.classList.add('relic-lock-icon');
+            button.appendChild(relicIcon);
+        }
+
+        if (disabled) {
+            button.classList.add('disabled');
+            button.disabled = true;
+        }
+
+        const skillName = document.createElement('div');
+        skillName.textContent = skill.name;
+
+        const skillDetails = document.createElement('div');
+        skillDetails.classList.add('skill-details');
+
+        // Badge de energia
+        if (skill.energy_cost !== undefined) {
+            const energyBadge = document.createElement('div');
+            energyBadge.className = 'skill-energy-cost';
+
+            const energyIcon = document.createElement('img');
+            energyIcon.src = '/static/game.data/energy.png';
+            energyIcon.className = 'skill-energy-icon';
+
+            const costText = document.createElement('span');
+            costText.textContent = skill.energy_cost;
+
+            energyBadge.appendChild(energyIcon);
+            energyBadge.appendChild(costText);
+            button.appendChild(energyBadge);
+
+            if (gameState.player.energy < skill.energy_cost) {
+                button.classList.add('insufficient-energy');
+            }
+        }
+
+        button.appendChild(skillName);
+        button.appendChild(skillDetails);
+
+        // Event listener (copiar do original)
+        button.addEventListener('click', () => {
+            if (button.classList.contains('disabled') || button.classList.contains('insufficient-energy')) return;
+            selectAttackSkill(skill);
+        });
+
+        attackOptions.appendChild(button);
+    });
+
+    console.log('✅ Habilidades renderizadas instantaneamente!');
+}
+
 // Popular opções de ataque
 function populateAttackOptions() {
     const attackOptions = document.getElementById('attack-skills-menu');
@@ -11,18 +110,28 @@ function populateAttackOptions() {
         console.error('Elemento attack-skills-menu não encontrado!');
         return;
     }
-    
+
     // Se já estiver carregando, não fazer novamente
     if (attackOptions.dataset.loading === 'true') {
         return;
     }
-    
+
+    // ===== VERIFICAR SE DADOS JÁ FORAM PRÉ-CARREGADOS =====
+    if (window.PRELOADED_SKILLS) {
+        console.log('⚡ Usando habilidades pré-carregadas - renderização instantânea!');
+        // Processar dados diretamente sem fetch
+        processPreloadedSkills(window.PRELOADED_SKILLS, attackOptions);
+        return;
+    }
+
+    console.log('📡 Fazendo fetch das habilidades...');
+
     // Marcar como carregando
     attackOptions.dataset.loading = 'true';
-    
+
     // Preservar conteúdo atual para caso de falha
     const originalContent = attackOptions.innerHTML;
-    
+
     // Adicionar indicador de carregamento apenas se estiver vazio
     if (!attackOptions.querySelector('.skill-button')) {
         attackOptions.innerHTML = '<div class="skill-button"><div>Carregando habilidades...</div></div>';
@@ -47,7 +156,7 @@ function populateAttackOptions() {
     // URL ajustada
     const apiUrl = '/gamification/player/attacks';
     console.log("Tentando carregar habilidades de: " + apiUrl);
-    
+
     // Carregar habilidades da API com tratamento de erros aprimorado
     fetch(apiUrl)
         .then(response => {

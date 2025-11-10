@@ -11,6 +11,7 @@ class BattleAssetPreloader {
         this.progressBar = null;
         this.characterId = null;
         this.enemyData = null;
+        this.skillsData = null; // Cachear dados das skills
     }
 
     /**
@@ -34,30 +35,41 @@ class BattleAssetPreloader {
      * Cria a barra de progresso visual
      */
     createProgressBar() {
-        if (!this.loadingScreen) return;
+        if (!this.loadingScreen) {
+            console.error('❌ Loading screen não encontrado!');
+            return;
+        }
+
+        console.log('📊 Criando barra de progresso...');
 
         const progressContainer = document.createElement('div');
+        progressContainer.id = 'preload-progress-container';
         progressContainer.style.cssText = `
             width: 60%;
             max-width: 400px;
-            height: 20px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
+            height: 24px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
             overflow: hidden;
-            margin-top: 20px;
+            margin-top: 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
         `;
 
         this.progressBar = document.createElement('div');
+        this.progressBar.id = 'preload-progress-bar';
         this.progressBar.style.cssText = `
             width: 0%;
             height: 100%;
             background: linear-gradient(90deg, #4CAF50, #8BC34A);
-            transition: width 0.3s ease;
+            transition: width 0.2s ease-out;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
         `;
 
         progressContainer.appendChild(this.progressBar);
         this.loadingScreen.appendChild(progressContainer);
+
+        console.log('✅ Barra de progresso criada');
     }
 
     /**
@@ -237,6 +249,32 @@ class BattleAssetPreloader {
     }
 
     /**
+     * Pré-carrega os dados das habilidades via API
+     */
+    async preloadSkillsData() {
+        try {
+            console.log('📡 Pré-carregando dados das habilidades...');
+            const response = await fetch('/gamification/player/attacks');
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success && data.attacks) {
+                this.skillsData = data;
+                // Armazenar globalmente para uso imediato
+                window.PRELOADED_SKILLS = data;
+                console.log(`✅ ${data.attacks.length} habilidades pré-carregadas!`);
+            }
+        } catch (error) {
+            console.warn('⚠️ Erro ao pré-carregar skills:', error);
+            // Não falhar o preload por isso
+        }
+    }
+
+    /**
      * Inicia o carregamento de todos os assets
      */
     async startLoading() {
@@ -245,6 +283,9 @@ class BattleAssetPreloader {
 
         this.loadedAssets = 0;
         const promises = [];
+
+        // Carregar dados das skills em paralelo com assets
+        promises.push(this.preloadSkillsData());
 
         // Carregar todas as imagens em paralelo
         for (const asset of this.assetsToLoad) {
@@ -273,14 +314,15 @@ class BattleAssetPreloader {
             img.onload = () => {
                 this.loadedAssets++;
                 this.updateProgress();
-                console.log(`✓ ${asset.description}: ${asset.path}`);
+                // Log reduzido - apenas para debug se necessário
+                // console.log(`✓ ${asset.description}`);
                 resolve(asset);
             };
 
             img.onerror = () => {
                 this.loadedAssets++;
                 this.updateProgress();
-                console.warn(`⚠️ Falha ao carregar ${asset.description}: ${asset.path}`);
+                console.warn(`⚠️ Falha ao carregar: ${asset.description} (${asset.path})`);
                 // Não rejeitar para não bloquear outros assets
                 resolve(asset);
             };
@@ -293,13 +335,21 @@ class BattleAssetPreloader {
      * Atualiza a barra de progresso
      */
     updateProgress() {
-        if (!this.progressBar) return;
+        if (!this.progressBar) {
+            console.warn('⚠️ progressBar não disponível para atualização');
+            return;
+        }
 
         const progress = (this.loadedAssets / this.totalAssets) * 100;
         this.progressBar.style.width = `${progress}%`;
 
+        // Log a cada 10% de progresso
+        if (this.loadedAssets % Math.max(1, Math.floor(this.totalAssets / 10)) === 0) {
+            console.log(`📈 Progresso: ${progress.toFixed(1)}% (${this.loadedAssets}/${this.totalAssets})`);
+        }
+
         this.updateLoadingText(
-            `Carregando recursos... ${this.loadedAssets}/${this.totalAssets}`
+            `Carregando recursos... ${this.loadedAssets}/${this.totalAssets} (${progress.toFixed(0)}%)`
         );
     }
 
