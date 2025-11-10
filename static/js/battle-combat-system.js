@@ -4323,9 +4323,12 @@ async function executeSingleEnemyAttack() {
                 }
                 
                 if (result.attack_result === 'dodged') {
-                    showPlayerDamageMarker(0, true);
-                } else if (result.damage_dealt > 0) {
-                    showPlayerDamageMarker(result.damage_dealt, false);
+                    showPlayerDamageMarker(0, true, 0);
+                } else if (result.damage_dealt > 0 || result.damage_blocked > 0) {
+                    // Passar dano de HP e dano bloqueado por barreira
+                    const hpDamage = result.damage_dealt || 0;
+                    const barrierBlocked = result.damage_blocked || 0;
+                    showPlayerDamageMarker(hpDamage, false, barrierBlocked);
                 }
                 
                 updateStats(); // <-- Isso agora vai ler a barreira = 0 e corrigir o CSS
@@ -4395,14 +4398,14 @@ function removeChargeFromHUD() {
     }
 }
 
-function showPlayerDamageMarker(damage, isDodge = false) {
+function showPlayerDamageMarker(damage, isDodge = false, barrierBlocked = 0) {
     const character = document.getElementById('character');
     if (!character) return;
-    
-    // Criar elemento do marcador
+
+    // Criar elemento do marcador de dano HP
     const damageMarker = document.createElement('div');
     damageMarker.className = 'player-damage-marker';
-    
+
     if (isDodge) {
         damageMarker.textContent = 'Esquiva!';
         damageMarker.style.color = '#00ff00';
@@ -4412,7 +4415,7 @@ function showPlayerDamageMarker(damage, isDodge = false) {
         damageMarker.style.color = '#ff4444';
         damageMarker.style.textShadow = '0 0 10px #ff4444, 2px 2px 4px rgba(0,0,0,0.8)';
     }
-    
+
     // Posicionamento
     const characterRect = character.getBoundingClientRect();
     damageMarker.style.cssText += `
@@ -4427,10 +4430,40 @@ function showPlayerDamageMarker(damage, isDodge = false) {
         pointer-events: none;
         animation: player-damage-float 2s ease-out forwards;
     `;
-    
+
     document.body.appendChild(damageMarker);
-    
-    // Remover após animação
+
+    // Criar marcador de barreira bloqueada (em azul) se houver
+    if (barrierBlocked > 0) {
+        const barrierMarker = document.createElement('div');
+        barrierMarker.className = 'player-barrier-marker';
+        barrierMarker.textContent = `-${barrierBlocked} 🛡️`;
+        barrierMarker.style.cssText = `
+            position: fixed;
+            left: ${characterRect.left + characterRect.width / 2}px;
+            top: ${characterRect.top + 30}px;
+            transform: translateX(-50%);
+            font-family: 'Cinzel', serif;
+            font-size: 20px;
+            font-weight: bold;
+            color: #4db8ff;
+            text-shadow: 0 0 10px #4db8ff, 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 200;
+            pointer-events: none;
+            animation: player-damage-float 2s ease-out forwards;
+        `;
+
+        document.body.appendChild(barrierMarker);
+
+        // Remover após animação
+        setTimeout(() => {
+            if (barrierMarker.parentNode) {
+                barrierMarker.remove();
+            }
+        }, 2000);
+    }
+
+    // Remover marcador de dano após animação
     setTimeout(() => {
         if (damageMarker.parentNode) {
             damageMarker.remove();

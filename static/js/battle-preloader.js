@@ -282,6 +282,9 @@ class BattleAssetPreloader {
      */
     async startLoading() {
         console.log('🚀 Iniciando carregamento de assets...');
+        console.log('📦 Total de assets a carregar:', this.totalAssets);
+        console.log('📊 Barra existe?', !!this.progressBar);
+
         this.updateLoadingText('Carregando recursos...');
 
         this.loadedAssets = 0;
@@ -294,6 +297,8 @@ class BattleAssetPreloader {
         for (const asset of this.assetsToLoad) {
             promises.push(this.loadAsset(asset));
         }
+
+        console.log(`📦 Iniciando carregamento de ${promises.length} promises...`);
 
         try {
             await Promise.all(promises);
