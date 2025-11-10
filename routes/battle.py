@@ -78,8 +78,21 @@ def get_authenticated_player_id() -> int:
     """Retorna ID do player autenticado (ou primeiro para single-player)"""
     player = player_repo.get_first()
     if not player:
-        from core.exceptions.game_exceptions import PlayerNotFoundException
-        raise PlayerNotFoundException()
+        # Se não tem player, criar um padrão
+        from models import Player
+        player = Player(
+            name="Jogador",
+            character_id=None,
+            level=1,
+            experience=0,
+            hp=80,
+            max_hp=80,
+            energy=100,
+            max_energy=100
+        )
+        db.session.add(player)
+        db.session.commit()
+        logger.info(f"Player padrão criado com ID {player.id}")
     return player.id
 
 
@@ -97,7 +110,8 @@ def gamification():
         player_id = get_authenticated_player_id()
         player = player_repo.get_by_id(player_id)
 
-        if not player or not player.character_id:
+        # Redirecionar se não escolheu personagem
+        if not player.character_id:
             return redirect(url_for('choose_character_route'))
 
         # Inicializar temas e progresso
