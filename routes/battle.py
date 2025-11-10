@@ -167,6 +167,7 @@ def battle():
 
 
 @battle_bp.route("/api/damage_boss", methods=['POST'])
+@battle_bp.route("/damage_boss", methods=['POST'])  # Compatibilidade
 def damage_boss():
     """
     Executa ataque ao boss/inimigo.
@@ -229,6 +230,7 @@ def damage_boss():
 
 
 @battle_bp.route("/api/select_enemy", methods=['POST'])
+@battle_bp.route("/select_enemy", methods=['POST'])  # Compatibilidade
 def select_enemy():
     """
     Seleciona inimigo para batalha.
@@ -293,6 +295,7 @@ def generate_initial_enemies():
 
 
 @battle_bp.route("/api/get_available_enemies", methods=['GET'])
+@battle_bp.route("/get_available_enemies", methods=['GET'])  # Compatibilidade
 def get_available_enemies():
     """Retorna inimigos disponíveis"""
     try:
@@ -358,6 +361,7 @@ def get_battle_data():
 
 
 @battle_bp.route("/api/player_attacks", methods=['GET'])
+@battle_bp.route("/player/attacks", methods=['GET'])  # Compatibilidade
 def player_attacks():
     """Retorna ataques do player"""
     try:
@@ -375,6 +379,7 @@ def player_attacks():
 
 
 @battle_bp.route("/api/player_specials", methods=['GET'])
+@battle_bp.route("/player/specials", methods=['GET'])  # Compatibilidade
 def player_specials():
     """Retorna skills especiais do player"""
     try:
@@ -392,6 +397,7 @@ def player_specials():
 
 
 @battle_bp.route("/api/use_special", methods=['POST'])
+@battle_bp.route("/use_special", methods=['GET', 'POST'])  # Compatibilidade
 def use_special():
     """Usa skill especial"""
     try:
