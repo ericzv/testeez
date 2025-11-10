@@ -1177,24 +1177,24 @@ function performAttack(skill) {
     // Padrões pré-definidos de sequências de ataque
     const ATTACK_PATTERNS = {
         // Ataques corpo a corpo com teleporte
-        melee_teleport_basic: ['focus_player', 'show_fx', 'player_teleport_advance', 'transition_delay', 'focus_boss', 'melee_strike_teleport', 'apply_damage', 'player_teleport_return', 'restore_complete'],
-        melee_teleport_ultimate: ['focus_player', 'cast_preparation', 'show_fx', 'player_teleport_advance', 'transition_delay', 'focus_boss', 'ultimate_strike', 'apply_damage', 'player_teleport_return', 'restore_complete'],
-        
+        melee_teleport_basic: ['player_teleport_advance', 'transition_delay', 'focus_boss', 'melee_strike_teleport', 'apply_damage', 'player_teleport_return', 'restore_complete'],
+        melee_teleport_ultimate: ['cast_preparation', 'player_teleport_advance', 'transition_delay', 'focus_boss', 'ultimate_strike', 'apply_damage', 'player_teleport_return', 'restore_complete'],
+
         // Ataques corpo a corpo com corrida
-        melee_run_basic: ['focus_center', 'show_fx', 'zoom_out_after_fx', 'transition_delay', 'player_run_advance', 'melee_strike', 'apply_damage', 'player_run_return_with_zoomout', 'restore_complete'],
-        melee_run_ultimate: ['focus_player', 'show_fx', 'transition_delay', 'player_run_advance', 'ultimate_strike', 'apply_damage', 'player_run_return', 'restore_complete'],
-        
+        melee_run_basic: ['focus_center', 'zoom_out_after_fx', 'transition_delay', 'player_run_advance', 'melee_strike', 'apply_damage', 'player_run_return_with_zoomout', 'restore_complete'],
+        melee_run_ultimate: ['transition_delay', 'player_run_advance', 'ultimate_strike', 'apply_damage', 'player_run_return', 'restore_complete'],
+
         // Ataques à distância
-        ranged_projectile: ['focus_player', 'show_fx', 'aim_stance', 'restore_normal_view', 'apply_damage', 'restore_complete'],
-        ranged_beam: ['focus_player', 'show_fx', 'aim_stance', 'restore_normal_view', 'energy_beam',  'apply_damage', 'restore_complete'],
-        ranged_distant: ['focus_player', 'show_fx', 'cast_preparation', 'restore_normal_view', 'distant_effect_normal', 'apply_damage', 'restore_complete'],
-        
+        ranged_projectile: ['aim_stance', 'restore_normal_view', 'apply_damage', 'restore_complete'],
+        ranged_beam: ['aim_stance', 'restore_normal_view', 'energy_beam',  'apply_damage', 'restore_complete'],
+        ranged_distant: ['cast_preparation', 'restore_normal_view', 'distant_effect_normal', 'apply_damage', 'restore_complete'],
+
         // Ataques mágicos
-        magic_basic: ['focus_player', 'cast_preparation', 'show_fx', 'focus_boss', 'magic_manifestation', 'apply_damage', 'zoom_out_final', 'restore_complete'],
-        magic_area: ['focus_player', 'cast_preparation', 'show_fx', 'wide_focus', 'area_effect', 'apply_damage', 'zoom_out_final', 'restore_complete'],
-        
+        magic_basic: ['cast_preparation', 'focus_boss', 'magic_manifestation', 'apply_damage', 'zoom_out_final', 'restore_complete'],
+        magic_area: ['cast_preparation', 'wide_focus', 'area_effect', 'apply_damage', 'zoom_out_final', 'restore_complete'],
+
         // Ataques com salto
-        jump_attack: ['focus_player', 'jump_preparation', 'show_fx', 'aerial_advance', 'focus_boss', 'aerial_strike', 'apply_damage', 'land_return', 'restore_complete']
+        jump_attack: ['jump_preparation', 'aerial_advance', 'focus_boss', 'aerial_strike', 'apply_damage', 'land_return', 'restore_complete']
     };
 
     // Sistema de execução de fases modulares
