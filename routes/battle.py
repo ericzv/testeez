@@ -239,6 +239,16 @@ def damage_boss():
     if not player:
         return jsonify({'success': False, 'message': 'Jogador não encontrado.'})
 
+    # FIX: Resetar barreira no INÍCIO do turno do player
+    # Barreira dura até o player atacar novamente (protege contra ataques do inimigo)
+    if not player.first_attack_done:
+        # Se é o primeiro ataque da batalha, não resetar (pode ter barreira de outras fontes)
+        pass
+    else:
+        # Se não é o primeiro ataque, resetar barreira do turno anterior
+        player.barrier = 0
+        logger.info(f"Barreira do turno anterior resetada")
+
     # ===== 1. BUSCAR CACHE DA SKILL =====
     cache = get_cached_attack(player.id, skill_id)
 
@@ -531,10 +541,18 @@ def damage_boss():
 
             exp_reward = int(base_exp * rarity_multiplier)
             reward_type = current_enemy.reward_type or 'crystals'
+            equipment_bonus_percent = current_enemy.reward_bonus_percentage or 0
 
+            # Calcular recompensa específica do tipo
             if reward_type == 'crystals':
                 base_crystals = random.randint(30 + (current_enemy.enemy_number * 5), 50 + (current_enemy.enemy_number * 8))
-                crystals_gained = int(base_crystals * rarity_multiplier)
+                crystals_gained = int(base_crystals * rarity_multiplier * (1 + equipment_bonus_percent / 100))
+            elif reward_type == 'gold':
+                from routes.battle_modules.reward_system import calculate_gold_reward
+                gold_gained = calculate_gold_reward(current_enemy.enemy_number, current_enemy.rarity, equipment_bonus_percent)
+            elif reward_type == 'hourglasses':
+                from routes.battle_modules.reward_system import calculate_hourglass_reward
+                hourglasses_gained = calculate_hourglass_reward(current_enemy.rarity)
 
             current_enemy.is_available = False
             progress.selected_enemy_id = None
@@ -695,7 +713,12 @@ def generate_initial_enemies():
         player_id = get_authenticated_player_id()
 
         # Verificar mínimo de inimigos
-        ensure_minimum_enemies(player_id)
+        progress = PlayerProgress.query.filter_by(player_id=player_id).first()
+        if not progress:
+            progress = PlayerProgress(player_id=player_id)
+            db.session.add(progress)
+            db.session.commit()
+        ensure_minimum_enemies(progress)
 
         enemies = enemy_service.get_available_enemies(player_id)
 
@@ -1038,7 +1061,12 @@ def boss_defeated():
         result = enemy_service.handle_enemy_defeat(player_id, None)  # None = current enemy
 
         # Gerar novos inimigos se necessário
-        ensure_minimum_enemies(player_id)
+        progress = PlayerProgress.query.filter_by(player_id=player_id).first()
+        if not progress:
+            progress = PlayerProgress(player_id=player_id)
+            db.session.add(progress)
+            db.session.commit()
+        ensure_minimum_enemies(progress)
 
         return jsonify({
             'success': True,
@@ -1116,11 +1144,8 @@ def end_player_turn():
         if not enemy:
             return jsonify({'success': False, 'error': 'Nenhum inimigo em combate'}), 404
 
-        # FIX BUG #3: Resetar barreira no final do turno do player
-        # A barreira só dura durante o turno do player
-        player.barrier = 0
-        logger.info(f"Barreira resetada no final do turno do player")
-        db.session.commit()
+        # NÃO resetar barreira aqui! Barreira deve proteger contra ataques do inimigo
+        # Barreira será resetada no INÍCIO do próximo turno do player (no damage_boss)
 
         from routes.battle_modules.battle_turns import process_enemy_turn
 
@@ -1668,7 +1693,12 @@ def dev_clear_and_regenerate():
         GenericEnemy.query.filter_by(player_id=player_id).delete()
 
         # Gerar novos
-        ensure_minimum_enemies(player_id)
+        progress = PlayerProgress.query.filter_by(player_id=player_id).first()
+        if not progress:
+            progress = PlayerProgress(player_id=player_id)
+            db.session.add(progress)
+            db.session.commit()
+        ensure_minimum_enemies(progress)
 
         db.session.commit()
 
