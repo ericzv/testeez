@@ -645,6 +645,13 @@ def select_enemy():
         if enemy:
             from routes.battle_modules.battle_turns import get_next_actions
 
+            # FIX: Se o inimigo não tem enemy_skills (DB antigo), preencher com padrão
+            if not enemy.enemy_skills or enemy.enemy_skills == '[]':
+                logger.warning(f"Inimigo {enemy.name} sem enemy_skills - usando padrão básico")
+                enemy.enemy_skills = json.dumps([])
+                enemy.action_pattern = json.dumps(["attack", "attack", "attack"])
+                enemy.actions_per_turn_probability = json.dumps({"1": 1.0})
+
             # Resetar contador de turnos
             enemy.battle_turn_counter = 0
             logger.info(f"Contador de turnos resetado para {enemy.name}")
