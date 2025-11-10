@@ -71,33 +71,53 @@ class BattleAssetPreloader {
         this.loadingScreen.appendChild(progressContainer);
 
         console.log('✅ Barra de progresso criada e adicionada ao DOM');
-        console.log('   Container:', progressContainer);
-        console.log('   Bar:', this.progressBar);
+        console.log('   Largura inicial da barra:', this.progressBar.style.width);
+
+        // Verificar imediatamente após criação
+        setTimeout(() => {
+            console.log('   Largura da barra após 100ms:', this.progressBar.style.width);
+        }, 100);
     }
 
     /**
      * Coleta todos os assets que precisam ser carregados
      */
     collectAssets() {
+        console.log('🔍 COLLECT ASSETS - Início');
         this.assetsToLoad = [];
 
         // 1. Assets do personagem
+        console.log('🔍 Coletando assets do personagem...');
         this.collectCharacterAssets();
+        console.log(`   → ${this.assetsToLoad.length} assets do personagem coletados`);
 
         // 2. Ícones das habilidades do personagem
+        console.log('🔍 Coletando ícones de habilidades...');
+        const beforeSkills = this.assetsToLoad.length;
         this.collectSkillIcons();
+        console.log(`   → ${this.assetsToLoad.length - beforeSkills} ícones de habilidades coletados`);
 
         // 3. Assets do inimigo
+        console.log('🔍 Coletando assets do inimigo...');
+        const beforeEnemy = this.assetsToLoad.length;
         this.collectEnemyAssets();
+        console.log(`   → ${this.assetsToLoad.length - beforeEnemy} assets do inimigo coletados`);
 
         // 4. Assets de UI e backgrounds
+        console.log('🔍 Coletando assets de UI...');
+        const beforeUI = this.assetsToLoad.length;
         this.collectUIAssets();
+        console.log(`   → ${this.assetsToLoad.length - beforeUI} assets de UI coletados`);
 
-        // 4. Assets de efeitos comuns
+        // 5. Assets de efeitos comuns
+        console.log('🔍 Coletando efeitos comuns...');
+        const beforeEffects = this.assetsToLoad.length;
         this.collectEffectAssets();
+        console.log(`   → ${this.assetsToLoad.length - beforeEffects} efeitos coletados`);
 
         this.totalAssets = this.assetsToLoad.length;
-        console.log(`📦 Total de assets para carregar: ${this.totalAssets}`);
+        console.log(`📦 TOTAL de assets para carregar: ${this.totalAssets}`);
+        console.log(`📦 Lista de assets:`, this.assetsToLoad.slice(0, 5));
     }
 
     /**
@@ -344,21 +364,33 @@ class BattleAssetPreloader {
      */
     updateProgress() {
         if (!this.progressBar) {
-            console.warn('⚠️ progressBar não disponível para atualização');
-            console.warn('   this.progressBar:', this.progressBar);
+            console.error('❌ UPDATEPROGRESS - progressBar não disponível!');
+            console.error('   this.progressBar:', this.progressBar);
             return;
         }
 
-        const progress = Math.min(100, Math.max(1, (this.loadedAssets / this.totalAssets) * 100));
+        // Debug: verificar valores antes do cálculo
+        console.log(`🔍 UPDATEPROGRESS - loadedAssets: ${this.loadedAssets}, totalAssets: ${this.totalAssets}`);
 
-        console.log(`📈 Atualizando barra: ${this.loadedAssets}/${this.totalAssets} = ${progress.toFixed(1)}%`);
+        // Tratar caso especial: sem assets
+        if (this.totalAssets === 0) {
+            console.warn('⚠️ UPDATEPROGRESS - totalAssets é 0! Definindo progresso como 100%');
+            this.progressBar.style.width = '100%';
+            this.updateLoadingText('Nenhum recurso para carregar...');
+            return;
+        }
+
+        const rawProgress = (this.loadedAssets / this.totalAssets) * 100;
+        const progress = Math.min(100, Math.max(1, rawProgress));
+
+        console.log(`📈 UPDATEPROGRESS - Cálculo: (${this.loadedAssets}/${this.totalAssets}) * 100 = ${rawProgress.toFixed(1)}%`);
+        console.log(`📈 UPDATEPROGRESS - Progresso final (com min/max): ${progress.toFixed(1)}%`);
+        console.log(`📈 UPDATEPROGRESS - Definindo width para: ${progress}%`);
 
         this.progressBar.style.width = `${progress}%`;
 
-        // Log a cada 10% de progresso
-        if (this.loadedAssets % Math.max(1, Math.floor(this.totalAssets / 10)) === 0) {
-            console.log(`📊 Progresso: ${progress.toFixed(1)}% (${this.loadedAssets}/${this.totalAssets})`);
-        }
+        // Verificar se foi realmente aplicado
+        console.log(`📈 UPDATEPROGRESS - Width após definição:`, this.progressBar.style.width);
 
         this.updateLoadingText(
             `Carregando recursos... ${this.loadedAssets}/${this.totalAssets} (${progress.toFixed(0)}%)`
@@ -397,26 +429,41 @@ window.battlePreloader = new BattleAssetPreloader();
 async function initializeBattlePreloader() {
     console.log('=== BATTLE PRELOADER INICIANDO ===');
 
-    // Aguardar dados estarem disponíveis
-    await waitForGameData();
+    try {
+        // Aguardar dados estarem disponíveis
+        console.log('⏳ Aguardando gameData...');
+        await waitForGameData();
+        console.log('✅ gameData disponível');
 
-    // Obter dados do personagem e inimigo
-    const characterId = window.gameData?.characterId || document.getElementById('current-character')?.textContent;
-    const enemyData = window.currentEnemy || {}; // Será populado pelo battle-base.js
+        // Obter dados do personagem e inimigo
+        const characterId = window.gameData?.characterId || document.getElementById('current-character')?.textContent;
+        const enemyData = window.currentEnemy || {}; // Será populado pelo battle-base.js
 
-    // Inicializar preloader
-    window.battlePreloader.initialize(characterId, enemyData);
+        console.log('🎮 Character ID:', characterId);
+        console.log('👹 Enemy Data:', enemyData);
 
-    // Aguardar CHARACTER_SPRITE_CONFIG estar disponível
-    await waitForCharacterConfig();
+        // Inicializar preloader
+        console.log('🔧 Inicializando preloader...');
+        window.battlePreloader.initialize(characterId, enemyData);
 
-    // Coletar todos os assets
-    window.battlePreloader.collectAssets();
+        // Aguardar CHARACTER_SPRITE_CONFIG estar disponível
+        console.log('⏳ Aguardando CHARACTER_SPRITE_CONFIG...');
+        await waitForCharacterConfig();
+        console.log('✅ CHARACTER_SPRITE_CONFIG disponível');
 
-    // Iniciar carregamento
-    await window.battlePreloader.startLoading();
+        // Coletar todos os assets
+        console.log('📦 Coletando assets...');
+        window.battlePreloader.collectAssets();
 
-    console.log('=== PRELOAD CONCLUÍDO ===');
+        // Iniciar carregamento
+        console.log('🚀 Iniciando carregamento...');
+        await window.battlePreloader.startLoading();
+
+        console.log('=== PRELOAD CONCLUÍDO ===');
+    } catch (error) {
+        console.error('❌ Erro no preloader:', error);
+        // Continuar mesmo com erro
+    }
 
     // Remover loading screen será feito pelo battle-base.js após inicialização completa
 }
