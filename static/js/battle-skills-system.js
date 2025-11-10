@@ -91,10 +91,29 @@ function processPreloadedSkills(data, attackOptions) {
         button.appendChild(skillName);
         button.appendChild(skillDetails);
 
-        // Event listener (copiar do original)
+        // Event listener - usar mesmo código do original
         button.addEventListener('click', () => {
-            if (button.classList.contains('disabled') || button.classList.contains('insufficient-energy')) return;
-            selectAttackSkill(skill);
+            // Verificar energia primeiro
+            const energyCost = parseInt(button.dataset.energyCost);
+            const currentEnergy = gameState.player.energy;
+
+            if (!isNaN(energyCost) && currentEnergy < energyCost) {
+                if (typeof showBattleMessage === 'function') {
+                    showBattleMessage(`Energia insuficiente! Você precisa de ${energyCost} energia.`);
+                }
+                return;
+            }
+
+            if (!button.disabled) {
+                closeAllSubmenus();
+                window.activeSubmenu = null;
+
+                useAttackSkill(
+                    skill.id,
+                    skill.name,
+                    skill.damage_modifier
+                );
+            }
         });
 
         attackOptions.appendChild(button);

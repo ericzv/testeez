@@ -45,31 +45,34 @@ class BattleAssetPreloader {
         const progressContainer = document.createElement('div');
         progressContainer.id = 'preload-progress-container';
         progressContainer.style.cssText = `
-            width: 60%;
-            max-width: 400px;
-            height: 24px;
-            background: rgba(0, 0, 0, 0.7);
-            border: 3px solid rgba(255, 255, 255, 0.5);
-            border-radius: 12px;
+            width: 70%;
+            max-width: 500px;
+            height: 30px;
+            background: rgba(20, 20, 20, 0.9);
+            border: 3px solid rgba(255, 255, 255, 0.7);
+            border-radius: 15px;
             overflow: hidden;
             margin-top: 0;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.7);
+            position: relative;
         `;
 
         this.progressBar = document.createElement('div');
         this.progressBar.id = 'preload-progress-bar';
         this.progressBar.style.cssText = `
-            width: 0%;
+            width: 1%;
             height: 100%;
-            background: linear-gradient(90deg, #4CAF50, #8BC34A);
-            transition: width 0.2s ease-out;
-            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+            background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 50%, #4CAF50 100%);
+            transition: width 0.3s ease-out;
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.8), inset 0 2px 5px rgba(255,255,255,0.3);
         `;
 
         progressContainer.appendChild(this.progressBar);
         this.loadingScreen.appendChild(progressContainer);
 
-        console.log('✅ Barra de progresso criada');
+        console.log('✅ Barra de progresso criada e adicionada ao DOM');
+        console.log('   Container:', progressContainer);
+        console.log('   Bar:', this.progressBar);
     }
 
     /**
@@ -337,15 +340,19 @@ class BattleAssetPreloader {
     updateProgress() {
         if (!this.progressBar) {
             console.warn('⚠️ progressBar não disponível para atualização');
+            console.warn('   this.progressBar:', this.progressBar);
             return;
         }
 
-        const progress = (this.loadedAssets / this.totalAssets) * 100;
+        const progress = Math.min(100, Math.max(1, (this.loadedAssets / this.totalAssets) * 100));
+
+        console.log(`📈 Atualizando barra: ${this.loadedAssets}/${this.totalAssets} = ${progress.toFixed(1)}%`);
+
         this.progressBar.style.width = `${progress}%`;
 
         // Log a cada 10% de progresso
         if (this.loadedAssets % Math.max(1, Math.floor(this.totalAssets / 10)) === 0) {
-            console.log(`📈 Progresso: ${progress.toFixed(1)}% (${this.loadedAssets}/${this.totalAssets})`);
+            console.log(`📊 Progresso: ${progress.toFixed(1)}% (${this.loadedAssets}/${this.totalAssets})`);
         }
 
         this.updateLoadingText(
