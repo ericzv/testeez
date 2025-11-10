@@ -225,7 +225,8 @@ def damage_boss():
     """
     import math
     import random
-    from models import PlayerRelic, ActiveBuff, EnemySkillDebuff, PendingReward
+    from models import PlayerRelic, EnemySkillDebuff, PendingReward
+    from characters import ActiveBuff
     from routes.relics import hooks as relic_hooks
     from routes.battle_modules.battle_utils import apply_buffs_to_stats
     from routes.enemy_attacks import update_buff_debuff_durations
