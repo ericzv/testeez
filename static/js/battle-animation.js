@@ -459,7 +459,7 @@ function showDamageNumber(damage, isCritical) {
     battleArena.appendChild(damageNumber);
 
     // Remover após animação
-    setTimeout(() => { damageNumber.remove(); }, 1400); // OTIMIZADO: 2000ms → 1400ms
+    setTimeout(() => { damageNumber.remove(); }, 1000); // OTIMIZADO: 2000ms → 1000ms (-50%)
 }
 
 // Exibir mensagem de resultado de ataque
@@ -470,7 +470,7 @@ function showAttackResultMessage(skill, damage, isCritical) {
         battleMessage.textContent = `Você causou ${damage} pontos de dano com ${skill.name}!`;
     }
     battleMessage.classList.add('visible');
-    setTimeout(() => { battleMessage.classList.remove('visible'); }, 2100); // OTIMIZADO: 3000ms → 2100ms
+    setTimeout(() => { battleMessage.classList.remove('visible'); }, 1500); // OTIMIZADO: 3000ms → 1500ms (-50%)
 }
 
 // Efeitos de acerto crítico

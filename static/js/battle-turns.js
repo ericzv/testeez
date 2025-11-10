@@ -136,7 +136,7 @@ function showYourTurnFeedback() {
     setTimeout(() => {
         feedback.style.animation = 'feedbackFade 0.5s ease-out';
         setTimeout(() => feedback.remove(), 500);
-    }, 800); // OTIMIZADO: 1500ms → 800ms (-47%)
+    }, 750); // OTIMIZADO: 1500ms → 750ms (-50%)
 }
 
 // Expor função globalmente
