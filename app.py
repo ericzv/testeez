@@ -123,8 +123,7 @@ app.register_blueprint(sprite_organizer_bp)
 #                 MODELOS
 ##############################################
 
-# Adicione estas funções de cálculo no início do seu app.py, antes dos modelos
-import math
+# Funções de cálculo (math já importado no topo do arquivo)
 
 def calculate_effective_resistance(player):
     """
@@ -148,11 +147,7 @@ def calculate_effective_resistance(player):
 # Após definir todas as classes, adicione este relacionamento ao modelo Player
 player_skills = db.relationship('PlayerSkill', backref='player', lazy=True)
 
-import random
-from game_formulas import calculate_dodge_chance
-import math
-import random
-from datetime import datetime
+# Imports já declarados no topo: random, math, datetime, calculate_dodge_chance
 
 # ----- FUNÇÕES DE CÁLCULO DO SISTEMA DE ATRIBUTOS -----
 
@@ -618,8 +613,7 @@ def dev_level_up(levels):
     flash(f"[DEV MODE] Nível aumentado de {old_level} para {player.level}. Adicionados {levels * 2} pontos de atributo e {levels} pontos de habilidade.", "warning")
     return redirect(request.referrer or url_for('attributes'))
 
-from flask import request, redirect, url_for, flash
-# — verifique se você já importou Player, CharacterClass e sua função choose_class acima —
+# Flask imports já declarados no topo do arquivo
 
 @app.route('/gamification/update_attribute', methods=['POST'])
 def update_attribute():
