@@ -1,0 +1,502 @@
+// battle-preloader.js - Sistema de Pré-carregamento de Assets
+// Carrega todos os recursos necessários antes de iniciar a batalha
+
+class BattleAssetPreloader {
+    constructor() {
+        this.assetsToLoad = [];
+        this.loadedAssets = 0;
+        this.totalAssets = 0;
+        this.loadingScreen = null;
+        this.loadingText = null;
+        this.progressBar = null;
+        this.characterId = null;
+        this.enemyData = null;
+        this.skillsData = null; // Cachear dados das skills
+    }
+
+    /**
+     * Inicializa o preloader com os dados do personagem e inimigo
+     */
+    initialize(characterId, enemyData) {
+        this.characterId = characterId;
+        this.enemyData = enemyData;
+
+        // Configurar elementos de loading
+        this.loadingScreen = document.getElementById('loading-screen');
+        this.loadingText = this.loadingScreen?.querySelector('.loading-text');
+
+        // Criar barra de progresso
+        this.createProgressBar();
+
+        console.log('🎮 Preloader inicializado:', { characterId, enemyData });
+    }
+
+    /**
+     * Cria a barra de progresso visual
+     */
+    createProgressBar() {
+        if (!this.loadingScreen) {
+            console.error('❌ Loading screen não encontrado!');
+            return;
+        }
+
+        console.log('📊 Criando barra de progresso...');
+
+        const progressContainer = document.createElement('div');
+        progressContainer.id = 'preload-progress-container';
+        progressContainer.style.cssText = `
+            width: 70%;
+            max-width: 500px;
+            height: 30px;
+            background: rgba(20, 20, 20, 0.9);
+            border: 3px solid rgba(255, 255, 255, 0.7);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 0;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.7);
+            position: relative;
+        `;
+
+        this.progressBar = document.createElement('div');
+        this.progressBar.id = 'preload-progress-bar';
+        this.progressBar.style.cssText = `
+            width: 1%;
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 50%, #4CAF50 100%);
+            transition: width 0.3s ease-out;
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.8), inset 0 2px 5px rgba(255,255,255,0.3);
+        `;
+
+        progressContainer.appendChild(this.progressBar);
+        this.loadingScreen.appendChild(progressContainer);
+
+        console.log('✅ Barra de progresso criada e adicionada ao DOM');
+        console.log('   Largura inicial da barra:', this.progressBar.style.width);
+
+        // Verificar imediatamente após criação
+        setTimeout(() => {
+            console.log('   Largura da barra após 100ms:', this.progressBar.style.width);
+        }, 100);
+    }
+
+    /**
+     * Coleta todos os assets que precisam ser carregados
+     */
+    collectAssets() {
+        console.log('🔍 COLLECT ASSETS - Início');
+        this.assetsToLoad = [];
+
+        // 1. Assets do personagem
+        console.log('🔍 Coletando assets do personagem...');
+        this.collectCharacterAssets();
+        console.log(`   → ${this.assetsToLoad.length} assets do personagem coletados`);
+
+        // 2. Ícones das habilidades do personagem
+        console.log('🔍 Coletando ícones de habilidades...');
+        const beforeSkills = this.assetsToLoad.length;
+        this.collectSkillIcons();
+        console.log(`   → ${this.assetsToLoad.length - beforeSkills} ícones de habilidades coletados`);
+
+        // 3. Assets do inimigo
+        console.log('🔍 Coletando assets do inimigo...');
+        const beforeEnemy = this.assetsToLoad.length;
+        this.collectEnemyAssets();
+        console.log(`   → ${this.assetsToLoad.length - beforeEnemy} assets do inimigo coletados`);
+
+        // 4. Assets de UI e backgrounds
+        console.log('🔍 Coletando assets de UI...');
+        const beforeUI = this.assetsToLoad.length;
+        this.collectUIAssets();
+        console.log(`   → ${this.assetsToLoad.length - beforeUI} assets de UI coletados`);
+
+        // 5. Assets de efeitos comuns
+        console.log('🔍 Coletando efeitos comuns...');
+        const beforeEffects = this.assetsToLoad.length;
+        this.collectEffectAssets();
+        console.log(`   → ${this.assetsToLoad.length - beforeEffects} efeitos coletados`);
+
+        this.totalAssets = this.assetsToLoad.length;
+        console.log(`📦 TOTAL de assets para carregar: ${this.totalAssets}`);
+        console.log(`📦 Lista de assets:`, this.assetsToLoad.slice(0, 5));
+    }
+
+    /**
+     * Coleta sprites do personagem baseado no ID
+     * NOTA: CHARACTER_SPRITE_CONFIG não é mais usado - os sprites são carregados dinamicamente
+     */
+    collectCharacterAssets() {
+        console.log('⏭️ Pulando coleta de sprites do personagem (carregados dinamicamente pelo sistema de animações)');
+        // Os sprites do personagem são carregados automaticamente pelo battle-class-animations.js
+        // Não precisamos pré-carregar aqui
+        return;
+    }
+
+    /**
+     * Coleta ícones das habilidades do personagem
+     */
+    collectSkillIcons() {
+        console.log('🎯 Coletando ícones de habilidades');
+
+        // Obter skills do gameData
+        const attackSkills = window.gameData?.attackSkills || [];
+        const specialSkills = window.gameData?.specialSkills || [];
+
+        const allSkills = [...attackSkills, ...specialSkills];
+
+        allSkills.forEach(skill => {
+            if (skill.icon) {
+                this.assetsToLoad.push({
+                    type: 'skill_icon',
+                    path: skill.icon,
+                    description: `Skill icon: ${skill.name}`
+                });
+            }
+        });
+
+        // Adicionar ícone padrão
+        this.assetsToLoad.push({
+            type: 'skill_icon',
+            path: '/static/game.data/icons/default_skill.png',
+            description: 'Default skill icon'
+        });
+    }
+
+    /**
+     * Coleta sprites do inimigo
+     */
+    collectEnemyAssets() {
+        if (!this.enemyData || !this.enemyData.sprite_layers) {
+            console.warn('⚠️ Dados do inimigo não disponíveis');
+            return;
+        }
+
+        console.log('👹 Coletando sprites do inimigo');
+
+        const layers = this.enemyData.sprite_layers;
+
+        // Sprites principais do inimigo
+        const layerTypes = ['back', 'body', 'head', 'weapon'];
+        layerTypes.forEach(layerType => {
+            if (layers[layerType]) {
+                const path = `/static/game.data/enemies/${layerType}/${layers[layerType]}`;
+                this.assetsToLoad.push({
+                    type: 'enemy_sprite',
+                    path: path,
+                    description: `Enemy - ${layerType}`
+                });
+            }
+        });
+
+        // Sprites de hit animations
+        const hitAnimations = [
+            '/static/game.data/enemies/hits/blackhit-32-32-5f-160x32.png',
+            '/static/game.data/enemies/hits/yellowhit-32-32-5f-160x32.png',
+            '/static/game.data/enemies/hits/greenhit-32-32-5f-160x32.png',
+            '/static/game.data/enemies/hits/purplehit-32-32-5f-160x32.png',
+            '/static/game.data/enemies/hits/redhit-32-32-5f-160x32.png',
+            '/static/game.data/enemies/hits/hit1.png',
+            '/static/game.data/enemies/hits/hit2.png',
+            '/static/game.data/enemies/hits/hit3.png',
+            '/static/game.data/enemies/hits/smokeout.png'
+        ];
+
+        hitAnimations.forEach(path => {
+            this.assetsToLoad.push({
+                type: 'enemy_effect',
+                path: path,
+                description: 'Enemy hit animation'
+            });
+        });
+    }
+
+    /**
+     * Coleta assets de UI e backgrounds
+     */
+    collectUIAssets() {
+        console.log('🖼️ Coletando UI e backgrounds');
+
+        const uiAssets = [
+            '/static/game.data/energy.png',
+            '/static/game.data/turn.png',
+            '/static/game.data/icons/default_skill.png'
+        ];
+
+        // Backgrounds principais (se existirem paths fixos)
+        const backgrounds = [
+            // Adicionar paths de background se houver
+        ];
+
+        [...uiAssets, ...backgrounds].forEach(path => {
+            this.assetsToLoad.push({
+                type: 'ui',
+                path: path,
+                description: 'UI element'
+            });
+        });
+    }
+
+    /**
+     * Coleta assets de efeitos comuns
+     */
+    collectEffectAssets() {
+        // Efeitos que são sempre usados podem ser precarregados aqui
+        // Por exemplo, partículas, explosões, etc.
+        console.log('✨ Coletando efeitos comuns');
+
+        // Adicionar efeitos comuns se necessário
+    }
+
+    /**
+     * Pré-carrega os dados das habilidades via API
+     */
+    async preloadSkillsData() {
+        try {
+            console.log('📡 Pré-carregando dados das habilidades...');
+            const response = await fetch('/gamification/player/attacks');
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success && data.attacks) {
+                this.skillsData = data;
+                // Armazenar globalmente para uso imediato
+                window.PRELOADED_SKILLS = data;
+                console.log(`✅ ${data.attacks.length} habilidades pré-carregadas!`);
+            }
+        } catch (error) {
+            console.warn('⚠️ Erro ao pré-carregar skills:', error);
+            // Não falhar o preload por isso
+        }
+    }
+
+    /**
+     * Inicia o carregamento de todos os assets
+     */
+    async startLoading() {
+        console.log('🚀 Iniciando carregamento de assets...');
+        console.log('📦 Total de assets a carregar:', this.totalAssets);
+        console.log('📊 Barra existe?', !!this.progressBar);
+
+        this.updateLoadingText('Carregando recursos...');
+
+        this.loadedAssets = 0;
+        const promises = [];
+
+        // Carregar dados das skills em paralelo com assets
+        promises.push(this.preloadSkillsData());
+
+        // Carregar todas as imagens em paralelo
+        for (const asset of this.assetsToLoad) {
+            promises.push(this.loadAsset(asset));
+        }
+
+        console.log(`📦 Iniciando carregamento de ${promises.length} promises...`);
+
+        try {
+            await Promise.all(promises);
+            console.log('✅ Todos os assets carregados!');
+            this.updateLoadingText('Preparando batalha...');
+            return true;
+        } catch (error) {
+            console.error('❌ Erro ao carregar assets:', error);
+            this.updateLoadingText('Erro ao carregar recursos. Iniciando mesmo assim...');
+            return false;
+        }
+    }
+
+    /**
+     * Carrega um único asset
+     */
+    loadAsset(asset) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+
+            img.onload = () => {
+                this.loadedAssets++;
+                this.updateProgress();
+                // Log reduzido - apenas para debug se necessário
+                // console.log(`✓ ${asset.description}`);
+                resolve(asset);
+            };
+
+            img.onerror = () => {
+                this.loadedAssets++;
+                this.updateProgress();
+                console.warn(`⚠️ Falha ao carregar: ${asset.description} (${asset.path})`);
+                // Não rejeitar para não bloquear outros assets
+                resolve(asset);
+            };
+
+            img.src = asset.path;
+        });
+    }
+
+    /**
+     * Atualiza a barra de progresso
+     */
+    updateProgress() {
+        if (!this.progressBar) {
+            console.error('❌ UPDATEPROGRESS - progressBar não disponível!');
+            console.error('   this.progressBar:', this.progressBar);
+            return;
+        }
+
+        // Debug: verificar valores antes do cálculo
+        console.log(`🔍 UPDATEPROGRESS - loadedAssets: ${this.loadedAssets}, totalAssets: ${this.totalAssets}`);
+
+        // Tratar caso especial: sem assets
+        if (this.totalAssets === 0) {
+            console.warn('⚠️ UPDATEPROGRESS - totalAssets é 0! Definindo progresso como 100%');
+            this.progressBar.style.width = '100%';
+            this.updateLoadingText('Nenhum recurso para carregar...');
+            return;
+        }
+
+        const rawProgress = (this.loadedAssets / this.totalAssets) * 100;
+        const progress = Math.min(100, Math.max(1, rawProgress));
+
+        console.log(`📈 UPDATEPROGRESS - Cálculo: (${this.loadedAssets}/${this.totalAssets}) * 100 = ${rawProgress.toFixed(1)}%`);
+        console.log(`📈 UPDATEPROGRESS - Progresso final (com min/max): ${progress.toFixed(1)}%`);
+        console.log(`📈 UPDATEPROGRESS - Definindo width para: ${progress}%`);
+
+        this.progressBar.style.width = `${progress}%`;
+
+        // Verificar se foi realmente aplicado
+        console.log(`📈 UPDATEPROGRESS - Width após definição:`, this.progressBar.style.width);
+
+        this.updateLoadingText(
+            `Carregando recursos... ${this.loadedAssets}/${this.totalAssets} (${progress.toFixed(0)}%)`
+        );
+    }
+
+    /**
+     * Atualiza o texto de loading
+     */
+    updateLoadingText(text) {
+        if (this.loadingText) {
+            this.loadingText.textContent = text;
+        }
+    }
+
+    /**
+     * Remove a tela de loading e inicia a batalha
+     */
+    hideLoadingScreen() {
+        if (this.loadingScreen) {
+            this.loadingScreen.style.transition = 'opacity 0.5s ease';
+            this.loadingScreen.style.opacity = '0';
+
+            setTimeout(() => {
+                this.loadingScreen.style.display = 'none';
+                console.log('🎮 Batalha iniciada!');
+            }, 500);
+        }
+    }
+}
+
+// Criar instância global
+window.battlePreloader = new BattleAssetPreloader();
+
+// Função principal para iniciar o preload
+async function initializeBattlePreloader() {
+    console.log('=== BATTLE PRELOADER INICIANDO ===');
+
+    try {
+        // Aguardar dados estarem disponíveis
+        console.log('⏳ Aguardando gameData...');
+        await waitForGameData();
+        console.log('✅ gameData disponível');
+
+        // Obter dados do personagem e inimigo
+        const characterId = window.gameData?.characterId || document.getElementById('current-character')?.textContent;
+        const enemyData = window.currentEnemy || {}; // Será populado pelo battle-base.js
+
+        console.log('🎮 Character ID:', characterId);
+        console.log('👹 Enemy Data:', enemyData);
+
+        // Inicializar preloader
+        console.log('🔧 Inicializando preloader...');
+        window.battlePreloader.initialize(characterId, enemyData);
+
+        // NOTA: CHARACTER_SPRITE_CONFIG não é mais necessário
+        // O sistema de animações já carrega os sprites dinamicamente
+        console.log('✅ Pulando espera por CHARACTER_SPRITE_CONFIG (não necessário)');
+
+        // Coletar todos os assets
+        console.log('📦 Coletando assets...');
+        window.battlePreloader.collectAssets();
+
+        // Iniciar carregamento
+        console.log('🚀 Iniciando carregamento...');
+        await window.battlePreloader.startLoading();
+
+        console.log('=== PRELOAD CONCLUÍDO ===');
+    } catch (error) {
+        console.error('❌ Erro no preloader:', error);
+        // Continuar mesmo com erro
+    }
+
+    // Remover loading screen será feito pelo battle-base.js após inicialização completa
+}
+
+/**
+ * Aguarda os dados do jogo estarem disponíveis
+ */
+function waitForGameData() {
+    return new Promise((resolve) => {
+        if (window.gameData) {
+            resolve();
+            return;
+        }
+
+        const checkInterval = setInterval(() => {
+            if (window.gameData) {
+                clearInterval(checkInterval);
+                resolve();
+            }
+        }, 100);
+
+        // Timeout após 5 segundos
+        setTimeout(() => {
+            clearInterval(checkInterval);
+            console.warn('⚠️ gameData não disponível, continuando...');
+            resolve();
+        }, 5000);
+    });
+}
+
+/**
+ * Aguarda a configuração de sprites estar disponível
+ */
+function waitForCharacterConfig() {
+    return new Promise((resolve) => {
+        if (typeof CHARACTER_SPRITE_CONFIG !== 'undefined') {
+            resolve();
+            return;
+        }
+
+        const checkInterval = setInterval(() => {
+            if (typeof CHARACTER_SPRITE_CONFIG !== 'undefined') {
+                clearInterval(checkInterval);
+                resolve();
+            }
+        }, 100);
+
+        // Timeout após 5 segundos
+        setTimeout(() => {
+            clearInterval(checkInterval);
+            console.warn('⚠️ CHARACTER_SPRITE_CONFIG não disponível, continuando...');
+            resolve();
+        }, 5000);
+    });
+}
+
+// Auto-inicializar quando o DOM estiver pronto
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeBattlePreloader);
+} else {
+    initializeBattlePreloader();
+}

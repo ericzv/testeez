@@ -128,12 +128,14 @@ def apply_damage_to_player(player, damage):
 
     # ===== LÓGICA DE ABSORÇÃO DA BARREIRA =====
     current_barrier = player.barrier or 0
+    barrier_absorbed_all = False
     if current_barrier > 0:
         if current_barrier >= damage_to_hp:
             # Barreira absorve TUDO
             damage_absorbed = damage_to_hp
             player.barrier -= damage_to_hp
             damage_to_hp = 0
+            barrier_absorbed_all = True
             print(f"🛡️ Barreira absorveu {damage_absorbed} de dano. Restante: {player.barrier}")
         else:
             # Barreira absorve PARCIALMENTE e quebra
@@ -147,7 +149,17 @@ def apply_damage_to_player(player, damage):
     # Não há necessidade de verificar relíquias de "hit" ou "morte".
     if damage_to_hp <= 0:
         db.session.commit() # Salva a mudança na barreira
-        return 0 # Retorna 0 de dano ao HP
+
+        # ===== CORREÇÃO: RETORNAR DICT PARA DIFERENCIAR DE ESQUIVA =====
+        if barrier_absorbed_all:
+            return {
+                'barrier_absorbed': True,
+                'damage_blocked': damage_absorbed,
+                'barrier_remaining': player.barrier
+            }
+        # =============================================================
+
+        return 0 # Retorna 0 de dano ao HP (esquiva ou outro motivo)
 
     # ===== VERIFICAR BLOQUEIO DO PRIMEIRO ATAQUE (ID 7) =====
     # Esta lógica agora só roda se a Barreira não absorveu todo o dano

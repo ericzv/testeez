@@ -16,7 +16,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "devastating_blow_vignette": {
         name: "Golpe Devastador",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(95),
             emitterType: "burst",
@@ -205,7 +205,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "death_spin_vignette": {
         name: "Giro Mortal",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(110),
             emitterType: "circle",
@@ -399,7 +399,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "merciless_blow_vignette": {
         name: "Golpe Impiedoso",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(85),
             emitterType: "burst",
@@ -578,7 +578,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
         }
     },    "wild_fury_vignette": {
         name: "Fúria Selvagem",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(130),
             emitterType: "burst",
@@ -791,7 +791,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "frenetic_attack_vignette": {
         name: "Ataque Frenético",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(145),
             emitterType: "burst",
@@ -999,7 +999,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "bloody_blow_vignette": {
         name: "Golpe Sangrento",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(120),
             emitterType: "burst",
@@ -1215,7 +1215,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "primordial_devastation_vignette": {
         name: "Devastação Primordial",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(180),
             emitterType: "circle",
@@ -1464,7 +1464,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "bestial_claw_vignette": {
         name: "Garra Bestial",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(120),
             emitterType: "burst",
@@ -1666,7 +1666,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "death_bite_vignette": {
         name: "Mordida Mortal",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(90),
             emitterType: "burst",
@@ -1901,7 +1901,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "feral_attack_vignette": {
         name: "Ataque Feral",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(115),
             emitterType: "burst",
@@ -2134,7 +2134,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "lunar_frenzy_vignette": {
         name: "Frenesi Lunar",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(160),
             emitterType: "circle",

@@ -335,16 +335,17 @@ def choose_character_route():
             if not success:
                 flash(f'Erro ao resetar run: {message}', "danger")
                 return redirect(url_for('choose_character_route'))
-            
-            # Resetar energia ao máximo
-            player.energy = player.max_energy
-            db.session.commit()
-            print("⚡ Energia resetada ao máximo")
 
-            # Resetar HP ao máximo
-            player.hp = player.max_hp
-            db.session.commit()
-            print("❤️ HP resetado ao máximo")
+            # ===== CORREÇÃO: NÃO RESETAR COM player.max_hp =====
+            # reset_player_run já força HP e energia para valores base (80/10)
+            # Não devemos usar player.max_hp/player.max_energy aqui porque
+            # podem conter valores modificados de relíquias desativadas
+            # ====================================================
+
+            # Recarregar player para garantir valores corretos após reset
+            db.session.refresh(player)
+            print(f"❤️ HP após reset: {player.hp}/{player.max_hp}")
+            print(f"⚡ Energia após reset: {player.energy}/{player.max_energy}")
             
             # LIMPAR PROGRESSO E DESATIVAR INIMIGO/BOSS
             from models import PlayerProgress, GenericEnemy, LastBoss
@@ -388,12 +389,18 @@ def choose_character_route():
         # Usar a função existente para escolher personagem
         success, message = choose_character(player.id, character_id)
         if success:
-            # Garantir que HP está no máximo ao escolher personagem
+            # ===== CORREÇÃO: FORÇAR HP/ENERGIA BASE =====
+            # Garantir que usamos valores base corretos, não player.max_hp
             player = Player.query.get(player.id)
             if player:
-                player.hp = player.max_hp
+                player.hp = 80  # Valor base fixo
+                player.max_hp = 80  # Garantir que max_hp também está correto
+                player.energy = 10  # Valor base fixo
+                player.max_energy = 10  # Garantir que max_energy também está correto
                 db.session.commit()
-                print(f"❤️ HP restaurado: {player.hp}/{player.max_hp}")
+                print(f"❤️ HP forçado para valores base: {player.hp}/{player.max_hp}")
+                print(f"⚡ Energia forçada para valores base: {player.energy}/{player.max_energy}")
+            # ============================================
             # ===== ADICIONAR AQUI - MARCAR POP-UP DE RELÍQUIA =====
             session['pending_relic_selection'] = {
                 'count': 1,

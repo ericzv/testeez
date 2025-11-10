@@ -9,7 +9,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // 🔮 EXPLOSÃO ARCANA - De cima para baixo com runas e explosão centrífuga
     // ========================================
     "arcane_explosion_distant": {
-        duration: 2500,
+        duration: 1250, // OTIMIZADO: 2500ms → 1250ms (-50%)
         name: "Explosão Arcana Distante",
         create: function(app) {
             const container = new PIXI.Container();
@@ -301,7 +301,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // 🔥 CHAMA PURIFICADORA - De baixo para cima
     // ========================================
     "purifying_flame_distant": {
-        duration: 2500,
+        duration: 1250, // OTIMIZADO: 2500ms → 1250ms (-50%)
         name: "Chama Purificadora Distante",
         create: function(app) {
             const container = new PIXI.Container();
@@ -523,7 +523,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // ⚡ FISSÃO ARCANA - Rasgo vertical irregular
     // ========================================
     "arcane_fission_distant": {
-        duration: 2500,
+        duration: 1250, // OTIMIZADO: 2500ms → 1250ms (-50%)
         name: "Fissão Arcana Distante",
         create: function(app) {
             const container = new PIXI.Container();
@@ -698,7 +698,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // 💥 IMPLOSÃO MÁGICA - Fase centrípeta seguida de explosão
     // ========================================
     "magic_implosion_distant": {
-        duration: 2500,
+        duration: 1250, // OTIMIZADO: 2500ms → 1250ms (-50%)
         name: "Implosão Mágica Distante",
         create: function(app) {
             const container = new PIXI.Container();
@@ -1017,7 +1017,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // ⚡ TEMPESTADE ELEMENTAL - Raios multicores verticais
     // ========================================
     "elemental_storm_distant": {
-        duration: 2500,
+        duration: 1250, // OTIMIZADO: 2500ms → 1250ms (-50%)
         name: "Tempestade Elemental Distante",
         create: function(app) {
             const container = new PIXI.Container();
@@ -1187,7 +1187,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // 🌌 CAMINHO DO VAZIO ABSOLUTO - Raio vertical união centro
     // ========================================
     "absolute_void_distant": {
-        duration: 2500,
+        duration: 1250, // OTIMIZADO: 2500ms → 1250ms (-50%)
         name: "Caminho do Vazio Absoluto",
         create: function(app) {
             const container = new PIXI.Container();
@@ -1369,7 +1369,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // 🌑 ABRAÇO DA ESCURIDÃO - Elementos centrípetos da periferia para o centro
     // ========================================
     "darkness_embrace_distant": {
-        duration: 2500,
+        duration: 1250, // OTIMIZADO: 2500ms → 1250ms (-50%)
         name: "Abraço da Escuridão Distante",
         create: function(app) {
             const container = new PIXI.Container();
