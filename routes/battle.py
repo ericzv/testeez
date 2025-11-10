@@ -13,7 +13,7 @@ BENEFÍCIOS:
 # ===== IMPORTS PADRÃO =====
 import json
 from datetime import datetime
-from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, flash
 
 # ===== IMPORTS CORE =====
 from database import db
