@@ -239,15 +239,14 @@ def damage_boss():
     if not player:
         return jsonify({'success': False, 'message': 'Jogador não encontrado.'})
 
-    # FIX: Resetar barreira no INÍCIO do turno do player
-    # Barreira dura até o player atacar novamente (protege contra ataques do inimigo)
-    if not player.first_attack_done:
-        # Se é o primeiro ataque da batalha, não resetar (pode ter barreira de outras fontes)
-        pass
-    else:
-        # Se não é o primeiro ataque, resetar barreira do turno anterior
+    # FIX: Resetar barreira apenas no PRIMEIRO ataque após o turno do inimigo
+    # Usar session para rastrear se já resetou neste turno
+    if session.get('enemy_turn_just_ended', False):
+        # Turno do inimigo acabou, resetar barreira no próximo ataque
         player.barrier = 0
-        logger.info(f"Barreira do turno anterior resetada")
+        logger.info(f"Barreira resetada no início do novo turno do player")
+        session['enemy_turn_just_ended'] = False
+        session.modified = True
 
     # ===== 1. BUSCAR CACHE DA SKILL =====
     cache = get_cached_attack(player.id, skill_id)
@@ -1153,6 +1152,10 @@ def end_player_turn():
 
         result = process_enemy_turn(enemy, player_id=player_id)
 
+        # Marcar que o turno do inimigo acabou (para resetar barreira no próximo ataque)
+        session['enemy_turn_just_ended'] = True
+        session.modified = True
+
         return jsonify({
             'success': True,
             'message': f'Turno processado: {result["num_actions"]} ação(ões)',
@@ -1535,7 +1538,8 @@ def apply_victory_rewards():
     """Aplica recompensas de vitória"""
     try:
         player_id = get_authenticated_player_id()
-        data = request.json or {}
+        # FIX: usar get_json(silent=True) para não falhar com JSON vazio
+        data = request.get_json(silent=True) or {}
 
         enemy_data = {
             'number': data.get('enemy_number', 1),
