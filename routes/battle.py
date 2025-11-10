@@ -220,63 +220,399 @@ def battle():
 @battle_bp.route("/damage_boss", methods=['POST'])  # Compatibilidade
 def damage_boss():
     """
-    Executa ataque ao boss/inimigo.
-    REFATORADO: Usa BattleService
+    Processa o dano ao boss atual usando sistema de cache.
+    HÍBRIDO: Usa relic hooks + lógica original para compatibilidade total
     """
-    try:
-        # 1. Autenticar e validar
-        player_id = get_authenticated_player_id()
-        data = DAMAGE_BOSS_VALIDATOR.validate(request.json or {})
-        skill_id = data['skill_id']
+    import math
+    import random
+    from models import PlayerRelic, ActiveBuff, EnemySkillDebuff, PendingReward
+    from routes.relics import hooks as relic_hooks
+    from routes.battle_modules.battle_utils import apply_buffs_to_stats
+    from routes.enemy_attacks import update_buff_debuff_durations
 
-        logger.info(f"Player {player_id} attacking with skill {skill_id}")
+    # Obter dados do request
+    data = request.get_json()
+    skill_id = data.get('skill_id', 0)
 
-        # 2. Executar ataque via service
-        result = battle_service.execute_attack(player_id, skill_id)
+    # Obter jogador
+    player = Player.query.first()
+    if not player:
+        return jsonify({'success': False, 'message': 'Jogador não encontrado.'})
 
-        # 3. Buscar estados atualizados
-        player = player_repo.get_by_id(player_id)
-        enemy = enemy_repo.get_current_enemy(player_id)
+    # ===== 1. BUSCAR CACHE DA SKILL =====
+    cache = get_cached_attack(player.id, skill_id)
 
-        # 4. Se inimigo morreu, processar derrota
-        if result.enemy_died:
-            defeat_result = enemy_service.handle_enemy_defeat(player_id, enemy.id)
-            rewards = reward_service.apply_victory_rewards(player_id, {
-                'number': getattr(enemy, 'enemy_number', player.enemies_defeated),
-                'rarity': getattr(enemy, 'rarity', 1)
+    if not cache:
+        # Cache não existe - recalcular
+        logger.warning("Cache não encontrado, recalculando...")
+        calculate_attack_cache(player.id)
+        cache = get_cached_attack(player.id, skill_id)
+
+        if not cache:
+            return jsonify({
+                'success': False,
+                'message': 'Erro ao calcular cache de ataque. Tente novamente.'
             })
-        else:
-            rewards = None
 
-        logger.info(f"Attack result: {result.damage} damage, critical={result.is_critical}, enemy_died={result.enemy_died}")
+    logger.info(f"Usando cache: {cache.skill_name}, Dano Base: {cache.base_damage}, Custo: {cache.energy_cost}")
 
-        # 5. Retornar resposta
+    # ===== 2. HOOKS DE RELÍQUIAS - BEFORE ATTACK =====
+    attack_data = {
+        'base_damage': cache.base_damage,
+        'damage_multiplier': 1.0,
+        'lifesteal_bonus': 0.0,
+        'force_critical': False,
+        'skill_type': cache.skill_type
+    }
+
+    skill_data = {'type': cache.skill_type, 'name': cache.skill_name}
+    attack_data = relic_hooks.before_attack(player, skill_data, attack_data)
+
+    logger.info(f"Após relíquias: multiplicador={attack_data['damage_multiplier']:.2f}")
+
+    # ===== 3. VERIFICAR E CONSUMIR RECURSOS =====
+    if cache.energy_cost > player.energy:
         return jsonify({
-            'success': True,
-            'damage': result.damage,
-            'is_critical': result.is_critical,
-            'lifesteal': result.lifesteal,
-            'enemy_died': result.enemy_died,
-            'rewards': rewards,
-            'player': {
-                'hp': player.hp,
-                'max_hp': player.max_hp,
-                'energy': player.energy,
-                'max_energy': player.max_energy,
-                'barrier': getattr(player, 'barrier', 0)
-            },
-            'enemy': {
-                'hp': enemy.hp if enemy and not result.enemy_died else 0,
-                'max_hp': enemy.max_hp if enemy else 0
-            } if enemy else None,
-            'breakdown': result.breakdown
+            'success': False,
+            'message': f'Energia insuficiente! Você precisa de {cache.energy_cost} energia, mas tem apenas {player.energy}.'
         })
 
-    except GameException as e:
-        return jsonify({'success': False, 'error': str(e)}), e.code
+    # Consumir recursos
+    player.energy -= cache.energy_cost
+    logger.info(f"Recursos consumidos: -{cache.energy_cost} energia, restante: {player.energy}/{player.max_energy}")
+
+    # ===== 4. BUSCAR TARGET (BOSS OU INIMIGO) =====
+    progress = PlayerProgress.query.filter_by(player_id=player.id).first()
+    current_enemy = None
+    current_boss = None
+    is_boss_fight = False
+
+    # PRIORIDADE 1: Verificar se há boss selecionado
+    if progress and progress.selected_boss_id:
+        current_boss = LastBoss.query.get(progress.selected_boss_id)
+        if current_boss and current_boss.is_active:
+            is_boss_fight = True
+            logger.info(f"Atacando boss: {current_boss.name}")
+        else:
+            progress.selected_boss_id = None
+            db.session.commit()
+
+    # PRIORIDADE 2: Se não há boss, buscar inimigo genérico
+    if not is_boss_fight and progress and progress.selected_enemy_id:
+        current_enemy = GenericEnemy.query.get(progress.selected_enemy_id)
+        if not current_enemy or not current_enemy.is_available:
+            return jsonify({'success': False, 'message': 'Nenhum inimigo selecionado.'})
+
+    if not is_boss_fight and not current_enemy:
+        return jsonify({'success': False, 'message': 'Nenhum inimigo ou boss selecionado.'})
+
+    target = current_boss if is_boss_fight else current_enemy
+
+    # ===== 5. CALCULAR DANO COM TODAS AS MODIFICAÇÕES =====
+    final_damage = attack_data['base_damage']
+    final_crit_chance = cache.base_crit_chance
+    final_crit_multiplier = cache.base_crit_multiplier
+    lifesteal_percent = cache.lifesteal_percent + attack_data.get('lifesteal_bonus', 0.0)
+
+    # 5.1. APLICAR MULTIPLICADOR DE RELÍQUIAS
+    damage_multiplier = attack_data.get('damage_multiplier', 1.0)
+    if damage_multiplier != 1.0:
+        final_damage = int(final_damage * damage_multiplier)
+        logger.info(f"Dano com multiplicador de relíquias: {final_damage}")
+
+    # 5.2. APLICAR BÔNUS DE BATALHA (ID 50)
+    if cache.skill_type == 'attack':
+        battle_relic = PlayerRelic.query.filter_by(
+            player_id=player.id,
+            relic_id='50',
+            is_active=True
+        ).first()
+
+        if battle_relic:
+            state = json.loads(battle_relic.state_data or '{}')
+            battle_stacks = state.get('battle_stacks', 0)
+            if battle_stacks > 0:
+                final_damage += battle_stacks
+                logger.info(f"Bônus de batalha (ID 50): +{battle_stacks}")
+
+    # 5.3. APLICAR BUFFS TEMPORÁRIOS (ActiveBuff)
+    active_buffs = ActiveBuff.query.filter_by(player_id=player.id).all()
+
+    offensive_stats = {
+        'damage': 0,
+        'crit_chance': 0,
+        'crit_damage': 0,
+        'lifesteal': 0,
+        'ignore_defense': 0
+    }
+
+    offensive_stats = apply_buffs_to_stats(active_buffs, offensive_stats)
+
+    buffs_damage_multiplier = 1.0 + offensive_stats['damage']
+
+    if buffs_damage_multiplier != 1.0:
+        final_damage = int(final_damage * buffs_damage_multiplier)
+        logger.info(f"Dano após buffs: {final_damage}")
+
+    final_crit_chance += offensive_stats['crit_chance']
+    final_crit_multiplier += offensive_stats['crit_damage']
+    lifesteal_percent += offensive_stats['lifesteal']
+
+    # Reduzir duration de buffs baseados em ataques
+    for buff in active_buffs:
+        if buff.duration_type == "attacks":
+            buff.attacks_remaining -= 1
+            if buff.attacks_remaining <= 0:
+                db.session.delete(buff)
+
+    # 5.4. APLICAR DEBUFFS DO INIMIGO
+    try:
+        enemy_debuffs = EnemySkillDebuff.query.filter_by(player_id=player.id).filter(
+            EnemySkillDebuff.duration_remaining > 0
+        ).all()
+
+        debuff_damage_multiplier = 1.0
+
+        for debuff in enemy_debuffs:
+            if debuff.effect_type == 'decrease_damage':
+                debuff_damage_multiplier *= (1 - debuff.effect_value)
+                logger.info(f"Debuff reduzindo dano em {debuff.effect_value*100:.1f}%")
+            elif debuff.effect_type == 'decrease_crit':
+                final_crit_chance -= debuff.effect_value
+
+        if debuff_damage_multiplier < 1.0:
+            final_damage = int(final_damage * debuff_damage_multiplier)
+
+        final_crit_chance = max(0.0, final_crit_chance)
+        update_buff_debuff_durations('player_attack', player_id=player.id)
+
     except Exception as e:
-        logger.exception("Error in damage_boss")
-        return jsonify({'success': False, 'error': 'Erro interno'}), 500
+        logger.warning(f"Erro ao aplicar debuffs: {e}")
+
+    # 5.5. APLICAR BÔNUS TEMPORÁRIOS DE RELÍQUIAS (Momentum Plagosus)
+    momentum_relic = PlayerRelic.query.filter_by(
+        player_id=player.id,
+        relic_id='17',
+        is_active=True
+    ).first()
+
+    if momentum_relic:
+        state = json.loads(momentum_relic.state_data or '{}')
+        momentum_bonus = state.get('bonus_crit_next', 0.0)
+        if momentum_bonus > 0:
+            final_crit_chance += momentum_bonus
+            state['bonus_crit_next'] = 0.0
+            momentum_relic.state_data = json.dumps(state)
+            logger.info(f"Momentum Plagosus: +{momentum_bonus*100:.0f}% crit")
+
+    # ===== 6. ROLL DE CRÍTICO =====
+    is_critical = attack_data.get('force_critical', False) or (random.random() < final_crit_chance)
+
+    if is_critical:
+        final_damage = int(final_damage * final_crit_multiplier)
+        logger.info(f"CRÍTICO! {final_crit_multiplier:.2f}x → Dano final: {final_damage}")
+
+    # ===== 7. APLICAR DANO AO TARGET =====
+    damage_before = target.current_hp if is_boss_fight else target.hp
+    actual_damage_applied = min(final_damage, damage_before)
+
+    if is_boss_fight:
+        target.current_hp -= actual_damage_applied
+        target_hp_after = target.current_hp
+    else:
+        target.hp -= actual_damage_applied
+        target_hp_after = target.hp
+
+    logger.info(f"Dano aplicado: {actual_damage_applied}, HP: {damage_before} → {target_hp_after}")
+
+    # ===== 7.5. VERIFICAR DOUBLE FIRST ATTACK (ID 15) =====
+    if not player.first_attack_done:
+        double_relic = PlayerRelic.query.filter_by(
+            player_id=player.id,
+            relic_id='15',
+            is_active=True
+        ).first()
+
+        if double_relic:
+            second_damage = min(final_damage, target_hp_after)
+
+            if is_boss_fight:
+                target.current_hp -= second_damage
+                target_hp_after = target.current_hp
+            else:
+                target.hp -= second_damage
+                target_hp_after = target.hp
+
+            actual_damage_applied += second_damage
+            logger.info(f"Lança de Longino aplicou dano 2x! Dano adicional: {second_damage}")
+
+    # ===== 8. HOOK APÓS ATAQUE =====
+    relic_hooks.after_attack(player, {
+        'damage': actual_damage_applied,
+        'is_critical': is_critical,
+        'skill_type': cache.skill_type
+    })
+
+    # ===== 9. VAMPIRISMO E BARREIRA =====
+    special_effects = []
+    heal_amount = 0
+
+    if lifesteal_percent > 0:
+        heal_amount = int(actual_damage_applied * lifesteal_percent)
+        player.hp = min(player.hp + heal_amount, player.max_hp)
+        special_effects.append(f"Roubo de Vida: +{heal_amount} HP")
+        logger.info(f"Vampirismo: +{heal_amount} HP")
+
+    # 9.5. BARREIRA
+    barrier_percent = 0.0
+    barrier_bonus = 0
+
+    if hasattr(cache, 'effect_type') and cache.effect_type == 'barrier':
+        barrier_percent = cache.effect_value or 0.0
+        bonus_from_cache = getattr(cache, 'effect_bonus', 0)
+        barrier_bonus = bonus_from_cache if bonus_from_cache is not None else 0
+
+    barrier_gained = 0
+    if barrier_percent > 0 or barrier_bonus > 0:
+        barrier_gained = math.ceil((actual_damage_applied * barrier_percent) + barrier_bonus)
+        player.barrier = (player.barrier or 0) + barrier_gained
+        special_effects.append(f"Barreira: +{barrier_gained}")
+        logger.info(f"Barreira ganha: +{barrier_gained} (Total: {player.barrier})")
+
+    # ===== 10. REGISTRAR DANO MÁXIMO =====
+    if actual_damage_applied > player.damage_max_recorded:
+        player.damage_max_recorded = actual_damage_applied
+
+    # ===== 11. VERIFICAR VITÓRIA =====
+    target_defeated = target_hp_after <= 0
+
+    # Inicializar variáveis de recompensa
+    exp_reward = 0
+    crystals_gained = 0
+    gold_gained = 0
+    hourglasses_gained = 0
+    reward_type = None
+    relic_bonus_messages = []
+
+    if target_defeated:
+        if is_boss_fight:
+            target.current_hp = 0
+        else:
+            target.hp = 0
+
+        target_name = target.name
+        logger.info(f"{'BOSS' if is_boss_fight else 'INIMIGO'} DERROTADO: {target_name}")
+
+        # ===== HOOK AO MATAR =====
+        relic_hooks.on_kill(player, {
+            'enemy_name': target_name,
+            'enemy_rarity': getattr(target, 'rarity', 1) if not is_boss_fight else 5
+        })
+
+        # Verificar se tomou dano
+        took_damage = session.get('player_took_damage', False)
+
+        # ===== CALCULAR RECOMPENSAS (simplificado por enquanto) =====
+        if is_boss_fight:
+            base_exp = target.reward_crystals // 4
+            exp_reward = base_exp
+            crystals_gained = target.reward_crystals
+            reward_type = 'crystals'
+
+            target.is_active = False
+            progress.selected_boss_id = None
+            player.run_bosses_defeated += 1
+
+        else:
+            # Recompensas de inimigo genérico
+            base_exp = random.randint(30 + (current_enemy.enemy_number * 10), 50 + (current_enemy.enemy_number * 20))
+            rarity_multipliers = {1: 1.0, 2: 1.2, 3: 1.5, 4: 2.0}
+            rarity_multiplier = rarity_multipliers.get(current_enemy.rarity, 1.0)
+
+            exp_reward = int(base_exp * rarity_multiplier)
+            reward_type = current_enemy.reward_type or 'crystals'
+
+            if reward_type == 'crystals':
+                base_crystals = random.randint(30 + (current_enemy.enemy_number * 5), 50 + (current_enemy.enemy_number * 8))
+                crystals_gained = int(base_crystals * rarity_multiplier)
+
+            current_enemy.is_available = False
+            progress.selected_enemy_id = None
+
+            # ===== MODIFICAR COM RELÍQUIAS =====
+            original_rewards = {
+                'crystals': crystals_gained,
+                'gold': gold_gained,
+                'hourglasses': hourglasses_gained
+            }
+
+            rewards = {
+                'crystals': crystals_gained,
+                'gold': gold_gained,
+                'hourglasses': hourglasses_gained
+            }
+
+            rewards = relic_hooks.on_rewards(player, rewards)
+
+            crystals_gained = rewards['crystals']
+            gold_gained = rewards['gold']
+            hourglasses_gained = rewards['hourglasses']
+
+            # Gerar mensagens de bônus
+            if rewards['gold'] > original_rewards['gold']:
+                bonus = rewards['gold'] - original_rewards['gold']
+                relic_bonus_messages.append(f"💰 +{bonus} Ouro")
+
+            if rewards['crystals'] > original_rewards['crystals']:
+                bonus = rewards['crystals'] - original_rewards['crystals']
+                relic_bonus_messages.append(f"💎 +{bonus} Cristais")
+
+        # Resetar flags de batalha
+        session['battle_started'] = False
+        session['player_took_damage'] = False
+
+        # ===== APLICAR EFEITOS DE VITÓRIA =====
+        relic_hooks.on_victory(player)
+
+        # ===== RESETAR CONTADORES =====
+        relic_hooks.reset_battle_counters(player)
+        logger.info("Contadores de batalha resetados")
+
+    # ===== 12. SALVAR ALTERAÇÕES =====
+    try:
+        db.session.commit()
+        logger.info("Alterações salvas com sucesso")
+    except Exception as e:
+        logger.error(f"Erro ao salvar: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'message': f'Erro ao salvar: {e}'})
+
+    # ===== 13. RETORNAR RESULTADO (FORMATO COMPATÍVEL COM FRONTEND) =====
+    return jsonify({
+        'success': True,
+        'damage': actual_damage_applied,
+        'is_critical': is_critical,
+        'boss_hp': target_hp_after,
+        'boss_max_hp': target.max_hp,
+        'boss_defeated': target_defeated,
+        'player_hp': player.hp,
+        'player_max_hp': player.max_hp,
+        'player_energy': player.energy,
+        'player_max_energy': player.max_energy,
+        'player_barrier': player.barrier,
+        'attack_type': cache.skill_type,
+        'extra_messages': special_effects,
+        'reward_type': reward_type if target_defeated else None,
+        'reward_icon': (current_enemy.reward_icon if current_enemy else 'crystal.png') if target_defeated else None,
+        'enemy_name': target.name if target_defeated else None,
+        'damage_dealt': actual_damage_applied if target_defeated else 0,
+        'crystals_gained': crystals_gained if target_defeated else 0,
+        'gold_gained': gold_gained if target_defeated else 0,
+        'hourglasses_gained': hourglasses_gained if target_defeated else 0,
+        'heal_amount': heal_amount,
+        'relic_bonus_messages': '\n'.join(relic_bonus_messages) if target_defeated else '',
+        'should_refresh_skills': True
+    })
 
 
 @battle_bp.route("/api/select_enemy", methods=['POST'])
@@ -284,7 +620,7 @@ def damage_boss():
 def select_enemy():
     """
     Seleciona inimigo para batalha.
-    REFATORADO: Usa EnemyService
+    REFATORADO: Usa EnemyService + inicializa ações do inimigo
     """
     try:
         player_id = get_authenticated_player_id()
@@ -301,6 +637,29 @@ def select_enemy():
 
         # Recalcular cache
         calculate_attack_cache(player_id)
+
+        # ===== INICIALIZAR TURNO DO INIMIGO =====
+        # Buscar inimigo selecionado
+        enemy = GenericEnemy.query.get(enemy_id)
+        if enemy:
+            from routes.enemy_attacks import get_next_actions
+
+            # Resetar contador de turnos
+            enemy.battle_turn_counter = 0
+            logger.info(f"Contador de turnos resetado para {enemy.name}")
+
+            # Pré-calcular intenções do Turno 1
+            next_turn_data = get_next_actions(enemy)
+            next_intentions = next_turn_data['actions']
+            enemy.next_intentions_cached = json.dumps(next_intentions)
+            logger.info(f"Intenções do Turno 1 pré-calculadas: {[a.get('type') for a in next_intentions]}")
+
+            # Marcar todos os inimigos disponíveis como vistos
+            available_enemies = GenericEnemy.query.filter_by(is_available=True).all()
+            for available_enemy in available_enemies:
+                available_enemy.is_new = False
+
+            db.session.commit()
 
         return jsonify({
             'success': True,
