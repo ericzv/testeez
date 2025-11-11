@@ -343,33 +343,45 @@ window.battlePreloader = new BattleAssetPreloader();
 // Função principal para iniciar o preload
 async function initializeBattlePreloader() {
     console.log('=== BATTLE PRELOADER INICIANDO ===');
-    console.log('📊 Estado inicial da barra:', document.getElementById('progress-bar'));
+    const barElement = document.getElementById('progress-bar');
+    console.log('📊 Estado inicial da barra:', barElement);
+    console.log('📊 Width da barra:', barElement ? barElement.style.width : 'não encontrada');
 
-    // Aguardar dados estarem disponíveis
-    await waitForGameData();
-    console.log('✅ Dados do jogo disponíveis');
+    try {
+        // Aguardar dados estarem disponíveis
+        await waitForGameData();
+        console.log('✅ Dados do jogo disponíveis');
 
-    // Obter dados do personagem e inimigo
-    const characterId = window.gameData?.characterId || document.getElementById('current-character')?.textContent;
-    const enemyData = window.currentEnemy || {}; // Será populado pelo battle-base.js
-    console.log('🎮 CharacterId:', characterId, 'Enemy:', enemyData);
+        // Obter dados do personagem e inimigo
+        const characterId = window.gameData?.characterId || document.getElementById('current-character')?.textContent;
+        const enemyData = window.currentEnemy || {}; // Será populado pelo battle-base.js
+        console.log('🎮 CharacterId:', characterId, 'Enemy:', enemyData);
 
-    // Inicializar preloader
-    window.battlePreloader.initialize(characterId, enemyData);
-    console.log('✅ Preloader inicializado');
+        // Inicializar preloader
+        window.battlePreloader.initialize(characterId, enemyData);
+        console.log('✅ Preloader inicializado');
+        console.log('📊 Estado da barra após init:', window.battlePreloader.progressBar);
 
-    // Aguardar CHARACTER_SPRITE_CONFIG estar disponível
-    await waitForCharacterConfig();
-    console.log('✅ Character config disponível');
+        // Aguardar CHARACTER_SPRITE_CONFIG estar disponível
+        console.log('⏳ Aguardando CHARACTER_SPRITE_CONFIG...');
+        await waitForCharacterConfig();
+        console.log('✅ Character config disponível');
 
-    // Coletar todos os assets
-    window.battlePreloader.collectAssets();
-    console.log('✅ Assets coletados:', window.battlePreloader.totalAssets);
+        // Coletar todos os assets
+        console.log('📦 Coletando assets...');
+        window.battlePreloader.collectAssets();
+        console.log('✅ Assets coletados:', window.battlePreloader.totalAssets);
 
-    // Iniciar carregamento
-    await window.battlePreloader.startLoading();
+        // Iniciar carregamento
+        console.log('⏳ Iniciando carregamento de assets...');
+        await window.battlePreloader.startLoading();
+        console.log('✅ Carregamento completo');
 
-    console.log('=== PRELOAD CONCLUÍDO ===');
+        console.log('=== PRELOAD CONCLUÍDO ===');
+    } catch (error) {
+        console.error('❌ Erro no preloader:', error);
+        console.error('❌ Stack trace:', error.stack);
+    }
 
     // Remover loading screen será feito pelo battle-base.js após inicialização completa
 }
