@@ -1314,7 +1314,7 @@
   /* Character and Boss */
   .character-container, .boss-container {
     position: absolute;
-    transition: all 0.4s linear; /* Mesma duração da transição de tela (0.4s) */
+    transition: all 0.2s ease-out; /* Transição mais rápida e suave (reduzido de 0.4s) */
     height: 256px;  /* Dobrado de 128px para 256px */
     width: 256px;   /* Dobrado de 128px para 256px */
   }
@@ -1651,11 +1651,11 @@
       color: #ff4444;
       text-shadow: 0 0 5px rgba(255, 68, 68, 0.8);
       white-space: nowrap;
-      
+
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s ease;
-      z-index: 100;
+      z-index: 10000; /* Aumentado para aparecer acima dos botões do submenu (z-index 9999) */
   }
 
   .skill-button.insufficient-energy:hover::after {
@@ -2605,7 +2605,7 @@
     z-index: 10000;
     visibility: hidden;
     opacity: 0;
-    transition: opacity 0.4s linear;
+    transition: opacity 0.2s ease-out; /* Transição mais rápida (reduzido de 0.4s) */
     pointer-events: all !important;
   }
   
@@ -2623,7 +2623,7 @@
     z-index: 1200;
     visibility: hidden;
     opacity: 0;
-    transition: all 0.4s linear;
+    transition: all 0.2s ease-out; /* Transição mais rápida (reduzido de 0.4s) */
     max-height: none; /* Permite altura natural */
     pointer-events: all !important;
   }

@@ -2746,6 +2746,10 @@ function performAttack(skill) {
         executePhase_player_run_return() {
             console.log("QC Fase: Player Run Return");
 
+            // LIMPAR TRANSFORM INLINE (ajuste de +3vw do melee_strike)
+            character.style.transform = '';
+            console.log("🧹 Limpando transform inline antes do retorno");
+
             let animConfig;
 
             // PARA VLAD: usar animação 'return' específica (melhor que run invertida)
@@ -2794,6 +2798,9 @@ function performAttack(skill) {
                     // Restauração limpa e gradual para evitar flicker
                     battleArena.classList.remove('quick-cut-boss', 'quick-cut-player');
 
+                    // GARANTIR QUE TRANSFORM ESTÁ LIMPO
+                    character.style.transform = '';
+
                     this.nextPhase(300);
                 }, duration * 0.8);
 
@@ -2807,6 +2814,10 @@ function performAttack(skill) {
                 setTimeout(() => {
                     restoreCharacterIdle();
                     battleArena.classList.remove('quick-cut-boss', 'quick-cut-player');
+
+                    // GARANTIR QUE TRANSFORM ESTÁ LIMPO
+                    character.style.transform = '';
+
                     this.nextPhase(300);
                 }, 1200);
             }
