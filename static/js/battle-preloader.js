@@ -36,28 +36,37 @@ class BattleAssetPreloader {
     createProgressBar() {
         if (!this.loadingScreen) return;
 
-        const progressContainer = document.createElement('div');
-        progressContainer.style.cssText = `
-            width: 60%;
-            max-width: 400px;
-            height: 20px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 20px;
-        `;
+        // Tentar usar a barra que já existe no HTML
+        this.progressBar = document.getElementById('progress-bar');
 
-        this.progressBar = document.createElement('div');
-        this.progressBar.style.cssText = `
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(90deg, #4CAF50, #8BC34A);
-            transition: width 0.3s ease;
-        `;
+        if (!this.progressBar) {
+            // Se não existir, criar dinamicamente
+            console.log('📊 Criando barra de progresso dinamicamente');
+            const progressContainer = document.createElement('div');
+            progressContainer.style.cssText = `
+                width: 60%;
+                max-width: 400px;
+                height: 20px;
+                background: rgba(0, 0, 0, 0.5);
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 10px;
+                overflow: hidden;
+                margin-top: 20px;
+            `;
 
-        progressContainer.appendChild(this.progressBar);
-        this.loadingScreen.appendChild(progressContainer);
+            this.progressBar = document.createElement('div');
+            this.progressBar.style.cssText = `
+                width: 0%;
+                height: 100%;
+                background: linear-gradient(90deg, #4CAF50, #8BC34A);
+                transition: width 0.3s ease;
+            `;
+
+            progressContainer.appendChild(this.progressBar);
+            this.loadingScreen.appendChild(progressContainer);
+        } else {
+            console.log('📊 Usando barra de progresso do HTML');
+        }
     }
 
     /**
@@ -334,22 +343,28 @@ window.battlePreloader = new BattleAssetPreloader();
 // Função principal para iniciar o preload
 async function initializeBattlePreloader() {
     console.log('=== BATTLE PRELOADER INICIANDO ===');
+    console.log('📊 Estado inicial da barra:', document.getElementById('progress-bar'));
 
     // Aguardar dados estarem disponíveis
     await waitForGameData();
+    console.log('✅ Dados do jogo disponíveis');
 
     // Obter dados do personagem e inimigo
     const characterId = window.gameData?.characterId || document.getElementById('current-character')?.textContent;
     const enemyData = window.currentEnemy || {}; // Será populado pelo battle-base.js
+    console.log('🎮 CharacterId:', characterId, 'Enemy:', enemyData);
 
     // Inicializar preloader
     window.battlePreloader.initialize(characterId, enemyData);
+    console.log('✅ Preloader inicializado');
 
     // Aguardar CHARACTER_SPRITE_CONFIG estar disponível
     await waitForCharacterConfig();
+    console.log('✅ Character config disponível');
 
     // Coletar todos os assets
     window.battlePreloader.collectAssets();
+    console.log('✅ Assets coletados:', window.battlePreloader.totalAssets);
 
     // Iniciar carregamento
     await window.battlePreloader.startLoading();

@@ -15,8 +15,11 @@
 <body>
 <!-- Loading Screen -->
 <div class="loading-screen" id="loading-screen">
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
         <div class="loading-text">Preparando para Batalha...</div>
+        <div id="progress-container" style="width: 60%; max-width: 400px; height: 20px; background: rgba(0, 0, 0, 0.5); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 10px; overflow: hidden;">
+            <div id="progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #4CAF50, #8BC34A); transition: width 0.3s ease;"></div>
+        </div>
     </div>
 </div>
 
