@@ -2708,23 +2708,23 @@
   }
   
   .submenu.visible .skill-button:nth-child(1) {
-    transition-delay: 0.1s;
+    transition-delay: 0s;
   }
-  
+
   .submenu.visible .skill-button:nth-child(2) {
-    transition-delay: 0.3s;
+    transition-delay: 0s;
   }
-  
+
   .submenu.visible .skill-button:nth-child(3) {
-    transition-delay: 0.25s; /* OTIMIZADO: 0.5s → 0.25s (-50%) */
+    transition-delay: 0s;
   }
-  
+
   .submenu.visible .skill-button:nth-child(4) {
-    transition-delay: 0.7s;
+    transition-delay: 0s;
   }
-  
+
   .submenu.visible .skill-button:nth-child(5) {
-    transition-delay: 0.9s;
+    transition-delay: 0s;
   }
   
   /* Manter a angulação no submenu de ATACAR na zoom-view */
@@ -3218,23 +3218,23 @@
   }
   
   .zoom-view #attack-submenu.visible .skill-button:nth-child(1) {
-    transition-delay: 0.1s;
-    animation: buttonShake 0.3s 0.25s; /* OTIMIZADO: 0.5s → 0.25s (-50%) */
+    transition-delay: 0s;
+    animation: buttonShake 0.3s 0s;
   }
-  
+
   .zoom-view #attack-submenu.visible .skill-button:nth-child(2) {
-    transition-delay: 0.25s; /* OTIMIZADO: 0.5s → 0.25s (-50%) */ /* 0.1 + 0.4 */
-    animation: buttonShake 0.3s 0.45s; /* OTIMIZADO: 0.9s → 0.45s (-50%) */
+    transition-delay: 0s;
+    animation: buttonShake 0.3s 0s;
   }
-  
+
   .zoom-view #attack-submenu.visible .skill-button:nth-child(3) {
-    transition-delay: 0.9s; /* 0.5 + 0.4 */
-    animation: buttonShake 0.3s 0.65s; /* OTIMIZADO: 1.3s → 0.65s (-50%) */
+    transition-delay: 0s;
+    animation: buttonShake 0.3s 0s;
   }
-  
+
   .zoom-view #attack-submenu.visible .skill-button:nth-child(4) {
-    transition-delay: 1.3s; /* 0.9 + 0.4 */
-    animation: buttonShake 0.3s 0.85s; /* OTIMIZADO: 1.7s → 0.85s (-50%) */
+    transition-delay: 0s;
+    animation: buttonShake 0.3s 0s;
   }
   
   .zoom-view-leaving .skill-button,
@@ -3267,19 +3267,19 @@
   }
   
   .submenu.visible .skill-button:nth-child(1) {
-    transition-delay: 0.1s;
+    transition-delay: 0s;
   }
-  
+
   .submenu.visible .skill-button:nth-child(2) {
-    transition-delay: 0.3s;
+    transition-delay: 0s;
   }
-  
+
   .submenu.visible .skill-button:nth-child(3) {
-    transition-delay: 0.25s; /* OTIMIZADO: 0.5s → 0.25s (-50%) */
+    transition-delay: 0s;
   }
-  
+
   .submenu.visible .skill-button:nth-child(4) {
-    transition-delay: 0.7s;
+    transition-delay: 0s;
   }
   
   .skill-button:hover:not(.disabled) {
