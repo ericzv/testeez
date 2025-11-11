@@ -149,7 +149,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "energy_overload_vignette": {
         name: "Sobrecarga de Energia",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(135),
             emitterType: "burst",
@@ -414,7 +414,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "arcane_projectile_vignette": {
         name: "Projétil Arcano",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(100),
             emitterType: "circle",
@@ -596,7 +596,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "arcane_explosion_vignette": {
         name: "Explosão Arcana",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(40),
             emitterType: "circle",
@@ -796,7 +796,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "elemental_ray_vignette": {
         name: "Raio Elemental",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(80),
             emitterType: "burst",
@@ -1002,7 +1002,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "divine_hammer_vignette": {
         name: "Martelo Divino",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(85),
             emitterType: "burst",
@@ -1176,7 +1176,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "celestial_judgment_vignette": {
         name: "Julgamento Celestial",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(40),
             emitterType: "circle",
@@ -1352,7 +1352,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "purifying_flame_vignette": {
         name: "Chama Purificadora",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(145),
             emitterType: "burst",
@@ -1540,7 +1540,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "divine_apotheosis_vignette": {
         name: "Apoteose Divina",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(160),
             emitterType: "circle",
@@ -1707,7 +1707,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "arcane_fission_vignette": {
         name: "Fissão Arcana",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(150),
             emitterType: "burst",
@@ -1885,7 +1885,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "magical_implosion_vignette": {
         name: "Implosão Mágica",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(105),
             emitterType: "circle",
@@ -2075,7 +2075,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
     "elemental_storm_vignette": {
         name: "Tempestade Elemental",
-        duration: 5000,
+        duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(105),
             emitterType: "burst",
@@ -2275,7 +2275,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
 
 "arcane_singularity_vignette": {
     name: "Singularidade Arcana",
-    duration: 5000,
+    duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
     particles: {
         count: VIGNETTE_LOD.getParticleCount(80),
         emitterType: "circle",

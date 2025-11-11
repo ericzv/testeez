@@ -263,9 +263,9 @@ def execute_enemy_attack(player, enemy):
         enemy.attack_charges_count -= 1
         print(f"⚡ Ataque básico consumido. Cargas restantes: {enemy.attack_charges_count}")
         
-        # Aplicar dano ao jogador usando sistema existente  
+        # Aplicar dano ao jogador usando sistema existente
         damage_result = apply_damage_to_player(player, enemy.damage)
-        
+
         # ← NOVA LÓGICA: Detectar se Lázaro ativou
         if isinstance(damage_result, dict) and damage_result.get('lazaro_activated'):
             result = {
@@ -283,6 +283,24 @@ def execute_enemy_attack(player, enemy):
                 'action_consumed': consumed_action,
                 'is_skill_attack': False
             }
+        # ===== CORREÇÃO: Detectar se barreira absorveu =====
+        elif isinstance(damage_result, dict) and damage_result.get('barrier_absorbed'):
+            result = {
+                'success': True,
+                'attack_result': 'barrier_absorbed',  # ← Novo tipo de resultado
+                'damage_dealt': 0,
+                'damage_blocked': damage_result['damage_blocked'],
+                'player_hp': player.hp,
+                'player_max_hp': player.max_hp,
+                'player_barrier': player.barrier,
+                'player_died': False,
+                'charges_remaining': enemy.attack_charges_count,
+                'hit_animation': consumed_action['data']['hit_animation'],
+                'attack_sfx': consumed_action['data'].get('attack_sfx') or consumed_action['data'].get('hit_sound'),
+                'action_consumed': consumed_action,
+                'is_skill_attack': False
+            }
+        # ===================================================
         else:
             # Lógica normal - damage_result pode ser int ou dict
             if isinstance(damage_result, dict):

@@ -128,12 +128,14 @@ def apply_damage_to_player(player, damage):
 
     # ===== LÓGICA DE ABSORÇÃO DA BARREIRA =====
     current_barrier = player.barrier or 0
+    barrier_absorbed_all = False
     if current_barrier > 0:
         if current_barrier >= damage_to_hp:
             # Barreira absorve TUDO
             damage_absorbed = damage_to_hp
             player.barrier -= damage_to_hp
             damage_to_hp = 0
+            barrier_absorbed_all = True
             print(f"🛡️ Barreira absorveu {damage_absorbed} de dano. Restante: {player.barrier}")
         else:
             # Barreira absorve PARCIALMENTE e quebra

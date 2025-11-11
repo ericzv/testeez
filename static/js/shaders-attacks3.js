@@ -9,7 +9,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // ⚙️ METAL/METAL - Guerreiro/Samurai
     // ========================================
     "metal_damage": {
-        duration: 1200,
+        duration: 600, // OTIMIZADO: 1200ms → 600ms (-50%)
         name: "Dano Metálico",
         create: function(app) {
             const container = new PIXI.Container();
@@ -241,7 +241,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // 💰 FORTUNE/DOURADO - Ladrão
     // ========================================
     "fortune_damage": {
-        duration: 1600,
+        duration: 800, // OTIMIZADO: 1600ms → 800ms (-50%)
         name: "Dano Dourado",
         create: function(app) {
             const container = new PIXI.Container();
@@ -476,7 +476,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // 🌌 GRAVITY/GRAVIDADE - Elemental Espacial
     // ========================================
     "gravity_damage": {
-        duration: 1600,
+        duration: 800, // OTIMIZADO: 1600ms → 800ms (-50%)
         name: "Dano Gravitacional",
         create: function(app) {
             const container = new PIXI.Container();
@@ -648,7 +648,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // 🌟 COSMIC/CÓSMICO - Ser Celestial
     // ========================================
     "cosmic_damage": {
-        duration: 1600,
+        duration: 800, // OTIMIZADO: 1600ms → 800ms (-50%)
         name: "Dano Cósmico",
         create: function(app) {
             const container = new PIXI.Container();
@@ -804,7 +804,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // 💀 NECROTIC/NECRÓTICO - Lich
     // ========================================
     "necrotic_damage": {
-        duration: 1600,
+        duration: 800, // OTIMIZADO: 1600ms → 800ms (-50%)
         name: "Dano Necrótico",
         create: function(app) {
             const container = new PIXI.Container();
@@ -975,7 +975,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // ========================================
 
     "nature_damage": {
-        duration: 1600,
+        duration: 800, // OTIMIZADO: 1600ms → 800ms (-50%)
         name: "Dano Natural",
         create: function(app) {
             const container = new PIXI.Container();
@@ -1103,7 +1103,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // ⚡ ENERGY/ENERGIA - Sobrecarga de Energia
     // ========================================
     "energy_damage": {
-        duration: 1600,
+        duration: 800, // OTIMIZADO: 1600ms → 800ms (-50%)
         name: "Dano Energético",
         create: function(app) {
             const container = new PIXI.Container();
@@ -1228,7 +1228,7 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
     // 🔨 HAMMER/MARTELO - Martelo Divino
     // ========================================
     "hammer_damage": {
-        duration: 1200,
+        duration: 600, // OTIMIZADO: 1200ms → 600ms (-50%)
         name: "Dano do Martelo",
         create: function(app) {
             const container = new PIXI.Container();

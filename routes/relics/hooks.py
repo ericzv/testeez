@@ -9,6 +9,42 @@ from .processor import apply_relic_effect
 from .registry import get_relic_definition
 import json
 
+
+def trigger_relic_hooks(player, event_name, event_data=None):
+    """
+    Função genérica para disparar hooks de relíquias.
+
+    Args:
+        player: Objeto Player
+        event_name: Nome do evento (ex: 'on_victory', 'on_rewards', 'before_attack')
+        event_data: Dados adicionais para o evento (opcional)
+
+    Returns:
+        Resultado do hook (se houver)
+    """
+    if event_data is None:
+        event_data = {}
+
+    # Mapear nome do evento para a função correspondente
+    hook_functions = {
+        'on_combat_start': lambda: on_combat_start(player, event_data.get('enemy')),
+        'before_attack': lambda: before_attack(player, event_data.get('skill_data', {}), event_data.get('attack_data', {})),
+        'after_attack': lambda: after_attack(player, event_data.get('attack_result', {})),
+        'on_kill': lambda: on_kill(player, event_data.get('enemy_data', {})),
+        'on_rewards': lambda: on_rewards(player, event_data.get('rewards', {})),
+        'on_victory': lambda: on_victory(player),
+        'on_acquire': lambda: on_acquire(player.id, event_data.get('player_relic')),
+        'reset_battle_counters': lambda: reset_battle_counters(player)
+    }
+
+    # Executar a função correspondente
+    hook_func = hook_functions.get(event_name)
+    if hook_func:
+        return hook_func()
+    else:
+        print(f"⚠️ Hook '{event_name}' não encontrado")
+        return None
+
 def get_active_relics(player_id):
     """Retorna relíquias ativas do jogador"""
     return PlayerRelic.query.filter_by(
