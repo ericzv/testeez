@@ -1900,21 +1900,21 @@ function performAttack(skill) {
         executePhase_player_run_advance() {
             console.log("QC Fase: Player Run Advance");
 
-            // Calcular distância proporcional baseada no tamanho da tela
+            // Calcular distância baseada na VIEWPORT WIDTH (vw) para consistência entre telas
             const screenWidth = window.innerWidth;
             let movementDistance;
 
             if (screenWidth <= 1366) {
-                movementDistance = '85%'; // Telas menores - alcançar o inimigo
+                movementDistance = '35vw'; // Telas menores - 35% da largura da viewport
             } else if (screenWidth <= 1920) {
-                movementDistance = '95%'; // Telas médias - alcançar o inimigo
+                movementDistance = '40vw'; // Telas médias - 40% da largura da viewport
             } else {
-                movementDistance = '105%'; // Telas grandes - alcançar o inimigo
+                movementDistance = '45vw'; // Telas grandes - 45% da largura da viewport
             }
-            
+
             // Definir variável CSS customizada
             character.style.setProperty('--movement-distance', movementDistance);
-            console.log(`🎯 Distância de movimento definida: ${movementDistance} para tela ${screenWidth}px`);
+            console.log(`🎯 Distância de movimento definida: ${movementDistance} (${screenWidth}px de tela)`);
             
             // Liberar movimento do personagem mantendo boss posicionado
             window.visualStateManager.applyState('player_moving');
