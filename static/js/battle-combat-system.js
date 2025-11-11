@@ -219,12 +219,12 @@ const VISUAL_STATES = {
     },
     
     player_moving: {
-        // Manter classes necessárias para o movimento funcionar
-        battleArena: { classes: ['quick-cut-transition', 'quick-cut-player'] },
-        background: { transformOrigin: 'center 85%' },
-        character: { transform: 'scale(2.8) translate(-25%, -30%)' }, // Manter scale 2.8 consistente
-        boss: { classes: ['boss-focus-center'] },
-        huds: { opacity: '0' }
+        // Estado para movimento sem zoom - personagem mantém tamanho original
+        battleArena: { classes: [] }, // Sem zoom
+        background: { transformOrigin: 'center center' },
+        character: { transform: 'none' }, // Sem escala, tamanho original
+        boss: {}, // Boss não se move
+        huds: { opacity: '1' } // HUDs visíveis
     }
 };
 
@@ -1181,7 +1181,7 @@ function performAttack(skill) {
         melee_teleport_ultimate: ['cast_preparation', 'player_teleport_advance', 'transition_delay', 'focus_boss', 'ultimate_strike', 'apply_damage', 'player_teleport_return', 'restore_complete'],
 
         // Ataques corpo a corpo com corrida
-        melee_run_basic: ['focus_center', 'zoom_out_after_fx', 'transition_delay', 'player_run_advance', 'melee_strike', 'apply_damage', 'player_run_return_with_zoomout', 'restore_complete'],
+        melee_run_basic: ['transition_delay', 'player_run_advance', 'melee_strike', 'apply_damage', 'player_run_return', 'restore_complete'],
         melee_run_ultimate: ['transition_delay', 'player_run_advance', 'ultimate_strike', 'apply_damage', 'player_run_return', 'restore_complete'],
 
         // Ataques à distância

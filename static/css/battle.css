@@ -3841,7 +3841,18 @@
 
   /* ===== CLASSES PARA MOVIMENTO DO PERSONAGEM (Opção 3 - Solução Limpa) ===== */
 
-  /* Movimento durante quick-cut-player (fase focus_player) */
+  /* Movimento SEM zoom (ataque básico) - mantém tamanho original */
+  .character-container.moving-to-boss {
+      transform: translateX(var(--movement-distance, 50%)) !important;
+      transition: transform 1.0s linear !important;
+  }
+
+  .character-container.moving-back {
+      transform: translateX(0%) !important;
+      transition: transform 1.0s linear !important;
+  }
+
+  /* Movimento durante quick-cut-player (fase focus_player) - com zoom */
   #battle-arena.quick-cut-player .character-container.moving-to-boss {
       transform: scale(2.5) translate(-10%, -30%) translateX(var(--movement-distance, 70%)) !important;
       transition: transform 1.0s linear !important;
@@ -3979,11 +3990,13 @@
   /* Animação de corrida em loop para avanço */
   .run-advance-anim .character-sprite-layer {
       animation: run-animation 0.6s steps(8) infinite !important;
+      animation-fill-mode: both !important;
+      animation-timing-function: steps(8, end) !important;
   }
 
   @keyframes run-animation {
-      from { background-position-x: 0; }
-      to { background-position-x: -2048px; } /* 8 frames × 256px */
+      0% { background-position-x: 0; }
+      100% { background-position-x: -2048px; } /* 8 frames × 256px */
   }
   
   /* Garante que HUDs voltem a aparecer suavemente após quick cuts */
