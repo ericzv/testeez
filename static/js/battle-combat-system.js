@@ -1905,11 +1905,11 @@ function performAttack(skill) {
             let movementDistance;
 
             if (screenWidth <= 1366) {
-                movementDistance = '35vw'; // Telas menores - 35% da largura da viewport
+                movementDistance = '24vw'; // Telas menores - parar à esquerda do inimigo
             } else if (screenWidth <= 1920) {
-                movementDistance = '40vw'; // Telas médias - 40% da largura da viewport
+                movementDistance = '27vw'; // Telas médias - parar à esquerda do inimigo
             } else {
-                movementDistance = '45vw'; // Telas grandes - 45% da largura da viewport
+                movementDistance = '30vw'; // Telas grandes - parar à esquerda do inimigo
             }
 
             // Definir variável CSS customizada
@@ -2015,23 +2015,32 @@ function performAttack(skill) {
             
             if (animConfig) {
                 // Aplicar animação específica
-                const animationName = (currentCharacter === 'Vlad' || currentCharacter === 'vlad') 
+                const animationName = (currentCharacter === 'Vlad' || currentCharacter === 'vlad')
                     ? getSkillAnimation(this.currentSkill?.id, 'bloodattack')
                     : 'melee_attack1';
-                    
+
                 applyCharacterAnimation(animationName, 'melee-strike-anim');
-                
+
+                // AJUSTE DE POSIÇÃO: compensar diferença de centralização entre animações
+                // A animação de ataque tem o Vlad mais à esquerda, então movemos container pra direita
+                if (currentCharacter === 'Vlad' || currentCharacter === 'vlad') {
+                    const currentTransform = character.style.transform || '';
+                    const movementDistance = character.style.getPropertyValue('--movement-distance');
+                    character.style.transform = `translateX(calc(${movementDistance} + 3vw))`;
+                    console.log(`🎯 Ajuste de ataque: movendo +3vw para compensar centralização`);
+                }
+
                 // Tocar sons do ataque
                 playSound(this.currentSkill.sound_attack, 0.8);
                 playSound(this.currentSkill.sound_effect_1, 0.8);
-                
+
                 setTimeout(() => {
                     playSound(this.currentSkill.sound_effect_2, 0.8);
                 }, 500);
 
                 // Aplicar efeito de dano no boss
                 this.applyBossDamageEffect();
-                
+
                 const duration = parseFloat(animConfig.duration) * 1000;
                 this.nextPhase(duration);
                 
