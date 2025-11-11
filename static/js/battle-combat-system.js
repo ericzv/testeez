@@ -1899,17 +1899,17 @@ function performAttack(skill) {
         // Fase: Corrida do jogador até o boss
         executePhase_player_run_advance() {
             console.log("QC Fase: Player Run Advance");
-            
+
             // Calcular distância proporcional baseada no tamanho da tela
             const screenWidth = window.innerWidth;
             let movementDistance;
-            
+
             if (screenWidth <= 1366) {
-                movementDistance = '60%'; // Telas menores - menos movimento
+                movementDistance = '85%'; // Telas menores - alcançar o inimigo
             } else if (screenWidth <= 1920) {
-                movementDistance = '70%'; // Telas médias
+                movementDistance = '95%'; // Telas médias - alcançar o inimigo
             } else {
-                movementDistance = '80%'; // Telas grandes - mais movimento
+                movementDistance = '105%'; // Telas grandes - alcançar o inimigo
             }
             
             // Definir variável CSS customizada
@@ -2736,36 +2736,71 @@ function performAttack(skill) {
         
         executePhase_player_run_return() {
             console.log("QC Fase: Player Run Return");
-            
-            // Aplicar animação de corrida NORMAL (não walk_return que pode estar bugada)
-            applyCharacterAnimation('run', 'run-return-anim');
-            
-            // Aplicar flip horizontal para simular corrida de volta
-            const character = document.getElementById('character');
-            character.querySelectorAll('.character-sprite-layer').forEach(layer => {
-                layer.style.transform = 'scaleX(-1)'; // Inverte horizontalmente
-            });
-            
-            // Remover classe de ida e aplicar classe de volta
-            character.classList.remove('moving-to-boss');
-            character.classList.add('moving-back');
-            
-            // Finalizar após movimento completo
-            setTimeout(() => {
-                // Limpar classe de movimento
-                character.classList.remove('moving-back');
-                
-                // Remover flip e voltar para idle
-                character.querySelectorAll('.character-sprite-layer').forEach(layer => {
-                    layer.style.transform = ''; // Remove o flip
-                });
-                applyCharacterAnimation('idle');
-                
-                // Restauração limpa e gradual para evitar flicker
-                battleArena.classList.remove('quick-cut-boss', 'quick-cut-player');
-                                
-                this.nextPhase(300);
-            }, 1200);
+
+            let animConfig;
+
+            // PARA VLAD: usar animação 'return' específica (melhor que run invertida)
+            const currentCharacter = getCurrentPlayerCharacter();
+            if (currentCharacter === 'Vlad' || currentCharacter === 'vlad') {
+                animConfig = getCharacterAnimation('return');
+                console.log(`🧛 Vlad run_return: usando animação 'return'`);
+            } else {
+                // Para outros personagens: usar 'run' normal
+                animConfig = getCharacterAnimation('run');
+            }
+
+            if (animConfig) {
+                // Para Vlad usar 'return', para outros usar 'run'
+                const animationName = (currentCharacter === 'Vlad' || currentCharacter === 'vlad')
+                    ? 'return'
+                    : 'run';
+
+                // Aplicar animação (sem flip para Vlad pois 'return' já é direcionada)
+                applyCharacterAnimation(animationName, 'run-return-anim');
+
+                // Para outros personagens, aplicar flip (run invertida)
+                if (currentCharacter !== 'Vlad' && currentCharacter !== 'vlad') {
+                    character.querySelectorAll('.character-sprite-layer').forEach(layer => {
+                        layer.style.transform = 'scaleX(-1)';
+                    });
+                }
+
+                // Remover classe de ida e aplicar classe de volta
+                character.classList.remove('moving-to-boss');
+                character.classList.add('moving-back');
+
+                const duration = parseFloat(animConfig.duration) * 1000;
+
+                // Finalizar após movimento completo
+                setTimeout(() => {
+                    // Limpar classe de movimento
+                    character.classList.remove('moving-back');
+
+                    // Remover flip e voltar para idle
+                    character.querySelectorAll('.character-sprite-layer').forEach(layer => {
+                        layer.style.transform = '';
+                    });
+                    restoreCharacterIdle();
+
+                    // Restauração limpa e gradual para evitar flicker
+                    battleArena.classList.remove('quick-cut-boss', 'quick-cut-player');
+
+                    this.nextPhase(300);
+                }, duration * 0.8);
+
+            } else {
+                // Fallback: movimento simples sem animação
+                console.log("Fallback: retorno sem animação específica");
+
+                // Remover classe de ida
+                character.classList.remove('moving-to-boss');
+
+                setTimeout(() => {
+                    restoreCharacterIdle();
+                    battleArena.classList.remove('quick-cut-boss', 'quick-cut-player');
+                    this.nextPhase(300);
+                }, 1200);
+            }
         }
 
         // Fase: Retorno do salto
