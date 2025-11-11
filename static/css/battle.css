@@ -1314,7 +1314,7 @@
   /* Character and Boss */
   .character-container, .boss-container {
     position: absolute;
-    transition: all 0.4s linear; /* Mesma duração da transição de tela (0.4s) */
+    transition: all 0.2s ease-out; /* Transição mais rápida e suave (reduzido de 0.4s) */
     height: 256px;  /* Dobrado de 128px para 256px */
     width: 256px;   /* Dobrado de 128px para 256px */
   }
@@ -1623,6 +1623,7 @@
       cursor: not-allowed;
       filter: grayscale(50%);
       position: relative;
+      z-index: 99999 !important; /* Maior que outros botões para tooltip aparecer acima */
   }
 
   .skill-button.insufficient-energy .skill-energy-cost {
@@ -1639,23 +1640,23 @@
       bottom: -25px;
       left: 50%;
       transform: translateX(-50%);
-      
+
       background: rgba(40, 10, 10, 0.95);
       border: 1px solid #ff4444;
       border-radius: 6px;
       padding: 4px 10px;
-      
+
       font-family: 'Cinzel', serif;
       font-size: 10px;
       font-weight: 600;
       color: #ff4444;
       text-shadow: 0 0 5px rgba(255, 68, 68, 0.8);
       white-space: nowrap;
-      
+
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s ease;
-      z-index: 100;
+      z-index: 100001 !important; /* Herda do pai que tem 99999, esse é relativo ao pai */
   }
 
   .skill-button.insufficient-energy:hover::after {
@@ -2605,7 +2606,7 @@
     z-index: 10000;
     visibility: hidden;
     opacity: 0;
-    transition: opacity 0.4s linear;
+    transition: opacity 0.2s ease-out; /* Transição mais rápida (reduzido de 0.4s) */
     pointer-events: all !important;
   }
   
@@ -2623,7 +2624,7 @@
     z-index: 1200;
     visibility: hidden;
     opacity: 0;
-    transition: all 0.4s linear;
+    transition: all 0.2s ease-out; /* Transição mais rápida (reduzido de 0.4s) */
     max-height: none; /* Permite altura natural */
     pointer-events: all !important;
   }
@@ -2708,23 +2709,23 @@
   }
   
   .submenu.visible .skill-button:nth-child(1) {
-    transition-delay: 0.1s;
+    transition-delay: 0s;
   }
-  
+
   .submenu.visible .skill-button:nth-child(2) {
-    transition-delay: 0.3s;
+    transition-delay: 0s;
   }
-  
+
   .submenu.visible .skill-button:nth-child(3) {
-    transition-delay: 0.5s;
+    transition-delay: 0s;
   }
-  
+
   .submenu.visible .skill-button:nth-child(4) {
-    transition-delay: 0.7s;
+    transition-delay: 0s;
   }
-  
+
   .submenu.visible .skill-button:nth-child(5) {
-    transition-delay: 0.9s;
+    transition-delay: 0s;
   }
   
   /* Manter a angulação no submenu de ATACAR na zoom-view */
@@ -2760,21 +2761,21 @@
     opacity: 1;
     transform: translateX(0) rotate(var(--rotate-angle));
     transition-delay: 0s;
-    animation: buttonShake 0.3s 0.3s;
+    animation: buttonShake 0.3s 0.15s; /* OTIMIZADO: 0.3s → 0.15s (-50%) */
   }
   
   .action-menu.visible #special-button {
     opacity: 1;
     transform: translateX(0) rotate(var(--rotate-angle));
-    transition-delay: 0.5s;
-    animation: buttonShake 0.3s 0.8s;
+    transition-delay: 0.25s; /* OTIMIZADO: 0.5s → 0.25s (-50%) */
+    animation: buttonShake 0.3s 0.4s; /* OTIMIZADO: 0.8s → 0.4s (-50%) */
   }
   
   .action-menu.visible #inventory-button {
     opacity: 1;
     transform: translateX(0) rotate(var(--rotate-angle));
-    transition-delay: 1.0s;
-    animation: buttonShake 0.3s 1.3s;
+    transition-delay: 0.5s; /* OTIMIZADO: 1.0s → 0.5s (-50%) */
+    animation: buttonShake 0.3s 0.65s; /* OTIMIZADO: 1.3s → 0.65s (-50%) */
   }
   
   .menu-buttons {
@@ -2871,25 +2872,25 @@
     transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     transition-delay: 0.3s;
     /* Shake termina em 0.5s + 0.3s = 0.8s. Novo delay para dynamic: 1.0s */
-    animation: buttonShake 0.3s 0.5s, button1-dynamic 4.2s ease-in-out 1.0s infinite;
+    animation: buttonShake 0.3s 0.5s, button1-dynamic 4.2s ease-in-out 0.5s infinite; /* OTIMIZADO: 1.0s → 0.5s (-50%) */
   }
   
   .zoom-view .action-menu.visible #special-button {
     opacity: 1;
     transform: translateX(0) rotate(var(--rotate-angle));
     transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    transition-delay: 0.5s;
+    transition-delay: 0.25s; /* OTIMIZADO: 0.5s → 0.25s (-50%) */
      /* Shake termina em 1.0s + 0.3s = 1.3s. Novo delay para dynamic: 1.5s */
-    animation: buttonShake 0.3s 1.0s, button2-dynamic 4.4s ease-in-out 1.5s infinite;
+    animation: buttonShake 0.3s 0.5s, /* OTIMIZADO: 1.0s → 0.5s (-50%) */ button2-dynamic 4.4s ease-in-out 0.75s infinite; /* OTIMIZADO: 1.5s → 0.75s (-50%) */
   }
   
   .zoom-view .action-menu.visible #inventory-button {
     opacity: 1;
     transform: translateX(0) rotate(var(--rotate-angle));
     transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    transition-delay: 1.0s;
+    transition-delay: 0.5s; /* OTIMIZADO: 1.0s → 0.5s (-50%) */
     /* Shake termina em 1.5s + 0.3s = 1.8s. Novo delay para dynamic: 2.0s */
-    animation: buttonShake 0.3s 1.5s, button3-dynamic 4.6s ease-in-out 2.0s infinite;
+    animation: buttonShake 0.3s 0.75s, /* OTIMIZADO: 1.5s → 0.75s (-50%) */ button3-dynamic 4.6s ease-in-out 1.0s infinite; /* OTIMIZADO: 2.0s → 1.0s (-50%) */
   }
   
   /* Animação combinada para botões na zoom-view */
@@ -3218,23 +3219,23 @@
   }
   
   .zoom-view #attack-submenu.visible .skill-button:nth-child(1) {
-    transition-delay: 0.1s;
-    animation: buttonShake 0.3s 0.5s;
+    transition-delay: 0s;
+    animation: buttonShake 0.3s 0s;
   }
-  
+
   .zoom-view #attack-submenu.visible .skill-button:nth-child(2) {
-    transition-delay: 0.5s; /* 0.1 + 0.4 */
-    animation: buttonShake 0.3s 0.9s;
+    transition-delay: 0s;
+    animation: buttonShake 0.3s 0s;
   }
-  
+
   .zoom-view #attack-submenu.visible .skill-button:nth-child(3) {
-    transition-delay: 0.9s; /* 0.5 + 0.4 */
-    animation: buttonShake 0.3s 1.3s;
+    transition-delay: 0s;
+    animation: buttonShake 0.3s 0s;
   }
-  
+
   .zoom-view #attack-submenu.visible .skill-button:nth-child(4) {
-    transition-delay: 1.3s; /* 0.9 + 0.4 */
-    animation: buttonShake 0.3s 1.7s;
+    transition-delay: 0s;
+    animation: buttonShake 0.3s 0s;
   }
   
   .zoom-view-leaving .skill-button,
@@ -3267,19 +3268,19 @@
   }
   
   .submenu.visible .skill-button:nth-child(1) {
-    transition-delay: 0.1s;
+    transition-delay: 0s;
   }
-  
+
   .submenu.visible .skill-button:nth-child(2) {
-    transition-delay: 0.3s;
+    transition-delay: 0s;
   }
-  
+
   .submenu.visible .skill-button:nth-child(3) {
-    transition-delay: 0.5s;
+    transition-delay: 0s;
   }
-  
+
   .submenu.visible .skill-button:nth-child(4) {
-    transition-delay: 0.7s;
+    transition-delay: 0s;
   }
   
   .skill-button:hover:not(.disabled) {
@@ -3841,7 +3842,18 @@
 
   /* ===== CLASSES PARA MOVIMENTO DO PERSONAGEM (Opção 3 - Solução Limpa) ===== */
 
-  /* Movimento durante quick-cut-player (fase focus_player) */
+  /* Movimento SEM zoom (ataque básico) - mantém tamanho original */
+  .character-container.moving-to-boss {
+      transform: translateX(var(--movement-distance, 50%)) !important;
+      transition: transform 1.0s linear !important;
+  }
+
+  .character-container.moving-back {
+      transform: translateX(0%) !important;
+      transition: transform 1.0s linear !important;
+  }
+
+  /* Movimento durante quick-cut-player (fase focus_player) - com zoom */
   #battle-arena.quick-cut-player .character-container.moving-to-boss {
       transform: scale(2.5) translate(-10%, -30%) translateX(var(--movement-distance, 70%)) !important;
       transition: transform 1.0s linear !important;
@@ -3979,11 +3991,13 @@
   /* Animação de corrida em loop para avanço */
   .run-advance-anim .character-sprite-layer {
       animation: run-animation 0.6s steps(8) infinite !important;
+      animation-fill-mode: both !important;
+      animation-timing-function: steps(8, end) !important;
   }
 
   @keyframes run-animation {
-      from { background-position-x: 0; }
-      to { background-position-x: -2048px; } /* 8 frames × 256px */
+      0% { background-position-x: 0; }
+      100% { background-position-x: -2048px; } /* 8 frames × 256px */
   }
   
   /* Garante que HUDs voltem a aparecer suavemente após quick cuts */
@@ -4614,6 +4628,26 @@
   }
 
   .player-damage-marker {
+      user-select: none;
+  }
+
+  /* Animação do marcador de dano absorvido pela barreira */
+  @keyframes barrier-absorbed-float {
+      0% {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0px) scale(1);
+      }
+      50% {
+          opacity: 1;
+          transform: translateX(-50%) translateY(-30px) scale(1.1);
+      }
+      100% {
+          opacity: 0;
+          transform: translateX(-50%) translateY(-60px) scale(0.9);
+      }
+  }
+
+  .barrier-absorbed-marker {
       user-select: none;
   }
 

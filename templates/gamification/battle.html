@@ -15,7 +15,12 @@
 <body>
 <!-- Loading Screen -->
 <div class="loading-screen" id="loading-screen">
-<div class="loading-text" style="display: flex; justify-content: center; align-items: center; width: 100%; height: 100vh;">Preparando para Batalha...</div>
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+        <div class="loading-text">Preparando para Batalha...</div>
+        <div id="progress-container" style="width: 60%; max-width: 400px; height: 20px; background: rgba(0, 0, 0, 0.5); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 10px; overflow: hidden;">
+            <div id="progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #4CAF50, #8BC34A); transition: width 0.3s ease;"></div>
+        </div>
+    </div>
 </div>
 
 <!-- Critical Flash Effect -->
@@ -599,6 +604,10 @@ document.addEventListener('DOMContentLoaded', function() {
 <script async src="/static/js/shaders-attacks5.js"></script>
 <script async src="/static/js/shaders-attacks-distant.js"></script>
 <script src="/static/js/shaders-attacks.js"></script> <!-- Principal por último -->
+
+<!-- Sistema de Pré-carregamento de Assets -->
+<script src="/static/js/battle-preloader.js"></script>
+
 <script src="/static/js/battle-class-animations.js"></script>
 <script src="/static/js/battle-base.js"></script>
 <script src="/static/js/battle-combat-system.js"></script>

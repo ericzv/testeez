@@ -136,7 +136,7 @@ function showYourTurnFeedback() {
     setTimeout(() => {
         feedback.style.animation = 'feedbackFade 0.5s ease-out';
         setTimeout(() => feedback.remove(), 500);
-    }, 1500);
+    }, 750); // OTIMIZADO: 1500ms → 750ms (-50%)
 }
 
 // Expor função globalmente
@@ -297,12 +297,22 @@ function updateEnergyDisplay(current, max) {
     if (energyText) {
         energyText.textContent = `${current}/${max}`;
     }
-    
+
+    // ===== CORREÇÃO: ATUALIZAR GAMESTATE =====
+    // Isso garante que outras funções que leem gameState.player.energy
+    // vejam o valor correto após a restauração de energia
+    if (typeof gameState !== 'undefined' && gameState.player) {
+        gameState.player.energy = current;
+        gameState.player.maxEnergy = max;
+        console.log(`⚡ GameState atualizado: ${gameState.player.energy}/${gameState.player.maxEnergy}`);
+    }
+    // =========================================
+
     // Atualizar indicador visual (se existir)
     const energyIndicator = document.getElementById('energy-indicator');
     if (energyIndicator) {
         const percent = (current / max) * 100;
-        
+
         if (percent > 66) {
             energyIndicator.setAttribute('data-energy-percent', 'high');
         } else if (percent > 33) {
@@ -310,6 +320,11 @@ function updateEnergyDisplay(current, max) {
         } else {
             energyIndicator.setAttribute('data-energy-percent', 'low');
         }
+    }
+
+    // ===== ATUALIZAR TAMBÉM COM updateEnergyIndicator SE DISPONÍVEL =====
+    if (typeof updateEnergyIndicator === 'function') {
+        updateEnergyIndicator();
     }
 }
 

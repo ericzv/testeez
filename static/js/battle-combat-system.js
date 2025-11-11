@@ -219,12 +219,12 @@ const VISUAL_STATES = {
     },
     
     player_moving: {
-        // Manter classes necessárias para o movimento funcionar
-        battleArena: { classes: ['quick-cut-transition', 'quick-cut-player'] },
-        background: { transformOrigin: 'center 85%' },
-        character: { transform: 'scale(2.8) translate(-25%, -30%)' }, // Manter scale 2.8 consistente
-        boss: { classes: ['boss-focus-center'] },
-        huds: { opacity: '0' }
+        // Estado para movimento sem zoom - personagem mantém tamanho original
+        battleArena: { classes: [] }, // Sem zoom
+        background: { transformOrigin: 'center center' },
+        character: { transform: 'none' }, // Sem escala, tamanho original
+        boss: {}, // Boss não se move
+        huds: { opacity: '1' } // HUDs visíveis
     }
 };
 
@@ -1177,24 +1177,24 @@ function performAttack(skill) {
     // Padrões pré-definidos de sequências de ataque
     const ATTACK_PATTERNS = {
         // Ataques corpo a corpo com teleporte
-        melee_teleport_basic: ['focus_player', 'show_fx', 'player_teleport_advance', 'transition_delay', 'focus_boss', 'melee_strike_teleport', 'apply_damage', 'player_teleport_return', 'restore_complete'],
-        melee_teleport_ultimate: ['focus_player', 'cast_preparation', 'show_fx', 'player_teleport_advance', 'transition_delay', 'focus_boss', 'ultimate_strike', 'apply_damage', 'player_teleport_return', 'restore_complete'],
-        
+        melee_teleport_basic: ['player_teleport_advance', 'transition_delay', 'focus_boss', 'melee_strike_teleport', 'apply_damage', 'player_teleport_return', 'restore_complete'],
+        melee_teleport_ultimate: ['cast_preparation', 'player_teleport_advance', 'transition_delay', 'focus_boss', 'ultimate_strike', 'apply_damage', 'player_teleport_return', 'restore_complete'],
+
         // Ataques corpo a corpo com corrida
-        melee_run_basic: ['focus_center', 'show_fx', 'zoom_out_after_fx', 'transition_delay', 'player_run_advance', 'melee_strike', 'apply_damage', 'player_run_return_with_zoomout', 'restore_complete'],
-        melee_run_ultimate: ['focus_player', 'show_fx', 'transition_delay', 'player_run_advance', 'ultimate_strike', 'apply_damage', 'player_run_return', 'restore_complete'],
-        
+        melee_run_basic: ['transition_delay', 'player_run_advance', 'melee_strike', 'apply_damage', 'player_run_return', 'restore_complete'],
+        melee_run_ultimate: ['transition_delay', 'player_run_advance', 'ultimate_strike', 'apply_damage', 'player_run_return', 'restore_complete'],
+
         // Ataques à distância
-        ranged_projectile: ['focus_player', 'show_fx', 'aim_stance', 'restore_normal_view', 'apply_damage', 'restore_complete'],
-        ranged_beam: ['focus_player', 'show_fx', 'aim_stance', 'restore_normal_view', 'energy_beam',  'apply_damage', 'restore_complete'],
-        ranged_distant: ['focus_player', 'show_fx', 'cast_preparation', 'restore_normal_view', 'distant_effect_normal', 'apply_damage', 'restore_complete'],
-        
+        ranged_projectile: ['aim_stance', 'restore_normal_view', 'apply_damage', 'restore_complete'],
+        ranged_beam: ['aim_stance', 'restore_normal_view', 'energy_beam',  'apply_damage', 'restore_complete'],
+        ranged_distant: ['cast_preparation', 'restore_normal_view', 'distant_effect_normal', 'apply_damage', 'restore_complete'],
+
         // Ataques mágicos
-        magic_basic: ['focus_player', 'cast_preparation', 'show_fx', 'focus_boss', 'magic_manifestation', 'apply_damage', 'zoom_out_final', 'restore_complete'],
-        magic_area: ['focus_player', 'cast_preparation', 'show_fx', 'wide_focus', 'area_effect', 'apply_damage', 'zoom_out_final', 'restore_complete'],
-        
+        magic_basic: ['cast_preparation', 'focus_boss', 'magic_manifestation', 'apply_damage', 'zoom_out_final', 'restore_complete'],
+        magic_area: ['cast_preparation', 'wide_focus', 'area_effect', 'apply_damage', 'zoom_out_final', 'restore_complete'],
+
         // Ataques com salto
-        jump_attack: ['focus_player', 'jump_preparation', 'show_fx', 'aerial_advance', 'focus_boss', 'aerial_strike', 'apply_damage', 'land_return', 'restore_complete']
+        jump_attack: ['jump_preparation', 'aerial_advance', 'focus_boss', 'aerial_strike', 'apply_damage', 'land_return', 'restore_complete']
     };
 
     // Sistema de execução de fases modulares
@@ -1899,22 +1899,22 @@ function performAttack(skill) {
         // Fase: Corrida do jogador até o boss
         executePhase_player_run_advance() {
             console.log("QC Fase: Player Run Advance");
-            
-            // Calcular distância proporcional baseada no tamanho da tela
+
+            // Calcular distância baseada na VIEWPORT WIDTH (vw) para consistência entre telas
             const screenWidth = window.innerWidth;
             let movementDistance;
-            
+
             if (screenWidth <= 1366) {
-                movementDistance = '60%'; // Telas menores - menos movimento
+                movementDistance = '24vw'; // Telas menores - parar à esquerda do inimigo
             } else if (screenWidth <= 1920) {
-                movementDistance = '70%'; // Telas médias
+                movementDistance = '27vw'; // Telas médias - parar à esquerda do inimigo
             } else {
-                movementDistance = '80%'; // Telas grandes - mais movimento
+                movementDistance = '30vw'; // Telas grandes - parar à esquerda do inimigo
             }
-            
+
             // Definir variável CSS customizada
             character.style.setProperty('--movement-distance', movementDistance);
-            console.log(`🎯 Distância de movimento definida: ${movementDistance} para tela ${screenWidth}px`);
+            console.log(`🎯 Distância de movimento definida: ${movementDistance} (${screenWidth}px de tela)`);
             
             // Liberar movimento do personagem mantendo boss posicionado
             window.visualStateManager.applyState('player_moving');
@@ -2015,24 +2015,39 @@ function performAttack(skill) {
             
             if (animConfig) {
                 // Aplicar animação específica
-                const animationName = (currentCharacter === 'Vlad' || currentCharacter === 'vlad') 
+                const animationName = (currentCharacter === 'Vlad' || currentCharacter === 'vlad')
                     ? getSkillAnimation(this.currentSkill?.id, 'bloodattack')
                     : 'melee_attack1';
-                    
+
                 applyCharacterAnimation(animationName, 'melee-strike-anim');
-                
+
+                // AJUSTE DE POSIÇÃO: compensar diferença de centralização entre animações
+                // A animação de ataque tem o Vlad mais à esquerda, então movemos container pra direita
+                if (currentCharacter === 'Vlad' || currentCharacter === 'vlad') {
+                    const currentTransform = character.style.transform || '';
+                    const movementDistance = character.style.getPropertyValue('--movement-distance');
+                    character.style.transform = `translateX(calc(${movementDistance} + 3vw))`;
+                    console.log(`🎯 Ajuste de ataque: movendo +3vw para compensar centralização`);
+                }
+
                 // Tocar sons do ataque
                 playSound(this.currentSkill.sound_attack, 0.8);
                 playSound(this.currentSkill.sound_effect_1, 0.8);
-                
+
                 setTimeout(() => {
                     playSound(this.currentSkill.sound_effect_2, 0.8);
                 }, 500);
 
                 // Aplicar efeito de dano no boss
                 this.applyBossDamageEffect();
-                
-                const duration = parseFloat(animConfig.duration) * 1000;
+
+                // Para Vlad: reduzir duração da animação de ataque pela metade
+                let duration = parseFloat(animConfig.duration) * 1000;
+                if (currentCharacter === 'Vlad' || currentCharacter === 'vlad') {
+                    duration = duration * 0.5; // Metade do tempo original
+                    console.log(`⚡ Vlad: animação de ataque acelerada (${duration}ms)`);
+                }
+
                 this.nextPhase(duration);
                 
             } else {
@@ -2736,36 +2751,82 @@ function performAttack(skill) {
         
         executePhase_player_run_return() {
             console.log("QC Fase: Player Run Return");
-            
-            // Aplicar animação de corrida NORMAL (não walk_return que pode estar bugada)
-            applyCharacterAnimation('run', 'run-return-anim');
-            
-            // Aplicar flip horizontal para simular corrida de volta
-            const character = document.getElementById('character');
-            character.querySelectorAll('.character-sprite-layer').forEach(layer => {
-                layer.style.transform = 'scaleX(-1)'; // Inverte horizontalmente
-            });
-            
-            // Remover classe de ida e aplicar classe de volta
-            character.classList.remove('moving-to-boss');
-            character.classList.add('moving-back');
-            
-            // Finalizar após movimento completo
-            setTimeout(() => {
-                // Limpar classe de movimento
-                character.classList.remove('moving-back');
-                
-                // Remover flip e voltar para idle
-                character.querySelectorAll('.character-sprite-layer').forEach(layer => {
-                    layer.style.transform = ''; // Remove o flip
-                });
-                applyCharacterAnimation('idle');
-                
-                // Restauração limpa e gradual para evitar flicker
-                battleArena.classList.remove('quick-cut-boss', 'quick-cut-player');
-                                
-                this.nextPhase(300);
-            }, 1200);
+
+            // LIMPAR TRANSFORM INLINE (ajuste de +3vw do melee_strike)
+            character.style.transform = '';
+            console.log("🧹 Limpando transform inline antes do retorno");
+
+            let animConfig;
+
+            // PARA VLAD: usar animação 'return' específica (melhor que run invertida)
+            const currentCharacter = getCurrentPlayerCharacter();
+            if (currentCharacter === 'Vlad' || currentCharacter === 'vlad') {
+                animConfig = getCharacterAnimation('return');
+                console.log(`🧛 Vlad run_return: usando animação 'return'`);
+            } else {
+                // Para outros personagens: usar 'run' normal
+                animConfig = getCharacterAnimation('run');
+            }
+
+            if (animConfig) {
+                // Para Vlad usar 'return', para outros usar 'run'
+                const animationName = (currentCharacter === 'Vlad' || currentCharacter === 'vlad')
+                    ? 'return'
+                    : 'run';
+
+                // Aplicar animação (sem flip para Vlad pois 'return' já é direcionada)
+                applyCharacterAnimation(animationName, 'run-return-anim');
+
+                // Para outros personagens, aplicar flip (run invertida)
+                if (currentCharacter !== 'Vlad' && currentCharacter !== 'vlad') {
+                    character.querySelectorAll('.character-sprite-layer').forEach(layer => {
+                        layer.style.transform = 'scaleX(-1)';
+                    });
+                }
+
+                // Remover classe de ida e aplicar classe de volta
+                character.classList.remove('moving-to-boss');
+                character.classList.add('moving-back');
+
+                const duration = parseFloat(animConfig.duration) * 1000;
+
+                // Finalizar após movimento completo
+                setTimeout(() => {
+                    // Limpar classe de movimento
+                    character.classList.remove('moving-back');
+
+                    // Remover flip e voltar para idle
+                    character.querySelectorAll('.character-sprite-layer').forEach(layer => {
+                        layer.style.transform = '';
+                    });
+                    restoreCharacterIdle();
+
+                    // Restauração limpa e gradual para evitar flicker
+                    battleArena.classList.remove('quick-cut-boss', 'quick-cut-player');
+
+                    // GARANTIR QUE TRANSFORM ESTÁ LIMPO
+                    character.style.transform = '';
+
+                    this.nextPhase(300);
+                }, duration * 0.8);
+
+            } else {
+                // Fallback: movimento simples sem animação
+                console.log("Fallback: retorno sem animação específica");
+
+                // Remover classe de ida
+                character.classList.remove('moving-to-boss');
+
+                setTimeout(() => {
+                    restoreCharacterIdle();
+                    battleArena.classList.remove('quick-cut-boss', 'quick-cut-player');
+
+                    // GARANTIR QUE TRANSFORM ESTÁ LIMPO
+                    character.style.transform = '';
+
+                    this.nextPhase(300);
+                }, 1200);
+            }
         }
 
         // Fase: Retorno do salto
@@ -3687,7 +3748,7 @@ function testVladAnimations() {
             console.log(`Testando animação: ${anim}`);
             applyCharacterAnimation(anim);
             index++;
-            setTimeout(nextAnimation, 2000);
+            setTimeout(nextAnimation, 1000); // OTIMIZADO: 2000ms → 1000ms (-50%)
         } else {
             console.log('Teste concluído - voltando para idle');
             applyCharacterAnimation('idle');
@@ -3723,7 +3784,7 @@ function updateDamageDisplay(correctDamage, isCritical) {
     battleArena.appendChild(damageNumber);
 
     // Remover após animação
-    setTimeout(() => { damageNumber.remove(); }, 2000);
+    setTimeout(() => { damageNumber.remove(); }, 1000); // OTIMIZADO: 2000ms → 1000ms (-50%)
 }
 
 function saveBossDamage(skill, damage, isCritical) {
@@ -4106,8 +4167,8 @@ async function executeEnemyAttackSequence() {
             });
         }
         
-        // Aguardar estabilização da nova view
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Aguardar estabilização da nova view (OTIMIZADO: 1000ms → 500ms, -50%)
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         console.log("3. Iniciando loop de ataques");
         // Loop de ataques
@@ -4150,8 +4211,8 @@ async function executeAttackLoop() {
         
         console.log(`Executando ataque. Cargas restantes: ${statusData.status.charges_count}`);
         
-        // Intervalo de 2s antes do ataque
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Intervalo antes do ataque (OTIMIZADO: 2000ms → 1000ms, -50%)
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Executar um ataque
         const attackResult = await executeSingleEnemyAttack();
@@ -4163,8 +4224,8 @@ async function executeAttackLoop() {
             return;
         }
         
-        // Intervalo de 2s após o ataque
-        await new Promise(resolve => setTimeout(resolve, 1200));
+        // Intervalo após o ataque (OTIMIZADO: 1200ms → 600ms, -50%)
+        await new Promise(resolve => setTimeout(resolve, 600));
     }
 }
 
@@ -4309,8 +4370,8 @@ async function executeSingleEnemyAttack() {
                 }, 100);
             }
 
-            // Aguardar tempo suficiente para ambas as animações
-            await new Promise(resolve => setTimeout(resolve, 1200));
+            // Aguardar tempo suficiente para ambas as animações (OTIMIZADO: 1200ms → 600ms, -50%)
+            await new Promise(resolve => setTimeout(resolve, 600));
             
             // Atualizar HP na interface e mostrar marcador (COMUM PARA AMBOS)
             if (result.player_hp !== undefined) {
@@ -4326,6 +4387,11 @@ async function executeSingleEnemyAttack() {
                     showPlayerDamageMarker(0, true);
                 } else if (result.damage_dealt > 0) {
                     showPlayerDamageMarker(result.damage_dealt, false);
+                }
+
+                // Mostrar marcador de dano absorvido pela barreira
+                if (result.damage_absorbed > 0) {
+                    showBarrierAbsorbedMarker(result.damage_absorbed);
                 }
                 
                 updateStats(); // <-- Isso agora vai ler a barreira = 0 e corrigir o CSS
@@ -4398,11 +4464,11 @@ function removeChargeFromHUD() {
 function showPlayerDamageMarker(damage, isDodge = false) {
     const character = document.getElementById('character');
     if (!character) return;
-    
+
     // Criar elemento do marcador
     const damageMarker = document.createElement('div');
     damageMarker.className = 'player-damage-marker';
-    
+
     if (isDodge) {
         damageMarker.textContent = 'Esquiva!';
         damageMarker.style.color = '#00ff00';
@@ -4412,7 +4478,7 @@ function showPlayerDamageMarker(damage, isDodge = false) {
         damageMarker.style.color = '#ff4444';
         damageMarker.style.textShadow = '0 0 10px #ff4444, 2px 2px 4px rgba(0,0,0,0.8)';
     }
-    
+
     // Posicionamento
     const characterRect = character.getBoundingClientRect();
     damageMarker.style.cssText += `
@@ -4427,9 +4493,9 @@ function showPlayerDamageMarker(damage, isDodge = false) {
         pointer-events: none;
         animation: player-damage-float 2s ease-out forwards;
     `;
-    
+
     document.body.appendChild(damageMarker);
-    
+
     // Remover após animação
     setTimeout(() => {
         if (damageMarker.parentNode) {
@@ -4438,11 +4504,47 @@ function showPlayerDamageMarker(damage, isDodge = false) {
     }, 2000);
 }
 
+function showBarrierAbsorbedMarker(damageAbsorbed) {
+    const character = document.getElementById('character');
+    if (!character || damageAbsorbed <= 0) return;
+
+    // Criar elemento do marcador
+    const absorbMarker = document.createElement('div');
+    absorbMarker.className = 'barrier-absorbed-marker';
+    absorbMarker.textContent = `${damageAbsorbed}`;
+    absorbMarker.style.color = '#4da6ff';
+    absorbMarker.style.textShadow = '0 0 10px #4da6ff, 2px 2px 4px rgba(0,0,0,0.8)';
+
+    // Posicionamento - um pouco deslocado para não sobrepor o marcador de dano
+    const characterRect = character.getBoundingClientRect();
+    absorbMarker.style.cssText += `
+        position: fixed;
+        left: ${characterRect.left + characterRect.width / 2 + 40}px;
+        top: ${characterRect.top - 20}px;
+        transform: translateX(-50%);
+        font-family: 'Cinzel', serif;
+        font-size: 20px;
+        font-weight: bold;
+        z-index: 200;
+        pointer-events: none;
+        animation: barrier-absorbed-float 2s ease-out forwards;
+    `;
+
+    document.body.appendChild(absorbMarker);
+
+    // Remover após animação
+    setTimeout(() => {
+        if (absorbMarker.parentNode) {
+            absorbMarker.remove();
+        }
+    }, 2000);
+}
+
 async function handlePlayerDeath() {
     console.log("Processando morte do jogador");
     
-    // Aguardar animação de morte terminar (3.4 segundos)
-    await new Promise(resolve => setTimeout(resolve, 3400));
+    // Aguardar animação de morte terminar (OTIMIZADO: 3400ms → 1700ms, -50%)
+    await new Promise(resolve => setTimeout(resolve, 1700));
     
     // Personagem desaparece
     const character = document.getElementById('character');
@@ -4572,7 +4674,7 @@ async function executeBuffDebuffSkillsSequence() {
                 
                 // Aguardar intervalo entre skills (exceto na última)
                 if (i < data.executed_skills.length - 1) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise(resolve => setTimeout(resolve, 700));
                 }
             }
             
@@ -4805,7 +4907,7 @@ async function executeSkillAnimation(skill) {
                 console.log(`⏱️ Tempo total da sequência de debuff: ${totalTime}ms`);
                 setTimeout(resolve, totalTime);
             } else {
-                setTimeout(resolve, 1200);
+                setTimeout(resolve, 600); // OTIMIZADO: 1200ms → 600ms (-50%)
             }
             
         }, 800); // Delay apenas para attack skills
