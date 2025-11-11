@@ -275,22 +275,27 @@ class BattleAssetPreloader {
     /**
      * Carrega um único asset
      */
-    loadAsset(asset) {
+    async loadAsset(asset) {
         return new Promise((resolve, reject) => {
             const img = new Image();
 
-            img.onload = () => {
+            img.onload = async () => {
                 this.loadedAssets++;
                 this.updateProgress();
                 console.log(`✓ ${asset.description}: ${asset.path}`);
+
+                // Pequeno delay para visualizar o progresso
+                await new Promise(r => setTimeout(r, 50));
                 resolve(asset);
             };
 
-            img.onerror = () => {
+            img.onerror = async () => {
                 this.loadedAssets++;
                 this.updateProgress();
                 console.warn(`⚠️ Falha ao carregar ${asset.description}: ${asset.path}`);
-                // Não rejeitar para não bloquear outros assets
+
+                // Pequeno delay para visualizar o progresso
+                await new Promise(r => setTimeout(r, 50));
                 resolve(asset);
             };
 
@@ -302,9 +307,13 @@ class BattleAssetPreloader {
      * Atualiza a barra de progresso
      */
     updateProgress() {
-        if (!this.progressBar) return;
+        if (!this.progressBar) {
+            console.warn('⚠️ progressBar não encontrado em updateProgress');
+            return;
+        }
 
         const progress = (this.loadedAssets / this.totalAssets) * 100;
+        console.log(`📊 Progresso: ${this.loadedAssets}/${this.totalAssets} = ${progress.toFixed(1)}%`);
         this.progressBar.style.width = `${progress}%`;
 
         this.updateLoadingText(
@@ -362,10 +371,8 @@ async function initializeBattlePreloader() {
         console.log('✅ Preloader inicializado');
         console.log('📊 Estado da barra após init:', window.battlePreloader.progressBar);
 
-        // Aguardar CHARACTER_SPRITE_CONFIG estar disponível
-        console.log('⏳ Aguardando CHARACTER_SPRITE_CONFIG...');
-        await waitForCharacterConfig();
-        console.log('✅ Character config disponível');
+        // Pular CHARACTER_SPRITE_CONFIG - não é necessário para o preload inicial
+        console.log('⏭️ Pulando CHARACTER_SPRITE_CONFIG (carrega depois)');
 
         // Coletar todos os assets
         console.log('📦 Coletando assets...');
