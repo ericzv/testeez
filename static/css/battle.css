@@ -1623,6 +1623,7 @@
       cursor: not-allowed;
       filter: grayscale(50%);
       position: relative;
+      z-index: 99999 !important; /* Maior que outros botões para tooltip aparecer acima */
   }
 
   .skill-button.insufficient-energy .skill-energy-cost {
@@ -1639,12 +1640,12 @@
       bottom: -25px;
       left: 50%;
       transform: translateX(-50%);
-      
+
       background: rgba(40, 10, 10, 0.95);
       border: 1px solid #ff4444;
       border-radius: 6px;
       padding: 4px 10px;
-      
+
       font-family: 'Cinzel', serif;
       font-size: 10px;
       font-weight: 600;
@@ -1655,7 +1656,7 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s ease;
-      z-index: 10000; /* Aumentado para aparecer acima dos botões do submenu (z-index 9999) */
+      z-index: 100001 !important; /* Herda do pai que tem 99999, esse é relativo ao pai */
   }
 
   .skill-button.insufficient-energy:hover::after {

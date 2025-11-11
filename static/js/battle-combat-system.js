@@ -2041,7 +2041,13 @@ function performAttack(skill) {
                 // Aplicar efeito de dano no boss
                 this.applyBossDamageEffect();
 
-                const duration = parseFloat(animConfig.duration) * 1000;
+                // Para Vlad: reduzir duração da animação de ataque pela metade
+                let duration = parseFloat(animConfig.duration) * 1000;
+                if (currentCharacter === 'Vlad' || currentCharacter === 'vlad') {
+                    duration = duration * 0.5; // Metade do tempo original
+                    console.log(`⚡ Vlad: animação de ataque acelerada (${duration}ms)`);
+                }
+
                 this.nextPhase(duration);
                 
             } else {
