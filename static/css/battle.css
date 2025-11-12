@@ -4824,26 +4824,19 @@
       text-shadow: 0 0 3px #000;
       line-height: 1;
   }
-/* ===== LAYOUT CLEAN: 3 LINHAS COMPACTAS ===== */
+/* ===== LAYOUT CLEAN E COMPACTO ===== */
 
-/* Container principal do botão */
+/* Container principal do botão (HORIZONTAL) */
 .skill-button-content {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    width: 100%;
-    padding: 10px;
-}
-
-/* ===== LINHA 1: ÍCONE + NOME + ENERGIA ===== */
-.skill-top-line {
-    display: flex;
+    flex-direction: row;
     align-items: center;
     gap: 10px;
     width: 100%;
+    padding: 5px 8px;
 }
 
-/* Container do ícone (sem círculo, apenas o ícone) */
+/* ===== ÍCONE DO TIPO (ESQUERDA, CENTRO VERTICAL) ===== */
 .attack-type-icon-container {
     width: 40px;
     height: 40px;
@@ -4860,35 +4853,96 @@
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
-/* Nome da skill */
+/* ===== CONTAINER CENTRAL (3 LINHAS VERTICAIS) ===== */
+.skill-central-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-grow: 1;
+    min-width: 0;
+}
+
+/* Linha 1: Nome */
+.skill-top-line {
+    display: flex;
+    align-items: center;
+}
+
 .skill-name {
-    font-size: 1.15rem;
+    font-size: 1.05rem;
     font-weight: bold;
     color: #fff;
     font-family: 'Cinzel', serif;
-    line-height: 1.2;
-    flex-grow: 1;
+    line-height: 1.1;
+    text-shadow:
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
 }
 
-/* Energia no final da linha 1 */
+/* Linha 2: Stats (HORIZONTAL) */
+.skill-details {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.skill-stat {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 5px;
+    border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    white-space: nowrap;
+    cursor: help;
+    position: relative;
+    transition: all 0.08s ease;
+}
+
+.skill-stat:hover {
+    background: rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-1px);
+}
+
+.stat-icon {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+}
+
+.skill-stat span {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+    line-height: 1;
+}
+
+/* ===== ENERGIA (DIREITA, CENTRO VERTICAL) ===== */
 .skill-energy-cost {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 3px;
     padding: 0;
     flex-shrink: 0;
     background: transparent !important;
 }
 
 .skill-energy-icon {
-    width: 32px;
-    height: 32px;
+    width: 56px;
+    height: 56px;
     object-fit: contain;
     filter: drop-shadow(0 0 4px rgba(100, 181, 246, 0.6));
 }
 
 .skill-energy-cost span {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     font-weight: bold;
     color: #ffeb3b;
     text-shadow:
@@ -4906,60 +4960,6 @@
 .insufficient-energy .skill-energy-icon {
     filter: drop-shadow(0 0 4px rgba(255, 82, 82, 0.6));
     opacity: 0.7;
-}
-
-/* ===== LINHA 2: STATS (DANO, CRIT, BARREIRA, VAMPIRISMO) ===== */
-.skill-details {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-    flex-wrap: wrap;
-    padding-left: 50px; /* Alinha com o nome */
-}
-
-/* Container central (usado para organizar linhas 2 e 3) */
-.skill-central-container {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    width: 100%;
-}
-
-/* Cada stat individual */
-.skill-stat {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: rgba(0, 0, 0, 0.3);
-    padding: 4px 8px;
-    border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    white-space: nowrap;
-    cursor: help;
-    position: relative;
-    transition: all 0.08s ease;
-}
-
-.skill-stat:hover {
-    background: rgba(0, 0, 0, 0.5);
-    border-color: rgba(255, 255, 255, 0.4);
-    transform: translateY(-1px);
-}
-
-/* Ícones de stats */
-.stat-icon {
-    width: 20px;
-    height: 20px;
-    object-fit: contain;
-}
-
-/* Texto dos valores das stats */
-.skill-stat span {
-    font-size: 0.9rem;
-    font-weight: bold;
-    color: #fff;
-    text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
-    line-height: 1;
 }
 
 /* ===== TOOLTIP CUSTOMIZADO ===== */
@@ -5031,15 +5031,14 @@
 /* ===== LINHA 3: RELÍQUIAS ===== */
 .skill-relics-container {
     display: flex;
-    gap: 5px;
+    gap: 4px;
     flex-wrap: wrap;
     align-items: center;
-    padding-left: 50px; /* Alinha com as stats */
 }
 
 .skill-relic-icon {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     object-fit: contain;
     border: 1.5px solid rgba(255, 215, 0, 0.7);
     border-radius: 3px;
@@ -5056,21 +5055,39 @@
     box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
 }
 
-/* ===== AJUSTES NO BOTÃO PRINCIPAL (RESTAURAR CORES) ===== */
+/* ===== AJUSTES NO BOTÃO PRINCIPAL ===== */
 .skill-button {
     background: linear-gradient(to bottom, #8c2022, #5c1011) !important;
     border: 2px solid #aa3033 !important;
     border-radius: 5px !important;
-    padding: 8px !important;
+    padding: 4px !important;
     min-height: 0 !important;
     overflow: visible !important;
-    transition: all 0.08s ease !important;
+    transition: all 0.1s ease !important;
 }
 
-.skill-button:hover {
-    transform: translateX(3px) !important;
-    border-color: #cc4044 !important;
-    box-shadow: 0 4px 12px rgba(140, 32, 34, 0.5) !important;
+.skill-button:hover:not(.disabled) {
+    transform: translateX(5px) scale(1.02) !important;
+    border-color: #ff6066 !important;
+    box-shadow: 0 6px 20px rgba(255, 50, 50, 0.7) !important;
+    background: linear-gradient(to bottom, #a82628, #751315) !important;
+}
+
+/* Botão desabilitado */
+.skill-button.disabled,
+.skill-button:disabled {
+    background: linear-gradient(to bottom, #4a4a4a, #2a2a2a) !important;
+    border: 2px solid #555 !important;
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    filter: grayscale(80%) !important;
+}
+
+.skill-button.disabled:hover,
+.skill-button:disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: #555 !important;
 }
 
 /* ===== RESPONSIVIDADE ===== */
