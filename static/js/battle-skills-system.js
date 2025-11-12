@@ -208,11 +208,11 @@ function populateAttackOptions() {
                     typeIconContainer.appendChild(attackTypeIcon);
                     buttonContent.appendChild(typeIconContainer);
 
-                    // ===== CONTAINER CENTRAL (NOME + EFEITOS HORIZONTAIS) =====
+                    // ===== CONTAINER CENTRAL (NOME ACIMA, EFEITOS EMBAIXO) =====
                     const centralContainer = document.createElement('div');
                     centralContainer.className = 'skill-central-container';
 
-                    // LINHA SUPERIOR: Nome + Efeitos (tudo horizontal)
+                    // LINHA SUPERIOR: APENAS Nome
                     const topLine = document.createElement('div');
                     topLine.className = 'skill-top-line';
 
@@ -222,7 +222,9 @@ function populateAttackOptions() {
                     skillName.textContent = skill.name;
                     topLine.appendChild(skillName);
 
-                    // Efeitos em linha horizontal
+                    centralContainer.appendChild(topLine);
+
+                    // LINHA DE EFEITOS (EMBAIXO DO NOME, HORIZONTAL)
                     const skillDetails = document.createElement('div');
                     skillDetails.className = 'skill-details';
 
@@ -304,8 +306,7 @@ function populateAttackOptions() {
                         }
                     }
 
-                    topLine.appendChild(skillDetails);
-                    centralContainer.appendChild(topLine);
+                    centralContainer.appendChild(skillDetails);
 
                     // LINHA INFERIOR: Relíquias (se houver)
                     if (skill.applicable_relics && skill.applicable_relics.length > 0) {
