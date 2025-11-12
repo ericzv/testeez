@@ -4824,28 +4824,32 @@
       text-shadow: 0 0 3px #000;
       line-height: 1;
   }
-/* ===== LAYOUT CLEAN E COMPACTO - DIMENSÕES FIXAS ===== */
+/* ===== LAYOUT 2 LINHAS PADRONIZADO ===== */
 
-/* Container principal do botão (HORIZONTAL) */
+/* Container principal do botão (POR LINHAS - COLUMN) */
 .skill-button-content {
     display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    gap: 8px;
+    flex-direction: column;
+    gap: 3px;
     width: 100%;
-    padding: 3px 5px;
-    min-height: 60px;
+    padding: 4px 6px;
 }
 
-/* ===== ÍCONE DO TIPO (ESQUERDA, BEM PRÓXIMO DA BORDA) ===== */
-.attack-type-icon-container {
-    width: 36px;
-    height: 100%;
+/* ===== LINHA 1: ÍCONE + NOME + ENERGIA ===== */
+.skill-top-line {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    gap: 8px;
+    width: 100%;
+}
+
+/* Ícone do tipo (esquerda, centralizado verticalmente) */
+.attack-type-icon-container {
+    width: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
-    margin-left: 2px;
 }
 
 .attack-type-icon {
@@ -4855,33 +4859,14 @@
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
-/* ===== CONTAINER CENTRAL (3 LINHAS FIXAS) ===== */
-.skill-central-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 1px;
-    flex-grow: 1;
-    min-width: 0;
-    padding: 2px 0;
-}
-
-/* LINHA 1: NOME (PRÓXIMO DA BORDA SUPERIOR) */
-.skill-top-line {
-    display: flex;
-    align-items: center;
-    height: 18px;
-}
-
+/* Nome da skill */
 .skill-name {
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: bold;
     color: #fff;
     font-family: 'Cinzel', serif;
-    line-height: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.2;
+    flex-grow: 1;
     text-shadow:
         -1px -1px 0 #000,
         1px -1px 0 #000,
@@ -4889,14 +4874,66 @@
         1px 1px 0 #000;
 }
 
-/* LINHA 2: STATS (DIMENSÕES FIXAS) */
+/* Energia (direita, VALOR ANTES DO ÍCONE) */
+.skill-energy-cost {
+    display: flex;
+    align-items: center;
+    flex-direction: row-reverse; /* Inverte: ícone depois do valor */
+    gap: 4px;
+    padding: 0;
+    flex-shrink: 0;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.skill-energy-icon {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    filter: none !important; /* Remove o brilho */
+}
+
+.skill-energy-cost span {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #ffeb3b;
+    text-shadow:
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Energia insuficiente */
+.insufficient-energy .skill-energy-cost span {
+    color: #ff5252;
+}
+
+.insufficient-energy .skill-energy-icon {
+    opacity: 0.7;
+}
+
+/* ===== LINHA 2: STATS + RELÍQUIAS (JUNTOS) ===== */
+.skill-central-container {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    padding-left: 44px; /* Alinha com o nome (36px icon + 8px gap) */
+}
+
+/* Stats */
 .skill-details {
     display: flex;
     flex-direction: row;
     gap: 4px;
     align-items: center;
     flex-wrap: nowrap;
-    height: 24px;
 }
 
 .skill-stat {
@@ -4904,7 +4941,7 @@
     align-items: center;
     justify-content: center;
     gap: 3px;
-    min-width: 50px;
+    min-width: 48px;
     height: 24px;
     background: rgba(0, 0, 0, 0.3);
     padding: 2px 6px;
@@ -4922,71 +4959,48 @@
     transform: translateY(-1px);
 }
 
+/* Ícones de stats (PADRONIZADO COM RELÍQUIAS) */
 .stat-icon {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     object-fit: contain;
     flex-shrink: 0;
 }
 
 .skill-stat span {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: bold;
     color: #fff;
     text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
     line-height: 1;
 }
 
-/* LINHA 3: RELÍQUIAS (PRÓXIMO DA BORDA INFERIOR) */
+/* Relíquias (MESMO TAMANHO QUE STATS) */
 .skill-relics-container {
     display: flex;
-    gap: 3px;
+    gap: 4px;
     flex-wrap: nowrap;
     align-items: center;
-    height: 18px;
-    overflow: hidden;
 }
 
-/* ===== ENERGIA (DIREITA, SEM CÍRCULO AMARELO) ===== */
-.skill-energy-cost {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    padding: 0;
-    flex-shrink: 0;
-    background: transparent !important;
-    border: none !important;
-    outline: none !important;
-}
-
-.skill-energy-icon {
-    width: 52px;
-    height: 52px;
+.skill-relic-icon {
+    width: 20px;
+    height: 20px;
     object-fit: contain;
-    filter: drop-shadow(0 0 4px rgba(100, 181, 246, 0.6));
+    border: 1.5px solid rgba(255, 215, 0, 0.7);
+    border-radius: 3px;
+    padding: 2px;
+    background: rgba(0, 0, 0, 0.4);
+    cursor: help;
+    position: relative;
+    transition: all 0.08s ease;
+    flex-shrink: 0;
 }
 
-.skill-energy-cost span {
-    font-size: 1.25rem;
-    font-weight: bold;
-    color: #ffeb3b;
-    text-shadow:
-        -1px -1px 0 #000,
-        1px -1px 0 #000,
-        -1px 1px 0 #000,
-        1px 1px 0 #000;
-    border: none !important;
-    outline: none !important;
-}
-
-/* Energia insuficiente */
-.insufficient-energy .skill-energy-cost span {
-    color: #ff5252;
-}
-
-.insufficient-energy .skill-energy-icon {
-    filter: drop-shadow(0 0 4px rgba(255, 82, 82, 0.6));
-    opacity: 0.7;
+.skill-relic-icon:hover {
+    transform: scale(1.1);
+    border-color: rgba(255, 215, 0, 1);
+    box-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
 }
 
 /* ===== TOOLTIP CUSTOMIZADO ===== */
@@ -5053,26 +5067,6 @@
     border-top-color: rgba(20, 20, 20, 0.95);
     pointer-events: none;
     z-index: 10000;
-}
-
-.skill-relic-icon {
-    width: 18px;
-    height: 18px;
-    object-fit: contain;
-    border: 1.5px solid rgba(255, 215, 0, 0.7);
-    border-radius: 2px;
-    padding: 1px;
-    background: rgba(0, 0, 0, 0.4);
-    cursor: help;
-    position: relative;
-    transition: all 0.08s ease;
-    flex-shrink: 0;
-}
-
-.skill-relic-icon:hover {
-    transform: scale(1.1);
-    border-color: rgba(255, 215, 0, 1);
-    box-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
 }
 
 /* ===== AJUSTES NO BOTÃO PRINCIPAL ===== */
