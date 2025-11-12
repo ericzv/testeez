@@ -4878,6 +4878,17 @@
     width: 72px;
     height: 72px;
     object-fit: contain;
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.6));
+    animation: icon-glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes icon-glow-pulse {
+    0%, 100% {
+        filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
+    }
+    50% {
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+    }
 }
 
 /* ===== CONTAINER CENTRAL (NOME ACIMA, EFEITOS EMBAIXO) ===== */
@@ -4916,10 +4927,10 @@
 .skill-stat {
     display: flex;
     align-items: center;
-    gap: 3px;
+    gap: 5px;
     background: rgba(0, 0, 0, 0.4);
-    padding: 3px 7px;
-    border-radius: 4px;
+    padding: 6px 10px;
+    border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.3);
     white-space: nowrap;
     cursor: help;
@@ -4935,14 +4946,14 @@
 
 /* Ícones de stats */
 .stat-icon {
-    width: 16px;
-    height: 16px;
+    width: 36px;
+    height: 36px;
     object-fit: contain;
 }
 
 /* Texto dos valores das stats */
 .skill-stat span {
-    font-size: 0.9rem;
+    font-size: 1.1rem;
     font-weight: bold;
     color: #fff;
     text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
@@ -5049,17 +5060,18 @@
     gap: 6px;
     padding: 4px;
     flex-shrink: 0;
+    background: transparent !important;
 }
 
 .skill-energy-icon {
-    width: 54px;
-    height: 54px;
+    width: 58px;
+    height: 58px;
     object-fit: contain;
     filter: drop-shadow(0 0 4px rgba(100, 181, 246, 0.6));
 }
 
 .skill-energy-cost span {
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     font-weight: bold;
     color: #ffeb3b;
     text-shadow:
@@ -5086,9 +5098,12 @@
     opacity: 0.7;
 }
 
-/* ===== AJUSTES NO BOTÃO PRINCIPAL (SEM DELAY) ===== */
+/* ===== AJUSTES NO BOTÃO PRINCIPAL (RESTAURAR CORES) ===== */
 .skill-button {
-    padding: 0 !important;
+    background: linear-gradient(to bottom, #8c2022, #5c1011) !important;
+    border: 2px solid #aa3033 !important;
+    border-radius: 5px !important;
+    padding: 8px !important;
     min-height: 0 !important;
     overflow: visible !important;
     transition: all 0.08s ease !important;
@@ -5096,6 +5111,8 @@
 
 .skill-button:hover {
     transform: translateX(3px) !important;
+    border-color: #cc4044 !important;
+    box-shadow: 0 4px 12px rgba(140, 32, 34, 0.5) !important;
 }
 
 /* ===== RESPONSIVIDADE ===== */
