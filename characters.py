@@ -694,6 +694,39 @@ def get_player_attacks(player_id):
                         'description': f"-{effect['energy_cost_reduction']} energia"
                     }
 
+                # ID 13 - Crit per relic (passiva global)
+                elif effect_type == 'crit_per_relic':
+                    applies_to_this_skill = True
+                    relic_count = len(active_relics)
+                    bonus = relic_count * effect['crit_percent']
+                    modifier_info = {
+                        'type': 'crit_passive',
+                        'value': bonus,
+                        'description': f"+{bonus*100:.0f}% crítico passivo ({relic_count} relíquias)"
+                    }
+
+                # ID 43 - Block per relic (passiva de defesa, mostrar apenas para info)
+                elif effect_type == 'block_per_relic':
+                    # Não mostrar no ataque, só afeta defesa
+                    pass
+
+                # ID 20, 21, 26 - Damage acumulado (passivas específicas)
+                elif effect_type == 'damage_accumulation':
+                    target_skill = effect.get('skill_type')
+                    if target_skill == cache.skill_type:
+                        applies_to_this_skill = True
+                        accumulated = 0
+                        if cache.skill_type == 'attack':
+                            accumulated = player.accumulated_attack_bonus
+                        elif cache.skill_type == 'power':
+                            accumulated = player.accumulated_power_bonus
+
+                        modifier_info = {
+                            'type': 'damage_accumulated',
+                            'value': accumulated,
+                            'description': f"+{accumulated} dano acumulado"
+                        }
+
                 # Adicionar à lista se aplicável
                 if applies_to_this_skill:
                     applicable_relics.append({
@@ -702,6 +735,12 @@ def get_player_attacks(player_id):
                         'icon': definition['icon'],
                         'modifier': modifier_info
                     })
+
+            # DEBUG: Log das relíquias aplicáveis para este ataque
+            if applicable_relics:
+                print(f"   [DEBUG] Skill {skill['name']} ({cache.skill_type}) tem {len(applicable_relics)} relíquias aplicáveis:")
+                for rel in applicable_relics:
+                    print(f"      - {rel['name']}: {rel['modifier']['description']}")
 
             skill['applicable_relics'] = applicable_relics
 

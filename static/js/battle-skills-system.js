@@ -288,7 +288,7 @@ function populateAttackOptions() {
                             const barrierText = document.createElement('span');
                             // Calcular valor da barreira
                             const barrierValue = Math.floor(cache.base_damage * (cache.effect_value || 0)) + (cache.effect_bonus || 0);
-                            barrierText.textContent = `${barrierValue} HP`;
+                            barrierText.textContent = `${barrierValue}`;
 
                             barrierInfo.appendChild(barrierIcon);
                             barrierInfo.appendChild(barrierText);
@@ -305,7 +305,11 @@ function populateAttackOptions() {
 
                         skill.applicable_relics.forEach(relic => {
                             const relicIcon = document.createElement('img');
-                            relicIcon.src = relic.icon;
+                            // Corrigir caminho do ícone: adicionar caminho completo se não tiver
+                            const iconSrc = relic.icon.startsWith('/') || relic.icon.startsWith('http')
+                                ? relic.icon
+                                : `/static/game.data/relics/${relic.icon}`;
+                            relicIcon.src = iconSrc;
                             relicIcon.alt = relic.name;
                             relicIcon.className = 'skill-relic-icon';
                             relicIcon.title = `${relic.name}: ${relic.modifier.description}`;

@@ -4830,14 +4830,15 @@
 .skill-button-content {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     width: 100%;
+    min-height: 0;
 }
 
 /* Ícone do tipo de ataque (esquerda) */
 .attack-type-icon {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     object-fit: contain;
     flex-shrink: 0;
 }
@@ -4846,23 +4847,26 @@
 .skill-info-container {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
     flex-grow: 1;
+    min-height: 0;
 }
 
 /* Nome da skill */
 .skill-name {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: bold;
     color: #fff;
     font-family: 'Cinzel', serif;
+    line-height: 1.2;
+    margin: 0;
 }
 
 /* Container de stats (dano, crítico, vampirismo, barreira) */
 .skill-details {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 6px;
     align-items: center;
 }
 
@@ -4870,44 +4874,45 @@
 .skill-stat {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
     background: rgba(0, 0, 0, 0.3);
-    padding: 3px 8px;
-    border-radius: 4px;
+    padding: 2px 6px;
+    border-radius: 3px;
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* Ícones de stats (damage, critchance, vampirism, barrier) */
 .stat-icon {
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
     object-fit: contain;
 }
 
 /* Texto dos valores das stats */
 .skill-stat span {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: bold;
     color: #fff;
     text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+    line-height: 1;
 }
 
 /* Container de relíquias aplicáveis */
 .skill-relics-container {
     display: flex;
-    gap: 6px;
-    margin-top: 4px;
+    gap: 4px;
+    margin-top: 2px;
     flex-wrap: wrap;
 }
 
 /* Ícones das relíquias */
 .skill-relic-icon {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     object-fit: contain;
     border: 1px solid rgba(255, 215, 0, 0.5);
-    border-radius: 4px;
-    padding: 2px;
+    border-radius: 3px;
+    padding: 1px;
     background: rgba(0, 0, 0, 0.4);
     cursor: help;
     transition: all 0.2s ease;
@@ -4921,7 +4926,8 @@
 
 /* Ajuste para o badge de energia não sobrepor o conteúdo */
 .skill-button {
-    padding-right: 60px; /* Espaço para o badge de energia */
+    padding: 10px 60px 10px 12px !important;
+    min-height: 0 !important;
 }
 
 /* ===== RESPONSIVIDADE ===== */
