@@ -4824,114 +4824,116 @@
       text-shadow: 0 0 3px #000;
       line-height: 1;
   }
-/* ===== ESTILOS PARA SUBMENU DE ATAQUES (LAYOUT HORIZONTAL) ===== */
+/* ===== LAYOUT CLEAN: 3 LINHAS COMPACTAS ===== */
 
 /* Container principal do botão */
 .skill-button-content {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    gap: 6px;
     width: 100%;
-    padding: 8px;
+    padding: 10px;
 }
 
-/* ===== ÍCONE DO TIPO COM CÍRCULO FINO ===== */
+/* ===== LINHA 1: ÍCONE + NOME + ENERGIA ===== */
+.skill-top-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+/* Container do ícone (sem círculo, apenas o ícone) */
 .attack-type-icon-container {
-    width: 84px;
-    height: 84px;
-    border-radius: 50%;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    border: 1px solid;
-    transition: transform 0.1s ease;
-}
-
-.attack-type-icon-container:hover {
-    transform: scale(1.05);
-}
-
-/* Cores por tipo de ataque */
-.attack-type-icon-container.type-attack {
-    border-color: #888;
-    background: radial-gradient(circle, rgba(136, 136, 136, 0.15), transparent);
-}
-
-.attack-type-icon-container.type-power {
-    border-color: #4a90e2;
-    background: radial-gradient(circle, rgba(74, 144, 226, 0.15), transparent);
-}
-
-.attack-type-icon-container.type-special {
-    border-color: #9b59b6;
-    background: radial-gradient(circle, rgba(155, 89, 182, 0.15), transparent);
-}
-
-.attack-type-icon-container.type-ultimate {
-    border-color: #f39c12;
-    background: radial-gradient(circle, rgba(243, 156, 18, 0.15), transparent);
-    box-shadow: 0 0 8px rgba(243, 156, 18, 0.4);
 }
 
 .attack-type-icon {
-    width: 72px;
-    height: 72px;
+    width: 40px;
+    height: 40px;
     object-fit: contain;
-    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.6));
-    animation: icon-glow-pulse 2s ease-in-out infinite;
-}
-
-@keyframes icon-glow-pulse {
-    0%, 100% {
-        filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
-    }
-    50% {
-        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
-    }
-}
-
-/* ===== CONTAINER CENTRAL (NOME ACIMA, EFEITOS EMBAIXO) ===== */
-.skill-central-container {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    flex-grow: 1;
-    min-width: 0;
-}
-
-/* Linha superior: APENAS Nome */
-.skill-top-line {
-    display: flex;
-    align-items: center;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
 /* Nome da skill */
 .skill-name {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     font-weight: bold;
     color: #fff;
     font-family: 'Cinzel', serif;
     line-height: 1.2;
+    flex-grow: 1;
 }
 
-/* Container de efeitos (HORIZONTAL, ABAIXO DO NOME) */
+/* Energia no final da linha 1 */
+.skill-energy-cost {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0;
+    flex-shrink: 0;
+    background: transparent !important;
+}
+
+.skill-energy-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 4px rgba(100, 181, 246, 0.6));
+}
+
+.skill-energy-cost span {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #ffeb3b;
+    text-shadow:
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+}
+
+/* Energia insuficiente */
+.insufficient-energy .skill-energy-cost span {
+    color: #ff5252;
+}
+
+.insufficient-energy .skill-energy-icon {
+    filter: drop-shadow(0 0 4px rgba(255, 82, 82, 0.6));
+    opacity: 0.7;
+}
+
+/* ===== LINHA 2: STATS (DANO, CRIT, BARREIRA, VAMPIRISMO) ===== */
 .skill-details {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
+    padding-left: 50px; /* Alinha com o nome */
+}
+
+/* Container central (usado para organizar linhas 2 e 3) */
+.skill-central-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 100%;
 }
 
 /* Cada stat individual */
 .skill-stat {
     display: flex;
     align-items: center;
-    gap: 5px;
-    background: rgba(0, 0, 0, 0.4);
-    padding: 6px 10px;
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     white-space: nowrap;
     cursor: help;
     position: relative;
@@ -4939,21 +4941,21 @@
 }
 
 .skill-stat:hover {
-    background: rgba(0, 0, 0, 0.6);
-    border-color: rgba(255, 255, 255, 0.5);
-    transform: translateY(-2px);
+    background: rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-1px);
 }
 
 /* Ícones de stats */
 .stat-icon {
-    width: 36px;
-    height: 36px;
+    width: 20px;
+    height: 20px;
     object-fit: contain;
 }
 
 /* Texto dos valores das stats */
 .skill-stat span {
-    font-size: 1.1rem;
+    font-size: 0.9rem;
     font-weight: bold;
     color: #fff;
     text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
@@ -5026,76 +5028,32 @@
     z-index: 10000;
 }
 
-/* ===== RELÍQUIAS (LINHA INFERIOR) ===== */
+/* ===== LINHA 3: RELÍQUIAS ===== */
 .skill-relics-container {
     display: flex;
-    gap: 4px;
+    gap: 5px;
     flex-wrap: wrap;
     align-items: center;
+    padding-left: 50px; /* Alinha com as stats */
 }
 
 .skill-relic-icon {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
     object-fit: contain;
-    border: 2px solid rgba(255, 215, 0, 0.6);
-    border-radius: 4px;
+    border: 1.5px solid rgba(255, 215, 0, 0.7);
+    border-radius: 3px;
     padding: 2px;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.4);
     cursor: help;
     position: relative;
     transition: all 0.08s ease;
 }
 
 .skill-relic-icon:hover {
-    transform: scale(1.2);
+    transform: scale(1.15);
     border-color: rgba(255, 215, 0, 1);
-    box-shadow: 0 0 12px rgba(255, 215, 0, 0.8);
-}
-
-/* ===== BADGE DE ENERGIA (SEM RETÂNGULO, ÍCONE GRANDE) ===== */
-.skill-energy-cost {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px;
-    flex-shrink: 0;
-    background: transparent !important;
-}
-
-.skill-energy-icon {
-    width: 58px;
-    height: 58px;
-    object-fit: contain;
-    filter: drop-shadow(0 0 4px rgba(100, 181, 246, 0.6));
-}
-
-.skill-energy-cost span {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #ffeb3b;
-    text-shadow:
-        -1px -1px 0 #fff,
-        1px -1px 0 #fff,
-        -1px 1px 0 #fff,
-        1px 1px 0 #fff,
-        0 0 8px rgba(255, 235, 59, 0.8);
-}
-
-/* Energia insuficiente */
-.insufficient-energy .skill-energy-cost span {
-    color: #ff5252;
-    text-shadow:
-        -1px -1px 0 #fff,
-        1px -1px 0 #fff,
-        -1px 1px 0 #fff,
-        1px 1px 0 #fff,
-        0 0 8px rgba(255, 82, 82, 0.8);
-}
-
-.insufficient-energy .skill-energy-icon {
-    filter: drop-shadow(0 0 4px rgba(255, 82, 82, 0.6));
-    opacity: 0.7;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
 }
 
 /* ===== AJUSTES NO BOTÃO PRINCIPAL (RESTAURAR CORES) ===== */

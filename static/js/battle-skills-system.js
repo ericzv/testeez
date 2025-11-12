@@ -180,16 +180,17 @@ function populateAttackOptions() {
                         button.title = disableReason;
                     }
                     
-                    // ===== CRIAR ESTRUTURA DO BOTÃO (LAYOUT HORIZONTAL) =====
+                    // ===== CRIAR ESTRUTURA DO BOTÃO (LAYOUT 3 LINHAS) =====
                     const buttonContent = document.createElement('div');
                     buttonContent.className = 'skill-button-content';
 
-                    // ===== ÍCONE DO TIPO DE ATAQUE COM CÍRCULO COLORIDO =====
+                    // ===== LINHA 1: ÍCONE + NOME + ENERGIA =====
+                    const topLine = document.createElement('div');
+                    topLine.className = 'skill-top-line';
+
+                    // Ícone do tipo de ataque (pequeno, sem círculo)
                     const typeIconContainer = document.createElement('div');
                     typeIconContainer.className = 'attack-type-icon-container';
-
-                    // Adicionar classe específica do tipo para colorir o círculo
-                    typeIconContainer.classList.add(`type-${skill.skill_type || 'attack'}`);
 
                     const attackTypeIcon = document.createElement('img');
                     attackTypeIcon.className = 'attack-type-icon';
@@ -206,15 +207,7 @@ function populateAttackOptions() {
                     attackTypeIcon.alt = skill.skill_type || 'attack';
 
                     typeIconContainer.appendChild(attackTypeIcon);
-                    buttonContent.appendChild(typeIconContainer);
-
-                    // ===== CONTAINER CENTRAL (NOME ACIMA, EFEITOS EMBAIXO) =====
-                    const centralContainer = document.createElement('div');
-                    centralContainer.className = 'skill-central-container';
-
-                    // LINHA SUPERIOR: APENAS Nome
-                    const topLine = document.createElement('div');
-                    topLine.className = 'skill-top-line';
+                    topLine.appendChild(typeIconContainer);
 
                     // Nome da skill
                     const skillName = document.createElement('div');
@@ -222,7 +215,35 @@ function populateAttackOptions() {
                     skillName.textContent = skill.name;
                     topLine.appendChild(skillName);
 
-                    centralContainer.appendChild(topLine);
+                    // Energia na mesma linha (final)
+                    if (skill.energy_cost !== undefined) {
+                        const energyBadge = document.createElement('div');
+                        energyBadge.className = 'skill-energy-cost';
+
+                        const energyIcon = document.createElement('img');
+                        energyIcon.src = '/static/game.data/energy.png';
+                        energyIcon.className = 'skill-energy-icon';
+
+                        const costText = document.createElement('span');
+                        costText.textContent = skill.energy_cost;
+
+                        energyBadge.appendChild(energyIcon);
+                        energyBadge.appendChild(costText);
+                        topLine.appendChild(energyBadge);
+
+                        // Verificar disponibilidade de energia
+                        if (gameState.player.energy !== undefined && gameState.player.energy < skill.energy_cost) {
+                            button.classList.add('insufficient-energy');
+                            disabled = true;
+                            disableReason += "Energia insuficiente. ";
+                        }
+                    }
+
+                    buttonContent.appendChild(topLine);
+
+                    // ===== CONTAINER PARA LINHAS 2 E 3 =====
+                    const centralContainer = document.createElement('div');
+                    centralContainer.className = 'skill-central-container';
 
                     // LINHA DE EFEITOS (EMBAIXO DO NOME, HORIZONTAL)
                     const skillDetails = document.createElement('div');
@@ -308,7 +329,7 @@ function populateAttackOptions() {
 
                     centralContainer.appendChild(skillDetails);
 
-                    // LINHA INFERIOR: Relíquias (se houver)
+                    // ===== LINHA 3: RELÍQUIAS (SE HOUVER) =====
                     if (skill.applicable_relics && skill.applicable_relics.length > 0) {
                         const relicsContainer = document.createElement('div');
                         relicsContainer.className = 'skill-relics-container';
@@ -329,31 +350,6 @@ function populateAttackOptions() {
                     }
 
                     buttonContent.appendChild(centralContainer);
-
-                    // ===== BADGE DE ENERGIA (DIREITA, COM DESTAQUE) =====
-                    if (skill.energy_cost !== undefined) {
-                        const energyBadge = document.createElement('div');
-                        energyBadge.className = 'skill-energy-cost';
-
-                        const energyIcon = document.createElement('img');
-                        energyIcon.src = '/static/game.data/energy.png';
-                        energyIcon.className = 'skill-energy-icon';
-
-                        const costText = document.createElement('span');
-                        costText.textContent = skill.energy_cost;
-
-                        energyBadge.appendChild(energyIcon);
-                        energyBadge.appendChild(costText);
-                        buttonContent.appendChild(energyBadge);
-
-                        // Verificar disponibilidade de energia
-                        if (gameState.player.energy !== undefined && gameState.player.energy < skill.energy_cost) {
-                            button.classList.add('insufficient-energy');
-                            disabled = true;
-                            disableReason += "Energia insuficiente. ";
-                        }
-                    }
-
                     button.appendChild(buttonContent);
                     
                     button.addEventListener('click', () => {
