@@ -674,17 +674,6 @@ def get_player_attacks(player_id):
                         'description': f"+{bonus} dano ({relic_count} relíquias)"
                     }
 
-                # ID 44 - Vampirismo por relíquia no ataque
-                elif effect_type == 'lifesteal_per_relic' and cache.skill_type == 'attack':
-                    applies_to_this_skill = True
-                    relic_count = len(active_relics)
-                    bonus = relic_count * effect['lifesteal_percent']
-                    modifier_info = {
-                        'type': 'lifesteal_passive',
-                        'value': bonus,
-                        'description': f"+{bonus*100:.0f}% vampirismo passivo"
-                    }
-
                 # ID 23 - Doxologia: -1 energia no Especial
                 elif effect_type == 'special_energy_reduction' and cache.skill_type == 'special':
                     applies_to_this_skill = True
@@ -726,6 +715,38 @@ def get_player_attacks(player_id):
                             'value': accumulated,
                             'description': f"+{accumulated} dano acumulado"
                         }
+
+                # ==== RELÍQUIAS QUE APLICAM A TODOS OS ATAQUES ====
+
+                # ID 4 - Presa Vampírica: Cura 3 HP cada vez que causar dano
+                elif effect_type == 'heal_on_damage':
+                    applies_to_this_skill = True
+                    heal_value = effect.get('value', 3)
+                    modifier_info = {
+                        'type': 'heal_on_damage',
+                        'value': heal_value,
+                        'description': f"+{heal_value} HP ao causar dano"
+                    }
+
+                # ID 44 - Vampirismo por relíquia (global, não só ataque básico)
+                elif effect_type == 'lifesteal_per_relic':
+                    applies_to_this_skill = True
+                    relic_count = len(active_relics)
+                    bonus = relic_count * effect['lifesteal_percent']
+                    modifier_info = {
+                        'type': 'lifesteal_passive',
+                        'value': bonus,
+                        'description': f"+{bonus*100:.0f}% vampirismo passivo"
+                    }
+
+                # Outras relíquias que ativam com qualquer ataque
+                elif effect_type in ['damage_boost', 'global_lifesteal', 'heal_on_hit']:
+                    applies_to_this_skill = True
+                    modifier_info = {
+                        'type': effect_type,
+                        'value': effect.get('value', 0),
+                        'description': f"Efeito global: {effect_type}"
+                    }
 
                 # Adicionar à lista se aplicável
                 if applies_to_this_skill:

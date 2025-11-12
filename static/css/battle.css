@@ -4824,129 +4824,97 @@
       text-shadow: 0 0 3px #000;
       line-height: 1;
   }
-/* ===== ESTILOS PARA SUBMENU DE ATAQUES (LAYOUT HORIZONTAL) ===== */
+/* ===== DESIGN MINIMALISTA DOS BOTÕES DE ATAQUE ===== */
 
-/* Container principal do botão - TUDO EM LINHA */
+/* Container principal - layout limpo e horizontal */
 .skill-button-content {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
     width: 100%;
-    padding: 8px;
+    padding: 10px 14px;
 }
 
-/* ===== ÍCONE DO TIPO COM CÍRCULO FINO ===== */
+/* ===== ÍCONE DO TIPO (SEM CÍRCULO, LIMPO) ===== */
 .attack-type-icon-container {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    border: 1px solid;
-    transition: transform 0.1s ease;
+    opacity: 0.85;
+    transition: opacity 0.1s ease;
 }
 
 .attack-type-icon-container:hover {
-    transform: scale(1.05);
-}
-
-/* Cores por tipo de ataque */
-.attack-type-icon-container.type-attack {
-    border-color: #888;
-    background: radial-gradient(circle, rgba(136, 136, 136, 0.15), transparent);
-}
-
-.attack-type-icon-container.type-power {
-    border-color: #4a90e2;
-    background: radial-gradient(circle, rgba(74, 144, 226, 0.15), transparent);
-}
-
-.attack-type-icon-container.type-special {
-    border-color: #9b59b6;
-    background: radial-gradient(circle, rgba(155, 89, 182, 0.15), transparent);
-}
-
-.attack-type-icon-container.type-ultimate {
-    border-color: #f39c12;
-    background: radial-gradient(circle, rgba(243, 156, 18, 0.15), transparent);
-    box-shadow: 0 0 8px rgba(243, 156, 18, 0.4);
+    opacity: 1;
 }
 
 .attack-type-icon {
-    width: 44px;
-    height: 44px;
+    width: 36px;
+    height: 36px;
     object-fit: contain;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
-/* ===== CONTAINER CENTRAL (NOME ACIMA, EFEITOS EMBAIXO) ===== */
+/* ===== CONTAINER CENTRAL (LIMPO E ORGANIZADO) ===== */
 .skill-central-container {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 5px;
     flex-grow: 1;
     min-width: 0;
 }
 
-/* Linha superior: APENAS Nome */
-.skill-top-line {
-    display: flex;
-    align-items: center;
-}
-
 /* Nome da skill */
 .skill-name {
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
     font-family: 'Cinzel', serif;
-    line-height: 1.2;
+    line-height: 1.3;
+    letter-spacing: 0.2px;
 }
 
-/* Container de efeitos (HORIZONTAL, ABAIXO DO NOME) */
+/* Container de efeitos - minimalista */
 .skill-details {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
     flex-wrap: nowrap;
 }
 
-/* Cada stat individual */
+/* Cada stat - design limpo sem background */
 .skill-stat {
     display: flex;
     align-items: center;
-    gap: 3px;
-    background: rgba(0, 0, 0, 0.4);
-    padding: 3px 7px;
-    border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    gap: 4px;
     white-space: nowrap;
     cursor: help;
     position: relative;
-    transition: all 0.08s ease;
+    transition: opacity 0.1s ease;
+    opacity: 0.75;
 }
 
 .skill-stat:hover {
-    background: rgba(0, 0, 0, 0.6);
-    border-color: rgba(255, 255, 255, 0.5);
-    transform: translateY(-2px);
+    opacity: 1;
 }
 
-/* Ícones de stats */
+/* Ícones de stats - menores e discretos */
 .stat-icon {
-    width: 16px;
-    height: 16px;
+    width: 13px;
+    height: 13px;
     object-fit: contain;
+    opacity: 0.65;
 }
 
-/* Texto dos valores das stats */
+/* Texto dos valores - limpo e legível */
 .skill-stat span {
-    font-size: 0.9rem;
-    font-weight: bold;
-    color: #fff;
-    text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
-    line-height: 1;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 /* ===== TOOLTIP CUSTOMIZADO ===== */
@@ -5015,7 +4983,7 @@
     z-index: 10000;
 }
 
-/* ===== RELÍQUIAS (LINHA INFERIOR) ===== */
+/* ===== RELÍQUIAS (LINHA INFERIOR, DISCRETAS) ===== */
 .skill-relics-container {
     display: flex;
     gap: 4px;
@@ -5024,78 +4992,78 @@
 }
 
 .skill-relic-icon {
-    width: 24px;
-    height: 24px;
+    width: 18px;
+    height: 18px;
     object-fit: contain;
-    border: 2px solid rgba(255, 215, 0, 0.6);
-    border-radius: 4px;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 3px;
     padding: 2px;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.15);
     cursor: help;
     position: relative;
-    transition: all 0.08s ease;
-}
-
-.skill-relic-icon:hover {
-    transform: scale(1.2);
-    border-color: rgba(255, 215, 0, 1);
-    box-shadow: 0 0 12px rgba(255, 215, 0, 0.8);
-}
-
-/* ===== BADGE DE ENERGIA (SEM RETÂNGULO, ÍCONE GRANDE) ===== */
-.skill-energy-cost {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px;
-    flex-shrink: 0;
-}
-
-.skill-energy-icon {
-    width: 54px;
-    height: 54px;
-    object-fit: contain;
-    filter: drop-shadow(0 0 4px rgba(100, 181, 246, 0.6));
-}
-
-.skill-energy-cost span {
-    font-size: 1.4rem;
-    font-weight: bold;
-    color: #ffeb3b;
-    text-shadow:
-        -1px -1px 0 #fff,
-        1px -1px 0 #fff,
-        -1px 1px 0 #fff,
-        1px 1px 0 #fff,
-        0 0 8px rgba(255, 235, 59, 0.8);
-}
-
-/* Energia insuficiente */
-.insufficient-energy .skill-energy-cost span {
-    color: #ff5252;
-    text-shadow:
-        -1px -1px 0 #fff,
-        1px -1px 0 #fff,
-        -1px 1px 0 #fff,
-        1px 1px 0 #fff,
-        0 0 8px rgba(255, 82, 82, 0.8);
-}
-
-.insufficient-energy .skill-energy-icon {
-    filter: drop-shadow(0 0 4px rgba(255, 82, 82, 0.6));
+    transition: all 0.1s ease;
     opacity: 0.7;
 }
 
-/* ===== AJUSTES NO BOTÃO PRINCIPAL (SEM DELAY) ===== */
+.skill-relic-icon:hover {
+    opacity: 1;
+    transform: scale(1.1);
+    border-color: rgba(255, 215, 0, 0.7);
+    box-shadow: 0 0 6px rgba(255, 215, 0, 0.3);
+}
+
+/* ===== ENERGIA (SIMPLES E FUNCIONAL) ===== */
+.skill-energy-cost {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    flex-shrink: 0;
+    opacity: 0.85;
+}
+
+.skill-energy-icon {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    filter: drop-shadow(0 1px 2px rgba(100, 181, 246, 0.3));
+}
+
+.skill-energy-cost span {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Energia insuficiente - sutil */
+.insufficient-energy .skill-energy-cost {
+    opacity: 0.4;
+}
+
+.insufficient-energy .skill-energy-cost span {
+    color: #ef5350;
+}
+
+.insufficient-energy .skill-energy-icon {
+    filter: drop-shadow(0 1px 2px rgba(239, 83, 80, 0.3));
+}
+
+/* ===== BOTÃO PRINCIPAL (MINIMALISTA) ===== */
 .skill-button {
+    background: linear-gradient(to bottom, rgba(45, 45, 45, 0.3), rgba(30, 30, 30, 0.3)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
     padding: 0 !important;
     min-height: 0 !important;
     overflow: visible !important;
-    transition: all 0.08s ease !important;
+    transition: all 0.1s ease !important;
 }
 
 .skill-button:hover {
-    transform: translateX(3px) !important;
+    background: linear-gradient(to bottom, rgba(55, 55, 55, 0.4), rgba(35, 35, 35, 0.4)) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* ===== RESPONSIVIDADE ===== */
