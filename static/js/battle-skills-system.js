@@ -180,16 +180,20 @@ function populateAttackOptions() {
                         button.title = disableReason;
                     }
                     
-                    // ===== CRIAR ESTRUTURA DO BOTÃO =====
-                    // Container principal do botão
+                    // ===== CRIAR ESTRUTURA DO BOTÃO (LAYOUT HORIZONTAL) =====
                     const buttonContent = document.createElement('div');
                     buttonContent.className = 'skill-button-content';
 
-                    // ===== ÍCONE DO TIPO DE ATAQUE =====
+                    // ===== ÍCONE DO TIPO DE ATAQUE COM CÍRCULO COLORIDO =====
+                    const typeIconContainer = document.createElement('div');
+                    typeIconContainer.className = 'attack-type-icon-container';
+
+                    // Adicionar classe específica do tipo para colorir o círculo
+                    typeIconContainer.classList.add(`type-${skill.skill_type || 'attack'}`);
+
                     const attackTypeIcon = document.createElement('img');
                     attackTypeIcon.className = 'attack-type-icon';
 
-                    // Mapear tipo de ataque para ícone
                     const typeIconMap = {
                         'attack': 'atk1.png',
                         'power': 'atk2.png',
@@ -201,23 +205,27 @@ function populateAttackOptions() {
                     attackTypeIcon.src = `/static/game.data/icons/${iconFile}`;
                     attackTypeIcon.alt = skill.skill_type || 'attack';
 
-                    buttonContent.appendChild(attackTypeIcon);
+                    typeIconContainer.appendChild(attackTypeIcon);
+                    buttonContent.appendChild(typeIconContainer);
 
-                    // ===== CONTAINER DE INFORMAÇÕES =====
-                    const infoContainer = document.createElement('div');
-                    infoContainer.className = 'skill-info-container';
+                    // ===== CONTAINER CENTRAL (NOME + EFEITOS HORIZONTAIS) =====
+                    const centralContainer = document.createElement('div');
+                    centralContainer.className = 'skill-central-container';
+
+                    // LINHA SUPERIOR: Nome + Efeitos (tudo horizontal)
+                    const topLine = document.createElement('div');
+                    topLine.className = 'skill-top-line';
 
                     // Nome da skill
                     const skillName = document.createElement('div');
                     skillName.className = 'skill-name';
                     skillName.textContent = skill.name;
-                    infoContainer.appendChild(skillName);
+                    topLine.appendChild(skillName);
 
-                    // ===== INFORMAÇÕES DETALHADAS (PARTE INFERIOR) =====
+                    // Efeitos em linha horizontal
                     const skillDetails = document.createElement('div');
-                    skillDetails.classList.add('skill-details');
+                    skillDetails.className = 'skill-details';
 
-                    // Se temos dados do cache, mostrar informações detalhadas
                     if (skill.cache_data) {
                         const cache = skill.cache_data;
 
@@ -225,14 +233,14 @@ function populateAttackOptions() {
                         if (cache.base_damage) {
                             const damageInfo = document.createElement('div');
                             damageInfo.className = 'skill-stat';
+                            damageInfo.title = `Dano base: ${cache.base_damage} HP`;
 
                             const damageIcon = document.createElement('img');
                             damageIcon.src = '/static/game.data/icons/damage.png';
-                            damageIcon.alt = 'Dano';
                             damageIcon.className = 'stat-icon';
 
                             const damageText = document.createElement('span');
-                            damageText.textContent = `${cache.base_damage} HP`;
+                            damageText.textContent = cache.base_damage;
 
                             damageInfo.appendChild(damageIcon);
                             damageInfo.appendChild(damageText);
@@ -243,10 +251,10 @@ function populateAttackOptions() {
                         if (cache.base_crit_chance && cache.base_crit_chance > 0) {
                             const critInfo = document.createElement('div');
                             critInfo.className = 'skill-stat';
+                            critInfo.title = `Chance de crítico: ${(cache.base_crit_chance * 100).toFixed(0)}%`;
 
                             const critIcon = document.createElement('img');
                             critIcon.src = '/static/game.data/icons/critchance.png';
-                            critIcon.alt = 'Crítico';
                             critIcon.className = 'stat-icon';
 
                             const critText = document.createElement('span');
@@ -261,10 +269,10 @@ function populateAttackOptions() {
                         if (cache.lifesteal_percent && cache.lifesteal_percent > 0) {
                             const vampInfo = document.createElement('div');
                             vampInfo.className = 'skill-stat';
+                            vampInfo.title = `Vampirismo: ${(cache.lifesteal_percent * 100).toFixed(0)}% do dano vira HP`;
 
                             const vampIcon = document.createElement('img');
                             vampIcon.src = '/static/game.data/icons/vampirism.png';
-                            vampIcon.alt = 'Vampirismo';
                             vampIcon.className = 'stat-icon';
 
                             const vampText = document.createElement('span');
@@ -277,18 +285,18 @@ function populateAttackOptions() {
 
                         // BARREIRA
                         if (cache.effect_type === 'barrier') {
+                            const barrierValue = Math.floor(cache.base_damage * (cache.effect_value || 0)) + (cache.effect_bonus || 0);
+
                             const barrierInfo = document.createElement('div');
                             barrierInfo.className = 'skill-stat';
+                            barrierInfo.title = `Barreira: Ganha ${barrierValue} de escudo`;
 
                             const barrierIcon = document.createElement('img');
                             barrierIcon.src = '/static/game.data/icons/barrier.png';
-                            barrierIcon.alt = 'Barreira';
                             barrierIcon.className = 'stat-icon';
 
                             const barrierText = document.createElement('span');
-                            // Calcular valor da barreira
-                            const barrierValue = Math.floor(cache.base_damage * (cache.effect_value || 0)) + (cache.effect_bonus || 0);
-                            barrierText.textContent = `${barrierValue}`;
+                            barrierText.textContent = barrierValue;
 
                             barrierInfo.appendChild(barrierIcon);
                             barrierInfo.appendChild(barrierText);
@@ -296,40 +304,38 @@ function populateAttackOptions() {
                         }
                     }
 
-                    infoContainer.appendChild(skillDetails);
+                    topLine.appendChild(skillDetails);
+                    centralContainer.appendChild(topLine);
 
-                    // ===== RELÍQUIAS APLICÁVEIS =====
+                    // LINHA INFERIOR: Relíquias (se houver)
                     if (skill.applicable_relics && skill.applicable_relics.length > 0) {
                         const relicsContainer = document.createElement('div');
                         relicsContainer.className = 'skill-relics-container';
 
                         skill.applicable_relics.forEach(relic => {
                             const relicIcon = document.createElement('img');
-                            // Corrigir caminho do ícone: adicionar caminho completo se não tiver
                             const iconSrc = relic.icon.startsWith('/') || relic.icon.startsWith('http')
                                 ? relic.icon
                                 : `/static/game.data/relics/${relic.icon}`;
                             relicIcon.src = iconSrc;
-                            relicIcon.alt = relic.name;
                             relicIcon.className = 'skill-relic-icon';
                             relicIcon.title = `${relic.name}: ${relic.modifier.description}`;
 
                             relicsContainer.appendChild(relicIcon);
                         });
 
-                        infoContainer.appendChild(relicsContainer);
+                        centralContainer.appendChild(relicsContainer);
                     }
 
-                    buttonContent.appendChild(infoContainer);
+                    buttonContent.appendChild(centralContainer);
 
-                    // ===== BADGE DE ENERGIA =====
+                    // ===== BADGE DE ENERGIA (DIREITA, COM DESTAQUE) =====
                     if (skill.energy_cost !== undefined) {
                         const energyBadge = document.createElement('div');
                         energyBadge.className = 'skill-energy-cost';
 
                         const energyIcon = document.createElement('img');
                         energyIcon.src = '/static/game.data/energy.png';
-                        energyIcon.alt = 'Energia';
                         energyIcon.className = 'skill-energy-icon';
 
                         const costText = document.createElement('span');
@@ -337,9 +343,7 @@ function populateAttackOptions() {
 
                         energyBadge.appendChild(energyIcon);
                         energyBadge.appendChild(costText);
-
-                        button.style.position = 'relative';
-                        button.appendChild(energyBadge);
+                        buttonContent.appendChild(energyBadge);
 
                         // Verificar disponibilidade de energia
                         if (gameState.player.energy !== undefined && gameState.player.energy < skill.energy_cost) {
