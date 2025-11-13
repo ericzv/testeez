@@ -39,34 +39,28 @@ from models import Player, PlayerRunBuff
 # ===============================================================================
 
 # Sistema modular de recompensas
+# NOTA: 'memories' foi removido pois agora TODOS os inimigos dão lembrança
 REWARD_SYSTEM = {
     'crystals': {
-        'weight': 25,
+        'weight': 33,
         'icon': 'crystal.png',
         'name': 'Cristais de Memória',
         'permanent': True,
         'color': '#00bfff'
     },
     'gold': {
-        'weight': 25,
-        'icon': 'gold.png', 
+        'weight': 33,
+        'icon': 'gold.png',
         'name': 'Ouro',
         'permanent': False,
         'color': '#ffd700'
     },
     'hourglasses': {
-        'weight': 25,
+        'weight': 34,
         'icon': 'hourglass.png',
-        'name': 'Ampulhetas Eternas', 
+        'name': 'Ampulhetas Eternas',
         'permanent': True,
         'color': '#9b59b6'
-    },
-    'memories': {
-        'weight': 25,
-        'icon': 'memory.png',
-        'name': 'Lembranças',
-        'permanent': False,  # Só para a run
-        'color': '#ff6b6b'
     }
 }
 

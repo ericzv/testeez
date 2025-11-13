@@ -5224,3 +5224,385 @@
     }
 }
 
+/* ===== MEMORY SELECTION POPUP ===== */
+.victory-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.95) 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  backdrop-filter: blur(10px);
+}
+
+/* Pop-up de memórias - largura dinâmica */
+#memory-selection-popup .victory-content {
+  --cols: 3; /* Ajustado via JS */
+  max-width: calc(var(--cols) * 260px + (var(--cols) - 1) * 20px + 80px);
+}
+
+.victory-content {
+  background: #141414; /* fundo neutro, sem noise */
+  border: 12px solid transparent;
+  border-image-source: url('/static/game.data/ui/frame_hammered_obsidian_gilded_9slice.svg');
+  border-image-slice: 48 fill;
+  border-image-width: 1;
+  border-image-repeat: stretch;
+  border-radius: 14px;
+  padding: 28px;
+  max-width: 800px;
+  width: 90%;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.6), inset 0 0 24px rgba(255,255,255,0.03);
+}
+
+#memory-selection-popup .victory-content {
+  position: relative; /* garante que os ::before/::after fiquem posicionados certo */
+  --rim: 10px;        /* espessura real da borda (igual ao border) */
+}
+
+@media (prefers-reduced-motion: reduce){
+  #memory-selection-popup .victory-content::before{ display:none; }
+}
+
+#memory-selection-popup .victory-content::after{
+  content: "";
+  position: absolute;
+
+  /* EMPURRA meia borda para fora, para a faixa "abraçar" a quina externa */
+  inset: calc(-0.9 * var(--rim));
+
+  border-radius: inherit;
+  pointer-events: none;
+
+  /* Ring mask (mantém) */
+  padding: var(--rim);
+  -webkit-mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+          mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+  -webkit-mask-origin: content-box, border-box;
+          mask-origin: content-box, border-box;
+  -webkit-mask-clip: content-box, border-box;
+          mask-clip: content-box, border-box;
+  -webkit-mask-composite: xor;   /* Chrome/Safari */
+          mask-composite: exclude;/* Firefox */
+
+  /* Varredura (pode manter o que você já tem) */
+  background:
+    linear-gradient(120deg, rgba(255,255,255,0) 35%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 65%),
+    radial-gradient(120px 60px at 20% -10%, rgba(255,215,0,0.18), rgba(255,215,0,0));
+  background-repeat: no-repeat, no-repeat;
+  background-size: 220% 220%, 140% 140%;
+  background-position: -50% -50%, -30% -30%;
+
+  /* Diminui o bleed pra dentro ao aproximar da quina externa */
+  filter: blur(0.4px) saturate(1.05);
+  opacity: 0.85;
+
+  animation: rimSweep 2.4s linear infinite, rimPulse 3.8s ease-in-out infinite;
+}
+
+/* Anima um "sweep" diagonal suave */
+@keyframes rimSweep{
+  0%   { background-position: -60% -60%, -40% -40%; }
+  100% { background-position: 160% 160%, 140% 140%; }
+}
+
+/* Respiração leve do brilho (não piscante) */
+@keyframes rimPulse{
+  0%,100% { opacity: 0.75; filter: blur(0.6px) saturate(1.05); }
+  50%     { opacity: 0.95; filter: blur(0.8px) saturate(1.15); }
+}
+
+/* Respeita reduzir movimento */
+@media (prefers-reduced-motion: reduce){
+  #memory-selection-popup .victory-content::after{
+    animation: none;
+    opacity: .65;
+  }
+}
+
+.victory-header {
+  margin-bottom: 25px;
+  position: relative;
+}
+
+.victory-header::after {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #ff6b6b, transparent);
+}
+
+.victory-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 15px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 20px rgba(255, 107, 107, 0.6));
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.victory-header h2{
+  font-family: 'Cinzel', serif;
+  color: #f3f4f6;
+  margin: 8px 0 4px;
+  font-size: 26px;
+  font-weight: 700;
+  text-shadow: 0 1px 0 rgba(0,0,0,.25);
+  -webkit-background-clip: initial;
+  -webkit-text-fill-color: initial;
+  background: none;
+}
+
+.victory-header p{
+  font-family: 'Montserrat', sans-serif;
+  color: #e5e7eb;          /* mais claro que #ccc */
+  margin: 0;
+  font-size: 14px;
+  opacity: .95;
+}
+
+#memory-selection-popup .victory-header h2 {
+  color: #ffd700; /* dourado */
+  text-shadow: 0 1px 0 rgba(0,0,0,.35); /* mantém leve legibilidade */
+}
+
+/* Wrapper das opções de memória (3 colunas) */
+#memory-selection-popup .memory-options{
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+  justify-content: center;
+  /* grid-template-columns será definido via JS */
+}
+
+/* Responsivo */
+@media (max-width: 860px){
+  #memory-selection-popup .memory-options{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (max-width: 520px){
+  #memory-selection-popup .memory-options{ grid-template-columns: 1fr; }
+}
+
+.memory-option {
+  background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+  border: 2px solid #444;
+  border-radius: 15px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.memory-option::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent, rgba(255, 107, 107, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.memory-option:hover::before {
+  opacity: 1;
+}
+
+.memory-option:hover {
+  border-color: #ff6b6b;
+  transform: translateY(-8px) scale(1.02);
+  box-shadow:
+      0 20px 40px rgba(0, 0, 0, 0.4),
+      0 0 30px rgba(255, 107, 107, 0.4);
+}
+
+.memory-option.selected {
+  border-color: #4CAF50;
+  background: linear-gradient(145deg, #2d4a2d, #1a2e1a);
+  box-shadow:
+      0 15px 30px rgba(0, 0, 0, 0.4),
+      0 0 25px rgba(76, 175, 80, 0.5);
+}
+
+.memory-option.selected::before {
+  background: linear-gradient(45deg, transparent, rgba(76, 175, 80, 0.2), transparent);
+  opacity: 1;
+}
+
+.memory-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.memory-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 15px;
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.4));
+  transition: all 0.3s ease;
+}
+
+.memory-option:hover .memory-icon {
+  transform: scale(1.3);
+  filter: drop-shadow(0 0 20px rgba(255, 107, 107, 0.6));
+}
+
+.memory-name{
+  font-family: 'Cinzel', serif;
+  color: #f9fafb;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+.memory-description{
+  font-family: 'Montserrat', sans-serif;
+  color: #e5e7eb;
+  font-size: 13px;
+  line-height: 1.4;
+  opacity: .95;
+  margin-top: 6px;
+}
+
+.memory-value{
+  font-family: 'Montserrat', sans-serif;
+  color: #93c5fd;        /* um azul claro "HUD" para números/valores */
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+.memory-count {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(145deg, #ff6b6b, #e55555);
+  color: white;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  border: 2px solid #fff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+  animation: countPulse 2s ease-in-out infinite;
+}
+
+@keyframes countPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* Nome em latim da lembrança – só no pop-up de memórias */
+#memory-selection-popup .memory-option h3.memory-name-latin{
+  color: #ffd700;                 /* dourado */
+  font-family: 'Cinzel', serif;   /* opcional: mantém o mesmo family dos títulos */
+  font-weight: 700;
+  letter-spacing: .2px;
+
+  /* Safeguards caso alguma regra anterior use texto com gradiente */
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: #ffd700 !important;
+}
+
+.victory-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+.btn {
+  padding: 12px 25px;
+  border: 2px solid #666;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  background: linear-gradient(145deg, #333, #222);
+  color: #fff;
+}
+
+/* Botão de confirmar memória */
+.btn-primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  border: 2px solid #3b82f6;
+  padding: 12px 25px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  margin-right: 10px;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  border-color: #2563eb;
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-primary:disabled {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+  color: #9ca3af;
+  border-color: #6b7280;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Estilo exclusivo do botão dentro do pop-up de memórias */
+#memory-selection-popup .btn-primary {
+  background: linear-gradient(135deg, #4b5563, #374151);
+  border: 2px solid #9ca3af;
+  color: #f9fafb;
+  text-shadow: 0 1px 0 rgba(0,0,0,.35);
+}
+
+#memory-selection-popup .btn-primary:hover:not(:disabled){
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+  border-color: #d1d5db;
+  box-shadow: 0 0 20px rgba(209,213,219,.35);
+  transform: translateY(-2px);
+}
+
+#memory-selection-popup .btn-primary:disabled{
+  background: linear-gradient(135deg, #4b5563, #374151);
+  color: #6b7280;
+  border-color: #4b5563;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
