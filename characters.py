@@ -552,7 +552,23 @@ def get_player_attacks(player_id):
                 })
     
     # Buscar skill_type e energy_cost do cache para cada skill
-    from models import PlayerAttackCache
+    from models import PlayerAttackCache, PlayerRelic
+    import json
+
+    # Buscar relíquias ativas para identificar modificadores
+    active_relics = PlayerRelic.query.filter_by(player_id=player_id, is_active=True).all()
+    relic_info_by_id = {}
+
+    for relic in active_relics:
+        from routes.relics.registry import get_relic_definition
+        definition = get_relic_definition(relic.relic_id)
+        if definition:
+            relic_info_by_id[relic.relic_id] = {
+                'name': definition.get('name', ''),
+                'icon': definition.get('icon', ''),
+                'effect': definition['effect']
+            }
+
     for skill in result:
         cache = PlayerAttackCache.query.filter_by(
             player_id=player_id,
@@ -560,7 +576,355 @@ def get_player_attacks(player_id):
         ).first()
         if cache:
             skill['skill_type'] = cache.skill_type
-            skill['energy_cost'] = cache.energy_cost  # ← ADICIONAR ESTA LINHA
+            skill['energy_cost'] = cache.energy_cost
+
+            from models import Player
+            player = Player.query.get(player_id)
+
+            # Calcular dano total incluindo bônus acumulados
+            total_damage = cache.base_damage
+
+            # Adicionar bônus acumulados permanentes
+            if cache.skill_type == 'attack':
+                total_damage += player.accumulated_attack_bonus
+            elif cache.skill_type == 'power':
+                total_damage += player.accumulated_power_bonus
+
+            # Adicionar bônus acumulados de batalha (Sangue Coagulado, etc)
+            for relic in active_relics:
+                from routes.relics.registry import get_relic_definition
+                definition = get_relic_definition(relic.relic_id)
+                if definition:
+                    effect = definition.get('effect', {})
+                    effect_type = effect.get('type')
+
+                    # ID 50 - Sangue Coagulado: acumula por batalha
+                    if effect_type == 'battle_accumulating_damage' and effect.get('skill_type') == cache.skill_type:
+                        state = json.loads(relic.state_data or '{}')
+                        stacks = state.get('battle_stacks', 0)
+                        initial = effect.get('initial_bonus', 4)
+                        stack_bonus = effect.get('stack_bonus', 2)
+                        total_damage += initial + (stacks * stack_bonus)
+
+            # Adicionar dados do cache para exibição no frontend
+            skill['cache_data'] = {
+                'base_damage': total_damage,  # Agora inclui todos os bônus
+                'base_crit_chance': cache.base_crit_chance,
+                'base_crit_multiplier': cache.base_crit_multiplier,
+                'lifesteal_percent': cache.lifesteal_percent,
+                'effect_type': cache.effect_type,
+                'effect_value': cache.effect_value,
+                'effect_bonus': cache.effect_bonus
+            }
+
+            # Identificar relíquias aplicáveis a este ataque
+            applicable_relics = []
+
+            for relic in active_relics:
+                relic_id = relic.relic_id
+                if relic_id not in relic_info_by_id:
+                    continue
+
+                definition = relic_info_by_id[relic_id]
+                effect = definition['effect']
+                effect_type = effect['type']
+                state = json.loads(relic.state_data or '{}')
+
+                applies_to_this_skill = False
+                modifier_info = {}
+
+                # ID 24 - Última Graça: x2 dano na Suprema (1x por batalha)
+                if effect_type == 'ultimate_trade' and cache.skill_type == 'ultimate':
+                    used_this_battle = state.get('used_this_battle', False)
+                    if not used_this_battle:
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'damage_multiplier',
+                            'value': effect['damage_multiplier'],
+                            'description': f"Dano x{effect['damage_multiplier']} (1x esta batalha)"
+                        }
+
+                # ID 25 - Discipulado: x2 dano no 10º, 20º, 30º... ataque
+                elif effect_type == 'damage_multiplier_on_threshold':
+                    threshold = effect.get('counter_threshold', 10)
+                    next_attack = player.total_attacks_any_type + 1
+                    if next_attack % threshold == 0:
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'damage_multiplier',
+                            'value': effect['multiplier'],
+                            'description': f"Dano x{effect['multiplier']} (próximo = {next_attack}º ataque)"
+                        }
+
+                # ID 17 - Momentum Plagosus: +20% crit no próximo ataque
+                elif effect_type == 'crit_chain':
+                    bonus_crit = state.get('bonus_crit_next', 0.0)
+                    if bonus_crit > 0:
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'crit_bonus',
+                            'value': bonus_crit,
+                            'description': f"+{bonus_crit*100:.0f}% crítico no próximo"
+                        }
+
+                # ID 16 - Pedra Angular: 100% crit no primeiro Poder/Especial
+                elif effect_type == 'first_power_special_crit':
+                    if not player.first_power_or_special_done and cache.skill_type in ['power', 'special']:
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'force_crit',
+                            'value': 1.0,
+                            'description': f"Crítico garantido (primeiro {cache.skill_type})"
+                        }
+
+                # ID 28 - Ritual de Sangue: +15% vampirismo no 5º, 10º, 15º... Especial
+                elif effect_type == 'lifesteal_on_threshold' and cache.skill_type == 'special':
+                    threshold = effect.get('counter_threshold', 5)
+                    next_special = player.total_special_uses + 1
+                    if next_special % threshold == 0:
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'lifesteal_bonus',
+                            'value': effect['lifesteal_percent'],
+                            'description': f"+{effect['lifesteal_percent']*100:.0f}% vampirismo (próximo = {next_special}º especial)"
+                        }
+
+                # ID 22 - Petrus: +10 dano no Poder por relíquia
+                elif effect_type == 'damage_per_relic' and effect.get('skill_type') == 'power' and cache.skill_type == 'power':
+                    applies_to_this_skill = True
+                    relic_count = len(active_relics)
+                    bonus = relic_count * effect['damage_per_relic']
+                    modifier_info = {
+                        'type': 'damage_bonus',
+                        'value': bonus,
+                        'description': f"+{bonus} dano ({relic_count} relíquias)"
+                    }
+
+                # ID 23 - Doxologia: -1 energia no Especial
+                elif effect_type == 'special_energy_reduction' and cache.skill_type == 'special':
+                    applies_to_this_skill = True
+                    modifier_info = {
+                        'type': 'energy_reduction',
+                        'value': effect['energy_cost_reduction'],
+                        'description': f"-{effect['energy_cost_reduction']} energia"
+                    }
+
+                # ID 13 - Crit per relic (passiva global)
+                elif effect_type == 'crit_per_relic':
+                    applies_to_this_skill = True
+                    relic_count = len(active_relics)
+                    bonus = relic_count * effect['crit_percent']
+                    modifier_info = {
+                        'type': 'crit_passive',
+                        'value': bonus,
+                        'description': f"+{bonus*100:.0f}% crítico passivo ({relic_count} relíquias)"
+                    }
+
+                # ID 43 - Block per relic (passiva de defesa, mostrar apenas para info)
+                elif effect_type == 'block_per_relic':
+                    # Não mostrar no ataque, só afeta defesa
+                    pass
+
+                # ID 20, 21, 26 - Damage acumulado (passivas específicas)
+                elif effect_type == 'damage_accumulation':
+                    target_skill = effect.get('skill_type')
+                    if target_skill == cache.skill_type:
+                        applies_to_this_skill = True
+                        accumulated = 0
+                        if cache.skill_type == 'attack':
+                            accumulated = player.accumulated_attack_bonus
+                        elif cache.skill_type == 'power':
+                            accumulated = player.accumulated_power_bonus
+
+                        modifier_info = {
+                            'type': 'damage_accumulated',
+                            'value': accumulated,
+                            'description': f"+{accumulated} dano acumulado"
+                        }
+
+                # ==== RELÍQUIAS QUE APLICAM A TODOS OS ATAQUES ====
+
+                # ID 4 - Presa Vampírica: Cura 3 HP cada vez que causar dano
+                elif effect_type == 'heal_on_damage':
+                    applies_to_this_skill = True
+                    heal_value = effect.get('value', 3)
+                    modifier_info = {
+                        'type': 'heal_on_damage',
+                        'value': heal_value,
+                        'description': f"+{heal_value} HP ao causar dano"
+                    }
+
+                # ID 44 - Vampirismo por relíquia (global, não só ataque básico)
+                elif effect_type == 'lifesteal_per_relic':
+                    applies_to_this_skill = True
+                    relic_count = len(active_relics)
+                    bonus = relic_count * effect['lifesteal_percent']
+                    modifier_info = {
+                        'type': 'lifesteal_passive',
+                        'value': bonus,
+                        'description': f"+{bonus*100:.0f}% vampirismo passivo"
+                    }
+
+                # ==== PRIMEIRO ATAQUE DA BATALHA ====
+
+                # ID 15 - Mão de Godofredo: Aplica ataque 2x
+                elif effect_type == 'double_first_attack':
+                    if player.total_attacks_any_type == 0:
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'double_attack',
+                            'value': effect['multiplier'],
+                            'description': f"Ataque x{effect['multiplier']} (primeiro)"
+                        }
+
+                # ID 18 - Primum Nocere: +20% dano no primeiro ataque
+                elif effect_type == 'first_attack_bonus':
+                    if player.total_attacks_any_type == 0:
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'damage_bonus',
+                            'value': effect['damage_bonus'],
+                            'description': f"+{effect['damage_bonus']*100:.0f}% dano (primeiro)"
+                        }
+
+                # ID 19 - Primum Sumere: +5% vampirismo no primeiro ataque
+                elif effect_type == 'first_attack_lifesteal':
+                    if player.total_attacks_any_type == 0:
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'lifesteal_bonus',
+                            'value': effect['lifesteal_bonus'],
+                            'description': f"+{effect['lifesteal_bonus']*100:.0f}% vampirismo (primeiro)"
+                        }
+
+                # ==== TERCEIRO USO / CONSECUTIVO ====
+
+                # ID 11 - Terceiro Suspiro: Cura no 3º Especial
+                elif effect_type == 'heal_every_n_specials' and cache.skill_type == 'special':
+                    every_n = effect.get('every_n', 3)
+                    next_special = player.total_special_uses + 1
+                    if next_special % every_n == 0:
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'heal_bonus',
+                            'value': effect['heal_amount'],
+                            'description': f"+{effect['heal_amount']} HP (próximo = {next_special}º especial)"
+                        }
+
+                # ID 31 - Trinitas: 3º Poder consecutivo dá energia
+                elif effect_type == 'triple_power_reward' and cache.skill_type == 'power':
+                    consecutive_count = state.get('consecutive_power_count', 0)
+                    required = effect.get('consecutive', 3)
+                    if consecutive_count == required - 1:  # próximo completa
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'energy_reward',
+                            'value': effect['energy_reward'],
+                            'description': f"+{effect['energy_reward']} energia ({consecutive_count+1}º poder consecutivo)"
+                        }
+
+                # ==== TODOS OS 4 TIPOS DE ATAQUE ====
+
+                # ID 12 - Omni: Cura quando falta apenas 1 tipo
+                elif effect_type == 'heal_all_skills_used':
+                    used_in_battle = state.get('used_skills_in_battle', [])
+                    required = effect.get('requires_all', [])
+                    missing = [skill for skill in required if skill not in used_in_battle]
+                    if len(missing) == 1 and missing[0] == cache.skill_type:
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'heal_reward',
+                            'value': effect['heal_amount'],
+                            'description': f"+{effect['heal_amount']} HP (completa 4 tipos)"
+                        }
+
+                # ID 30 - Corrente de Pedro: Energia quando falta 1 tipo
+                elif effect_type == 'all_attacks_reward':
+                    used_in_battle = state.get('used_skills_in_battle', [])
+                    required = effect.get('requires_all', [])
+                    missing = [skill for skill in required if skill not in used_in_battle]
+                    if len(missing) == 1 and missing[0] == cache.skill_type:
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'energy_reward',
+                            'value': effect['energy_reward'],
+                            'description': f"+{effect['energy_reward']} energia (completa 4 tipos)"
+                        }
+
+                # ==== A CADA N ATAQUES ====
+
+                # ID 32 - Dízimo: +5 energia no 10º ataque de qualquer tipo
+                elif effect_type == 'energy_every_n_attacks':
+                    every_n = effect.get('every_n', 10)
+                    next_attack = player.total_attacks_any_type + 1
+                    if next_attack % every_n == 0:
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'energy_reward',
+                            'value': effect['energy_reward'],
+                            'description': f"+{effect['energy_reward']} energia (próximo = {next_attack}º ataque)"
+                        }
+
+                # ==== ESPECÍFICAS POR TIPO ====
+
+                # ID 34 - Coroa do Rei Sol: Ouro ao matar com Suprema (sempre mostrar na Suprema)
+                elif effect_type == 'gold_on_ultimate_kill' and cache.skill_type == 'ultimate':
+                    applies_to_this_skill = True
+                    modifier_info = {
+                        'type': 'gold_reward',
+                        'value': effect['value'],
+                        'description': f"+{effect['value']} ouro (ao matar)"
+                    }
+
+                # ID 44 - Amuleto Sedento: Cura 1 HP por relíquia no Ataque Básico
+                elif effect_type == 'heal_per_relic_on_attack' and cache.skill_type == 'attack':
+                    relic_count = len(active_relics)
+                    heal_amount = relic_count * effect.get('hp_per_relic', 1)
+                    applies_to_this_skill = True
+                    modifier_info = {
+                        'type': 'heal_per_relic',
+                        'value': heal_amount,
+                        'description': f"+{heal_amount} HP ({relic_count} relíquias)"
+                    }
+
+                # ID 50 - Sangue Coagulado: Dano acumulado no Ataque Básico (por batalha)
+                elif effect_type == 'battle_accumulating_damage' and cache.skill_type == 'attack':
+                    applies_to_this_skill = True
+                    stacks = state.get('battle_stacks', 0)
+                    initial = effect.get('initial_bonus', 4)
+                    stack_bonus = effect.get('stack_bonus', 2)
+                    total_bonus = initial + (stacks * stack_bonus)
+                    modifier_info = {
+                        'type': 'damage_accumulated',
+                        'value': total_bonus,
+                        'description': f"+{total_bonus} dano ({initial} + {stacks}x{stack_bonus})"
+                    }
+
+                # Outras relíquias que ativam com qualquer ataque
+                elif effect_type in ['damage_boost', 'global_lifesteal', 'heal_on_hit']:
+                    applies_to_this_skill = True
+                    modifier_info = {
+                        'type': effect_type,
+                        'value': effect.get('value', 0),
+                        'description': f"Efeito global: {effect_type}"
+                    }
+
+                # Adicionar à lista se aplicável
+                if applies_to_this_skill:
+                    applicable_relics.append({
+                        'relic_id': relic_id,
+                        'name': definition['name'],
+                        'icon': definition['icon'],
+                        'modifier': modifier_info
+                    })
+
+            # DEBUG: Log das relíquias aplicáveis para este ataque
+            if applicable_relics:
+                print(f"   [DEBUG] Skill {skill['name']} ({cache.skill_type}) tem {len(applicable_relics)} relíquias aplicáveis:")
+                for rel in applicable_relics:
+                    print(f"      - {rel['name']}: {rel['modifier']['description']}")
+
+            skill['applicable_relics'] = applicable_relics
 
     return result
 

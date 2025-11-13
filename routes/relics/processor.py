@@ -207,13 +207,21 @@ def apply_relic_effect(player_relic, player, context):
                 print(f"   ↳ Primeiro ataque +{effect['lifesteal_bonus']*100:.1f}% vampirismo (qualquer tipo)")
                 
     elif effect_type == 'first_power_special_crit':
+        print(f"   🔍 PEDRA ANGULAR: Verificando... first_power_or_special_done={player.first_power_or_special_done}")
         if not player.first_power_or_special_done:
             skill_type = context.get('skill_type')
+            print(f"   🔍 PEDRA ANGULAR: skill_type={skill_type}")
             if skill_type in ['power', 'special']:
                 if context.get('attack_data'):
                     context['attack_data']['force_critical'] = True
                     result = context['attack_data']
-                    print(f"   ↳ Primeiro {skill_type} forçou crítico")
+                    print(f"   ✅ PEDRA ANGULAR: Primeiro {skill_type} forçou crítico!")
+                else:
+                    print(f"   ⚠️ PEDRA ANGULAR: attack_data não encontrado no context")
+            else:
+                print(f"   ⚠️ PEDRA ANGULAR: skill_type '{skill_type}' não é power/special")
+        else:
+            print(f"   ⚠️ PEDRA ANGULAR: Já foi usado (flag=True)")
                     
     elif effect_type == 'double_first_attack':
         if not player.first_attack_done:
