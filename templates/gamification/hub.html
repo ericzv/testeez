@@ -2017,14 +2017,9 @@
                   console.log("✅ Inimigo selecionado, indo para batalha");
                   window.location.href = '/gamification/battle';
               } else {
-                  // Não há inimigo selecionado
-                  console.log("⚠️ Nenhum inimigo selecionado");
-                  alert('Selecione um inimigo antes de ir para a batalha!');
-
-                  // Abrir automaticamente o pop-up de seleção de inimigo
-                  setTimeout(() => {
-                      openBossSelection();
-                  }, 100);
+                  // Não há inimigo selecionado, abrir pop-up de seleção
+                  console.log("⚠️ Nenhum inimigo selecionado, abrindo pop-up de seleção");
+                  openBossSelection();
               }
           })
           .catch(error => {
