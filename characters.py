@@ -739,6 +739,141 @@ def get_player_attacks(player_id):
                         'description': f"+{bonus*100:.0f}% vampirismo passivo"
                     }
 
+                # ==== PRIMEIRO ATAQUE DA BATALHA ====
+
+                # ID 15 - Mão de Godofredo: Aplica ataque 2x
+                elif effect_type == 'double_first_attack':
+                    if player.total_attacks_any_type == 0:
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'double_attack',
+                            'value': effect['multiplier'],
+                            'description': f"Ataque x{effect['multiplier']} (primeiro)"
+                        }
+
+                # ID 18 - Primum Nocere: +20% dano no primeiro ataque
+                elif effect_type == 'first_attack_bonus':
+                    if player.total_attacks_any_type == 0:
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'damage_bonus',
+                            'value': effect['damage_bonus'],
+                            'description': f"+{effect['damage_bonus']*100:.0f}% dano (primeiro)"
+                        }
+
+                # ID 19 - Primum Sumere: +5% vampirismo no primeiro ataque
+                elif effect_type == 'first_attack_lifesteal':
+                    if player.total_attacks_any_type == 0:
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'lifesteal_bonus',
+                            'value': effect['lifesteal_bonus'],
+                            'description': f"+{effect['lifesteal_bonus']*100:.0f}% vampirismo (primeiro)"
+                        }
+
+                # ==== TERCEIRO USO / CONSECUTIVO ====
+
+                # ID 11 - Terceiro Suspiro: Cura no 3º Especial
+                elif effect_type == 'heal_every_n_specials' and cache.skill_type == 'special':
+                    every_n = effect.get('every_n', 3)
+                    next_special = player.total_special_uses + 1
+                    if next_special % every_n == 0:
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'heal_bonus',
+                            'value': effect['heal_amount'],
+                            'description': f"+{effect['heal_amount']} HP (próximo = {next_special}º especial)"
+                        }
+
+                # ID 31 - Trinitas: 3º Poder consecutivo dá energia
+                elif effect_type == 'triple_power_reward' and cache.skill_type == 'power':
+                    consecutive_count = state.get('consecutive_power', 0)
+                    required = effect.get('consecutive', 3)
+                    if consecutive_count == required - 1:  # próximo completa
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'energy_reward',
+                            'value': effect['energy_reward'],
+                            'description': f"+{effect['energy_reward']} energia (3º poder consecutivo)"
+                        }
+
+                # ==== TODOS OS 4 TIPOS DE ATAQUE ====
+
+                # ID 12 - Omni: Cura quando falta apenas 1 tipo
+                elif effect_type == 'heal_all_skills_used':
+                    used_in_battle = state.get('used_skills_in_battle', [])
+                    required = effect.get('requires_all', [])
+                    missing = [skill for skill in required if skill not in used_in_battle]
+                    if len(missing) == 1 and missing[0] == cache.skill_type:
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'heal_reward',
+                            'value': effect['heal_amount'],
+                            'description': f"+{effect['heal_amount']} HP (completa 4 tipos)"
+                        }
+
+                # ID 30 - Corrente de Pedro: Energia quando falta 1 tipo
+                elif effect_type == 'all_attacks_reward':
+                    used_in_battle = state.get('used_skills_in_battle', [])
+                    required = effect.get('requires_all', [])
+                    missing = [skill for skill in required if skill not in used_in_battle]
+                    if len(missing) == 1 and missing[0] == cache.skill_type:
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'energy_reward',
+                            'value': effect['energy_reward'],
+                            'description': f"+{effect['energy_reward']} energia (completa 4 tipos)"
+                        }
+
+                # ==== A CADA N ATAQUES ====
+
+                # ID 32 - Dízimo: +5 energia no 10º ataque de qualquer tipo
+                elif effect_type == 'energy_every_n_attacks':
+                    every_n = effect.get('every_n', 10)
+                    next_attack = player.total_attacks_any_type + 1
+                    if next_attack % every_n == 0:
+                        applies_to_this_skill = True
+                        modifier_info = {
+                            'type': 'energy_reward',
+                            'value': effect['energy_reward'],
+                            'description': f"+{effect['energy_reward']} energia (próximo = {next_attack}º ataque)"
+                        }
+
+                # ==== ESPECÍFICAS POR TIPO ====
+
+                # ID 34 - Coroa do Rei Sol: Ouro ao matar com Suprema (sempre mostrar na Suprema)
+                elif effect_type == 'gold_on_ultimate_kill' and cache.skill_type == 'ultimate':
+                    applies_to_this_skill = True
+                    modifier_info = {
+                        'type': 'gold_reward',
+                        'value': effect['value'],
+                        'description': f"+{effect['value']} ouro (ao matar)"
+                    }
+
+                # ID 44 - Amuleto Sedento: Cura 1 HP por relíquia no Ataque Básico
+                elif effect_type == 'heal_per_relic_on_attack' and cache.skill_type == 'attack':
+                    relic_count = len(active_relics)
+                    heal_amount = relic_count * effect.get('hp_per_relic', 1)
+                    applies_to_this_skill = True
+                    modifier_info = {
+                        'type': 'heal_per_relic',
+                        'value': heal_amount,
+                        'description': f"+{heal_amount} HP ({relic_count} relíquias)"
+                    }
+
+                # ID 50 - Sangue Coagulado: Dano acumulado no Ataque Básico (por batalha)
+                elif effect_type == 'battle_accumulating_damage' and cache.skill_type == 'attack':
+                    applies_to_this_skill = True
+                    stacks = state.get('battle_stacks', 0)
+                    initial = effect.get('initial_bonus', 4)
+                    stack_bonus = effect.get('stack_bonus', 2)
+                    total_bonus = initial + (stacks * stack_bonus)
+                    modifier_info = {
+                        'type': 'damage_accumulated',
+                        'value': total_bonus,
+                        'description': f"+{total_bonus} dano ({initial} + {stacks}x{stack_bonus})"
+                    }
+
                 # Outras relíquias que ativam com qualquer ataque
                 elif effect_type in ['damage_boost', 'global_lifesteal', 'heal_on_hit']:
                     applies_to_this_skill = True
