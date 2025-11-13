@@ -394,28 +394,30 @@ def apply_relic_effect(player_relic, player, context):
                 result = energy_reward
                 print(f"   ↳ Usou todos os ataques, ganhou {energy_reward} energia (Energia: {player.energy}/{player.max_energy})")
                 
-    elif effect_type == 'power_every_n_in_battle':
-        # ID 31 - Dar energia a cada N Poderes usados no combate (não precisa ser consecutivo)
+    elif effect_type in ['power_every_n_in_battle', 'special_every_n_in_battle']:
+        # ID 31 (Trinitas) - Dar energia a cada N usos de uma skill no combate (não consecutivo)
         required_skill = effect['required_skill']
         current_skill = context.get('skill_type')
 
         # Só contar se for o tipo de skill requerido
         if current_skill == required_skill:
             state = json.loads(player_relic.state_data or '{}')
-            power_count = state.get('power_count_battle', 0)
-            power_count += 1
+            skill_count = state.get('skill_count_battle', 0)
+            skill_count += 1
 
-            # A cada N Poderes, dar recompensa
-            if power_count % effect['every_n'] == 0:
+            # A cada N usos, dar recompensa
+            if skill_count % effect['every_n'] == 0:
                 energy_reward = effect['energy_reward']
                 player.energy += energy_reward
                 result = energy_reward
-                print(f"   ↳ {power_count}º Poder no combate, ganhou {energy_reward} energia (Energia: {player.energy}/{player.max_energy})")
+                skill_name = 'Poder' if required_skill == 'power' else 'Especial' if required_skill == 'special' else required_skill.title()
+                print(f"   ↳ {skill_count}º {skill_name} no combate, ganhou {energy_reward} energia (Energia: {player.energy}/{player.max_energy})")
             else:
-                print(f"   ↳ Poder usado no combate: {power_count}/{effect['every_n']}")
+                skill_name = 'Poder' if required_skill == 'power' else 'Especial' if required_skill == 'special' else required_skill.title()
+                print(f"   ↳ {skill_name} usado no combate: {skill_count}/{effect['every_n']}")
 
             # Atualizar contador
-            state['power_count_battle'] = power_count
+            state['skill_count_battle'] = skill_count
             player_relic.state_data = json.dumps(state)
                 
     elif effect_type == 'energy_every_n_attacks':

@@ -582,15 +582,10 @@ def get_player_attacks(player_id):
             player = Player.query.get(player_id)
 
             # Calcular dano total incluindo bônus acumulados
+            # O cache JÁ inclui accumulated_attack_bonus e accumulated_power_bonus
             total_damage = cache.base_damage
 
-            # Adicionar bônus acumulados permanentes
-            if cache.skill_type == 'attack':
-                total_damage += player.accumulated_attack_bonus
-            elif cache.skill_type == 'power':
-                total_damage += player.accumulated_power_bonus
-
-            # Adicionar bônus acumulados de batalha (Sangue Coagulado, etc)
+            # Adicionar APENAS bônus de batalha (battle_stacks) que NÃO estão no cache
             for relic in active_relics:
                 from routes.relics.registry import get_relic_definition
                 definition = get_relic_definition(relic.relic_id)
@@ -598,13 +593,13 @@ def get_player_attacks(player_id):
                     effect = definition.get('effect', {})
                     effect_type = effect.get('type')
 
-                    # ID 50 - Sangue Coagulado: acumula por batalha
+                    # ID 50 - Sangue Coagulado: adicionar APENAS os stacks da batalha
+                    # O initial_bonus JÁ está incluído no cache.base_damage
                     if effect_type == 'battle_accumulating_damage' and effect.get('skill_type') == cache.skill_type:
                         state = json.loads(relic.state_data or '{}')
                         stacks = state.get('battle_stacks', 0)
-                        initial = effect.get('initial_bonus', 4)
                         stack_bonus = effect.get('stack_bonus', 2)
-                        total_damage += initial + (stacks * stack_bonus)
+                        total_damage += stacks * stack_bonus  # APENAS os stacks, não o initial
 
             # Adicionar dados do cache para exibição no frontend
             skill['cache_data'] = {
@@ -864,6 +859,24 @@ def get_player_attacks(player_id):
                             'value': effect['energy_reward'],
                             'description': f"+{effect['energy_reward']} energia (próximo = {next_attack}º ataque)"
                         }
+
+                # ID 31 - Trinitas: +5 energia a cada 3 especiais (mostrar quando 2/3)
+                elif effect_type in ['special_every_n_in_battle', 'power_every_n_in_battle']:
+                    required_skill = effect.get('required_skill')
+                    if required_skill == cache.skill_type:
+                        every_n = effect.get('every_n', 3)
+                        skill_count = state.get('skill_count_battle', 0)
+                        next_count = skill_count + 1
+
+                        # Mostrar ícone quando o próximo uso ativar
+                        if next_count % every_n == 0:
+                            applies_to_this_skill = True
+                            skill_name = 'Poder' if required_skill == 'power' else 'Especial'
+                            modifier_info = {
+                                'type': 'energy_reward',
+                                'value': effect['energy_reward'],
+                                'description': f"+{effect['energy_reward']} energia (próximo = {next_count}º {skill_name})"
+                            }
 
                 # ==== ESPECÍFICAS POR TIPO ====
 
