@@ -184,20 +184,31 @@ async function updateChargesHUD() {
             // Mostrar ícones das cargas
             attackActions.forEach((action, index) => {
                 const chargeIcon = document.createElement('div');
-                
+
                 if (action.type === 'attack') {
                     chargeIcon.className = 'attack-charge-icon';
-                    // ADICIONADO (FEATURE 2): Tooltip com dano
-                    chargeIcon.title = `⚔️ Ataque Básico (Dano: ${action.data.damage})`;
+                    chargesContainer.appendChild(chargeIcon);
+
+                    // Tooltip estilizado
+                    const tooltipText = `⚔️ Ataque Básico (Dano: ${action.data.damage})`;
+                    if (typeof addStyledTooltip === 'function') {
+                        addStyledTooltip(chargeIcon, tooltipText, 'bottom');
+                    } else {
+                        chargeIcon.title = tooltipText;
+                    }
                 } else if (action.type === 'attack_skill') {
                     chargeIcon.className = 'attack-charge-icon';
                     chargeIcon.style.backgroundImage = `url('${action.icon}')`;
-                    // ADICIONADO (FEATURE 2): Tooltip com nome da skill e dano
-                    // (action.data.calculated_damage virá do Python no Passo 2)
-                    chargeIcon.title = `🔥 ${action.data?.name || 'Skill de Ataque'} (Dano: ${action.data.calculated_damage || '??'})`;
+                    chargesContainer.appendChild(chargeIcon);
+
+                    // Tooltip estilizado
+                    const tooltipText = `🔥 ${action.data?.name || 'Skill de Ataque'} (Dano: ${action.data.calculated_damage || '??'})`;
+                    if (typeof addStyledTooltip === 'function') {
+                        addStyledTooltip(chargeIcon, tooltipText, 'bottom');
+                    } else {
+                        chargeIcon.title = tooltipText;
+                    }
                 }
-                
-                chargesContainer.appendChild(chargeIcon);
             });
             
             // Mostrar HUD
@@ -223,9 +234,16 @@ async function updateChargesHUD() {
                 const skillIcon = document.createElement('div');
                 skillIcon.className = skill.type === 'buff' ? 'buff-skill-icon' : 'debuff-skill-icon';
                 skillIcon.style.backgroundImage = `url('${skill.icon}')`;
-                skillIcon.title = skill.data?.name || (skill.type === 'buff' ? 'Buff' : 'Debuff');
-                
+
                 buffDebuffContainer.appendChild(skillIcon);
+
+                // Tooltip estilizado
+                const tooltipText = skill.data?.name || (skill.type === 'buff' ? 'Buff' : 'Debuff');
+                if (typeof addStyledTooltip === 'function') {
+                    addStyledTooltip(skillIcon, tooltipText, 'bottom');
+                } else {
+                    skillIcon.title = tooltipText;
+                }
             });
             
             enemyChargesHud.classList.add('visible');
@@ -472,14 +490,20 @@ async function updateEnemyIntentions() {
             if ((intention.type === 'attack' || intention.type === 'attack_skill') && intention.damage) {
                 tooltip += ` (Dano: ${intention.damage})`;
             }
-            iconDiv.title = tooltip;
-            
+
             // Animação de entrada (código anterior estava correto)
             iconDiv.style.opacity = '0';
             iconDiv.style.transform = 'scale(0.5)';
-            
+
             container.appendChild(iconDiv);
-            
+
+            // Adicionar tooltip estilizado
+            if (typeof addStyledTooltip === 'function') {
+                addStyledTooltip(iconDiv, tooltip, 'bottom');
+            } else {
+                iconDiv.title = tooltip; // Fallback
+            }
+
             // Animar entrada
             setTimeout(() => {
                 iconDiv.style.transition = 'all 0.4s ease-out';
