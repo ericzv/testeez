@@ -2024,7 +2024,8 @@
           })
           .catch(error => {
               console.error('❌ Erro ao verificar inimigo:', error);
-              alert('Erro ao verificar inimigo. Tente novamente.');
+              // Se houver erro, abrir pop-up de seleção
+              openBossSelection();
           });
   }
 
