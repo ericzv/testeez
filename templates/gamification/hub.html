@@ -78,7 +78,7 @@
   <span class="menu-text">{{ menu[3][2] }}</span>
 </a>
 
-<a href="{{ url_for(menu[5][0]) }}" class="menu-btn btn-5 battle-btn">
+<a href="#" class="menu-btn btn-5 battle-btn" onclick="goToBattle(event)">
   <span class="menu-icon">{{ menu[5][1] }}</span>
   <span class="menu-text">{{ menu[5][2] }}</span>
 </a>
@@ -451,26 +451,26 @@
                   }
 
                   // 3) Aguardar update terminar
-                  await new Promise(resolve => setTimeout(resolve, 200));
+                  await new Promise(resolve => setTimeout(resolve, 50));
 
                   // 4) Aplicar animação específica nas lembranças
                   const runBuffsHud = document.getElementById('run-buffs-hud');
                   if (runBuffsHud) {
                       // Tirar novo snapshot para comparar
                       const newSnapshot = snapshotHudValues(runBuffsHud);
-                      
+
                       // Se havia snapshot anterior das lembranças, comparar
                       const oldSnapshot = window.__preRewardSnapshots?.buffs || new Map();
                       diffAndAnimate(runBuffsHud, oldSnapshot);
-                      
+
                       console.log("✨ Animação de lembranças aplicada");
                   }
 
                   // 5) Reset final
                   selectedMemoryType = null;
                   window.__pendingMemoryData = null;
-                  
-              }, 1500);
+
+              }, 300);
           } else {
               addNotification('Erro: ' + data.message);
               
@@ -859,22 +859,22 @@
                     // Fechar pop-up atual
                     const popup = document.getElementById('relic-selection-popup');
                     if (popup) popup.style.display = 'none';
-                    
+
                     // Reabrir após delay
                     setTimeout(() => {
                         showRelicSelectionPopup('last_boss', data.remaining_count);
-                    }, 1500);
-                    
+                    }, 500);
+
                 } else {
                     // Última relíquia, fechar definitivamente
                     console.log("✅ Todas as relíquias escolhidas!");
-                    
+
                     setTimeout(() => {
                         const popup = document.getElementById('relic-selection-popup');
                         if (popup) popup.style.display = 'none';
-                        
+
                         selectedRelicId = null;
-                    }, 1500);
+                    }, 500);
                 }
                 
             } else {
@@ -1201,14 +1201,14 @@
                 
                 // ← ADICIONAR CLASSE DE ANIMAÇÃO
                 progressBar.classList.add('animating');
-                
+
                 // ← ANIMAR GRADUALMENTE
                 progressBar.style.width = `${progressPercent}%`;
-                
+
                 // ← REMOVER CLASSE APÓS ANIMAÇÃO
                 setTimeout(() => {
                     progressBar.classList.remove('animating');
-                }, 2000);
+                }, 1000);
                 
                 console.log("   Largura aplicada:", progressBar.style.width);
             }
@@ -1297,19 +1297,19 @@
               rewardPopup.remove();
               console.log("✅ Pop-up de vitória fechado");
           }
-          
+
           // 3) Aguardar um pouco para suavizar a transição
-          await new Promise(resolve => setTimeout(resolve, 300));
-          
+          await new Promise(resolve => setTimeout(resolve, 100));
+
           // 4) NOVO: Obter dados atualizados SEM atualizar DOM ainda
           console.log("🔄 Obtendo dados atualizados...");
           const [currencyData, buffsData] = await Promise.all([
               updateCurrencyDisplay(true), // skipDomUpdate = true
               updateActiveRunBuffs(true)   // skipDomUpdate = true
           ]);
-          
+
           // 5) Aguardar um pouco mais
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise(resolve => setTimeout(resolve, 30));
           
           // 6) NOVO: Aplicar animações PRIMEIRO (com valores ainda antigos no DOM)
           if (window.__preRewardSnapshots) {
@@ -1364,12 +1364,12 @@
           if (window.__pendingMemoryPopup) {
               window.__pendingMemoryPopup = false;
               console.log("🧠 DEBUG: Iniciando processo de memória");
-              
+
               // Aguardar animações terminarem antes de mostrar o próximo pop-up
               setTimeout(() => {
                   console.log("🧠 DEBUG: Chamando checkMemoryReward()");
                   checkMemoryReward();
-              }, 800);
+              }, 300);
           } else {
               console.log("❌ DEBUG: Nenhuma memória pendente para mostrar");
           }
@@ -1578,7 +1578,7 @@
               console.log(`✅ Inimigo ${enemyName} selecionado!`);
               setTimeout(() => {
                   window.location.href = '/gamification/battle';
-              }, 500);
+              }, 200);
           } else {
               alert('Erro ao selecionar inimigo: ' + data.message);
           }
@@ -1615,7 +1615,7 @@
               console.log(`✅ Boss ${bossName} selecionado!`);
               setTimeout(() => {
                   window.location.href = '/gamification/battle';
-              }, 500);
+              }, 200);
           } else {
               alert('Erro ao selecionar boss: ' + data.message);
           }
@@ -1999,6 +1999,36 @@
       startVictoryPolling();
 
   });  // FIM CORRETO do DOMContentLoaded
+
+  // Função para ir para batalha com verificação de inimigo selecionado
+  function goToBattle(event) {
+      event.preventDefault();
+
+      console.log("🎯 Tentando ir para batalha...");
+
+      // Verificar se há inimigo selecionado
+      fetch('/gamification/get_battle_data')
+          .then(response => response.json())
+          .then(data => {
+              console.log("📊 Battle data:", data);
+
+              if (data.success && (data.enemy || data.boss)) {
+                  // Há inimigo selecionado, pode ir para batalha
+                  console.log("✅ Inimigo selecionado, indo para batalha");
+                  window.location.href = '/gamification/battle';
+              } else {
+                  // Não há inimigo selecionado, abrir pop-up de seleção
+                  console.log("⚠️ Nenhum inimigo selecionado, abrindo pop-up de seleção");
+                  openBossSelection();
+              }
+          })
+          .catch(error => {
+              console.error('❌ Erro ao verificar inimigo:', error);
+              // Se houver erro, abrir pop-up de seleção
+              openBossSelection();
+          });
+  }
+
 </script>
 
 <!-- Pop-up de Seleção de Boss -->

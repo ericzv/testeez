@@ -3544,32 +3544,47 @@ function checkCritical(skill) {
 }
 
 // Função para tratar animação de morte do boss
-function handleBossDeathAnimation() {
+function handleBossDeathAnimation(hasMemoryReward, enemyRarity) {
     console.log("🎭 Iniciando animação de morte do boss");
-    
+    console.log("🧠 Has memory reward:", hasMemoryReward, "Enemy rarity:", enemyRarity);
+
     // Bloquear todas as ações
     gameState.inAction = true;
-    
+
     // Obter nome do inimigo
     const enemyName = gameState.boss?.name || 'Inimigo Desconhecido';
-    
+
     // Tocar áudio de vitória
     playSound('/static/game.data/sounds/chord.mp3', 0.8);
-    
+
     // Criar animação de impacto de morte
     createDeathImpactAnimation();
-    
+
     // Aplicar fade-out no boss
     applyBossFadeOut();
-    
+
     // Criar e mostrar banner de vitória
     createVictoryBanner(enemyName);
-    
-    // Redirecionar após 4.5 segundos
-    setTimeout(() => {
-        console.log("🏠 Boss derrotado - indo para HUB");
-        window.location.href = '/gamification';
-    }, 4500);
+
+    // Se houver recompensa de memória, mostrar pop-up após animação
+    if (hasMemoryReward && enemyRarity) {
+        setTimeout(() => {
+            console.log("🧠 Mostrando pop-up de seleção de memória");
+            if (typeof showMemorySelectionPopup === 'function') {
+                showMemorySelectionPopup(enemyRarity);
+            } else {
+                console.error("❌ Função showMemorySelectionPopup não encontrada!");
+                // Redirecionar para o hub como fallback
+                window.location.href = '/gamification';
+            }
+        }, 2000);
+    } else {
+        // Redirecionar após 2 segundos (bosses não têm memória)
+        setTimeout(() => {
+            console.log("🏠 Boss derrotado - indo para HUB");
+            window.location.href = '/gamification';
+        }, 2000);
+    }
 }
 
 // Criar animação de impacto de morte
@@ -3934,14 +3949,14 @@ function saveBossDamage(skill, damage, isCritical) {
                 
                 console.log("📊 BATTLE DEBUG - Dados salvos:", JSON.parse(localStorage.getItem('victoryData')));
                 console.log("🎉 Vitória registrada no localStorage!");
-                
+
                 // Esconder mensagem de batalha atual
                 if (typeof battleMessage !== 'undefined') {
                     battleMessage.classList.remove('visible');
                 }
-                
-                // Chamar animação de morte do boss
-                handleBossDeathAnimation();
+
+                // Chamar animação de morte do boss, passando informações sobre memória
+                handleBossDeathAnimation(data.has_memory_reward, data.enemy_rarity);
             }
         } else {
             console.error("Erro ao aplicar dano:", data.message);

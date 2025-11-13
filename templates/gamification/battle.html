@@ -373,6 +373,25 @@ elementos ocultos para debug (antes dos scripts) -->
   <span id="character-specials">{{ player_special_skills | tojson | safe }}</span>
 </div>
 
+<!-- Memory Selection Popup -->
+<div id="memory-selection-popup" class="victory-popup" style="display: none;">
+  <div class="victory-content">
+      <div class="victory-header">
+          <img src="{{ url_for('static', filename='game.data/buffs/memory.png') }}" alt="Lembranças" class="victory-icon">
+          <h2>Escolha uma Lembrança</h2>
+          <p>Selecione um dos buffs abaixo para sua run atual:</p>
+      </div>
+
+      <div class="memory-options" id="memory-options-container">
+          <!-- As opções serão inseridas via JavaScript -->
+      </div>
+
+      <div class="victory-actions">
+          <button id="confirm-memory-btn" class="btn btn-primary" disabled>Confirmar Seleção</button>
+      </div>
+  </div>
+</div>
+
 <!-- 3. ADICIONAR script de inicialização (antes do fechamento do body) -->
 <!-- Inserir antes de </body> -->
 <script>
@@ -615,6 +634,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="/static/js/battle-animation.js"></script>
 <script src="/static/js/battle-sakura.js"></script>
 <script src="/static/js/battle-turns.js"></script>
+<script src="/static/js/battle-memory-system.js"></script>
 
 
                 </body>

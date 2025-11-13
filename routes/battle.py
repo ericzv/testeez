@@ -1315,21 +1315,21 @@ def damage_boss():
             relic_bonus_messages='\n'.join(relic_bonus_messages)  # ← ADICIONAR
         )
         db.session.add(pending_reward)
-        
-        # Se for recompensa de memória
-        if not is_boss_fight and reward_type == 'memories':
+
+        # Todos os inimigos genéricos agora geram lembrança
+        if not is_boss_fight:
             # ===== GERAR OPÇÕES DE LEMBRANÇAS AGORA =====
             from .battle_modules.reward_system import select_random_memory_options  # ✅ CORRETO
-            
+
             memory_options = select_random_memory_options()
             print(f"🎲 Opções de lembranças GERADAS na vitória: {memory_options}")
-            
+
             session['pending_memory_reward'] = {
                 'enemy_rarity': current_enemy.rarity,
                 'timestamp': datetime.utcnow().isoformat(),
                 'memory_options': memory_options  # ← SALVAR AS OPÇÕES
             }
-        
+
         # Resetar flags de batalha
         session['battle_started'] = False
         session['player_took_damage'] = False
@@ -1391,7 +1391,9 @@ def damage_boss():
         'hourglasses_base': original_rewards.get('hourglasses', 0) if target_defeated else 0,
         'heal_amount': heal_amount,
         'relic_bonus_messages': '\n'.join(relic_bonus_messages) if target_defeated else '',
-        'should_refresh_skills': True
+        'should_refresh_skills': True,
+        'has_memory_reward': (target_defeated and not is_boss_fight),
+        'enemy_rarity': current_enemy.rarity if (target_defeated and not is_boss_fight and current_enemy) else None
     })
 
 @battle_bp.route('/get_player_specials_api')
