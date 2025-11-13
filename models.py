@@ -92,10 +92,15 @@ class Player(db.Model):
 
     # Contadores específicos da run atual (zerados a cada reset)
     run_crystals_gained = db.Column(db.Integer, default=0)
-    run_hourglasses_gained = db.Column(db.Integer, default=0) 
+    run_hourglasses_gained = db.Column(db.Integer, default=0)
     run_gold_gained = db.Column(db.Integer, default=0)  # Total ganho (diferente do saldo atual)
     run_bosses_defeated = db.Column(db.Integer, default=0)
     run_start_timestamp = db.Column(db.DateTime, nullable=True)
+
+    # Contadores de reroll (zerados a cada reset)
+    enemy_reroll_count = db.Column(db.Integer, default=0)
+    memory_reroll_count = db.Column(db.Integer, default=0)
+    relic_reroll_count = db.Column(db.Integer, default=0)
     
     study_time_total          = db.Column(db.Integer, default=0)
     talent_points             = db.Column(db.Integer, default=0)

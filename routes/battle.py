@@ -1800,10 +1800,15 @@ def reset_player_run(player_id):
         
         # ===== RESETAR CONTADORES DE RUN =====
         player.run_crystals_gained = 0
-        player.run_hourglasses_gained = 0  
+        player.run_hourglasses_gained = 0
         player.run_gold_gained = 0
         player.run_bosses_defeated = 0
         player.run_start_timestamp = datetime.utcnow()
+
+        # ===== RESETAR CONTADORES DE REROLL =====
+        player.enemy_reroll_count = 0
+        player.memory_reroll_count = 0
+        player.relic_reroll_count = 0
         
         # ===== RESETAR RECURSOS DE RUN =====
         player.run_gold = 0
@@ -2141,12 +2146,16 @@ def get_player_currencies():
         player = Player.query.first()
         if not player:
             return jsonify({'success': False, 'message': 'Jogador não encontrado'})
-        
+
         return jsonify({
             'success': True,
             'crystals': player.crystals,
             'gold': getattr(player, 'run_gold', 0),
-            'hourglasses': getattr(player, 'eternal_hourglasses', 0)
+            'hourglasses': getattr(player, 'eternal_hourglasses', 0),
+            'eternal_hourglasses': getattr(player, 'eternal_hourglasses', 0),
+            'memory_reroll_count': getattr(player, 'memory_reroll_count', 0),
+            'enemy_reroll_count': getattr(player, 'enemy_reroll_count', 0),
+            'relic_reroll_count': getattr(player, 'relic_reroll_count', 0)
         })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
@@ -3182,13 +3191,210 @@ def view_battle_log():
 @battle_bp.route('/clear_battle_log', methods=['POST'])
 def clear_log():
     """Limpa o log de batalha"""
-    
+
     player = Player.query.first()
-    
+
     if not player:
         return jsonify({'success': False, 'message': 'Jogador não encontrado'})
-        
+
     player_id = player.id # Usar o ID real do jogador
-    
+
     success = clear_battle_log(player_id)
     return jsonify({'success': success})
+
+
+# ===== SISTEMA DE REROLL (REESCREVER) =====
+
+@battle_bp.route('/rewrite_enemies', methods=['POST'])
+def rewrite_enemies():
+    """Reroll das opções de inimigos usando Ampulhetas Eternas"""
+    try:
+        player = Player.query.first()
+        if not player:
+            return jsonify({'success': False, 'message': 'Jogador não encontrado'})
+
+        # Verificar contador de rerolls
+        reroll_count = player.enemy_reroll_count
+
+        # Limite de 3 rerolls
+        if reroll_count >= 3:
+            return jsonify({
+                'success': False,
+                'message': 'Você atingiu o limite de reescritas para esta escolha.'
+            })
+
+        # Calcular custo (1, 2, 3)
+        cost = reroll_count + 1
+
+        # Verificar se tem ampulhetas suficientes
+        if player.eternal_hourglasses < cost:
+            return jsonify({
+                'success': False,
+                'message': f'Você precisa de {cost} Ampulhetas Eternas para reescrever.',
+                'current': player.eternal_hourglasses,
+                'needed': cost
+            })
+
+        # Deduzir ampulhetas
+        player.eternal_hourglasses -= cost
+
+        # Incrementar contador
+        player.enemy_reroll_count += 1
+
+        # Limpar inimigos disponíveis e gerar novos
+        progress = PlayerProgress.query.filter_by(player_id=player.id).first()
+        if not progress:
+            return jsonify({'success': False, 'message': 'Progresso não encontrado'})
+
+        # Remover inimigos disponíveis atuais
+        GenericEnemy.query.filter_by(is_available=True).delete()
+
+        # Gerar novos inimigos
+        from .battle_modules.enemy_generation import ensure_minimum_enemies
+        generated = ensure_minimum_enemies(progress, minimum=3)
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': f'Escolhas reescritas! ({cost} Ampulhetas Eternas usadas)',
+            'cost': cost,
+            'remaining_hourglasses': player.eternal_hourglasses,
+            'reroll_count': player.enemy_reroll_count,
+            'can_reroll_again': player.enemy_reroll_count < 3
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Erro ao reescrever inimigos: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@battle_bp.route('/rewrite_memories', methods=['POST'])
+def rewrite_memories():
+    """Reroll das opções de lembranças usando Ampulhetas Eternas"""
+    try:
+        player = Player.query.first()
+        if not player:
+            return jsonify({'success': False, 'message': 'Jogador não encontrado'})
+
+        # Verificar contador de rerolls
+        reroll_count = player.memory_reroll_count
+
+        # Limite de 3 rerolls
+        if reroll_count >= 3:
+            return jsonify({
+                'success': False,
+                'message': 'Você atingiu o limite de reescritas para esta escolha.'
+            })
+
+        # Calcular custo (2, 4, 6)
+        cost = (reroll_count + 1) * 2
+
+        # Verificar se tem ampulhetas suficientes
+        if player.eternal_hourglasses < cost:
+            return jsonify({
+                'success': False,
+                'message': f'Você precisa de {cost} Ampulhetas Eternas para reescrever.',
+                'current': player.eternal_hourglasses,
+                'needed': cost
+            })
+
+        # Deduzir ampulhetas
+        player.eternal_hourglasses -= cost
+
+        # Incrementar contador
+        player.memory_reroll_count += 1
+
+        # Re-gerar opções de memórias
+        from routes.battle_modules.reward_system import select_random_memory_options
+        new_options = select_random_memory_options()
+
+        # Atualizar na sessão
+        pending_memory = session.get('pending_memory_reward', {})
+        pending_memory['memory_options'] = new_options
+        session['pending_memory_reward'] = pending_memory
+        session.modified = True
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': f'Escolhas reescritas! ({cost} Ampulhetas Eternas usadas)',
+            'cost': cost,
+            'remaining_hourglasses': player.eternal_hourglasses,
+            'reroll_count': player.memory_reroll_count,
+            'can_reroll_again': player.memory_reroll_count < 3
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Erro ao reescrever memórias: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@battle_bp.route('/rewrite_relics', methods=['POST'])
+def rewrite_relics():
+    """Reroll das opções de relíquias usando Ampulhetas Eternas"""
+    try:
+        player = Player.query.first()
+        if not player:
+            return jsonify({'success': False, 'message': 'Jogador não encontrado'})
+
+        # Verificar contador de rerolls
+        reroll_count = player.relic_reroll_count
+
+        # Limite de 3 rerolls
+        if reroll_count >= 3:
+            return jsonify({
+                'success': False,
+                'message': 'Você atingiu o limite de reescritas para esta escolha.'
+            })
+
+        # Calcular custo (3, 6, 9)
+        cost = (reroll_count + 1) * 3
+
+        # Verificar se tem ampulhetas suficientes
+        if player.eternal_hourglasses < cost:
+            return jsonify({
+                'success': False,
+                'message': f'Você precisa de {cost} Ampulhetas Eternas para reescrever.',
+                'current': player.eternal_hourglasses,
+                'needed': cost
+            })
+
+        # Deduzir ampulhetas
+        player.eternal_hourglasses -= cost
+
+        # Incrementar contador
+        player.relic_reroll_count += 1
+
+        # Re-gerar opções de relíquias
+        from routes.relics.selection import generate_relic_options
+        pending = session.get('pending_relic_selection')
+        if not pending:
+            return jsonify({'success': False, 'message': 'Nenhuma seleção pendente'})
+
+        context = pending.get('context', 'first_relic')
+        new_options = generate_relic_options(player.id, context)
+
+        # Atualizar na sessão
+        pending['options'] = [opt['id'] for opt in new_options]
+        session['pending_relic_selection'] = pending
+        session.modified = True
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': f'Escolhas reescritas! ({cost} Ampulhetas Eternas usadas)',
+            'cost': cost,
+            'remaining_hourglasses': player.eternal_hourglasses,
+            'reroll_count': player.relic_reroll_count,
+            'can_reroll_again': player.relic_reroll_count < 3
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Erro ao reescrever relíquias: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})

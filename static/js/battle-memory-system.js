@@ -3,6 +3,7 @@
 let memoryOptions = [];
 let selectedMemoryType = null;
 let pendingMemoryData = null;
+let memoryRerollCount = 0; // Rastreador local de rerolls
 
 // Função para carregar sons (se houver)
 function playMemoryOptionsSound() {
@@ -15,6 +16,12 @@ function playMemorySelectionSound() {
     // Se você tiver um sistema de som no battle, use aqui
     // Por exemplo: playSound('/static/sounds/memoryselection.mp3');
     console.log("🎵 Som de seleção de memória (placeholder)");
+}
+
+function playRewriteSound() {
+    const audio = new Audio('/static/game.data/sounds/rewrite.mp3');
+    audio.volume = 0.5;
+    audio.play().catch(err => console.log("Erro ao tocar som de rewrite:", err));
 }
 
 // Mostrar pop-up de seleção de memórias
@@ -40,6 +47,9 @@ function showMemorySelectionPopup(enemyRarity) {
                     confirmBtn.textContent = 'Confirmar Seleção';
                 }
 
+                // Atualizar divider de reroll
+                updateMemoryRewriteDivider();
+
                 // TOCAR SOM DO POP-UP DE MEMÓRIAS
                 playMemoryOptionsSound();
 
@@ -50,6 +60,120 @@ function showMemorySelectionPopup(enemyRarity) {
         .catch(error => {
             console.error('Erro ao carregar opções de memória:', error);
         });
+}
+
+// Atualizar o divider de reroll (custo e visibilidade)
+function updateMemoryRewriteDivider() {
+    fetch('/gamification/get_player_currencies')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const eternalHourglasses = data.eternal_hourglasses || 0;
+                memoryRerollCount = data.memory_reroll_count || 0;
+
+                const cost = (memoryRerollCount + 1) * 2;
+                const canReroll = memoryRerollCount < 3 && eternalHourglasses >= cost;
+
+                // Atualizar custo no botão
+                const costElement = document.getElementById('memory-rewrite-cost');
+                if (costElement) {
+                    costElement.textContent = cost;
+                }
+
+                // Mostrar/ocultar divider baseado na disponibilidade
+                const divider = document.getElementById('memory-rewrite-divider');
+                if (divider) {
+                    divider.style.display = 'flex';
+
+                    // Adicionar classe de disabled se não puder reroll
+                    const button = document.getElementById('memory-rewrite-button');
+                    if (button) {
+                        if (canReroll) {
+                            button.classList.remove('disabled');
+                        } else {
+                            button.classList.add('disabled');
+                        }
+                    }
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao obter currencies:', error);
+        });
+}
+
+// Executar reroll de memórias
+async function executeMemoryRewrite() {
+    const button = document.getElementById('memory-rewrite-button');
+    if (button && button.classList.contains('disabled')) {
+        return; // Não fazer nada se estiver disabled
+    }
+
+    // Adicionar classe de animação
+    button.classList.add('rewriting');
+
+    // Tocar som
+    playRewriteSound();
+
+    try {
+        const response = await fetch('/gamification/rewrite_memories', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            console.log("✨ Reroll executado com sucesso!");
+
+            // Animar fade out das opções
+            const container = document.getElementById('memory-options-container');
+            if (container) {
+                container.style.opacity = '0';
+                container.style.transition = 'opacity 0.5s ease-out';
+
+                setTimeout(() => {
+                    // Recarregar opções
+                    fetch('/gamification/get_memory_options')
+                        .then(response => response.json())
+                        .then(newData => {
+                            if (newData.success) {
+                                memoryOptions = newData.options;
+                                displayMemoryOptions(pendingMemoryData.enemy_rarity);
+
+                                // Reset seleção
+                                selectedMemoryType = null;
+                                const confirmBtn = document.getElementById('confirm-memory-btn');
+                                if (confirmBtn) {
+                                    confirmBtn.disabled = true;
+                                    confirmBtn.textContent = 'Confirmar Seleção';
+                                }
+
+                                // Atualizar divider
+                                updateMemoryRewriteDivider();
+
+                                // Fade in
+                                setTimeout(() => {
+                                    container.style.opacity = '1';
+                                    button.classList.remove('rewriting');
+                                }, 50);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erro ao recarregar opções:', error);
+                            button.classList.remove('rewriting');
+                        });
+                }, 500);
+            }
+        } else {
+            alert(data.message || 'Erro ao reescrever escolhas');
+            button.classList.remove('rewriting');
+        }
+    } catch (error) {
+        console.error('Erro ao executar reroll:', error);
+        alert('Erro ao reescrever escolhas');
+        button.classList.remove('rewriting');
+    }
 }
 
 // Exibir opções de memória
@@ -227,6 +351,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmBtn = document.getElementById('confirm-memory-btn');
     if (confirmBtn) {
         confirmBtn.addEventListener('click', confirmMemorySelection);
+    }
+
+    // Botão de reroll
+    const rewriteBtn = document.getElementById('memory-rewrite-button');
+    if (rewriteBtn) {
+        rewriteBtn.addEventListener('click', executeMemoryRewrite);
     }
 
     // Verificar recompensas pendentes ao carregar a página

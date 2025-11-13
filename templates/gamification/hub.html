@@ -147,7 +147,17 @@
       <div class="relic-options" id="relic-options-container">
           <!-- As opções serão inseridas via JavaScript -->
       </div>
-      
+
+      <!-- Rewrite Divider -->
+      <div class="rewrite-divider" id="relic-rewrite-divider" style="display: none;">
+          <div class="rewrite-line"></div>
+          <div class="rewrite-button" id="relic-rewrite-button">
+              <span class="rewrite-cost" id="relic-rewrite-cost">3</span>
+              <img src="{{ url_for('static', filename='game.data/items/eternal_hourglass.png') }}" alt="Ampulheta Eterna" class="rewrite-icon">
+          </div>
+          <div class="rewrite-line"></div>
+      </div>
+
       <div class="victory-actions">
           <button id="confirm-relic-btn" class="btn btn-primary" disabled>Confirmar Seleção</button>
       </div>
@@ -719,7 +729,7 @@
   // Mostrar pop-up de seleção de relíquias
   function showRelicSelectionPopup(context, count) {
       console.log("🗡️ DEBUG: showRelicSelectionPopup chamada", { context, count });
-      
+
       fetch('/gamification/get_relic_options')
           .then(response => response.json())
           .then(data => {
@@ -727,7 +737,7 @@
               if (data.success) {
                   relicOptions = data.options;
                   displayRelicOptions();
-                  
+
                   // Reset do estado de seleção
                   selectedRelicId = null;
                   const confirmBtn = document.getElementById('confirm-relic-btn');
@@ -735,7 +745,10 @@
                       confirmBtn.disabled = true;
                       confirmBtn.textContent = 'Confirmar Seleção';
                   }
-                  
+
+                  // Atualizar divider de reroll
+                  updateRelicRewriteDivider();
+
                   console.log("🗡️ DEBUG: Mostrando pop-up");
                   document.getElementById('relic-selection-popup').style.display = 'flex';
               }
@@ -897,13 +910,134 @@
         });
     }
 
+  // ===== SISTEMA DE REROLL PARA RELÍQUIAS =====
+
+  function updateRelicRewriteDivider() {
+      fetch('/gamification/get_player_currencies')
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  const eternalHourglasses = data.eternal_hourglasses || 0;
+                  const relicRerollCount = data.relic_reroll_count || 0;
+
+                  const cost = (relicRerollCount + 1) * 3;
+                  const canReroll = relicRerollCount < 3 && eternalHourglasses >= cost;
+
+                  // Atualizar custo no botão
+                  const costElement = document.getElementById('relic-rewrite-cost');
+                  if (costElement) {
+                      costElement.textContent = cost;
+                  }
+
+                  // Mostrar/ocultar divider baseado na disponibilidade
+                  const divider = document.getElementById('relic-rewrite-divider');
+                  if (divider) {
+                      divider.style.display = 'flex';
+
+                      // Adicionar classe de disabled se não puder reroll
+                      const button = document.getElementById('relic-rewrite-button');
+                      if (button) {
+                          if (canReroll) {
+                              button.classList.remove('disabled');
+                          } else {
+                              button.classList.add('disabled');
+                          }
+                      }
+                  }
+              }
+          })
+          .catch(error => {
+              console.error('Erro ao obter currencies:', error);
+          });
+  }
+
+  async function executeRelicRewrite() {
+      const button = document.getElementById('relic-rewrite-button');
+      if (button && button.classList.contains('disabled')) {
+          return; // Não fazer nada se estiver disabled
+      }
+
+      // Adicionar classe de animação
+      button.classList.add('rewriting');
+
+      // Tocar som
+      const audio = new Audio('/static/game.data/sounds/rewrite.mp3');
+      audio.volume = 0.5;
+      audio.play().catch(err => console.log("Erro ao tocar som de rewrite:", err));
+
+      try {
+          const response = await fetch('/gamification/rewrite_relics', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+              console.log("✨ Reroll executado com sucesso!");
+
+              // Animar fade out das opções
+              const container = document.getElementById('relic-options-container');
+              if (container) {
+                  container.style.opacity = '0';
+                  container.style.transition = 'opacity 0.5s ease-out';
+
+                  setTimeout(() => {
+                      // Recarregar opções
+                      fetch('/gamification/get_relic_options')
+                          .then(response => response.json())
+                          .then(newData => {
+                              if (newData.success) {
+                                  relicOptions = newData.options;
+                                  displayRelicOptions();
+
+                                  // Reset seleção
+                                  selectedRelicId = null;
+                                  const confirmBtn = document.getElementById('confirm-relic-btn');
+                                  if (confirmBtn) {
+                                      confirmBtn.disabled = true;
+                                      confirmBtn.textContent = 'Confirmar Seleção';
+                                  }
+
+                                  // Atualizar divider
+                                  updateRelicRewriteDivider();
+
+                                  // Fade in
+                                  setTimeout(() => {
+                                      container.style.opacity = '1';
+                                      button.classList.remove('rewriting');
+                                  }, 50);
+                              }
+                          })
+                          .catch(error => {
+                              console.error('Erro ao recarregar opções:', error);
+                              button.classList.remove('rewriting');
+                          });
+                  }, 500);
+              }
+          } else {
+              addNotification(data.message || 'Erro ao reescrever escolhas');
+              button.classList.remove('rewriting');
+          }
+      } catch (error) {
+          console.error('Erro ao executar reroll:', error);
+          addNotification('Erro ao reescrever escolhas');
+          button.classList.remove('rewriting');
+      }
+  }
+
   // Event listeners
   document.addEventListener('DOMContentLoaded', () => {
       const confirmBtn = document.getElementById('confirm-relic-btn');
       if (confirmBtn) {
           confirmBtn.addEventListener('click', confirmRelicSelection);
       }
-      
+
+      const relicRewriteBtn = document.getElementById('relic-rewrite-button');
+      if (relicRewriteBtn) {
+          relicRewriteBtn.addEventListener('click', executeRelicRewrite);
+      }
+
       // Verificar relíquias ao carregar
       checkRelicReward();
   });
@@ -1682,7 +1816,7 @@
               if (data.success) {
                   // Salvar dados globalmente para renderEnemyCards
                   window.currentBossData = data;
-                  
+
                   if (data.is_boss_fight && data.boss) {
                       // É boss fight - renderizar boss
                       availableEnemies = [data.boss];
@@ -1692,7 +1826,10 @@
                       availableEnemies = data.enemies;
                       renderEnemyCards(data.enemies, isNew);
                   }
-                  
+
+                  // Atualizar divider de reroll
+                  updateEnemyRewriteDivider();
+
                   playEnemySelectionSound();
                   openDialog('#boss-selection-popup');
               } else {
@@ -1832,6 +1969,129 @@
     
     return card;
 }
+
+  // ===== SISTEMA DE REROLL PARA INIMIGOS =====
+
+  function updateEnemyRewriteDivider() {
+      fetch('/gamification/get_player_currencies')
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  const eternalHourglasses = data.eternal_hourglasses || 0;
+                  const enemyRerollCount = data.enemy_reroll_count || 0;
+
+                  const cost = enemyRerollCount + 1;
+                  const canReroll = enemyRerollCount < 3 && eternalHourglasses >= cost;
+
+                  // Atualizar custo no botão
+                  const costElement = document.getElementById('enemy-rewrite-cost');
+                  if (costElement) {
+                      costElement.textContent = cost;
+                  }
+
+                  // Mostrar/ocultar divider
+                  const divider = document.getElementById('enemy-rewrite-divider');
+                  if (divider) {
+                      divider.style.display = 'flex';
+
+                      // Adicionar classe de disabled se não puder reroll
+                      const button = document.getElementById('enemy-rewrite-button');
+                      if (button) {
+                          if (canReroll) {
+                              button.classList.remove('disabled');
+                          } else {
+                              button.classList.add('disabled');
+                          }
+                      }
+                  }
+              }
+          })
+          .catch(error => {
+              console.error('Erro ao obter currencies:', error);
+          });
+  }
+
+  async function executeEnemyRewrite() {
+      const button = document.getElementById('enemy-rewrite-button');
+      if (button && button.classList.contains('disabled')) {
+          return;
+      }
+
+      button.classList.add('rewriting');
+
+      // Tocar som
+      const audio = new Audio('/static/game.data/sounds/rewrite.mp3');
+      audio.volume = 0.5;
+      audio.play().catch(err => console.log("Erro ao tocar som de rewrite:", err));
+
+      try {
+          const response = await fetch('/gamification/rewrite_enemies', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+              console.log("✨ Reroll de inimigos executado com sucesso!");
+
+              // Animar fade out
+              const grid = document.getElementById('enemy-grid');
+              if (grid) {
+                  grid.style.opacity = '0';
+                  grid.style.transition = 'opacity 0.5s ease-out';
+
+                  setTimeout(() => {
+                      // Recarregar inimigos
+                      fetch('/gamification/get_available_enemies')
+                          .then(response => response.json())
+                          .then(newData => {
+                              if (newData.success) {
+                                  // Atualizar dados globais
+                                  window.currentBossData = newData;
+
+                                  if (newData.is_boss_fight && newData.boss) {
+                                      availableEnemies = [newData.boss];
+                                      renderEnemyCards([newData.boss], false);
+                                  } else {
+                                      availableEnemies = newData.enemies;
+                                      renderEnemyCards(newData.enemies, false);
+                                  }
+
+                                  // Atualizar divider
+                                  updateEnemyRewriteDivider();
+
+                                  // Fade in
+                                  setTimeout(() => {
+                                      grid.style.opacity = '1';
+                                      button.classList.remove('rewriting');
+                                  }, 50);
+                              }
+                          })
+                          .catch(error => {
+                              console.error('Erro ao recarregar inimigos:', error);
+                              button.classList.remove('rewriting');
+                          });
+                  }, 500);
+              }
+          } else {
+              addNotification(data.message || 'Erro ao reescrever escolhas');
+              button.classList.remove('rewriting');
+          }
+      } catch (error) {
+          console.error('Erro ao executar reroll:', error);
+          addNotification('Erro ao reescrever escolhas');
+          button.classList.remove('rewriting');
+      }
+  }
+
+  // Event listener para o botão de reroll de inimigos
+  document.addEventListener('DOMContentLoaded', () => {
+      const enemyRewriteBtn = document.getElementById('enemy-rewrite-button');
+      if (enemyRewriteBtn) {
+          enemyRewriteBtn.addEventListener('click', executeEnemyRewrite);
+      }
+  });
 
   // Mostrar pop-up automaticamente se for uma nova sessão de batalha
   // (essa função será chamada quando um boss for derrotado)
@@ -2037,6 +2297,16 @@
     <h2 class="title">Escolha seu Próximo Desafio</h2>
     <button class="close-popup-btn" onclick="closeBossSelection()">✕</button>
     <div class="enemy-grid" id="enemy-grid"></div>
+
+    <!-- Rewrite Divider -->
+    <div class="rewrite-divider" id="enemy-rewrite-divider" style="display: none;">
+        <div class="rewrite-line"></div>
+        <div class="rewrite-button" id="enemy-rewrite-button">
+            <span class="rewrite-cost" id="enemy-rewrite-cost">1</span>
+            <img src="{{ url_for('static', filename='game.data/items/eternal_hourglass.png') }}" alt="Ampulheta Eterna" class="rewrite-icon">
+        </div>
+        <div class="rewrite-line"></div>
+    </div>
   </div>
 </div>
 
