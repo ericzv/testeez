@@ -451,26 +451,26 @@
                   }
 
                   // 3) Aguardar update terminar
-                  await new Promise(resolve => setTimeout(resolve, 200));
+                  await new Promise(resolve => setTimeout(resolve, 50));
 
                   // 4) Aplicar animação específica nas lembranças
                   const runBuffsHud = document.getElementById('run-buffs-hud');
                   if (runBuffsHud) {
                       // Tirar novo snapshot para comparar
                       const newSnapshot = snapshotHudValues(runBuffsHud);
-                      
+
                       // Se havia snapshot anterior das lembranças, comparar
                       const oldSnapshot = window.__preRewardSnapshots?.buffs || new Map();
                       diffAndAnimate(runBuffsHud, oldSnapshot);
-                      
+
                       console.log("✨ Animação de lembranças aplicada");
                   }
 
                   // 5) Reset final
                   selectedMemoryType = null;
                   window.__pendingMemoryData = null;
-                  
-              }, 1500);
+
+              }, 300);
           } else {
               addNotification('Erro: ' + data.message);
               
@@ -859,22 +859,22 @@
                     // Fechar pop-up atual
                     const popup = document.getElementById('relic-selection-popup');
                     if (popup) popup.style.display = 'none';
-                    
+
                     // Reabrir após delay
                     setTimeout(() => {
                         showRelicSelectionPopup('last_boss', data.remaining_count);
-                    }, 1500);
-                    
+                    }, 500);
+
                 } else {
                     // Última relíquia, fechar definitivamente
                     console.log("✅ Todas as relíquias escolhidas!");
-                    
+
                     setTimeout(() => {
                         const popup = document.getElementById('relic-selection-popup');
                         if (popup) popup.style.display = 'none';
-                        
+
                         selectedRelicId = null;
-                    }, 1500);
+                    }, 500);
                 }
                 
             } else {
@@ -1201,14 +1201,14 @@
                 
                 // ← ADICIONAR CLASSE DE ANIMAÇÃO
                 progressBar.classList.add('animating');
-                
+
                 // ← ANIMAR GRADUALMENTE
                 progressBar.style.width = `${progressPercent}%`;
-                
+
                 // ← REMOVER CLASSE APÓS ANIMAÇÃO
                 setTimeout(() => {
                     progressBar.classList.remove('animating');
-                }, 2000);
+                }, 1000);
                 
                 console.log("   Largura aplicada:", progressBar.style.width);
             }
@@ -1297,19 +1297,19 @@
               rewardPopup.remove();
               console.log("✅ Pop-up de vitória fechado");
           }
-          
+
           // 3) Aguardar um pouco para suavizar a transição
-          await new Promise(resolve => setTimeout(resolve, 300));
-          
+          await new Promise(resolve => setTimeout(resolve, 100));
+
           // 4) NOVO: Obter dados atualizados SEM atualizar DOM ainda
           console.log("🔄 Obtendo dados atualizados...");
           const [currencyData, buffsData] = await Promise.all([
               updateCurrencyDisplay(true), // skipDomUpdate = true
               updateActiveRunBuffs(true)   // skipDomUpdate = true
           ]);
-          
+
           // 5) Aguardar um pouco mais
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise(resolve => setTimeout(resolve, 30));
           
           // 6) NOVO: Aplicar animações PRIMEIRO (com valores ainda antigos no DOM)
           if (window.__preRewardSnapshots) {
@@ -1364,12 +1364,12 @@
           if (window.__pendingMemoryPopup) {
               window.__pendingMemoryPopup = false;
               console.log("🧠 DEBUG: Iniciando processo de memória");
-              
+
               // Aguardar animações terminarem antes de mostrar o próximo pop-up
               setTimeout(() => {
                   console.log("🧠 DEBUG: Chamando checkMemoryReward()");
                   checkMemoryReward();
-              }, 800);
+              }, 300);
           } else {
               console.log("❌ DEBUG: Nenhuma memória pendente para mostrar");
           }
@@ -1578,7 +1578,7 @@
               console.log(`✅ Inimigo ${enemyName} selecionado!`);
               setTimeout(() => {
                   window.location.href = '/gamification/battle';
-              }, 500);
+              }, 200);
           } else {
               alert('Erro ao selecionar inimigo: ' + data.message);
           }
@@ -1615,7 +1615,7 @@
               console.log(`✅ Boss ${bossName} selecionado!`);
               setTimeout(() => {
                   window.location.href = '/gamification/battle';
-              }, 500);
+              }, 200);
           } else {
               alert('Erro ao selecionar boss: ' + data.message);
           }

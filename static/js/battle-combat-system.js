@@ -3577,13 +3577,13 @@ function handleBossDeathAnimation(hasMemoryReward, enemyRarity) {
                 // Redirecionar para o hub como fallback
                 window.location.href = '/gamification';
             }
-        }, 4500);
+        }, 2000);
     } else {
-        // Redirecionar após 4.5 segundos (bosses não têm memória)
+        // Redirecionar após 2 segundos (bosses não têm memória)
         setTimeout(() => {
             console.log("🏠 Boss derrotado - indo para HUB");
             window.location.href = '/gamification';
-        }, 4500);
+        }, 2000);
     }
 }
 

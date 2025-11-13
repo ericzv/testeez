@@ -154,7 +154,7 @@ function confirmMemorySelection() {
                 total_value: data.total_value
             });
 
-            // Fechar pop-up e redirecionar para o hub após delay
+            // Fechar pop-up e redirecionar para o hub imediatamente
             setTimeout(() => {
                 const popup = document.getElementById('memory-selection-popup');
                 if (popup) popup.style.display = 'none';
@@ -166,7 +166,7 @@ function confirmMemorySelection() {
                 // Redirecionar para o hub
                 console.log("🏠 Redirecionando para o hub...");
                 window.location.href = '/gamification';
-            }, 1000);
+            }, 300);
         } else {
             alert('Erro: ' + data.message);
 
@@ -189,6 +189,31 @@ function confirmMemorySelection() {
     });
 }
 
+// Verificar se há recompensa de memória pendente ao carregar
+function checkPendingMemoryReward() {
+    console.log("🔍 Verificando recompensas de memória pendentes...");
+
+    fetch('/gamification/check_memory_reward')
+        .then(response => response.json())
+        .then(data => {
+            console.log("🔍 Resposta do check_memory_reward:", data);
+            if (data.success && data.has_memory_reward) {
+                console.log("⚠️ RECOMPENSA PENDENTE DETECTADA! Bloqueando nova batalha.");
+
+                // Bloquear todas as ações da batalha
+                if (typeof gameState !== 'undefined') {
+                    gameState.inAction = true;
+                }
+
+                // Mostrar pop-up de memória imediatamente
+                showMemorySelectionPopup(data.enemy_rarity);
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao verificar recompensa de memória:', error);
+        });
+}
+
 // Event listeners
 document.addEventListener('DOMContentLoaded', () => {
     // Botão de confirmar
@@ -196,8 +221,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (confirmBtn) {
         confirmBtn.addEventListener('click', confirmMemorySelection);
     }
+
+    // Verificar recompensas pendentes ao carregar a página
+    checkPendingMemoryReward();
 });
 
 // Expor funções globalmente para serem chamadas de outros scripts
 window.showMemorySelectionPopup = showMemorySelectionPopup;
 window.confirmMemorySelection = confirmMemorySelection;
+window.checkPendingMemoryReward = checkPendingMemoryReward;
