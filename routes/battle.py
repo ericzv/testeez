@@ -881,7 +881,7 @@ def damage_boss():
             battle_stacks = state.get('battle_stacks', 0)
             if battle_stacks > 0:
                 attack_data['base_damage'] += battle_stacks
-                final_damage += battle_stacks
+                final_damage = attack_data['base_damage']  # Sincronizar (não adicionar novamente)
                 print(f"⚔️ Bônus de batalha (ID 50): +{battle_stacks} (reseta após combate)")
 
     # ===== 5. APLICAR BUFFS TEMPORÁRIOS (ActiveBuff) =====

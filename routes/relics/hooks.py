@@ -317,7 +317,8 @@ def reset_battle_counters(player):
         state.pop('used_this_battle', None)
         state.pop('battle_stacks', None)
         state.pop('should_double', None)
-        
+        state.pop('power_count_battle', None)  # Contador da Trinitas (ID 31)
+
         relic.state_data = json.dumps(state)
 
     # NÃO precisa recalcular cache aqui (battle_stacks não está no cache)

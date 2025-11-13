@@ -386,39 +386,29 @@ def apply_relic_effect(player_relic, player, context):
                 result = energy_reward
                 print(f"   ↳ Usou todos os ataques, ganhou {energy_reward} energia (Energia: {player.energy}/{player.max_energy})")
                 
-    elif effect_type == 'triple_power_reward':
-        # ID 31 - Dar energia ao usar Poder 3x seguidas
+    elif effect_type == 'power_every_n_in_battle':
+        # ID 31 - Dar energia a cada N Poderes usados no combate (não precisa ser consecutivo)
         required_skill = effect['required_skill']
         current_skill = context.get('skill_type')
-        
-        state = json.loads(player_relic.state_data or '{}')
-        consecutive_count = state.get('consecutive_power_count', 0)
-        
-        # Se o ataque atual é o requerido (Poder)
+
+        # Só contar se for o tipo de skill requerido
         if current_skill == required_skill:
-            consecutive_count += 1
-            
-            # Se chegou em 3, dar recompensa e zerar
-            if consecutive_count == 3:
+            state = json.loads(player_relic.state_data or '{}')
+            power_count = state.get('power_count_battle', 0)
+            power_count += 1
+
+            # A cada N Poderes, dar recompensa
+            if power_count % effect['every_n'] == 0:
                 energy_reward = effect['energy_reward']
                 player.energy += energy_reward
-                
-                state['consecutive_power_count'] = 0
-                player_relic.state_data = json.dumps(state)
-                
                 result = energy_reward
-                print(f"   ↳ Poder 3x seguidas (3/3), ganhou {energy_reward} energia (Energia: {player.energy}/{player.max_energy}) [contador zerado]")
+                print(f"   ↳ {power_count}º Poder no combate, ganhou {energy_reward} energia (Energia: {player.energy}/{player.max_energy})")
             else:
-                # Ainda não chegou em 3, só incrementar
-                state['consecutive_power_count'] = consecutive_count
-                player_relic.state_data = json.dumps(state)
-                print(f"   ↳ Poder consecutivo: {consecutive_count}/3")
-        else:
-            # Usou outro ataque, zerar contador
-            if consecutive_count > 0:
-                state['consecutive_power_count'] = 0
-                player_relic.state_data = json.dumps(state)
-                print(f"   ↳ Sequência quebrada (usou {current_skill}), contador zerado")
+                print(f"   ↳ Poder usado no combate: {power_count}/{effect['every_n']}")
+
+            # Atualizar contador
+            state['power_count_battle'] = power_count
+            player_relic.state_data = json.dumps(state)
                 
     elif effect_type == 'energy_every_n_attacks':
         # ID 32 - Dar energia a cada N ataques
