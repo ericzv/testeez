@@ -471,16 +471,16 @@ RELIC_DEFINITIONS = {
     '31': {
         'id': '31',
         'name': 'Trinitas',
-        'description': 'Usar Poder 3x seguidas concede +5 energia',
+        'description': 'Cada vez que usar 3x Especial em um combate, ganha +5 energia',
         'icon': 'relic_31.png',
         'rarity': 'rare',
         'hooks': ['after_attack'],
         'requires_counter': False,
         'effect': {
-            'type': 'triple_power_reward',
+            'type': 'special_every_n_in_battle',
             'energy_reward': 5,
-            'required_skill': 'power',
-            'consecutive': 3
+            'required_skill': 'special',
+            'every_n': 3
         }
     },
     

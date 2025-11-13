@@ -92,14 +92,16 @@ function populateAttackOptions() {
                     console.log(`   → animation_attack está vazio?`, !skill.animation_attack || skill.animation_attack.trim() === "");
                     console.log(`   → Todos os campos:`, Object.keys(skill));
                     console.log(`   → projectile_type: "${skill.projectile_type}"`);
-                    
+                    console.log(`   → Cache Data:`, skill.cache_data);
+                    console.log(`   → Applicable Relics:`, skill.applicable_relics);
+
                     // ---- REGISTRAR NO CACHE ----
                     window.SKILL_LOOKUP[skill.id] = skill;
                     window.SKILL_LOOKUP[skill.name.toLowerCase()] = skill;
-                    
+
                     // ===== LOG DO CACHE =====
                     console.log(`💾 CACHE - Skill ${skill.id} registrada:`, window.SKILL_LOOKUP[skill.id]);
-                    
+
                     const button = document.createElement('button');
                     button.classList.add('skill-button');
                     
@@ -178,31 +180,57 @@ function populateAttackOptions() {
                         button.title = disableReason;
                     }
                     
-                    const skillName = document.createElement('div');
-                    skillName.textContent = skill.name;
-                    
-                    const skillDetails = document.createElement('div');
-                    skillDetails.classList.add('skill-details');
+                    // ===== CRIAR ESTRUTURA DO BOTÃO (LAYOUT 3 LINHAS) =====
+                    const buttonContent = document.createElement('div');
+                    buttonContent.className = 'skill-button-content';
 
-                    // Criar badge de custo de energia
+                    // ===== LINHA 1: ÍCONE + NOME + ENERGIA =====
+                    const topLine = document.createElement('div');
+                    topLine.className = 'skill-top-line';
+
+                    // Ícone do tipo de ataque (pequeno, sem círculo)
+                    const typeIconContainer = document.createElement('div');
+                    typeIconContainer.className = 'attack-type-icon-container';
+
+                    const attackTypeIcon = document.createElement('img');
+                    attackTypeIcon.className = 'attack-type-icon';
+
+                    const typeIconMap = {
+                        'attack': 'atk1.png',
+                        'power': 'atk2.png',
+                        'special': 'atk3.png',
+                        'ultimate': 'atk4.png'
+                    };
+
+                    const iconFile = typeIconMap[skill.skill_type] || 'atk1.png';
+                    attackTypeIcon.src = `/static/game.data/icons/${iconFile}`;
+                    attackTypeIcon.alt = skill.skill_type || 'attack';
+
+                    typeIconContainer.appendChild(attackTypeIcon);
+                    topLine.appendChild(typeIconContainer);
+
+                    // Nome da skill
+                    const skillName = document.createElement('div');
+                    skillName.className = 'skill-name';
+                    skillName.textContent = skill.name;
+                    topLine.appendChild(skillName);
+
+                    // Energia na mesma linha (final)
                     if (skill.energy_cost !== undefined) {
                         const energyBadge = document.createElement('div');
                         energyBadge.className = 'skill-energy-cost';
-                        
+
                         const energyIcon = document.createElement('img');
                         energyIcon.src = '/static/game.data/energy.png';
-                        energyIcon.alt = 'Energia';
                         energyIcon.className = 'skill-energy-icon';
-                        
+
                         const costText = document.createElement('span');
                         costText.textContent = skill.energy_cost;
-                        
+
                         energyBadge.appendChild(energyIcon);
                         energyBadge.appendChild(costText);
-                        
-                        button.style.position = 'relative';
-                        button.appendChild(energyBadge);
-                        
+                        topLine.appendChild(energyBadge);
+
                         // Verificar disponibilidade de energia
                         if (gameState.player.energy !== undefined && gameState.player.energy < skill.energy_cost) {
                             button.classList.add('insufficient-energy');
@@ -210,9 +238,119 @@ function populateAttackOptions() {
                             disableReason += "Energia insuficiente. ";
                         }
                     }
-                    
-                    button.appendChild(skillName);
-                    button.appendChild(skillDetails);
+
+                    buttonContent.appendChild(topLine);
+
+                    // ===== CONTAINER PARA LINHAS 2 E 3 =====
+                    const centralContainer = document.createElement('div');
+                    centralContainer.className = 'skill-central-container';
+
+                    // LINHA DE EFEITOS (EMBAIXO DO NOME, HORIZONTAL)
+                    const skillDetails = document.createElement('div');
+                    skillDetails.className = 'skill-details';
+
+                    if (skill.cache_data) {
+                        const cache = skill.cache_data;
+
+                        // DANO
+                        if (cache.base_damage) {
+                            const damageInfo = document.createElement('div');
+                            damageInfo.className = 'skill-stat';
+                            damageInfo.title = `Dano base: ${cache.base_damage} HP`;
+
+                            const damageIcon = document.createElement('img');
+                            damageIcon.src = '/static/game.data/icons/damage.png';
+                            damageIcon.className = 'stat-icon';
+
+                            const damageText = document.createElement('span');
+                            damageText.textContent = cache.base_damage;
+
+                            damageInfo.appendChild(damageIcon);
+                            damageInfo.appendChild(damageText);
+                            skillDetails.appendChild(damageInfo);
+                        }
+
+                        // CHANCE DE CRÍTICO
+                        if (cache.base_crit_chance && cache.base_crit_chance > 0) {
+                            const critInfo = document.createElement('div');
+                            critInfo.className = 'skill-stat';
+                            critInfo.title = `Chance de crítico: ${(cache.base_crit_chance * 100).toFixed(0)}%`;
+
+                            const critIcon = document.createElement('img');
+                            critIcon.src = '/static/game.data/icons/critchance.png';
+                            critIcon.className = 'stat-icon';
+
+                            const critText = document.createElement('span');
+                            critText.textContent = `${(cache.base_crit_chance * 100).toFixed(0)}%`;
+
+                            critInfo.appendChild(critIcon);
+                            critInfo.appendChild(critText);
+                            skillDetails.appendChild(critInfo);
+                        }
+
+                        // VAMPIRISMO
+                        if (cache.lifesteal_percent && cache.lifesteal_percent > 0) {
+                            const vampInfo = document.createElement('div');
+                            vampInfo.className = 'skill-stat';
+                            vampInfo.title = `Vampirismo: ${(cache.lifesteal_percent * 100).toFixed(0)}% do dano vira HP`;
+
+                            const vampIcon = document.createElement('img');
+                            vampIcon.src = '/static/game.data/icons/vampirism.png';
+                            vampIcon.className = 'stat-icon';
+
+                            const vampText = document.createElement('span');
+                            vampText.textContent = `${(cache.lifesteal_percent * 100).toFixed(0)}%`;
+
+                            vampInfo.appendChild(vampIcon);
+                            vampInfo.appendChild(vampText);
+                            skillDetails.appendChild(vampInfo);
+                        }
+
+                        // BARREIRA
+                        if (cache.effect_type === 'barrier') {
+                            const barrierValue = Math.floor(cache.base_damage * (cache.effect_value || 0)) + (cache.effect_bonus || 0);
+
+                            const barrierInfo = document.createElement('div');
+                            barrierInfo.className = 'skill-stat';
+                            barrierInfo.title = `Barreira: Ganha ${barrierValue} de escudo`;
+
+                            const barrierIcon = document.createElement('img');
+                            barrierIcon.src = '/static/game.data/icons/barrier.png';
+                            barrierIcon.className = 'stat-icon';
+
+                            const barrierText = document.createElement('span');
+                            barrierText.textContent = barrierValue;
+
+                            barrierInfo.appendChild(barrierIcon);
+                            barrierInfo.appendChild(barrierText);
+                            skillDetails.appendChild(barrierInfo);
+                        }
+                    }
+
+                    centralContainer.appendChild(skillDetails);
+
+                    // ===== LINHA 3: RELÍQUIAS (SE HOUVER) =====
+                    if (skill.applicable_relics && skill.applicable_relics.length > 0) {
+                        const relicsContainer = document.createElement('div');
+                        relicsContainer.className = 'skill-relics-container';
+
+                        skill.applicable_relics.forEach(relic => {
+                            const relicIcon = document.createElement('img');
+                            const iconSrc = relic.icon.startsWith('/') || relic.icon.startsWith('http')
+                                ? relic.icon
+                                : `/static/game.data/relics/${relic.icon}`;
+                            relicIcon.src = iconSrc;
+                            relicIcon.className = 'skill-relic-icon';
+                            relicIcon.title = `${relic.name}: ${relic.modifier.description}`;
+
+                            relicsContainer.appendChild(relicIcon);
+                        });
+
+                        centralContainer.appendChild(relicsContainer);
+                    }
+
+                    buttonContent.appendChild(centralContainer);
+                    button.appendChild(buttonContent);
                     
                     button.addEventListener('click', () => {
                         // Verificar energia primeiro

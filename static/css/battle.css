@@ -4824,3 +4824,311 @@
       text-shadow: 0 0 3px #000;
       line-height: 1;
   }
+/* ===== LAYOUT 2 LINHAS PADRONIZADO ===== */
+
+/* Container principal do botão (POR LINHAS - COLUMN) */
+.skill-button-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: 100%;
+    padding: 4px 6px;
+}
+
+/* ===== LINHA 1: ÍCONE + NOME + ENERGIA ===== */
+.skill-top-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+/* Ícone do tipo (esquerda, centralizado verticalmente) */
+.attack-type-icon-container {
+    width: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.attack-type-icon {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+/* Nome da skill */
+.skill-name {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #fff;
+    font-family: 'Cinzel', serif;
+    line-height: 1.2;
+    flex-grow: 1;
+    text-shadow:
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+}
+
+/* Energia (direita, VALOR ANTES DO ÍCONE) */
+.skill-energy-cost {
+    display: flex;
+    align-items: center;
+    flex-direction: row-reverse; /* Inverte: ícone depois do valor */
+    gap: 4px;
+    padding: 0;
+    flex-shrink: 0;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.skill-energy-icon {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    filter: none !important; /* Remove o brilho */
+}
+
+.skill-energy-cost span {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #ffeb3b;
+    text-shadow:
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Energia insuficiente */
+.insufficient-energy .skill-energy-cost span {
+    color: #ff5252;
+}
+
+.insufficient-energy .skill-energy-icon {
+    opacity: 0.7;
+}
+
+/* ===== LINHA 2: STATS + RELÍQUIAS (JUNTOS) ===== */
+.skill-central-container {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    padding-left: 44px; /* Alinha com o nome (36px icon + 8px gap) */
+}
+
+/* Stats */
+.skill-details {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.skill-stat {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 48px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    white-space: nowrap;
+    cursor: help;
+    position: relative;
+    transition: all 0.08s ease;
+}
+
+.skill-stat:hover {
+    background: rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Ícones de stats (PADRONIZADO COM RELÍQUIAS) */
+.stat-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.skill-stat span {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+    line-height: 1;
+}
+
+/* Relíquias (MESMO TAMANHO QUE STATS) */
+.skill-relics-container {
+    display: flex;
+    gap: 4px;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.skill-relic-icon {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    border: 1.5px solid rgba(255, 215, 0, 0.7);
+    border-radius: 3px;
+    padding: 2px;
+    background: rgba(0, 0, 0, 0.4);
+    cursor: help;
+    position: relative;
+    transition: all 0.08s ease;
+    flex-shrink: 0;
+}
+
+.skill-relic-icon:hover {
+    transform: scale(1.1);
+    border-color: rgba(255, 215, 0, 1);
+    box-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
+}
+
+/* ===== TOOLTIP CUSTOMIZADO ===== */
+.skill-stat[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20, 20, 20, 0.95);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 10000;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.skill-stat[title]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 2px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: rgba(20, 20, 20, 0.95);
+    pointer-events: none;
+    z-index: 10000;
+}
+
+/* Tooltip para relíquias */
+.skill-relic-icon[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20, 20, 20, 0.95);
+    color: #ffd700;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 10000;
+    border: 1px solid rgba(255, 215, 0, 0.4);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+    max-width: 250px;
+    white-space: normal;
+}
+
+.skill-relic-icon[title]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 2px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: rgba(20, 20, 20, 0.95);
+    pointer-events: none;
+    z-index: 10000;
+}
+
+/* ===== AJUSTES NO BOTÃO PRINCIPAL ===== */
+.skill-button {
+    background: linear-gradient(to bottom, #8c2022, #5c1011) !important;
+    border: 2px solid #aa3033 !important;
+    border-radius: 5px !important;
+    padding: 2px !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    transition: all 0.1s ease !important;
+}
+
+.skill-button:hover:not(.disabled) {
+    transform: translateX(5px) scale(1.02) !important;
+    border-color: #ff6066 !important;
+    box-shadow: 0 6px 20px rgba(255, 50, 50, 0.7) !important;
+    background: linear-gradient(to bottom, #a82628, #751315) !important;
+}
+
+/* Botão desabilitado */
+.skill-button.disabled,
+.skill-button:disabled {
+    background: linear-gradient(to bottom, #4a4a4a, #2a2a2a) !important;
+    border: 2px solid #555 !important;
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    filter: grayscale(80%) !important;
+}
+
+.skill-button.disabled:hover,
+.skill-button:disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: #555 !important;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+
+/* Para telas menores, ajustar tamanhos */
+@media (max-width: 768px) {
+    .attack-type-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .skill-name {
+        font-size: 1rem;
+    }
+
+    .stat-icon {
+        width: 16px;
+        height: 16px;
+    }
+
+    .skill-stat span {
+        font-size: 0.85rem;
+    }
+
+    .skill-relic-icon {
+        width: 20px;
+        height: 20px;
+    }
+}
+
