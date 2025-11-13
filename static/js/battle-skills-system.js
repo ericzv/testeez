@@ -379,11 +379,9 @@ function populateAttackOptions() {
                                 : `/static/game.data/relics/${relic.icon}`;
                             relicIcon.src = iconSrc;
                             relicIcon.className = 'skill-relic-icon';
+                            relicIcon.title = `${relic.name}: ${relic.modifier.description}`; // Tooltip nativo (igual às infos de ataque)
 
                             relicsContainer.appendChild(relicIcon);
-
-                            // Adicionar tooltip estilizado
-                            addStyledTooltip(relicIcon, `${relic.name}: ${relic.modifier.description}`, 'bottom');
                         });
 
                         centralContainer.appendChild(relicsContainer);
