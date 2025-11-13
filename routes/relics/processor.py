@@ -738,15 +738,15 @@ def _apply_battle_accumulating_damage(player_relic, player, effect, context):
             # Usar state_data para rastrear acúmulo de batalha (NÃO vai pro cache)
             state = json.loads(player_relic.state_data or '{}')
             battle_stacks = state.get('battle_stacks', 0)
-            battle_stacks += effect['stack_bonus']
+            battle_stacks += 1  # Incrementar CONTADOR (não stack_bonus)
             state['battle_stacks'] = battle_stacks
             player_relic.state_data = json.dumps(state)
             player_relic.counter_value = battle_stacks
-            
+
             # NÃO adicionar ao accumulated_attack_bonus
             # NÃO recalcular cache
             # O bônus será aplicado transitoriamente em damage_boss()
-            
+
             return effect['stack_bonus']
     
     return None

@@ -880,9 +880,15 @@ def damage_boss():
             state = json.loads(battle_relic.state_data or '{}')
             battle_stacks = state.get('battle_stacks', 0)
             if battle_stacks > 0:
-                attack_data['base_damage'] += battle_stacks
+                # Buscar stack_bonus da definição da relíquia
+                from routes.relics.registry import get_relic_definition
+                relic_def = get_relic_definition('50')
+                stack_bonus = relic_def['effect'].get('stack_bonus', 2)
+
+                bonus_damage = battle_stacks * stack_bonus
+                attack_data['base_damage'] += bonus_damage
                 final_damage = attack_data['base_damage']  # Sincronizar (não adicionar novamente)
-                print(f"⚔️ Bônus de batalha (ID 50): +{battle_stacks} (reseta após combate)")
+                print(f"⚔️ Bônus de batalha (ID 50): +{bonus_damage} ({battle_stacks} stacks × {stack_bonus}) (reseta após combate)")
 
     # ===== 5. APLICAR BUFFS TEMPORÁRIOS (ActiveBuff) =====
     active_buffs = ActiveBuff.query.filter_by(player_id=player.id).all()
