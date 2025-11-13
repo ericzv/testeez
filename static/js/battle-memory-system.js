@@ -163,9 +163,16 @@ function confirmMemorySelection() {
                 selectedMemoryType = null;
                 pendingMemoryData = null;
 
-                // Redirecionar para o hub
-                console.log("🏠 Redirecionando para o hub...");
-                window.location.href = '/gamification';
+                // Redirecionar para o hub APENAS se estiver na página de batalha
+                const isBattlePage = window.location.pathname.includes('/battle');
+                if (isBattlePage) {
+                    console.log("🏠 Redirecionando para o hub...");
+                    window.location.href = '/gamification';
+                } else {
+                    console.log("✅ Já está no hub, não precisa redirecionar");
+                    // Recarregar a página para atualizar os dados
+                    window.location.reload();
+                }
             }, 300);
         } else {
             alert('Erro: ' + data.message);

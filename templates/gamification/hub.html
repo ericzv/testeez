@@ -78,7 +78,7 @@
   <span class="menu-text">{{ menu[3][2] }}</span>
 </a>
 
-<a href="{{ url_for(menu[5][0]) }}" class="menu-btn btn-5 battle-btn">
+<a href="#" class="menu-btn btn-5 battle-btn" onclick="goToBattle(event)">
   <span class="menu-icon">{{ menu[5][1] }}</span>
   <span class="menu-text">{{ menu[5][2] }}</span>
 </a>
@@ -1999,6 +1999,40 @@
       startVictoryPolling();
 
   });  // FIM CORRETO do DOMContentLoaded
+
+  // Função para ir para batalha com verificação de inimigo selecionado
+  function goToBattle(event) {
+      event.preventDefault();
+
+      console.log("🎯 Tentando ir para batalha...");
+
+      // Verificar se há inimigo selecionado
+      fetch('/gamification/get_battle_data')
+          .then(response => response.json())
+          .then(data => {
+              console.log("📊 Battle data:", data);
+
+              if (data.success && (data.enemy || data.boss)) {
+                  // Há inimigo selecionado, pode ir para batalha
+                  console.log("✅ Inimigo selecionado, indo para batalha");
+                  window.location.href = '/gamification/battle';
+              } else {
+                  // Não há inimigo selecionado
+                  console.log("⚠️ Nenhum inimigo selecionado");
+                  alert('Selecione um inimigo antes de ir para a batalha!');
+
+                  // Abrir automaticamente o pop-up de seleção de inimigo
+                  setTimeout(() => {
+                      openBossSelection();
+                  }, 100);
+              }
+          })
+          .catch(error => {
+              console.error('❌ Erro ao verificar inimigo:', error);
+              alert('Erro ao verificar inimigo. Tente novamente.');
+          });
+  }
+
 </script>
 
 <!-- Pop-up de Seleção de Boss -->
