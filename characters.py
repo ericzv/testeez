@@ -577,9 +577,38 @@ def get_player_attacks(player_id):
         if cache:
             skill['skill_type'] = cache.skill_type
             skill['energy_cost'] = cache.energy_cost
+
+            from models import Player
+            player = Player.query.get(player_id)
+
+            # Calcular dano total incluindo bônus acumulados
+            total_damage = cache.base_damage
+
+            # Adicionar bônus acumulados permanentes
+            if cache.skill_type == 'attack':
+                total_damage += player.accumulated_attack_bonus
+            elif cache.skill_type == 'power':
+                total_damage += player.accumulated_power_bonus
+
+            # Adicionar bônus acumulados de batalha (Sangue Coagulado, etc)
+            for relic in active_relics:
+                from routes.relics.registry import get_relic_definition
+                definition = get_relic_definition(relic.relic_id)
+                if definition:
+                    effect = definition.get('effect', {})
+                    effect_type = effect.get('type')
+
+                    # ID 50 - Sangue Coagulado: acumula por batalha
+                    if effect_type == 'battle_accumulating_damage' and effect.get('skill_type') == cache.skill_type:
+                        state = json.loads(relic.state_data or '{}')
+                        stacks = state.get('battle_stacks', 0)
+                        initial = effect.get('initial_bonus', 4)
+                        stack_bonus = effect.get('stack_bonus', 2)
+                        total_damage += initial + (stacks * stack_bonus)
+
             # Adicionar dados do cache para exibição no frontend
             skill['cache_data'] = {
-                'base_damage': cache.base_damage,
+                'base_damage': total_damage,  # Agora inclui todos os bônus
                 'base_crit_chance': cache.base_crit_chance,
                 'base_crit_multiplier': cache.base_crit_multiplier,
                 'lifesteal_percent': cache.lifesteal_percent,
@@ -590,9 +619,6 @@ def get_player_attacks(player_id):
 
             # Identificar relíquias aplicáveis a este ataque
             applicable_relics = []
-
-            from models import Player
-            player = Player.query.get(player_id)
 
             for relic in active_relics:
                 relic_id = relic.relic_id
@@ -787,14 +813,14 @@ def get_player_attacks(player_id):
 
                 # ID 31 - Trinitas: 3º Poder consecutivo dá energia
                 elif effect_type == 'triple_power_reward' and cache.skill_type == 'power':
-                    consecutive_count = state.get('consecutive_power', 0)
+                    consecutive_count = state.get('consecutive_power_count', 0)
                     required = effect.get('consecutive', 3)
                     if consecutive_count == required - 1:  # próximo completa
                         applies_to_this_skill = True
                         modifier_info = {
                             'type': 'energy_reward',
                             'value': effect['energy_reward'],
-                            'description': f"+{effect['energy_reward']} energia (3º poder consecutivo)"
+                            'description': f"+{effect['energy_reward']} energia ({consecutive_count+1}º poder consecutivo)"
                         }
 
                 # ==== TODOS OS 4 TIPOS DE ATAQUE ====

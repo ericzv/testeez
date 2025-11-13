@@ -4984,8 +4984,8 @@
 }
 
 .skill-relic-icon {
-    width: 20px;
-    height: 20px;
+    width: 30px;
+    height: 30px;
     object-fit: contain;
     border: 1.5px solid rgba(255, 215, 0, 0.7);
     border-radius: 3px;
