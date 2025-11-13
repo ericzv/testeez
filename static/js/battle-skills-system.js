@@ -4,6 +4,44 @@
 // Cache global para evitar repopulação
 window.SKILLS_ALREADY_POPULATED = false;
 
+// ===== HELPER PARA TOOLTIPS ESTILIZADOS =====
+/**
+ * Adiciona um tooltip estilizado a um elemento
+ * @param {HTMLElement} element - Elemento que receberá o tooltip
+ * @param {string} text - Texto do tooltip
+ * @param {string} position - Posição: 'top' (default), 'bottom', 'left', 'right'
+ */
+window.addStyledTooltip = function(element, text, position = 'top') {
+    if (!element || !text) return;
+
+    // Criar wrapper se o elemento ainda não estiver dentro de um
+    let wrapper = element.parentElement;
+    if (!wrapper || !wrapper.classList.contains('styled-tooltip-wrapper')) {
+        wrapper = document.createElement('div');
+        wrapper.className = 'styled-tooltip-wrapper';
+        element.parentNode.insertBefore(wrapper, element);
+        wrapper.appendChild(element);
+    }
+
+    // Verificar se já existe um tooltip
+    let tooltip = wrapper.querySelector('.styled-tooltip');
+    if (tooltip) {
+        tooltip.textContent = text;
+    } else {
+        // Criar tooltip
+        tooltip = document.createElement('div');
+        tooltip.className = 'styled-tooltip';
+        if (position !== 'top') {
+            tooltip.classList.add(`tooltip-${position}`);
+        }
+        tooltip.textContent = text;
+        wrapper.appendChild(tooltip);
+    }
+
+    // Remover atributo title nativo para evitar conflito
+    element.removeAttribute('title');
+};
+
 // Popular opções de ataque
 function populateAttackOptions() {
     const attackOptions = document.getElementById('attack-skills-menu');
@@ -341,9 +379,11 @@ function populateAttackOptions() {
                                 : `/static/game.data/relics/${relic.icon}`;
                             relicIcon.src = iconSrc;
                             relicIcon.className = 'skill-relic-icon';
-                            relicIcon.title = `${relic.name}: ${relic.modifier.description}`;
 
                             relicsContainer.appendChild(relicIcon);
+
+                            // Adicionar tooltip estilizado
+                            addStyledTooltip(relicIcon, `${relic.name}: ${relic.modifier.description}`, 'bottom');
                         });
 
                         centralContainer.appendChild(relicsContainer);
