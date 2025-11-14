@@ -1611,7 +1611,7 @@ def player_attacks():
             return jsonify({'success': False, 'message': 'Jogador não encontrado'})
 
         # ===== AUTO-FIX: Se jogador não tem skills, associar automaticamente =====
-        from models import PlayerSkill
+        from characters import PlayerSkill
         player_skills_count = PlayerSkill.query.filter_by(player_id=player.id).count()
         if player_skills_count == 0:
             print("⚠️  Jogador sem skills! Associando automaticamente as skills do Vlad...")
@@ -1686,7 +1686,7 @@ def player_specials():
             return jsonify({'success': False, 'message': 'Jogador não encontrado'})
 
         # ===== AUTO-FIX: Se jogador não tem skills, associar automaticamente =====
-        from models import PlayerSkill
+        from characters import PlayerSkill
         player_skills_count = PlayerSkill.query.filter_by(player_id=player.id).count()
         if player_skills_count == 0:
             print("⚠️  Jogador sem skills! Associando automaticamente as skills do Vlad...")

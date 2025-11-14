@@ -132,7 +132,7 @@ def calculate_attack_cache(player_id):
         if not player_skills:
             print("AVISO: Nenhuma skill encontrada para o jogador")
             print("⚠️  Tentando associar skills do Vlad automaticamente...")
-            from models import PlayerSkill
+            from characters import PlayerSkill
             if not player.character_id:
                 player.character_id = "vlad"
                 db.session.commit()
