@@ -146,6 +146,9 @@ class Player(db.Model):
     # Pendência de animação de skill especial (para skills que precisam esperar visualização do inimigo)
     pending_special_skill_animation = db.Column(db.Text, nullable=True)  # JSON: {skill_id, skill_name, ...}
 
+    # Acúmulos de Sangue Coagulado (Vlad)
+    blood_stacks = db.Column(db.Integer, default=0)  # Acúmulos de sangue no próprio Vlad
+
     # Campos para rastreamento de efeitos temporais
     last_time_check          = db.Column(db.DateTime, nullable=True)
     last_daily_effects       = db.Column(db.DateTime, nullable=True)

@@ -1342,8 +1342,8 @@ def use_special_skill_turn_based(player_id, skill_id, enemy=None):
 
         # Verificar se precisa de acúmulos de sangue
         if skill_data.get("consumes_blood_stacks", False):
-            if not enemy or enemy.blood_stacks <= 0:
-                return False, f"Não há Sangue Coagulado suficiente no inimigo!", {}
+            if player.blood_stacks <= 0:
+                return False, f"Não há Sangue Coagulado suficiente!", {}
 
         # Executar efeitos baseado no tipo de skill
         effect_type = skill_data.get("effect_type")
@@ -1363,12 +1363,11 @@ def use_special_skill_turn_based(player_id, skill_id, enemy=None):
             player.hp -= hp_cost
             result_data["effects"].append(f"Consumiu {hp_cost} HP")
 
-            # Gerar acúmulos de sangue no inimigo
-            if enemy:
-                blood_generated = skill_data.get("blood_stacks_generated", 3)
-                enemy.blood_stacks += blood_generated
-                result_data["effects"].append(f"Gerou {blood_generated} Sangue Coagulado")
-                result_data["blood_stacks_added"] = blood_generated
+            # Gerar acúmulos de sangue NO PRÓPRIO VLAD
+            blood_generated = skill_data.get("blood_stacks_generated", 3)
+            player.blood_stacks += blood_generated
+            result_data["effects"].append(f"Gerou {blood_generated} Sangue Coagulado")
+            result_data["blood_stacks_added"] = blood_generated
 
             # Adicionar bônus de dano no próximo ataque
             bonus_damage = skill_data.get("next_attack_bonus", 5)
@@ -1378,62 +1377,60 @@ def use_special_skill_turn_based(player_id, skill_id, enemy=None):
 
         # === LÂMINA DE SANGUE ===
         elif effect_type == "blood_blade":
-            if enemy:
-                # Calcular dano baseado nos acúmulos
-                damage_per_stack = skill_data.get("damage_per_blood_stack", 2)
-                total_damage = enemy.blood_stacks * damage_per_stack
+            # Calcular dano baseado nos acúmulos DO VLAD
+            damage_per_stack = skill_data.get("damage_per_blood_stack", 2)
+            total_damage = player.blood_stacks * damage_per_stack
 
-                # Aplicar dano ao inimigo
+            # Aplicar dano ao inimigo (se existir)
+            if enemy:
                 enemy.hp -= total_damage
                 enemy.hp = max(0, enemy.hp)
 
-                stacks_consumed = enemy.blood_stacks
-                enemy.blood_stacks = 0  # Consumir todos os acúmulos
+            stacks_consumed = player.blood_stacks
+            player.blood_stacks = 0  # Consumir todos os acúmulos DO VLAD
 
-                result_data["effects"].append(f"Causou {total_damage} de dano")
-                result_data["effects"].append(f"Consumiu {stacks_consumed} Sangue Coagulado")
-                result_data["damage_dealt"] = total_damage
-                result_data["blood_stacks_consumed"] = stacks_consumed
+            result_data["effects"].append(f"Causou {total_damage} de dano")
+            result_data["effects"].append(f"Consumiu {stacks_consumed} Sangue Coagulado")
+            result_data["damage_dealt"] = total_damage
+            result_data["blood_stacks_consumed"] = stacks_consumed
 
-                # Se estiver em character-view, criar pendência
-                result_data["needs_pending_animation"] = True
+            # Se estiver em character-view, criar pendência
+            result_data["needs_pending_animation"] = True
 
         # === BARREIRA DE SANGUE ===
         elif effect_type == "blood_barrier":
-            if enemy:
-                # Calcular barreira baseada nos acúmulos
-                barrier_per_stack = skill_data.get("barrier_per_blood_stack", 2)
-                total_barrier = enemy.blood_stacks * barrier_per_stack
+            # Calcular barreira baseada nos acúmulos DO VLAD
+            barrier_per_stack = skill_data.get("barrier_per_blood_stack", 2)
+            total_barrier = player.blood_stacks * barrier_per_stack
 
-                # Adicionar barreira ao jogador
-                player.barrier += total_barrier
+            # Adicionar barreira ao jogador
+            player.barrier += total_barrier
 
-                stacks_consumed = enemy.blood_stacks
-                enemy.blood_stacks = 0  # Consumir todos os acúmulos
+            stacks_consumed = player.blood_stacks
+            player.blood_stacks = 0  # Consumir todos os acúmulos DO VLAD
 
-                result_data["effects"].append(f"Ganhou {total_barrier} de Barreira")
-                result_data["effects"].append(f"Consumiu {stacks_consumed} Sangue Coagulado")
-                result_data["barrier_gained"] = total_barrier
-                result_data["blood_stacks_consumed"] = stacks_consumed
+            result_data["effects"].append(f"Ganhou {total_barrier} de Barreira")
+            result_data["effects"].append(f"Consumiu {stacks_consumed} Sangue Coagulado")
+            result_data["barrier_gained"] = total_barrier
+            result_data["blood_stacks_consumed"] = stacks_consumed
 
         # === REGENERAÇÃO ===
         elif effect_type == "blood_regeneration":
-            if enemy:
-                # Calcular cura baseada nos acúmulos
-                heal_per_stack = skill_data.get("heal_per_blood_stack", 1)
-                total_heal = enemy.blood_stacks * heal_per_stack
+            # Calcular cura baseada nos acúmulos DO VLAD
+            heal_per_stack = skill_data.get("heal_per_blood_stack", 1)
+            total_heal = player.blood_stacks * heal_per_stack
 
-                # Curar jogador
-                player.hp += total_heal
-                player.hp = min(player.hp, player.max_hp)  # Não ultrapassar HP máximo
+            # Curar jogador
+            player.hp += total_heal
+            player.hp = min(player.hp, player.max_hp)  # Não ultrapassar HP máximo
 
-                stacks_consumed = enemy.blood_stacks
-                enemy.blood_stacks = 0  # Consumir todos os acúmulos
+            stacks_consumed = player.blood_stacks
+            player.blood_stacks = 0  # Consumir todos os acúmulos DO VLAD
 
-                result_data["effects"].append(f"Curou {total_heal} HP")
-                result_data["effects"].append(f"Consumiu {stacks_consumed} Sangue Coagulado")
-                result_data["heal_amount"] = total_heal
-                result_data["blood_stacks_consumed"] = stacks_consumed
+            result_data["effects"].append(f"Curou {total_heal} HP")
+            result_data["effects"].append(f"Consumiu {stacks_consumed} Sangue Coagulado")
+            result_data["heal_amount"] = total_heal
+            result_data["blood_stacks_consumed"] = stacks_consumed
 
         # Consumir energia
         player.energy -= energy_cost
@@ -1458,24 +1455,22 @@ def use_special_skill_turn_based(player_id, skill_id, enemy=None):
 
 def add_blood_stacks_from_attack(player, enemy, skill_id):
     """
-    Adiciona acúmulos de Sangue Coagulado no inimigo quando o Vlad ataca.
+    Adiciona acúmulos de Sangue Coagulado NO PRÓPRIO VLAD quando ele ataca.
 
     SISTEMA DE ACÚMULOS:
-    - Ataque Básico (ID 51 - Garras Sangrentas): +2 acúmulos
-    - Poder (ID 50 - Energia Escura): +1 acúmulo
-    - Especial (ID 52 - Abraço da Escuridão): +1 acúmulo
-    - Suprema (ID 53 - Beijo da Morte): CONSOME todos os acúmulos, +2 dano por acúmulo
+    - Ataque Básico (ID 51 - Garras Sangrentas): +2 acúmulos no Vlad
+    - Poder (ID 50 - Energia Escura): +1 acúmulo no Vlad
+    - Especial (ID 52 - Abraço da Escuridão): +1 acúmulo no Vlad
+    - Suprema (ID 53 - Beijo da Morte): CONSOME todos os acúmulos do Vlad, +2 dano por acúmulo
 
     Args:
-        player: Objeto do jogador
-        enemy: Objeto do inimigo (GenericEnemy ou LastBoss)
+        player: Objeto do jogador (Vlad)
+        enemy: Objeto do inimigo (não usado para acúmulos)
         skill_id: ID da skill usada
 
     Returns:
         dict: Informações sobre os acúmulos (adicionados, consumidos, dano_extra)
     """
-    from models import GenericEnemy, LastBoss
-
     # Só funciona para o Vlad
     if player.character_id != "vlad":
         return {"stacks_added": 0, "stacks_consumed": 0, "extra_damage": 0}
@@ -1488,30 +1483,30 @@ def add_blood_stacks_from_attack(player, enemy, skill_id):
 
     # ID 51 - Garras Sangrentas (Ataque Básico): +2 acúmulos
     if skill_id == 51:
-        enemy.blood_stacks += 2
+        player.blood_stacks += 2
         result["stacks_added"] = 2
-        print(f"🩸 Garras Sangrentas: +2 Sangue Coagulado (Total: {enemy.blood_stacks})")
+        print(f"🩸 Garras Sangrentas: +2 Sangue Coagulado (Total: {player.blood_stacks})")
 
     # ID 50 - Energia Escura (Poder): +1 acúmulo
     elif skill_id == 50:
-        enemy.blood_stacks += 1
+        player.blood_stacks += 1
         result["stacks_added"] = 1
-        print(f"🩸 Energia Escura: +1 Sangue Coagulado (Total: {enemy.blood_stacks})")
+        print(f"🩸 Energia Escura: +1 Sangue Coagulado (Total: {player.blood_stacks})")
 
     # ID 52 - Abraço da Escuridão (Especial): +1 acúmulo
     elif skill_id == 52:
-        enemy.blood_stacks += 1
+        player.blood_stacks += 1
         result["stacks_added"] = 1
-        print(f"🩸 Abraço da Escuridão: +1 Sangue Coagulado (Total: {enemy.blood_stacks})")
+        print(f"🩸 Abraço da Escuridão: +1 Sangue Coagulado (Total: {player.blood_stacks})")
 
     # ID 53 - Beijo da Morte (Suprema): CONSOME todos os acúmulos
     elif skill_id == 53:
-        if enemy.blood_stacks > 0:
-            extra_damage = enemy.blood_stacks * 2  # +2 dano por acúmulo
-            result["stacks_consumed"] = enemy.blood_stacks
+        if player.blood_stacks > 0:
+            extra_damage = player.blood_stacks * 2  # +2 dano por acúmulo
+            result["stacks_consumed"] = player.blood_stacks
             result["extra_damage"] = extra_damage
-            print(f"💀 Beijo da Morte: Consumiu {enemy.blood_stacks} acúmulos → +{extra_damage} de dano!")
-            enemy.blood_stacks = 0
+            print(f"💀 Beijo da Morte: Consumiu {player.blood_stacks} acúmulos → +{extra_damage} de dano!")
+            player.blood_stacks = 0
 
     # Salvar mudanças
     db.session.commit()
