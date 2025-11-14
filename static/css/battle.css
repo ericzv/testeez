@@ -5842,3 +5842,145 @@
   transition: opacity 0.5s ease-out;
 }
 
+
+/* ========================================
+   SISTEMA DE ACÚMULOS DE SANGUE COAGULADO
+   ======================================== */
+
+/* Container de acúmulos de sangue - posicionado acima do HUD do inimigo */
+.blood-stacks-container {
+  position: absolute;
+  top: -45px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 100;
+  max-width: 300px;
+  flex-wrap: wrap;
+}
+
+/* Ícone individual de acúmulo de sangue */
+.blood-stack-icon {
+  width: 32px;
+  height: 32px;
+  filter: drop-shadow(0 0 8px rgba(220, 38, 38, 0.8))
+          drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  animation: blood-fade-in 0.3s ease-out;
+  transition: all 0.2s ease;
+}
+
+/* Animação de fade-in quando acúmulo é adicionado */
+@keyframes blood-fade-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(-20px);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Animação de explosão quando acúmulos são consumidos */
+.blood-stack-icon.consuming {
+  animation: blood-explode 0.5s ease-out forwards;
+}
+
+@keyframes blood-explode {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.5) rotate(180deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2) rotate(360deg);
+  }
+}
+
+/* Estilo para quando mouse passa por cima (informativo) */
+.blood-stacks-container:hover .blood-stack-icon {
+  filter: drop-shadow(0 0 12px rgba(220, 38, 38, 1))
+          drop-shadow(0 3px 6px rgba(0, 0, 0, 0.8));
+}
+
+/* Tooltip para mostrar quantidade de acúmulos */
+.blood-stacks-tooltip {
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: #ef4444;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: bold;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  text-shadow: 0 0 8px rgba(220, 38, 38, 0.6);
+}
+
+.blood-stacks-container:hover .blood-stacks-tooltip {
+  opacity: 1;
+}
+
+/* Animação de pulso para acúmulos recém-adicionados */
+.blood-stack-icon.pulse {
+  animation: blood-pulse 1s ease-in-out;
+}
+
+@keyframes blood-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 16px rgba(220, 38, 38, 1))
+            drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8));
+  }
+}
+
+/* Variante quando há muitos acúmulos (reduz tamanho) */
+.blood-stacks-container.many-stacks .blood-stack-icon {
+  width: 24px;
+  height: 24px;
+}
+
+/* Badge com número de acúmulos (alternativa visual) */
+.blood-stacks-badge {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%);
+  color: #fff;
+  border: 2px solid #ef4444;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.8),
+              inset 0 2px 4px rgba(255, 255, 255, 0.2);
+  z-index: 101;
+  pointer-events: none;
+  animation: blood-fade-in 0.3s ease-out;
+}
