@@ -346,7 +346,7 @@ function populateAttackOptions() {
 
                         // BARREIRA
                         if (cache.effect_type === 'barrier') {
-                            const barrierValue = Math.floor(cache.base_damage * (cache.effect_value || 0)) + (cache.effect_bonus || 0);
+                            const barrierValue = Math.ceil((cache.base_damage * (cache.effect_value || 0)) + (cache.effect_bonus || 0));
 
                             const barrierInfo = document.createElement('div');
                             barrierInfo.className = 'skill-stat';
