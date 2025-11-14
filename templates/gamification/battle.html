@@ -193,6 +193,11 @@
 </div>
 
 <div class="boss-hud">
+  <!-- Blood Stacks Container (acima do HP) -->
+  <div class="blood-stacks-container" id="blood-stacks-container" style="display: none;">
+    <!-- Ícones de blood stacks serão adicionados aqui pelo JavaScript -->
+  </div>
+
   <div class="small-bar-container">
     <div class="small-hp-fill" id="small-boss-hp-bar"></div>
     <div class="small-bar-label">
@@ -638,6 +643,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="/static/js/battle-preloader.js"></script>
 
 <script src="/static/js/battle-class-animations.js"></script>
+<script src="/static/js/battle-blood-stacks.js"></script>
 <script src="/static/js/battle-base.js"></script>
 <script src="/static/js/battle-combat-system.js"></script>
 <script src="/static/js/battle-skills-system.js"></script>

@@ -396,7 +396,8 @@ def get_battle_data():
                     'sprite_frames': current_boss.sprite_frames,
                     'sprite_size': current_boss.sprite_size,
                     'is_boss': True,
-                    'boss_type': 'last_boss'
+                    'boss_type': 'last_boss',
+                    'blood_stacks': getattr(current_boss, 'blood_stacks', 0)
                 }
                 print(f"👑 Carregando boss: {current_boss.name}")
                 print(f"👑 DEBUG BOSS DATA: {boss_data}")
@@ -424,7 +425,8 @@ def get_battle_data():
                         'weapon': current_enemy.sprite_weapon
                     },
                     'is_boss': False,
-                    'boss_type': 'generic'
+                    'boss_type': 'generic',
+                    'blood_stacks': getattr(current_enemy, 'blood_stacks', 0)
                 }
                 print(f"🎯 Carregando inimigo genérico: {current_enemy.name}")
             else:

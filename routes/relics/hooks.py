@@ -113,12 +113,38 @@ def before_attack(player, skill_data, attack_data):
 
 def after_attack(player, attack_result):
     """Chamado após aplicar dano"""
+    from routes.battle import get_current_battle_enemy
+
     active_relics = get_active_relics(player.id)
-    
+
     # Incrementar contadores globais
     player.attacks_this_battle += 1
     player.total_attacks_any_type += 1
-    
+
+    # ===== SISTEMA DE BLOOD STACKS DO VLAD =====
+    skill_id = attack_result.get('skill_id')
+    if skill_id and player.character_id == 'vlad':
+        current_enemy = get_current_battle_enemy(player.id)
+        if current_enemy:
+            # ID 51 (Garras Sangrentas - Ataque Básico) = +2 Blood Stacks
+            if skill_id == 51:
+                current_enemy.blood_stacks = (current_enemy.blood_stacks or 0) + 2
+                print(f"🩸 Blood Stacks: +2 (Ataque Básico) | Total: {current_enemy.blood_stacks}")
+
+            # ID 50 (Energia Escura - Poder) ou ID 52 (Abraço da Escuridão - Especial) = +1 Blood Stack
+            elif skill_id in [50, 52]:
+                current_enemy.blood_stacks = (current_enemy.blood_stacks or 0) + 1
+                print(f"🩸 Blood Stacks: +1 (Poder/Especial) | Total: {current_enemy.blood_stacks}")
+
+            # ID 53 (Beijo da Morte - Ultimate) = CONSOME todos e adiciona +2 dano por stack
+            elif skill_id == 53:
+                blood_stacks = current_enemy.blood_stacks or 0
+                if blood_stacks > 0:
+                    bonus_damage = blood_stacks * 2
+                    # O dano bonus já deve ter sido aplicado, mas registramos aqui
+                    print(f"🩸 Blood Stacks: CONSUMIU {blood_stacks} stacks (+{bonus_damage} dano)")
+                    current_enemy.blood_stacks = 0
+
     # Rastrear skill usada
     skill_type = attack_result.get('skill_type')
     if skill_type:
