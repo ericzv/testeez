@@ -82,25 +82,14 @@ app.jinja_env.globals.update(timezone=timezone)
 with app.app_context():
     db.create_all()
     print("Tabelas criadas com sucesso")
-    
+
     # Inicializar skills do Vlad
     from characters import init_vlad_skills
-    # ✅ CORREÇÃO: Inicializar skills do Vlad de forma segura
-    try:
-        # Importar apenas quando necessário para evitar import circular
-        from characters import init_vlad_skills
-        
-        # Chamar dentro do contexto da aplicação
-        with app.app_context():
-            success = init_vlad_skills()
-            if success:
-                print("✅ Skills do Vlad inicializadas com sucesso!")
-            else:
-                print("⚠️ Problema ao inicializar skills do Vlad")
-    except Exception as e:
-        print(f"❌ Erro ao inicializar skills do Vlad: {e}")
-        # Não interromper a execução por causa disso
-        pass
+    success = init_vlad_skills()
+    if success:
+        print("✅ Skills do Vlad inicializadas com sucesso!")
+    else:
+        print("⚠️ Problema ao inicializar skills do Vlad")
 
 # Registrar blueprints APÓS inicializar o banco de dados
 
@@ -289,7 +278,7 @@ def choose_character_route():
                 name="Jogador",
                 email="jogador@exemplo.com",
                 password="senha_hash",
-                character_id=None,
+                character_id="vlad",  # Já criar com Vlad como personagem padrão
                 level=1,
                 experience=0.0,
                 hp=80,
@@ -311,6 +300,14 @@ def choose_character_route():
             )
             db.session.add(player)
             db.session.commit()
+
+            # ASSOCIAR SKILLS DO VLAD AUTOMATICAMENTE AO CRIAR JOGADOR
+            print("🎭 Associando skills do Vlad ao jogador...")
+            success, msg = choose_character(player.id, "vlad")
+            if success:
+                print(f"✅ {msg}")
+            else:
+                print(f"❌ Erro ao associar skills: {msg}")
 
             # LIMPAR SESSÃO AO CRIAR NOVO PLAYER
             session.clear()

@@ -3,6 +3,11 @@ static/game.data/buffs/_originals/
 static/game.data/icons/_originals/
 static/game.data/relics/_originals/
 
+# Database
+instance/
+*.db
+*.db-journal
+
 # Python
 __pycache__/
 *.py[cod]

@@ -23,7 +23,10 @@ from characters import (
     get_player_attacks, get_player_specials, use_special_skill,
     update_skill_charges, update_active_buffs,
     apply_time_based_effects, apply_daily_effects,
-    use_attack_skill
+    use_attack_skill,
+    use_special_skill_turn_based,  # Nova função para skills baseadas em turnos
+    add_blood_stacks_from_attack,  # Adiciona acúmulos de sangue nos ataques do Vlad
+    reset_special_skills_turn  # Reseta skills usadas no turno
 )
 
 # ===== IMPORTS ROUTES =====
@@ -611,6 +614,7 @@ def get_battle_data():
             'hp': player.hp,
             'max_hp': player.max_hp,
             'barrier': player.barrier or 0,
+            'blood_stacks': player.blood_stacks or 0,
             'energy': player.energy,
             'max_energy': player.max_energy,
             'level': player.level,
@@ -890,6 +894,12 @@ def damage_boss():
                 final_damage = attack_data['base_damage']  # Sincronizar (não adicionar novamente)
                 print(f"⚔️ Bônus de batalha (ID 50): +{bonus_damage} ({battle_stacks} stacks × {stack_bonus}) (reseta após combate)")
 
+    # ===== 4.6. APLICAR BÔNUS DE PRÓXIMO ATAQUE (AUTOFAGIA E OUTROS) =====
+    if player.next_attack_bonus_damage > 0:
+        final_damage += player.next_attack_bonus_damage
+        print(f"🩸 Autofagia: +{player.next_attack_bonus_damage} de dano bônus no próximo ataque")
+        player.next_attack_bonus_damage = 0  # Consumir o bônus após usar
+
     # ===== 5. APLICAR BUFFS TEMPORÁRIOS (ActiveBuff) =====
     active_buffs = ActiveBuff.query.filter_by(player_id=player.id).all()
     
@@ -1043,7 +1053,24 @@ def damage_boss():
         'is_critical': is_critical,
         'skill_type': cache.skill_type
     })
-    
+
+    # ===== ADICIONAR ACÚMULOS DE SANGUE (VLAD) =====
+    blood_stack_result = add_blood_stacks_from_attack(player, target, skill_id)
+    if blood_stack_result['stacks_added'] > 0:
+        print(f"🩸 +{blood_stack_result['stacks_added']} Sangue Coagulado (Total: {player.blood_stacks})")
+    if blood_stack_result['extra_damage'] > 0:
+        # Beijo da Morte consumiu acúmulos e causou dano extra
+        extra_ultimate_damage = blood_stack_result['extra_damage']
+        actual_damage_applied += extra_ultimate_damage
+        # Aplicar o dano extra
+        if is_boss_fight:
+            target.current_hp -= extra_ultimate_damage
+            target_hp_after = target.current_hp
+        else:
+            target.hp -= extra_ultimate_damage
+            target_hp_after = target.hp
+        print(f"💀 Beijo da Morte: +{extra_ultimate_damage} dano extra (acúmulos consumidos)")
+
     # ===== 9. VAMPIRISMO (% do dano FINAL) =====
     heal_amount = 0
     if lifesteal_percent > 0:
@@ -1377,6 +1404,8 @@ def damage_boss():
         'player_energy': player.energy,
         'player_max_energy': player.max_energy,
         'player_barrier': player.barrier,
+        'player_blood_stacks': player.blood_stacks,
+        'blood_stacks_added': blood_stack_result.get('stacks_added', 0),
         'attack_type': cache.skill_type,
         'extra_messages': special_effects,
         'reward_type': reward_type if target_defeated else None,
@@ -1455,10 +1484,18 @@ def use_special():
             return redirect(url_for('battle.battle'))
         
         print(f"Chamando use_special_skill com player_id={player.id}, skill_id={int(skill_id)}")
-        
+
         # Chamar a função dentro de um bloco try para capturar exceções específicas
         try:
-            success, message, details = use_special_skill(player.id, int(skill_id))
+            # Verificar se é uma skill do Vlad (novo sistema baseado em turnos)
+            skill_id_int = int(skill_id)
+            if skill_id_int in [138, 139, 140, 141]:  # Skills especiais do Vlad
+                print(f"🩸 Usando novo sistema de skills baseado em turnos para skill {skill_id_int}")
+                success, message, details = use_special_skill_turn_based(player.id, skill_id_int)
+            else:
+                # Usar sistema antigo para outras skills
+                success, message, details = use_special_skill(player.id, skill_id_int)
+
             print(f"Resultado de use_special_skill: success={success}, message={message}")
             print(f"Details: {details}")
         except Exception as e:
@@ -1598,7 +1635,7 @@ def player_attacks():
         player = Player.query.first()
         if not player:
             return jsonify({'success': False, 'message': 'Jogador não encontrado'})
-        
+
         # Obter as habilidades de ataque desbloqueadas
         attacks = get_player_attacks(player.id)
         
@@ -1658,7 +1695,22 @@ def player_specials():
         player = Player.query.first()
         if not player:
             return jsonify({'success': False, 'message': 'Jogador não encontrado'})
-        
+
+        # ===== AUTO-FIX: Se jogador não tem skills, associar automaticamente =====
+        from characters import PlayerSkill
+        player_skills_count = PlayerSkill.query.filter_by(player_id=player.id).count()
+        if player_skills_count == 0:
+            print("⚠️  Jogador sem skills! Associando automaticamente as skills do Vlad...")
+            if not player.character_id:
+                player.character_id = "vlad"
+                db.session.commit()
+            success, msg = choose_character(player.id, "vlad")
+            if success:
+                print(f"✅ Skills associadas: {msg}")
+            else:
+                print(f"❌ Erro ao associar skills: {msg}")
+        # ============================================================================
+
         # Obter as habilidades especiais desbloqueadas
         specials = get_player_specials(player.id)
         
@@ -2463,7 +2515,10 @@ def end_player_turn():
         
         print(f"\n🎮 JOGADOR TERMINOU O TURNO")
         print(f"⚔️ Processando turno de: {enemy.name}")
-        
+
+        # Resetar skills especiais usadas no turno (para permitir uso no próximo turno)
+        reset_special_skills_turn(player.id)
+
         # Processar turno do inimigo
         result = process_enemy_turn(enemy, player_id=player.id)
         

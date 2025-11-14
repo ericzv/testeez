@@ -188,19 +188,23 @@ window.populateSpecialOptions = function() {
         nameSpan.className = 'skill-name';
         nameSpan.textContent = skill.name;
         content.appendChild(nameSpan);
-        
-        // Informações adicionais (cargas/cooldown)
-        if (skill.current_charges !== undefined) {
-            const chargesSpan = document.createElement('span');
-            chargesSpan.style.fontSize = '10px';
-            chargesSpan.style.marginTop = '4px';
-            chargesSpan.textContent = `Cargas: ${skill.current_charges}/${skill.max_charges}`;
-            content.appendChild(chargesSpan);
-        }
-        
+
         button.appendChild(content);
-        
-        // Event listener
+
+        // Event listeners para tooltip
+        button.addEventListener('mouseenter', function(e) {
+            if (window.specialSkillTooltip) {
+                window.specialSkillTooltip.show(button, skill);
+            }
+        });
+
+        button.addEventListener('mouseleave', function(e) {
+            if (window.specialSkillTooltip) {
+                window.specialSkillTooltip.hide();
+            }
+        });
+
+        // Event listener para click
         button.addEventListener('click', function() {
             // Verificar se é Suprema com relíquia bloqueadora
             if (skill.name.includes('Suprema') && window.ultimateGraceControl.hasRelic && window.ultimateGraceControl.isUsed) {
@@ -226,12 +230,45 @@ window.populateSpecialOptions = function() {
             .then(data => {
                 if (data.success) {
                     console.log('Habilidade usada com sucesso!');
-                    
+
+                    // Tocar som da skill
+                    if (data.details && data.details.sound_effect) {
+                        console.log(`🔊 Tocando som da skill: ${data.details.sound_effect}`);
+                        if (typeof playSound === 'function') {
+                            playSound(data.details.sound_effect, 0.6);
+                        }
+                    }
+
+                    // Executar animação da skill
+                    if (data.details && data.details.animation_sprite && data.details.animation_frames) {
+                        console.log(`🎬 Executando animação: ${data.details.animation_sprite}`);
+                        playSpecialSkillAnimation(
+                            data.details.animation_sprite,
+                            data.details.animation_frames,
+                            data.details.animation_target || 'player'
+                        );
+                    }
+
+                    // Atualizar blood stacks se a skill retornou
+                    if (data.details && data.details.player_blood_stacks !== undefined) {
+                        gameState.player.blood_stacks = data.details.player_blood_stacks;
+
+                        if (window.bloodStacksDisplay) {
+                            window.bloodStacksDisplay.update(gameState.player.blood_stacks);
+
+                            // Animar consumo se consumiu stacks
+                            if (data.details.blood_stacks_consumed && data.details.blood_stacks_consumed > 0) {
+                                window.bloodStacksDisplay.animateConsume(data.details.blood_stacks_consumed);
+                                console.log(`🩸 Consumiu ${data.details.blood_stacks_consumed} Blood Stacks (Restante: ${gameState.player.blood_stacks})`);
+                            }
+                        }
+                    }
+
                     // Se foi a Suprema, marcar como usada
                     if (skill.name.includes('Suprema')) {
                         window.ultimateGraceControl.markAsUsed();
                     }
-                    
+
                     // Atualizar interface
                     if (typeof updateStats === 'function') {
                         updateStats();
@@ -603,6 +640,68 @@ function setupMenuButtonListeners() {
     console.log("✅ Event listeners dos botões de menu configurados com sucesso");
 }
 
+// Sistema de animação de skills especiais
+function playSpecialSkillAnimation(animationSprite, animationFrames, animationTarget) {
+    console.log(`🎬 playSpecialSkillAnimation: sprite=${animationSprite}, frames=${animationFrames}, target=${animationTarget}`);
+
+    // Determinar o elemento alvo
+    let targetElement;
+    if (animationTarget === 'boss' || animationTarget === 'enemy') {
+        targetElement = document.getElementById('boss');
+    } else {
+        targetElement = document.getElementById('character');
+    }
+
+    if (!targetElement) {
+        console.error('❌ Elemento alvo não encontrado para animação');
+        return;
+    }
+
+    // Criar elemento de animação
+    const animElement = document.createElement('div');
+    animElement.className = 'special-skill-animation';
+    animElement.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 256px;
+        height: 256px;
+        background-image: url('/static/game.data/${animationSprite}');
+        background-size: ${256 * animationFrames}px 256px;
+        background-repeat: no-repeat;
+        background-position: 0 0;
+        pointer-events: none;
+        z-index: 1000;
+        animation: special-skill-frames ${animationFrames * 0.1}s steps(${animationFrames}) forwards;
+    `;
+
+    // Adicionar CSS de animação dinamicamente se não existir
+    if (!document.getElementById('special-skill-animation-keyframes')) {
+        const style = document.createElement('style');
+        style.id = 'special-skill-animation-keyframes';
+        style.textContent = `
+            @keyframes special-skill-frames {
+                0% { background-position: 0 0; }
+                100% { background-position: -${256 * (animationFrames - 1)}px 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Adicionar ao container do alvo
+    const container = targetElement.parentElement;
+    if (container) {
+        container.style.position = 'relative';
+        container.appendChild(animElement);
+
+        // Remover após animação terminar
+        setTimeout(() => {
+            animElement.remove();
+        }, animationFrames * 100 + 200);
+    }
+}
+
 // Sistema de som de hover global
 function setupGlobalHoverSounds() {
     console.log("Configurando sons de hover globais...");
@@ -724,6 +823,17 @@ function loadBattleData() {
                         gameState.player.dodgeChance = data.player.dodge_chance;
                         gameState.player.strengthDamage = data.player.strength_damage;
                         gameState.player.totalDamage = data.player.total_damage;
+
+                        // Carregar acúmulos de sangue coagulado
+                        if (data.player.blood_stacks !== undefined) {
+                            gameState.player.blood_stacks = data.player.blood_stacks;
+                            console.log(`🩸 Blood Stacks carregados: ${gameState.player.blood_stacks}`);
+
+                            // Atualizar display de blood stacks
+                            if (window.bloodStacksDisplay) {
+                                window.bloodStacksDisplay.update(gameState.player.blood_stacks);
+                            }
+                        }
 
                         // Carregar energia do jogador
                         console.log("🔍 DEBUG ENERGIA - data.player.energy:", data.player.energy);

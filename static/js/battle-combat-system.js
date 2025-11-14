@@ -3872,6 +3872,22 @@ function saveBossDamage(skill, damage, isCritical) {
             gameState.player.maxHp = data.player_max_hp;
             gameState.player.barrier = data.player_barrier;
 
+            // Atualizar blood stacks e display
+            if (data.player_blood_stacks !== undefined) {
+                gameState.player.blood_stacks = data.player_blood_stacks;
+
+                // Atualizar display visual
+                if (window.bloodStacksDisplay) {
+                    window.bloodStacksDisplay.update(gameState.player.blood_stacks);
+
+                    // Animar adição de stacks se houver
+                    if (data.blood_stacks_added && data.blood_stacks_added > 0) {
+                        window.bloodStacksDisplay.animateAdd(data.blood_stacks_added);
+                        console.log(`🩸 +${data.blood_stacks_added} Blood Stacks (Total: ${gameState.player.blood_stacks})`);
+                    }
+                }
+            }
+
             // Atualizar energia do jogador
             if (data.player_energy !== undefined) {
                 gameState.player.energy = data.player_energy;

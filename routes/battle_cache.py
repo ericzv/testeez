@@ -127,7 +127,7 @@ def calculate_attack_cache(player_id):
         # 2. BUSCAR SKILLS DO JOGADOR
         from characters import get_player_attacks
         player_skills = get_player_attacks(player_id)
-        
+
         if not player_skills:
             print("AVISO: Nenhuma skill encontrada para o jogador")
             return False

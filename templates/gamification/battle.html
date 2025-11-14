@@ -10,6 +10,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/css/battle.css">
 <link rel="stylesheet" href="/static/css/battle-turns.css">
+<link rel="stylesheet" href="/static/css/blood-display.css">
+<link rel="stylesheet" href="/static/css/special-skill-tooltip.css">
 
 </head>
 <body>
@@ -193,6 +195,11 @@
 </div>
 
 <div class="boss-hud">
+  <!-- Container de Acúmulos de Sangue Coagulado -->
+  <div class="blood-stacks-container" id="blood-stacks-container" style="display: none;">
+    <!-- Ícones serão adicionados dinamicamente aqui via JavaScript -->
+  </div>
+
   <div class="small-bar-container">
     <div class="small-hp-fill" id="small-boss-hp-bar"></div>
     <div class="small-bar-label">
@@ -639,6 +646,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script src="/static/js/battle-class-animations.js"></script>
 <script src="/static/js/battle-base.js"></script>
+<script src="/static/js/blood-stacks.js"></script> <!-- Sistema de Acúmulos de Sangue -->
+<script src="/static/js/blood-display.js"></script> <!-- Display de Acúmulos de Sangue (UI) -->
+<script src="/static/js/special-skill-tooltip.js"></script> <!-- Tooltip das Skills Especiais -->
 <script src="/static/js/battle-combat-system.js"></script>
 <script src="/static/js/battle-skills-system.js"></script>
 <script src="/static/js/battle-animation.js"></script>

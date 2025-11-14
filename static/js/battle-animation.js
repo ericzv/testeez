@@ -335,36 +335,48 @@ function updatePlayerStatusCard() {
     }
     
     // Atualizar os valores no card
-    pointsEl.textContent = points;
-    hpEl.textContent = `${hp}/${maxHp}`;
-    mpEl.textContent = `${mp}/${maxMp}`;
-    
+    if (pointsEl) pointsEl.textContent = points;
+    if (hpEl) hpEl.textContent = `${hp}/${maxHp}`;
+    if (mpEl) mpEl.textContent = `${mp}/${maxMp}`;
+
     // Aplicar classe de modificação (buff/debuff) nos valores alterados
-    damageEl.textContent = `${modifiedDamage.toFixed(1)}`;
-    damageEl.className = statModifiers.damage ? 'stat-value buffed' : 'stat-value';
-    
-    critChanceEl.textContent = `${(modifiedCritChance * 100).toFixed(1)}%`;
-    critChanceEl.className = statModifiers.critChance ? 'stat-value buffed' : 'stat-value';
-    
-    critBonusEl.textContent = `${(modifiedCritBonus * 100).toFixed(1)}%`;
-    critBonusEl.className = statModifiers.critBonus ? 'stat-value buffed' : 'stat-value';
-    
-    blockEl.textContent = `${(modifiedBlock).toFixed(1)}%`;
-    blockEl.className = statModifiers.block ? 'stat-value buffed' : 'stat-value';
-    
-    dodgeEl.textContent = `${(modifiedDodge * 100).toFixed(1)}%`;
-    dodgeEl.className = statModifiers.dodge ? 'stat-value buffed' : 'stat-value';
-    
+    if (damageEl) {
+        damageEl.textContent = `${modifiedDamage.toFixed(1)}`;
+        damageEl.className = statModifiers.damage ? 'stat-value buffed' : 'stat-value';
+    }
+
+    if (critChanceEl) {
+        critChanceEl.textContent = `${(modifiedCritChance * 100).toFixed(1)}%`;
+        critChanceEl.className = statModifiers.critChance ? 'stat-value buffed' : 'stat-value';
+    }
+
+    if (critBonusEl) {
+        critBonusEl.textContent = `${(modifiedCritBonus * 100).toFixed(1)}%`;
+        critBonusEl.className = statModifiers.critBonus ? 'stat-value buffed' : 'stat-value';
+    }
+
+    if (blockEl) {
+        blockEl.textContent = `${(modifiedBlock).toFixed(1)}%`;
+        blockEl.className = statModifiers.block ? 'stat-value buffed' : 'stat-value';
+    }
+
+    if (dodgeEl) {
+        dodgeEl.textContent = `${(modifiedDodge * 100).toFixed(1)}%`;
+        dodgeEl.className = statModifiers.dodge ? 'stat-value buffed' : 'stat-value';
+    }
+
     // Sempre mostrar o roubo de vida, independente do valor
-    lifestealContainer.style.display = 'flex'; // Sempre visível
+    if (lifestealContainer) lifestealContainer.style.display = 'flex'; // Sempre visível
 
     // Se tiver roubo de vida, exibe o valor real, senão exibe 0%
-    if (hasLifesteal) {
-        lifestealEl.textContent = `${(lifestealValue * 100).toFixed(1)}%`;
-        lifestealEl.className = statModifiers.lifesteal ? 'stat-value buffed' : 'stat-value';
-    } else {
-        lifestealEl.textContent = '0.0%';
-        lifestealEl.className = 'stat-value'; // Sem classe buffed quando for 0
+    if (lifestealEl) {
+        if (hasLifesteal) {
+            lifestealEl.textContent = `${(lifestealValue * 100).toFixed(1)}%`;
+            lifestealEl.className = statModifiers.lifesteal ? 'stat-value buffed' : 'stat-value';
+        } else {
+            lifestealEl.textContent = '0.0%';
+            lifestealEl.className = 'stat-value'; // Sem classe buffed quando for 0
+        }
     }
     
     console.log("Card de status atualizado com sucesso");
