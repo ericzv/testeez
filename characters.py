@@ -291,22 +291,22 @@ VLAD_SPECIAL_SKILLS_DATA = [
     {
         "id": 138,
         "name": "Autofagia",
-        "description": "Consome o próprio sangue ([valor]HP) para formar [valor]x Sangue Coagulado e aumentar em [valor] o dano do próximo ataque.",
+        "description": "Sacrifica HP para gerar Sangue Coagulado e fortalecer o próximo ataque.",
         "energy_cost": 0,  # Não custa energia, custa HP
         "hp_cost": 7,  # Custo base de HP (pode ser modificado por melhorias)
-        "blood_stacks_generated": 3,  # Quantidade de acúmulos gerados no inimigo
+        "blood_stacks_generated": 3,  # Quantidade de acúmulos gerados
         "next_attack_bonus": 5,  # Bônus de dano no próximo ataque
         "effect_type": "autofagia",  # Identificador único
         "animation_sprite": "/static/game.data/fx/autofagia300-300-7f.png",  # Sprite 300x300, 7 frames
         "animation_frames": 7,
         "animation_target": "self",  # Anima sobre o próprio personagem
         "sound_effect": "/static/game.data/sounds/autofagia.mp3",
-        "icon": "/static/game.data/icons/icon3.png"  # Pode manter temporariamente
+        "icon": "/static/game.data/icons/icon3.png"
     },
     {
         "id": 139,
         "name": "Lâmina de Sangue",
-        "description": "Consome todo Sangue Coagulado para gerar um ataque que causa [Valor] de dano.",
+        "description": "Consome todo Sangue Coagulado para lançar uma lâmina carmesim que causa dano massivo.",
         "energy_cost": 2,
         "damage_per_blood_stack": 2,  # 2 de dano por acúmulo de sangue
         "consumes_blood_stacks": True,  # Consome todos os acúmulos
@@ -320,7 +320,7 @@ VLAD_SPECIAL_SKILLS_DATA = [
     {
         "id": 140,
         "name": "Barreira de Sangue",
-        "description": "Consome todo Sangue Coagulado para gerar [valor] barreira de sangue.",
+        "description": "Consome todo Sangue Coagulado para criar uma barreira protetora de sangue cristalizado.",
         "energy_cost": 3,
         "barrier_per_blood_stack": 2,  # 2 de barreira por acúmulo
         "consumes_blood_stacks": True,
@@ -334,7 +334,7 @@ VLAD_SPECIAL_SKILLS_DATA = [
     {
         "id": 141,
         "name": "Regeneração",
-        "description": "Consome todo Sangue Coagulado para curar [valor] HP",
+        "description": "Consome todo Sangue Coagulado para regenerar a vitalidade perdida.",
         "energy_cost": 2,
         "heal_per_blood_stack": 1,  # 1 HP curado por acúmulo
         "consumes_blood_stacks": True,
