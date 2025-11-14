@@ -35,14 +35,19 @@ def apply_damage_to_player(player, damage):
     
     # ===== BUSCAR CACHE DE DEFESA =====
     from routes.battle_cache import get_cached_defense
-    
+
     defense_cache = get_cached_defense(player.id)
-    
+
     if defense_cache:
         # Usar valores do cache (já inclui força, talentos, equipamentos, lembranças)
         base_dodge = defense_cache.base_dodge_chance
         base_block = defense_cache.base_block_percent
         print(f"🛡️  Usando cache de defesa: {base_dodge*100:.1f}% esquiva, {base_block*100:.1f}% bloqueio")
+    else:
+        # Se não houver cache, usar valores padrão baseados nos atributos do jogador
+        base_dodge = 0.0
+        base_block = 0.0
+        print(f"⚠️  Sem cache de defesa! Usando valores padrão.")
     
     # ===== APLICAR BUFFS TEMPORÁRIOS DE DEFESA =====
     dodge_bonus_from_buffs = 0
