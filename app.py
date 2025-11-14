@@ -1159,6 +1159,25 @@ if __name__ == "__main__":
 
             results = []
 
+            # Adicionar colunas de reroll em Player (se não existirem)
+            player_columns = [
+                ("enemy_reroll_count", "INTEGER DEFAULT 0"),
+                ("memory_reroll_count", "INTEGER DEFAULT 0"),
+                ("relic_reroll_count", "INTEGER DEFAULT 0"),
+            ]
+
+            for col_name, col_type in player_columns:
+                try:
+                    db.session.execute(text(f"ALTER TABLE player ADD COLUMN {col_name} {col_type}"))
+                    db.session.commit()
+                    results.append(f"✓ Coluna {col_name} adicionada em player")
+                except Exception as e:
+                    db.session.rollback()
+                    if "duplicate column name" in str(e).lower() or "already exists" in str(e).lower():
+                        results.append(f"  Coluna {col_name} já existe em player")
+                    else:
+                        results.append(f"✗ Erro ao adicionar {col_name} em player: {e}")
+
             # Adicionar blood_stacks em GenericEnemy
             try:
                 db.session.execute(text("ALTER TABLE generic_enemy ADD COLUMN blood_stacks INTEGER NOT NULL DEFAULT 0"))
