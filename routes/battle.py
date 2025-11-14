@@ -1805,11 +1805,6 @@ def reset_player_run(player_id):
         player.run_bosses_defeated = 0
         player.run_start_timestamp = datetime.utcnow()
 
-        # ===== RESETAR CONTADORES DE REROLL =====
-        player.enemy_reroll_count = 0
-        player.memory_reroll_count = 0
-        player.relic_reroll_count = 0
-        
         # ===== RESETAR RECURSOS DE RUN =====
         player.run_gold = 0
         
@@ -2123,6 +2118,10 @@ def select_enemy():
         available_enemies = GenericEnemy.query.filter_by(is_available=True).all()
         for available_enemy in available_enemies:
             available_enemy.is_new = False
+
+        # ===== RESETAR CONTADOR DE REROLL DE INIMIGOS =====
+        player.enemy_reroll_count = 0
+        print("🔄 Contador de reroll de inimigos resetado")
 
         db.session.commit()
         
@@ -2985,17 +2984,22 @@ def select_relic():
         
         # Adicionar ao jogador
         award_relic_to_player(player.id, relic_id)
-        
+
+        # ===== RESETAR CONTADOR DE REROLL DE RELÍQUIAS =====
+        player.relic_reroll_count = 0
+        db.session.commit()
+        print("🔄 Contador de reroll de relíquias resetado")
+
         # Verificar se há mais relíquias pendentes
         pending = session.get('pending_relic_selection')
         has_more = False
         remaining_count = 0
-        
+
         if pending:
             pending['count'] -= 1
             pending.pop('options', None)  # ← ADICIONAR: Limpar opções para gerar novas
             remaining_count = pending['count']
-            
+
             if pending['count'] > 0:
                 session['pending_relic_selection'] = pending
                 session.modified = True

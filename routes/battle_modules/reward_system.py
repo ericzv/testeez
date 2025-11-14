@@ -339,7 +339,11 @@ def register_memory_routes(bp):
             elif memory_type == 'heal':
                 # Curar instantaneamente
                 player.hp = min(player.hp + value, player.max_hp)
-            
+
+            # ===== RESETAR CONTADOR DE REROLL DE MEMÓRIAS =====
+            player.memory_reroll_count = 0
+            print("🔄 Contador de reroll de memórias resetado")
+
             db.session.commit()
 
             # ===== LIMPAR RECOMPENSA E OPÇÕES DA SESSÃO =====
