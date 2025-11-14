@@ -275,7 +275,7 @@ VLAD_SPECIAL_SKILLS_DATA = [
     {
         "id": 138,
         "name": "Autofagia",
-        "description": "Consome o próprio sangue (7HP) para formar 3x Sangue Coagulado e aumentar em 5 o dano do próximo ataque.",
+        "description": "Consome 7HP para formar 3x Sangue Coagulado e aumentar em 5 o dano do próximo ataque. [1x por turno]",
         "max_charges": 1,  # DEPRECATED - sistema antigo
         "cooldown_minutes": 0,  # DEPRECATED - sistema antigo
         "positive_effect_type": "autofagia",
@@ -293,7 +293,7 @@ VLAD_SPECIAL_SKILLS_DATA = [
     {
         "id": 139,
         "name": "Lâmina de Sangue",
-        "description": "Consome todo Sangue Coagulado para gerar um ataque que causa 2 de dano por stack.",
+        "description": "Consome todo Sangue Coagulado para gerar um ataque que causa 2 de dano por acúmulo. Custo: 2 Energia. [1x por turno]",
         "max_charges": 1,  # DEPRECATED
         "cooldown_minutes": 0,  # DEPRECATED
         "positive_effect_type": "blood_blade",
@@ -311,7 +311,7 @@ VLAD_SPECIAL_SKILLS_DATA = [
     {
         "id": 140,
         "name": "Barreira de Sangue",
-        "description": "Consome todo Sangue Coagulado para gerar 2 de barreira por stack.",
+        "description": "Consome todo Sangue Coagulado para gerar barreira de 2 por acúmulo. Custo: 3 Energia. [1x por turno]",
         "max_charges": 1,  # DEPRECATED
         "cooldown_minutes": 0,  # DEPRECATED
         "positive_effect_type": "blood_barrier",
@@ -329,7 +329,7 @@ VLAD_SPECIAL_SKILLS_DATA = [
     {
         "id": 141,
         "name": "Regeneração",
-        "description": "Consome todo Sangue Coagulado para curar 1HP por stack.",
+        "description": "Consome todo Sangue Coagulado para curar 1HP por acúmulo. Custo: 2 Energia. [1x por turno]",
         "max_charges": 1,  # DEPRECATED
         "cooldown_minutes": 0,  # DEPRECATED
         "positive_effect_type": "blood_regen",
