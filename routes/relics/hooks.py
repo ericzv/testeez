@@ -86,13 +86,29 @@ def before_attack(player, skill_data, attack_data):
     Chamado antes de calcular dano.
     Retorna attack_data modificado.
     """
+    from routes.battle import get_current_battle_enemy
+
     active_relics = get_active_relics(player.id)
-    
+
     # Adicionar campos necessários se não existirem
     if 'damage_multiplier' not in attack_data:
         attack_data['damage_multiplier'] = 1.0
     if 'lifesteal_bonus' not in attack_data:
         attack_data['lifesteal_bonus'] = 0.0
+
+    # ===== SISTEMA DE BLOOD STACKS DO VLAD - ULTIMATE =====
+    skill_id = skill_data.get('id')
+    if skill_id == 53 and player.character_id == 'vlad':  # ID 53 = Beijo da Morte (Ultimate)
+        current_enemy = get_current_battle_enemy(player.id)
+        if current_enemy:
+            blood_stacks = current_enemy.blood_stacks or 0
+            if blood_stacks > 0:
+                bonus_damage = blood_stacks * 2
+                # Adicionar dano extra ao attack_data
+                if 'flat_damage_bonus' not in attack_data:
+                    attack_data['flat_damage_bonus'] = 0
+                attack_data['flat_damage_bonus'] += bonus_damage
+                print(f"🩸 Ultimate consumirá {blood_stacks} stacks | +{bonus_damage} dano extra")
     
     for relic in active_relics:
         definition = get_relic_definition(relic.relic_id)
