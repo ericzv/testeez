@@ -125,12 +125,29 @@ def calculate_attack_cache(player_id):
         print("Cache antigo removido")
         
         # 2. BUSCAR SKILLS DO JOGADOR
-        from characters import get_player_attacks
+        from characters import get_player_attacks, choose_character
         player_skills = get_player_attacks(player_id)
-        
+
+        # ===== AUTO-FIX: Se jogador não tem skills, associar automaticamente =====
         if not player_skills:
             print("AVISO: Nenhuma skill encontrada para o jogador")
-            return False
+            print("⚠️  Tentando associar skills do Vlad automaticamente...")
+            from models import PlayerSkill
+            if not player.character_id:
+                player.character_id = "vlad"
+                db.session.commit()
+            success, msg = choose_character(player_id, "vlad")
+            if success:
+                print(f"✅ Skills associadas: {msg}")
+                # Tentar buscar novamente
+                player_skills = get_player_attacks(player_id)
+                if not player_skills:
+                    print("❌ Ainda sem skills após associação!")
+                    return False
+            else:
+                print(f"❌ Erro ao associar skills: {msg}")
+                return False
+        # ============================================================================
         
         print(f"Encontradas {len(player_skills)} skills")
         

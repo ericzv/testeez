@@ -1609,7 +1609,22 @@ def player_attacks():
         player = Player.query.first()
         if not player:
             return jsonify({'success': False, 'message': 'Jogador não encontrado'})
-        
+
+        # ===== AUTO-FIX: Se jogador não tem skills, associar automaticamente =====
+        from models import PlayerSkill
+        player_skills_count = PlayerSkill.query.filter_by(player_id=player.id).count()
+        if player_skills_count == 0:
+            print("⚠️  Jogador sem skills! Associando automaticamente as skills do Vlad...")
+            if not player.character_id:
+                player.character_id = "vlad"
+                db.session.commit()
+            success, msg = choose_character(player.id, "vlad")
+            if success:
+                print(f"✅ Skills associadas: {msg}")
+            else:
+                print(f"❌ Erro ao associar skills: {msg}")
+        # ============================================================================
+
         # Obter as habilidades de ataque desbloqueadas
         attacks = get_player_attacks(player.id)
         
@@ -1669,7 +1684,22 @@ def player_specials():
         player = Player.query.first()
         if not player:
             return jsonify({'success': False, 'message': 'Jogador não encontrado'})
-        
+
+        # ===== AUTO-FIX: Se jogador não tem skills, associar automaticamente =====
+        from models import PlayerSkill
+        player_skills_count = PlayerSkill.query.filter_by(player_id=player.id).count()
+        if player_skills_count == 0:
+            print("⚠️  Jogador sem skills! Associando automaticamente as skills do Vlad...")
+            if not player.character_id:
+                player.character_id = "vlad"
+                db.session.commit()
+            success, msg = choose_character(player.id, "vlad")
+            if success:
+                print(f"✅ Skills associadas: {msg}")
+            else:
+                print(f"❌ Erro ao associar skills: {msg}")
+        # ============================================================================
+
         # Obter as habilidades especiais desbloqueadas
         specials = get_player_specials(player.id)
         
