@@ -530,38 +530,8 @@ function populateSpecialOptions() {
                     };
                     skillItem.appendChild(skillImage);
                     
-                    // Criar badge de cargas disponíveis
-                    const chargesBadge = document.createElement('div');
-                    chargesBadge.className = 'special-skill-charges';
-                    chargesBadge.textContent = skill.current_charges;
-                    skillItem.appendChild(chargesBadge);
-                    
-                    // Formatar tempo restante para próxima carga
-                    let timeText = '';
-                    let rechargeFullMessage = false;
-
-                    // Verificar se a skill tem todas as cargas
-                    if (skill.current_charges >= skill.max_charges) {
-                        rechargeFullMessage = true;
-                        timeText = 'Aguardando uso';
-                    } else if (skill.time_until_next !== null) {
-                        const seconds = skill.time_until_next;
-                        if (seconds <= 0) {
-                            timeText = 'Pronto';
-                        } else {
-                            const hours = Math.floor(seconds / 3600);
-                            const minutes = Math.floor((seconds % 3600) / 60);
-                            const secs = Math.floor(seconds % 60);
-                            
-                            if (hours > 0) {
-                                timeText = `${hours}h ${minutes}min`;
-                            } else if (minutes > 0) {
-                                timeText = `${minutes}min ${secs}s`;
-                            } else {
-                                timeText = `${secs}s`;
-                            }
-                        }
-                    }
+                    // Sistema novo: baseado em turnos, não em tempo
+                    let usedThisTurn = skill.used_this_turn || false;
                     
                     // Formatar efeito positivo em texto legível
                     let positiveEffectText = '';
@@ -666,35 +636,17 @@ function populateSpecialOptions() {
                     skillName.textContent = `${skill.name} - Nível ${skill.current_level || 1}`;
                     tooltip.appendChild(skillName);
 
-                    // Cargas
-                    const chargesInfo = document.createElement('div');
-                    chargesInfo.className = 'charges';
-                    chargesInfo.textContent = `Cargas: ${skill.current_charges}/${skill.max_charges}`;
-
-                    if (!rechargeFullMessage && skill.time_until_next !== null && skill.time_until_next > 0) {
-                        chargesInfo.textContent += ` • Recarga: ${timeText}`;
-                    } else if (rechargeFullMessage) {
-                        chargesInfo.textContent += ` • ${timeText}`;
+                    // Disponibilidade (baseado em turnos)
+                    const availabilityInfo = document.createElement('div');
+                    availabilityInfo.className = 'charges';
+                    if (usedThisTurn) {
+                        availabilityInfo.textContent = 'Usada neste turno - Aguarde o próximo turno';
+                        availabilityInfo.style.color = '#ff6b6b';
+                    } else {
+                        availabilityInfo.textContent = '1x por turno - Disponível';
+                        availabilityInfo.style.color = '#51cf66';
                     }
-                    tooltip.appendChild(chargesInfo);
-
-                    // Adicionar tempo de recarga fixo
-                    if (skill.cooldown_minutes) {
-                        const cooldownHours = Math.floor(skill.cooldown_minutes / 60);
-                        const cooldownMins = skill.cooldown_minutes % 60;
-                        
-                        const cooldownInfo = document.createElement('div');
-                        cooldownInfo.className = 'charges';
-                        cooldownInfo.style.marginTop = '4px';
-                        
-                        if (cooldownHours > 0) {
-                            cooldownInfo.textContent = `Tempo de Recarga: ${cooldownHours}h${cooldownMins > 0 ? ` ${cooldownMins}min` : ''}`;
-                        } else {
-                            cooldownInfo.textContent = `Tempo de Recarga: ${cooldownMins}min`;
-                        }
-                        
-                        tooltip.appendChild(cooldownInfo);
-                    }
+                    tooltip.appendChild(availabilityInfo);
 
                     // Efeito positivo - Sempre incluir
                     const effect = document.createElement('div');
@@ -719,8 +671,8 @@ function populateSpecialOptions() {
                     // Adicionar tooltip ao item da skill
                     skillItem.appendChild(tooltip);
 
-                    // Verificar cargas e adicionar eventos
-                    if (skill.current_charges <= 0) {
+                    // Verificar disponibilidade (se foi usada neste turno)
+                    if (usedThisTurn) {
                         skillItem.classList.add('disabled');
                     } else {
                         // Adicionar eventos de mouse mais robustos

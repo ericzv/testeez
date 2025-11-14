@@ -80,9 +80,12 @@ class PlayerSkill(db.Model):
     player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
     skill_type = db.Column(db.String(20))  # "attack" ou "special"
     skill_id = db.Column(db.Integer, nullable=False)
-    current_charges = db.Column(db.Integer, default=0)
-    last_charge_time = db.Column(db.DateTime, default=datetime.utcnow)
+    current_charges = db.Column(db.Integer, default=0)  # DEPRECATED - Sistema antigo
+    last_charge_time = db.Column(db.DateTime, default=datetime.utcnow)  # DEPRECATED - Sistema antigo
     unlocked_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Novo sistema: controle por turnos (para skills especiais)
+    last_used_at_enemy_turn = db.Column(db.Integer, default=-1)  # -1 = nunca usada ou turno desconhecido
     
     def __repr__(self):
         return f"<PlayerSkill type={self.skill_type} id={self.skill_id}>"
@@ -943,26 +946,31 @@ def get_player_attacks(player_id):
 
 def get_player_specials(player_id):
     """Retorna as habilidades especiais que o jogador já desbloqueou"""
+    from models import Player, PlayerProgress, GenericEnemy, LastBoss
+    from routes.battle import get_current_battle_enemy
+
     player_skills = PlayerSkill.query.filter_by(
         player_id=player_id,
         skill_type="special"
     ).all()
-    
+
+    # Obter o turno atual do inimigo
+    current_enemy = get_current_battle_enemy(player_id)
+    current_enemy_turn = current_enemy.battle_turn_counter if current_enemy else 0
+
     result = []
     for ps in player_skills:
         skill = SpecialSkill.query.get(ps.skill_id)
         if skill:
-            time_until_next = ps.get_time_until_next_charge()
-            
+            # NOVO SISTEMA: Verificar se foi usada neste turno
+            used_this_turn = (ps.last_used_at_enemy_turn == current_enemy_turn)
+
             result.append({
                 "id": skill.id,
                 "name": skill.name,
                 "description": skill.description,
                 "level": 1,
-                "current_charges": ps.current_charges,
-                "max_charges": skill.max_charges,
-                "cooldown_minutes": skill.cooldown_minutes,
-                "time_until_next": time_until_next.total_seconds() if time_until_next else None,
+                "used_this_turn": used_this_turn,  # NOVO
                 "positive_effect": {
                     "type": skill.positive_effect_type,
                     "value": skill.positive_effect_value
@@ -977,7 +985,7 @@ def get_player_specials(player_id):
                 },
                 "icon": skill.icon
             })
-    
+
     return result
 
 def use_attack_skill(player_id, skill_id, session_points=0):
@@ -1131,36 +1139,34 @@ def use_special_skill(player_id, skill_id):
     print(f"==== INICIANDO use_special_skill(player_id={player_id}, skill_id={skill_id}) ====")
     try:
         from models import Player
-        
+        from routes.battle import get_current_battle_enemy
+
         player = Player.query.get(player_id)
         if not player:
             return False, "Jogador não encontrado.", {}
-        
+
         player_skill = PlayerSkill.query.filter_by(
             player_id=player_id,
             skill_id=skill_id,
             skill_type="special"
         ).first()
-        
+
         if not player_skill:
             return False, "Você não possui esta habilidade.", {}
-        
+
         skill = SpecialSkill.query.get(skill_id)
         if not skill:
             return False, "Habilidade não encontrada.", {}
-        
-        if player_skill.current_charges <= 0:
-            time_until_next = player_skill.get_time_until_next_charge()
-            hours, remainder = divmod(time_until_next.total_seconds(), 3600)
-            minutes, seconds = divmod(remainder, 60)
-            time_str = ""
-            if hours > 0:
-                time_str += f"{int(hours)}h "
-            if minutes > 0:
-                time_str += f"{int(minutes)}min "
-            time_str += f"{int(seconds)}s"
-            
-            return False, f"Sem cargas disponíveis. Próxima carga em: {time_str}", {}
+
+        # NOVO SISTEMA: Verificar se já foi usada neste turno
+        current_enemy = get_current_battle_enemy(player_id)
+        if not current_enemy:
+            return False, "Nenhum inimigo ativo na batalha.", {}
+
+        current_enemy_turn = current_enemy.battle_turn_counter
+
+        if player_skill.last_used_at_enemy_turn == current_enemy_turn:
+            return False, f"Você já usou {skill.name} neste turno. Aguarde o próximo turno.", {}
         
         positive_type = skill.positive_effect_type
         positive_value = skill.positive_effect_value
@@ -1213,11 +1219,8 @@ def use_special_skill(player_id, skill_id):
                 player.mp = max(0, player.mp - mp_cost)
                 negative_effects["mp_loss"] = mp_cost
         
-        # Consumir carga
-        player_skill.current_charges -= 1
-        
-        if player_skill.current_charges == 0:
-            player_skill.last_charge_time = datetime.utcnow()
+        # NOVO SISTEMA: Marcar como usada neste turno
+        player_skill.last_used_at_enemy_turn = current_enemy_turn
         
         # Log de combate
         combat_log = CombatLog(

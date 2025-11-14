@@ -1150,5 +1150,56 @@ if __name__ == "__main__":
             print(f"Erro ao migrar jogadores: {e}")
             db.session.rollback()
     
+    # ===== ROTA TEMPORÁRIA PARA MIGRAÇÃO =====
+    @app.route('/migrate_blood_stacks_temp_route_2024')
+    def migrate_blood_stacks():
+        """Rota temporária para adicionar campos do novo sistema de Blood Stacks e turnos"""
+        try:
+            from sqlalchemy import text
+
+            results = []
+
+            # Adicionar blood_stacks em GenericEnemy
+            try:
+                db.session.execute(text("ALTER TABLE generic_enemy ADD COLUMN blood_stacks INTEGER NOT NULL DEFAULT 0"))
+                db.session.commit()
+                results.append("✓ Coluna blood_stacks adicionada em generic_enemy")
+            except Exception as e:
+                db.session.rollback()
+                if "duplicate column name" in str(e).lower() or "already exists" in str(e).lower():
+                    results.append("  Coluna blood_stacks já existe em generic_enemy")
+                else:
+                    results.append(f"✗ Erro em generic_enemy: {e}")
+
+            # Adicionar blood_stacks em LastBoss
+            try:
+                db.session.execute(text("ALTER TABLE last_bosses ADD COLUMN blood_stacks INTEGER NOT NULL DEFAULT 0"))
+                db.session.commit()
+                results.append("✓ Coluna blood_stacks adicionada em last_bosses")
+            except Exception as e:
+                db.session.rollback()
+                if "duplicate column name" in str(e).lower() or "already exists" in str(e).lower():
+                    results.append("  Coluna blood_stacks já existe em last_bosses")
+                else:
+                    results.append(f"✗ Erro em last_bosses: {e}")
+
+            # Adicionar last_used_at_enemy_turn em PlayerSkill
+            try:
+                db.session.execute(text("ALTER TABLE player_skill ADD COLUMN last_used_at_enemy_turn INTEGER DEFAULT -1"))
+                db.session.commit()
+                results.append("✓ Coluna last_used_at_enemy_turn adicionada em player_skill")
+            except Exception as e:
+                db.session.rollback()
+                if "duplicate column name" in str(e).lower() or "already exists" in str(e).lower():
+                    results.append("  Coluna last_used_at_enemy_turn já existe em player_skill")
+                else:
+                    results.append(f"✗ Erro em player_skill: {e}")
+
+            results.append("\n✅ Migração concluída! Você pode remover esta rota do app.py")
+            return "<br>".join(results)
+
+        except Exception as e:
+            return f"❌ Erro na migração: {str(e)}"
+
     # Inicia o servidor Flask
     app.run(host='0.0.0.0', port=5000, debug=True)
