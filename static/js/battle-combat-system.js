@@ -1256,12 +1256,19 @@ function performAttack(skill) {
         // Finalizar sequência de ataque
         finishAttackSequence() {
             console.log("Sequência de ataque finalizada");
-            
+
             // Restaurar estado do jogo
             if (!gameState.boss.hp <= 0) {
                 gameState.inAction = false;
             }
-            
+
+            // IMPORTANTE: Atualizar Blood Stacks após ataque
+            if (typeof loadBattleData === 'function') {
+                loadBattleData().then(() => {
+                    console.log("✅ Blood Stacks atualizados após ataque");
+                });
+            }
+
             // Reexibir HUDs
             setTimeout(() => {
                 alignHUDs();
