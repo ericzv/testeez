@@ -315,7 +315,7 @@ def register_memory_routes(bp):
             # ===== RECALCULAR CACHE SE LEMBRANÇA AFETA DANO/DEFESA =====
             cache_affecting_types = [
                 'damage_global', 'damage_attack', 'damage_power', 'damage_special', 'damage_ultimate',
-                'maxhp', 'maxenergy', 'crit_chance', 'crit_damage'
+                'maxhp', 'maxmp', 'maxenergy', 'crit_chance', 'crit_damage'
             ]
             
             if memory_type in cache_affecting_types:
@@ -329,13 +329,14 @@ def register_memory_routes(bp):
                 old_max_hp = player.max_hp
                 player.max_hp += value
                 player.hp += value  # Também aumenta HP atual
-                
-            elif memory_type == 'maxenergy':
-                # Aumentar Energia máxima e atual
+
+            elif memory_type == 'maxmp' or memory_type == 'maxenergy':
+                # Aumentar Energia máxima e atual (maxmp = Empyreum)
                 old_max_energy = player.max_energy
                 player.max_energy += value
                 player.energy += value  # Também aumenta Energia atual
-                
+                print(f"⚡ Empyreum aplicado! Energia máxima: {old_max_energy} → {player.max_energy}")
+
             elif memory_type == 'heal':
                 # Curar instantaneamente
                 player.hp = min(player.hp + value, player.max_hp)

@@ -1821,14 +1821,20 @@
                       // É boss fight - renderizar boss
                       availableEnemies = [data.boss];
                       renderEnemyCards([data.boss], isNew);
+
+                      // Ocultar divider de reroll para boss
+                      const divider = document.getElementById('enemy-rewrite-divider');
+                      if (divider) {
+                          divider.style.display = 'none';
+                      }
                   } else {
                       // Inimigos genéricos normais
                       availableEnemies = data.enemies;
                       renderEnemyCards(data.enemies, isNew);
-                  }
 
-                  // Atualizar divider de reroll
-                  updateEnemyRewriteDivider();
+                      // Atualizar divider de reroll apenas para inimigos normais
+                      updateEnemyRewriteDivider();
+                  }
 
                   playEnemySelectionSound();
                   openDialog('#boss-selection-popup');
