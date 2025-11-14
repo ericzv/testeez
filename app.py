@@ -289,7 +289,7 @@ def choose_character_route():
                 name="Jogador",
                 email="jogador@exemplo.com",
                 password="senha_hash",
-                character_id=None,
+                character_id="vlad",  # Já criar com Vlad como personagem padrão
                 level=1,
                 experience=0.0,
                 hp=80,
@@ -311,6 +311,14 @@ def choose_character_route():
             )
             db.session.add(player)
             db.session.commit()
+
+            # ASSOCIAR SKILLS DO VLAD AUTOMATICAMENTE AO CRIAR JOGADOR
+            print("🎭 Associando skills do Vlad ao jogador...")
+            success, msg = choose_character(player.id, "vlad")
+            if success:
+                print(f"✅ {msg}")
+            else:
+                print(f"❌ Erro ao associar skills: {msg}")
 
             # LIMPAR SESSÃO AO CRIAR NOVO PLAYER
             session.clear()
