@@ -1427,6 +1427,11 @@ def update_skill_charges(player_id, specific_skill_id=None):
             continue
         
         cooldown_minutes = skill.cooldown_minutes
+
+        # SISTEMA NOVO: Skills com cooldown=0 não usam cargas por tempo
+        if cooldown_minutes <= 0:
+            continue  # Pular skills do sistema novo
+
         elapsed = now - ps.last_charge_time
         elapsed_minutes = elapsed.total_seconds() / 60
         charges_to_add = int(elapsed_minutes / cooldown_minutes)
