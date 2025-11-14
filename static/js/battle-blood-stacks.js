@@ -3,21 +3,26 @@
  */
 
 function updateBloodStacksDisplay(stacks) {
-    console.log(`🩸 Atualizando Blood Stacks display: ${stacks}`);
+    console.log(`🩸 [DEBUG] updateBloodStacksDisplay chamada com stacks: ${stacks}`);
 
     const container = document.getElementById('blood-stacks-container');
     if (!container) {
-        console.error('❌ Container de blood stacks não encontrado!');
+        console.error('❌ [DEBUG] Container blood-stacks-container NÃO encontrado!');
         return;
     }
+
+    console.log(`✅ [DEBUG] Container encontrado. Limpando ícones antigos...`);
 
     // Limpar ícones antigos
     container.innerHTML = '';
 
     if (stacks <= 0) {
+        console.log(`⚠️ [DEBUG] Stacks = ${stacks}, ocultando container`);
         container.style.display = 'none';
         return;
     }
+
+    console.log(`✅ [DEBUG] Mostrando container e adicionando ${stacks} ícones`);
 
     // Mostrar container
     container.style.display = 'flex';
@@ -34,7 +39,10 @@ function updateBloodStacksDisplay(stacks) {
         icon.style.animation = `bloodStackFadeIn 0.3s ease ${i * 0.05}s forwards`;
 
         container.appendChild(icon);
+        console.log(`  🩸 [DEBUG] Ícone ${i+1}/${stacks} adicionado`);
     }
+
+    console.log(`✅ [DEBUG] Blood Stacks display atualizado com sucesso!`);
 }
 
 function consumeBloodStacks() {
