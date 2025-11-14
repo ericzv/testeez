@@ -1046,7 +1046,24 @@ def damage_boss():
         'is_critical': is_critical,
         'skill_type': cache.skill_type
     })
-    
+
+    # ===== ADICIONAR ACÚMULOS DE SANGUE (VLAD) =====
+    blood_stack_result = add_blood_stacks_from_attack(player, target, skill_id)
+    if blood_stack_result['stacks_added'] > 0:
+        print(f"🩸 +{blood_stack_result['stacks_added']} Sangue Coagulado (Total: {player.blood_stacks})")
+    if blood_stack_result['extra_damage'] > 0:
+        # Beijo da Morte consumiu acúmulos e causou dano extra
+        extra_ultimate_damage = blood_stack_result['extra_damage']
+        actual_damage_applied += extra_ultimate_damage
+        # Aplicar o dano extra
+        if is_boss_fight:
+            target.current_hp -= extra_ultimate_damage
+            target_hp_after = target.current_hp
+        else:
+            target.hp -= extra_ultimate_damage
+            target_hp_after = target.hp
+        print(f"💀 Beijo da Morte: +{extra_ultimate_damage} dano extra (acúmulos consumidos)")
+
     # ===== 9. VAMPIRISMO (% do dano FINAL) =====
     heal_amount = 0
     if lifesteal_percent > 0:
