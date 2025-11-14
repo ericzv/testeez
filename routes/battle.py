@@ -893,6 +893,12 @@ def damage_boss():
                 final_damage = attack_data['base_damage']  # Sincronizar (não adicionar novamente)
                 print(f"⚔️ Bônus de batalha (ID 50): +{bonus_damage} ({battle_stacks} stacks × {stack_bonus}) (reseta após combate)")
 
+    # ===== 4.6. APLICAR BÔNUS DE PRÓXIMO ATAQUE (AUTOFAGIA E OUTROS) =====
+    if player.next_attack_bonus_damage > 0:
+        final_damage += player.next_attack_bonus_damage
+        print(f"🩸 Autofagia: +{player.next_attack_bonus_damage} de dano bônus no próximo ataque")
+        player.next_attack_bonus_damage = 0  # Consumir o bônus após usar
+
     # ===== 5. APLICAR BUFFS TEMPORÁRIOS (ActiveBuff) =====
     active_buffs = ActiveBuff.query.filter_by(player_id=player.id).all()
     
