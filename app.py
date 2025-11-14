@@ -82,25 +82,14 @@ app.jinja_env.globals.update(timezone=timezone)
 with app.app_context():
     db.create_all()
     print("Tabelas criadas com sucesso")
-    
+
     # Inicializar skills do Vlad
     from characters import init_vlad_skills
-    # ✅ CORREÇÃO: Inicializar skills do Vlad de forma segura
-    try:
-        # Importar apenas quando necessário para evitar import circular
-        from characters import init_vlad_skills
-        
-        # Chamar dentro do contexto da aplicação
-        with app.app_context():
-            success = init_vlad_skills()
-            if success:
-                print("✅ Skills do Vlad inicializadas com sucesso!")
-            else:
-                print("⚠️ Problema ao inicializar skills do Vlad")
-    except Exception as e:
-        print(f"❌ Erro ao inicializar skills do Vlad: {e}")
-        # Não interromper a execução por causa disso
-        pass
+    success = init_vlad_skills()
+    if success:
+        print("✅ Skills do Vlad inicializadas com sucesso!")
+    else:
+        print("⚠️ Problema ao inicializar skills do Vlad")
 
 # Registrar blueprints APÓS inicializar o banco de dados
 
