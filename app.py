@@ -1125,7 +1125,27 @@ if __name__ == "__main__":
         # ex: initialize_talent_table()  ← sua função de povoar
         db.session.commit()
         print("Tabela de talentos populada com sucesso!")
-        
+
+        # Adicionar colunas que faltam no Player (migração inline)
+        try:
+            from sqlalchemy import text
+            db.session.execute(text("ALTER TABLE player ADD COLUMN enemy_reroll_count INTEGER DEFAULT 0"))
+            db.session.commit()
+        except:
+            db.session.rollback()
+
+        try:
+            db.session.execute(text("ALTER TABLE player ADD COLUMN memory_reroll_count INTEGER DEFAULT 0"))
+            db.session.commit()
+        except:
+            db.session.rollback()
+
+        try:
+            db.session.execute(text("ALTER TABLE player ADD COLUMN relic_reroll_count INTEGER DEFAULT 0"))
+            db.session.commit()
+        except:
+            db.session.rollback()
+
         # 3) Inicializar talentos do jogador (caso já haja um jogador)
         player = Player.query.first()  
         if player:
