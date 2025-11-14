@@ -301,7 +301,7 @@ VLAD_SPECIAL_SKILLS_DATA = [
         "animation_frames": 7,
         "animation_target": "self",  # Anima sobre o próprio personagem
         "sound_effect": "/static/game.data/sounds/autofagia.mp3",
-        "icon": "/static/game.data/icons/icon3.png"
+        "icon": "/static/game.data/icons/icon1.png"
     },
     {
         "id": 139,
@@ -315,7 +315,7 @@ VLAD_SPECIAL_SKILLS_DATA = [
         "animation_frames": 7,
         "animation_target": "enemy",  # Anima sobre o inimigo (precisa de pendência se em character-view)
         "sound_effect": "/static/game.data/sounds/blood_blade.mp3",
-        "icon": "/static/game.data/icons/icon3.png"
+        "icon": "/static/game.data/icons/icon2.png"
     },
     {
         "id": 140,
@@ -343,7 +343,7 @@ VLAD_SPECIAL_SKILLS_DATA = [
         "animation_frames": 11,
         "animation_target": "self",
         "sound_effect": "/static/game.data/sounds/regen.mp3",
-        "icon": "/static/game.data/icons/icon3.png"
+        "icon": "/static/game.data/icons/icon4.png"
     }
 ]
 
