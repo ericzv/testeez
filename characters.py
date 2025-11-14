@@ -53,24 +53,43 @@ class SpecialSkill(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
-    max_charges = db.Column(db.Integer, default=1)
-    cooldown_minutes = db.Column(db.Integer, default=60)
-    positive_effect_type = db.Column(db.String(50))
-    positive_effect_value = db.Column(db.Text)  # JSON para efeitos complexos
-    negative_effect_type = db.Column(db.String(50))
+
+    # Campos do sistema antigo (mantidos para compatibilidade)
+    max_charges = db.Column(db.Integer, default=1, nullable=True)
+    cooldown_minutes = db.Column(db.Integer, default=60, nullable=True)
+    positive_effect_type = db.Column(db.String(50), nullable=True)
+    positive_effect_value = db.Column(db.Text, nullable=True)  # JSON para efeitos complexos
+    negative_effect_type = db.Column(db.String(50), nullable=True)
     negative_effect_value = db.Column(db.Float, nullable=True)
-    duration_type = db.Column(db.String(20))
-    duration_value = db.Column(db.Integer, default=60)
-    
-    # Caminhos de mídia
-    animation_activate_1 = db.Column(db.String(255))
-    animation_activate_2 = db.Column(db.String(255))
-    icon = db.Column(db.String(255))
-    sound_prep_1 = db.Column(db.String(255))
-    sound_prep_2 = db.Column(db.String(255))
-    sound_effect_1 = db.Column(db.String(255))
-    sound_effect_2 = db.Column(db.String(255))
-    
+    duration_type = db.Column(db.String(20), nullable=True)
+    duration_value = db.Column(db.Integer, default=60, nullable=True)
+
+    # Campos do novo sistema de turnos e blood stacks
+    energy_cost = db.Column(db.Integer, default=0, nullable=True)
+    hp_cost = db.Column(db.Integer, default=0, nullable=True)
+    blood_stacks_generated = db.Column(db.Integer, default=0, nullable=True)
+    next_attack_bonus = db.Column(db.Integer, default=0, nullable=True)
+    effect_type = db.Column(db.String(50), nullable=True)
+    damage_per_blood_stack = db.Column(db.Integer, default=0, nullable=True)
+    consumes_blood_stacks = db.Column(db.Boolean, default=False, nullable=True)
+    barrier_per_blood_stack = db.Column(db.Integer, default=0, nullable=True)
+    heal_per_blood_stack = db.Column(db.Integer, default=0, nullable=True)
+
+    # Caminhos de mídia (sistema antigo)
+    animation_activate_1 = db.Column(db.String(255), nullable=True)
+    animation_activate_2 = db.Column(db.String(255), nullable=True)
+    sound_prep_1 = db.Column(db.String(255), nullable=True)
+    sound_prep_2 = db.Column(db.String(255), nullable=True)
+    sound_effect_1 = db.Column(db.String(255), nullable=True)
+    sound_effect_2 = db.Column(db.String(255), nullable=True)
+
+    # Caminhos de mídia (novo sistema)
+    animation_sprite = db.Column(db.String(255), nullable=True)
+    animation_frames = db.Column(db.Integer, default=1, nullable=True)
+    animation_target = db.Column(db.String(20), nullable=True)  # "self" ou "enemy"
+    sound_effect = db.Column(db.String(255), nullable=True)
+    icon = db.Column(db.String(255), nullable=True)
+
     def __repr__(self):
         return f"<SpecialSkill {self.name}>"
 
@@ -363,6 +382,9 @@ def init_vlad_skills():
         
     except Exception as e:
         print(f"❌ Erro ao inicializar skills do Vlad: {e}")
+        import traceback
+        traceback.print_exc()
+        db.session.rollback()
         return False
 
 def init_skills():
