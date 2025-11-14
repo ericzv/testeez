@@ -272,74 +272,59 @@ VLAD_SPECIAL_SKILLS_DATA = [
     {
         "id": 138,
         "name": "Autofagia",
-        "description": "Sacrifica sangue para aumentar poder de ataque",
-        "max_charges": 1,
-        "cooldown_minutes": 600,
-        "positive_effect_type": "multi_boost",
-        "positive_effect_value": '{"crit_chance": 0.25, "crit_damage": 0.5}',
-        "negative_effect_type": "hp_cost",
-        "negative_effect_value": 0.25,
-        "duration_type": "attacks",
-        "duration_value": 4,
-        "animation_activate_1": "/static/game.data/activation/activation2a.png",
-        "animation_activate_2": "/static/game.data/activation/activation2b.png",
-        "icon": "/static/game.data/icons/icon3.png",
-        "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
-        "sound_effect_1": "/static/game.data/sounds/sfx2.mp3"
+        "description": "Consome o próprio sangue ([valor]HP) para formar [valor]x Sangue Coagulado e aumentar em [valor] o dano do próximo ataque.",
+        "energy_cost": 0,  # Não custa energia, custa HP
+        "hp_cost": 7,  # Custo base de HP (pode ser modificado por melhorias)
+        "blood_stacks_generated": 3,  # Quantidade de acúmulos gerados no inimigo
+        "next_attack_bonus": 5,  # Bônus de dano no próximo ataque
+        "effect_type": "autofagia",  # Identificador único
+        "animation_sprite": "/static/game.data/fx/autofagia300-300-7f.png",  # Sprite 300x300, 7 frames
+        "animation_frames": 7,
+        "animation_target": "self",  # Anima sobre o próprio personagem
+        "sound_effect": "/static/game.data/sounds/autofagia.mp3",
+        "icon": "/static/game.data/icons/icon3.png"  # Pode manter temporariamente
     },
     {
         "id": 139,
-        "name": "Aura Vampírica",
-        "description": "Emana aura que drena vida com cada ataque",
-        "max_charges": 1,
-        "cooldown_minutes": 600,
-        "positive_effect_type": "lifesteal",
-        "positive_effect_value": "0.15",
-        "negative_effect_type": None,
-        "negative_effect_value": None,
-        "duration_type": "time",
-        "duration_value": 240,
-        "animation_activate_1": "/static/game.data/activation/activation2a.png",
-        "animation_activate_2": "/static/game.data/activation/activation2b.png",
-        "icon": "/static/game.data/icons/icon3.png",
-        "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
-        "sound_effect_1": "/static/game.data/sounds/sfx2.mp3"
+        "name": "Lâmina de Sangue",
+        "description": "Consome todo Sangue Coagulado para gerar um ataque que causa [Valor] de dano.",
+        "energy_cost": 2,
+        "damage_per_blood_stack": 2,  # 2 de dano por acúmulo de sangue
+        "consumes_blood_stacks": True,  # Consome todos os acúmulos
+        "effect_type": "blood_blade",
+        "animation_sprite": "/static/game.data/fx/blood_blade300-300-7f.png",  # Sprite 300x300, 7 frames
+        "animation_frames": 7,
+        "animation_target": "enemy",  # Anima sobre o inimigo (precisa de pendência se em character-view)
+        "sound_effect": "/static/game.data/sounds/blood_blade.mp3",
+        "icon": "/static/game.data/icons/icon3.png"
     },
     {
         "id": 140,
-        "name": "Domínio Mental",
-        "description": "Controla mente do inimigo temporariamente",
-        "max_charges": 1,
-        "cooldown_minutes": 1080,
-        "positive_effect_type": "mind_control",
-        "positive_effect_value": "0.7",
-        "negative_effect_type": "mp_cost",
-        "negative_effect_value": 0.4,
-        "duration_type": "attacks",
-        "duration_value": 1,
-        "animation_activate_1": "/static/game.data/activation/activation2a.png",
-        "animation_activate_2": "/static/game.data/activation/activation2b.png",
-        "icon": "/static/game.data/icons/icon3.png",
-        "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
-        "sound_effect_1": "/static/game.data/sounds/sfx2.mp3"
+        "name": "Barreira de Sangue",
+        "description": "Consome todo Sangue Coagulado para gerar [valor] barreira de sangue.",
+        "energy_cost": 3,
+        "barrier_per_blood_stack": 2,  # 2 de barreira por acúmulo
+        "consumes_blood_stacks": True,
+        "effect_type": "blood_barrier",
+        "animation_sprite": "/static/game.data/fx/blood_barrier.png",  # Sprite 128x128, 11 frames
+        "animation_frames": 11,
+        "animation_target": "self",
+        "sound_effect": "/static/game.data/sounds/blood_barrier.mp3",
+        "icon": "/static/game.data/icons/icon3.png"
     },
     {
         "id": 141,
-        "name": "Abraço Sanguíneo",
-        "description": "Poder supremo que drena toda essência vital",
-        "max_charges": 1,
-        "cooldown_minutes": 2880,
-        "positive_effect_type": "blood_embrace",
-        "positive_effect_value": "1.0",
-        "negative_effect_type": None,
-        "negative_effect_value": None,
-        "duration_type": "attacks",
-        "duration_value": 1,
-        "animation_activate_1": "/static/game.data/activation/activation2a.png",
-        "animation_activate_2": "/static/game.data/activation/activation2b.png",
-        "icon": "/static/game.data/icons/icon3.png",
-        "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
-        "sound_effect_1": "/static/game.data/sounds/sfx2.mp3"
+        "name": "Regeneração",
+        "description": "Consome todo Sangue Coagulado para curar [valor] HP",
+        "energy_cost": 2,
+        "heal_per_blood_stack": 1,  # 1 HP curado por acúmulo
+        "consumes_blood_stacks": True,
+        "effect_type": "blood_regeneration",
+        "animation_sprite": "/static/game.data/fx/regen.png",  # Sprite 128x128, 11 frames
+        "animation_frames": 11,
+        "animation_target": "self",
+        "sound_effect": "/static/game.data/sounds/regen.mp3",
+        "icon": "/static/game.data/icons/icon3.png"
     }
 ]
 
@@ -1281,6 +1266,251 @@ def use_special_skill(player_id, skill_id):
         import traceback
         print(traceback.format_exc())
         return False, f"Erro interno: {str(e)}", {}
+
+def use_special_skill_turn_based(player_id, skill_id, enemy=None):
+    """
+    Sistema novo de skills especiais baseado em turnos (para Vlad e futuros personagens)
+    Substitui o sistema antigo de cargas e cooldown por tempo
+
+    Args:
+        player_id: ID do jogador
+        skill_id: ID da skill especial (138-141 para Vlad)
+        enemy: Objeto do inimigo (GenericEnemy ou LastBoss) - necessário para skills que afetam o inimigo
+
+    Returns:
+        (success: bool, message: str, data: dict)
+    """
+    print(f"==== use_special_skill_turn_based: player_id={player_id}, skill_id={skill_id} ====")
+
+    try:
+        from models import Player, GenericEnemy, LastBoss, PlayerProgress
+
+        player = Player.query.get(player_id)
+        if not player:
+            return False, "Jogador não encontrado.", {}
+
+        # Obter dados da skill do VLAD_SPECIAL_SKILLS_DATA
+        skill_data = next((s for s in VLAD_SPECIAL_SKILLS_DATA if s["id"] == skill_id), None)
+        if not skill_data:
+            return False, "Skill não encontrada.", {}
+
+        # Verificar se a skill já foi usada no turno atual
+        skills_used_this_turn = json.loads(player.special_skills_used_this_turn or '[]')
+        if skill_id in skills_used_this_turn:
+            return False, f"{skill_data['name']} já foi usada neste turno!", {}
+
+        # Verificar custo de energia
+        energy_cost = skill_data.get("energy_cost", 0)
+        if player.energy < energy_cost:
+            return False, f"Energia insuficiente! (Necessário: {energy_cost}, Disponível: {player.energy})", {}
+
+        # Verificar custo de HP (para Autofagia)
+        hp_cost = skill_data.get("hp_cost", 0)
+        if hp_cost > 0 and player.hp <= hp_cost:
+            return False, f"HP insuficiente! Você precisa de pelo menos {hp_cost + 1} HP.", {}
+
+        # Obter o inimigo atual se não foi passado
+        if enemy is None:
+            progress = PlayerProgress.query.filter_by(player_id=player_id).first()
+            if progress:
+                if progress.selected_boss_id:
+                    enemy = LastBoss.query.get(progress.selected_boss_id)
+                elif progress.selected_enemy_id:
+                    enemy = GenericEnemy.query.get(progress.selected_enemy_id)
+
+        # Verificar se precisa de acúmulos de sangue
+        if skill_data.get("consumes_blood_stacks", False):
+            if not enemy or enemy.blood_stacks <= 0:
+                return False, f"Não há Sangue Coagulado suficiente no inimigo!", {}
+
+        # Executar efeitos baseado no tipo de skill
+        effect_type = skill_data.get("effect_type")
+        result_data = {
+            "skill_name": skill_data["name"],
+            "skill_id": skill_id,
+            "animation_sprite": skill_data.get("animation_sprite"),
+            "animation_frames": skill_data.get("animation_frames"),
+            "animation_target": skill_data.get("animation_target"),
+            "sound_effect": skill_data.get("sound_effect"),
+            "effects": []
+        }
+
+        # === AUTOFAGIA ===
+        if effect_type == "autofagia":
+            # Consumir HP
+            player.hp -= hp_cost
+            result_data["effects"].append(f"Consumiu {hp_cost} HP")
+
+            # Gerar acúmulos de sangue no inimigo
+            if enemy:
+                blood_generated = skill_data.get("blood_stacks_generated", 3)
+                enemy.blood_stacks += blood_generated
+                result_data["effects"].append(f"Gerou {blood_generated} Sangue Coagulado")
+                result_data["blood_stacks_added"] = blood_generated
+
+            # Adicionar bônus de dano no próximo ataque
+            bonus_damage = skill_data.get("next_attack_bonus", 5)
+            player.next_attack_bonus_damage += bonus_damage
+            result_data["effects"].append(f"+{bonus_damage} de dano no próximo ataque")
+            result_data["next_attack_bonus"] = bonus_damage
+
+        # === LÂMINA DE SANGUE ===
+        elif effect_type == "blood_blade":
+            if enemy:
+                # Calcular dano baseado nos acúmulos
+                damage_per_stack = skill_data.get("damage_per_blood_stack", 2)
+                total_damage = enemy.blood_stacks * damage_per_stack
+
+                # Aplicar dano ao inimigo
+                enemy.hp -= total_damage
+                enemy.hp = max(0, enemy.hp)
+
+                stacks_consumed = enemy.blood_stacks
+                enemy.blood_stacks = 0  # Consumir todos os acúmulos
+
+                result_data["effects"].append(f"Causou {total_damage} de dano")
+                result_data["effects"].append(f"Consumiu {stacks_consumed} Sangue Coagulado")
+                result_data["damage_dealt"] = total_damage
+                result_data["blood_stacks_consumed"] = stacks_consumed
+
+                # Se estiver em character-view, criar pendência
+                result_data["needs_pending_animation"] = True
+
+        # === BARREIRA DE SANGUE ===
+        elif effect_type == "blood_barrier":
+            if enemy:
+                # Calcular barreira baseada nos acúmulos
+                barrier_per_stack = skill_data.get("barrier_per_blood_stack", 2)
+                total_barrier = enemy.blood_stacks * barrier_per_stack
+
+                # Adicionar barreira ao jogador
+                player.barrier += total_barrier
+
+                stacks_consumed = enemy.blood_stacks
+                enemy.blood_stacks = 0  # Consumir todos os acúmulos
+
+                result_data["effects"].append(f"Ganhou {total_barrier} de Barreira")
+                result_data["effects"].append(f"Consumiu {stacks_consumed} Sangue Coagulado")
+                result_data["barrier_gained"] = total_barrier
+                result_data["blood_stacks_consumed"] = stacks_consumed
+
+        # === REGENERAÇÃO ===
+        elif effect_type == "blood_regeneration":
+            if enemy:
+                # Calcular cura baseada nos acúmulos
+                heal_per_stack = skill_data.get("heal_per_blood_stack", 1)
+                total_heal = enemy.blood_stacks * heal_per_stack
+
+                # Curar jogador
+                player.hp += total_heal
+                player.hp = min(player.hp, player.max_hp)  # Não ultrapassar HP máximo
+
+                stacks_consumed = enemy.blood_stacks
+                enemy.blood_stacks = 0  # Consumir todos os acúmulos
+
+                result_data["effects"].append(f"Curou {total_heal} HP")
+                result_data["effects"].append(f"Consumiu {stacks_consumed} Sangue Coagulado")
+                result_data["heal_amount"] = total_heal
+                result_data["blood_stacks_consumed"] = stacks_consumed
+
+        # Consumir energia
+        player.energy -= energy_cost
+        player.energy = max(0, player.energy)
+
+        # Marcar skill como usada no turno atual
+        skills_used_this_turn.append(skill_id)
+        player.special_skills_used_this_turn = json.dumps(skills_used_this_turn)
+
+        # Salvar alterações
+        db.session.commit()
+
+        message = f"{skill_data['name']} ativada! " + " | ".join(result_data["effects"])
+        return True, message, result_data
+
+    except Exception as e:
+        print(f"ERRO em use_special_skill_turn_based: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        db.session.rollback()
+        return False, f"Erro interno: {str(e)}", {}
+
+def add_blood_stacks_from_attack(player, enemy, skill_id):
+    """
+    Adiciona acúmulos de Sangue Coagulado no inimigo quando o Vlad ataca.
+
+    SISTEMA DE ACÚMULOS:
+    - Ataque Básico (ID 51 - Garras Sangrentas): +2 acúmulos
+    - Poder (ID 50 - Energia Escura): +1 acúmulo
+    - Especial (ID 52 - Abraço da Escuridão): +1 acúmulo
+    - Suprema (ID 53 - Beijo da Morte): CONSOME todos os acúmulos, +2 dano por acúmulo
+
+    Args:
+        player: Objeto do jogador
+        enemy: Objeto do inimigo (GenericEnemy ou LastBoss)
+        skill_id: ID da skill usada
+
+    Returns:
+        dict: Informações sobre os acúmulos (adicionados, consumidos, dano_extra)
+    """
+    from models import GenericEnemy, LastBoss
+
+    # Só funciona para o Vlad
+    if player.character_id != "vlad":
+        return {"stacks_added": 0, "stacks_consumed": 0, "extra_damage": 0}
+
+    result = {
+        "stacks_added": 0,
+        "stacks_consumed": 0,
+        "extra_damage": 0
+    }
+
+    # ID 51 - Garras Sangrentas (Ataque Básico): +2 acúmulos
+    if skill_id == 51:
+        enemy.blood_stacks += 2
+        result["stacks_added"] = 2
+        print(f"🩸 Garras Sangrentas: +2 Sangue Coagulado (Total: {enemy.blood_stacks})")
+
+    # ID 50 - Energia Escura (Poder): +1 acúmulo
+    elif skill_id == 50:
+        enemy.blood_stacks += 1
+        result["stacks_added"] = 1
+        print(f"🩸 Energia Escura: +1 Sangue Coagulado (Total: {enemy.blood_stacks})")
+
+    # ID 52 - Abraço da Escuridão (Especial): +1 acúmulo
+    elif skill_id == 52:
+        enemy.blood_stacks += 1
+        result["stacks_added"] = 1
+        print(f"🩸 Abraço da Escuridão: +1 Sangue Coagulado (Total: {enemy.blood_stacks})")
+
+    # ID 53 - Beijo da Morte (Suprema): CONSOME todos os acúmulos
+    elif skill_id == 53:
+        if enemy.blood_stacks > 0:
+            extra_damage = enemy.blood_stacks * 2  # +2 dano por acúmulo
+            result["stacks_consumed"] = enemy.blood_stacks
+            result["extra_damage"] = extra_damage
+            print(f"💀 Beijo da Morte: Consumiu {enemy.blood_stacks} acúmulos → +{extra_damage} de dano!")
+            enemy.blood_stacks = 0
+
+    # Salvar mudanças
+    db.session.commit()
+
+    return result
+
+def reset_special_skills_turn(player_id):
+    """
+    Reseta a lista de skills especiais usadas no turno atual.
+    Deve ser chamado ao final do turno do jogador.
+
+    Args:
+        player_id: ID do jogador
+    """
+    from models import Player
+
+    player = Player.query.get(player_id)
+    if player:
+        player.special_skills_used_this_turn = '[]'
+        db.session.commit()
+        print(f"✅ Skills especiais resetadas para o próximo turno")
 
 def update_skill_charges(player_id, specific_skill_id=None):
     """Atualiza as cargas das habilidades especiais"""

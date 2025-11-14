@@ -23,7 +23,10 @@ from characters import (
     get_player_attacks, get_player_specials, use_special_skill,
     update_skill_charges, update_active_buffs,
     apply_time_based_effects, apply_daily_effects,
-    use_attack_skill
+    use_attack_skill,
+    use_special_skill_turn_based,  # Nova função para skills baseadas em turnos
+    add_blood_stacks_from_attack,  # Adiciona acúmulos de sangue nos ataques do Vlad
+    reset_special_skills_turn  # Reseta skills usadas no turno
 )
 
 # ===== IMPORTS ROUTES =====
@@ -1455,10 +1458,18 @@ def use_special():
             return redirect(url_for('battle.battle'))
         
         print(f"Chamando use_special_skill com player_id={player.id}, skill_id={int(skill_id)}")
-        
+
         # Chamar a função dentro de um bloco try para capturar exceções específicas
         try:
-            success, message, details = use_special_skill(player.id, int(skill_id))
+            # Verificar se é uma skill do Vlad (novo sistema baseado em turnos)
+            skill_id_int = int(skill_id)
+            if skill_id_int in [138, 139, 140, 141]:  # Skills especiais do Vlad
+                print(f"🩸 Usando novo sistema de skills baseado em turnos para skill {skill_id_int}")
+                success, message, details = use_special_skill_turn_based(player.id, skill_id_int)
+            else:
+                # Usar sistema antigo para outras skills
+                success, message, details = use_special_skill(player.id, skill_id_int)
+
             print(f"Resultado de use_special_skill: success={success}, message={message}")
             print(f"Details: {details}")
         except Exception as e:
@@ -2463,7 +2474,10 @@ def end_player_turn():
         
         print(f"\n🎮 JOGADOR TERMINOU O TURNO")
         print(f"⚔️ Processando turno de: {enemy.name}")
-        
+
+        # Resetar skills especiais usadas no turno (para permitir uso no próximo turno)
+        reset_special_skills_turn(player.id)
+
         # Processar turno do inimigo
         result = process_enemy_turn(enemy, player_id=player.id)
         

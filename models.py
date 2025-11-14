@@ -136,6 +136,16 @@ class Player(db.Model):
     total_special_uses = db.Column(db.Integer, default=0)
     total_attacks_any_type = db.Column(db.Integer, default=0)
 
+    # ─── SISTEMA DE SKILLS ESPECIAIS BASEADAS EM TURNOS ─────────────────────────────────
+    # Rastreamento de skills especiais usadas no turno atual
+    special_skills_used_this_turn = db.Column(db.Text, default='[]')  # JSON: [skill_id1, skill_id2, ...]
+
+    # Bônus temporários de ataque (ex: Autofagia)
+    next_attack_bonus_damage = db.Column(db.Integer, default=0)
+
+    # Pendência de animação de skill especial (para skills que precisam esperar visualização do inimigo)
+    pending_special_skill_animation = db.Column(db.Text, nullable=True)  # JSON: {skill_id, skill_name, ...}
+
     # Campos para rastreamento de efeitos temporais
     last_time_check          = db.Column(db.DateTime, nullable=True)
     last_daily_effects       = db.Column(db.DateTime, nullable=True)
@@ -499,6 +509,10 @@ class GenericEnemy(db.Model):
     damage = db.Column(db.Integer, nullable=False)
     posture = db.Column(db.Integer, nullable=False)
     block_percentage = db.Column(db.Float, nullable=False)
+
+    # Sistema de Acúmulos de Sangue Coagulado (para personagens como Vlad)
+    blood_stacks = db.Column(db.Integer, default=0)  # Acúmulos de sangue no inimigo
+
     special_skill = db.Column(db.Text)  # JSON: {type, chance, cooldown}
     powerful_attack = db.Column(db.Text)  # JSON: para implementação futura
     rounds_remaining = db.Column(db.Integer, nullable=False)  # 2, 3 ou 4
@@ -752,7 +766,10 @@ class LastBoss(db.Model):
     damage = db.Column(db.Integer, default=30)
     posture = db.Column(db.Integer, default=500)
     block_percentage = db.Column(db.Float, default=0.0)
-    
+
+    # Sistema de Acúmulos de Sangue Coagulado (para personagens como Vlad)
+    blood_stacks = db.Column(db.Integer, default=0)  # Acúmulos de sangue no boss
+
     # Sistema de sprites
     sprite_idle = db.Column(db.String(200))  # Caminho para sprite idle
     sprite_frames = db.Column(db.Integer, default=1)  # Quantidade de frames
