@@ -993,10 +993,19 @@ function useSpecialSkill(skillId, skillName) {
             // Recarregar dados de batalha para atualizar interface
             loadBattleData()
                 .then(() => {
-                    // Atualizar interface
-                    updateStats();
-                    updatePlayerStatusCard();
-
+                    // Atualizar interface (com try-catch para não bloquear animações)
+                    try {
+                        updateStats();
+                        updatePlayerStatusCard();
+                    } catch (err) {
+                        console.warn("⚠️ Erro ao atualizar interface, mas continuando com animações:", err);
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro ao recarregar dados após usar skill:", error);
+                })
+                .finally(() => {
+                    // SEMPRE tocar animações, mesmo se loadBattleData falhar
                     console.log("🎬 [VISUAL FX DEBUG] data.details:", data.details);
 
                     if (data.details && data.details.animation) {
@@ -1017,9 +1026,6 @@ function useSpecialSkill(skillId, skillName) {
                     } else {
                         console.error("🎬 [VISUAL FX DEBUG] NENHUM dado de animação encontrado! data.details:", data.details);
                     }
-                })
-                .catch(error => {
-                    console.error("Erro ao recarregar dados após usar skill:", error);
                 });
         } else {
             showTempMessage(data.message || "Erro ao ativar skill", "#ff3333");

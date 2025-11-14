@@ -275,9 +275,30 @@ def battle():
             flash('Nenhum inimigo ou boss disponível!', 'error')
             return redirect(url_for('battle.gamification'))
 
-        # Hooks de relíquias ao entrar na batalha
-        relic_hooks.on_combat_start(player, current_enemy)
-        
+        # Verificar se é uma batalha NOVA ou apenas reload (F5)
+        last_enemy_id = session.get('last_battle_enemy_id')
+        is_new_battle = (last_enemy_id != current_enemy.id)
+
+        if is_new_battle:
+            print(f"🆕 NOVA BATALHA iniciada contra {current_enemy.name}")
+            session['last_battle_enemy_id'] = current_enemy.id
+
+            # Hooks de relíquias apenas em batalha NOVA (reseta energia)
+            relic_hooks.on_combat_start(player, current_enemy)
+
+            # Resetar skills especiais (last_used_at_enemy_turn)
+            from models import PlayerSkill
+            special_skills_reset = PlayerSkill.query.filter_by(
+                player_id=player.id,
+                skill_type="special"
+            ).all()
+            for skill in special_skills_reset:
+                skill.last_used_at_enemy_turn = None
+            db.session.commit()
+            print(f"♻️ Skills especiais resetadas para nova batalha")
+        else:
+            print(f"🔄 Reload de batalha existente contra {current_enemy.name} - energia mantida")
+
         # Carregar skills
         try:
             attack_skills = get_player_attacks(player.id) or []
