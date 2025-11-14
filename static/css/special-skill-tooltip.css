@@ -1,0 +1,254 @@
+/* ========================================
+   TOOLTIP DAS SKILLS ESPECIAIS
+   ======================================== */
+
+.special-skill-tooltip {
+    position: fixed;
+    z-index: 10000;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+    transform: translateY(10px);
+    max-width: 320px;
+    min-width: 280px;
+}
+
+.special-skill-tooltip.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.tooltip-content {
+    background: linear-gradient(135deg, #1a0a0a 0%, #2d1414 100%);
+    border: 2px solid #8b0000;
+    border-radius: 12px;
+    padding: 0;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.9),
+        0 0 0 1px rgba(139, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
+
+/* Header do tooltip */
+.tooltip-header {
+    background: linear-gradient(135deg, #3a0a0a 0%, #1a0505 100%);
+    padding: 12px 16px;
+    border-bottom: 1px solid #8b0000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.tooltip-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    border: 2px solid #8b0000;
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 0 12px rgba(220, 38, 38, 0.6);
+    flex-shrink: 0;
+}
+
+.tooltip-header-info {
+    flex: 1;
+}
+
+.tooltip-skill-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow: 0 0 8px rgba(220, 38, 38, 0.8);
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+}
+
+.tooltip-type {
+    font-size: 11px;
+    color: #dc2626;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+/* Corpo do tooltip */
+.tooltip-body {
+    padding: 14px 16px;
+}
+
+.tooltip-description {
+    font-size: 13px;
+    color: #cccccc;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(139, 0, 0, 0.3);
+}
+
+/* Seção de custos */
+.tooltip-costs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.tooltip-cost-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(139, 0, 0, 0.4);
+}
+
+.tooltip-cost-icon {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.tooltip-cost-value {
+    font-size: 12px;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.tooltip-cost-label {
+    font-size: 11px;
+    color: #999999;
+}
+
+/* Seção de efeitos */
+.tooltip-effects {
+    margin-top: 12px;
+}
+
+.tooltip-effects-title {
+    font-size: 11px;
+    color: #dc2626;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.tooltip-effect-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: #dddddd;
+}
+
+.tooltip-effect-icon {
+    font-size: 16px;
+    line-height: 1;
+    filter: drop-shadow(0 0 4px rgba(220, 38, 38, 0.6));
+}
+
+.tooltip-effect-text {
+    flex: 1;
+}
+
+/* Blood stacks info */
+.tooltip-blood-info {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(139, 0, 0, 0.3);
+}
+
+.tooltip-blood-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: rgba(139, 0, 0, 0.2);
+    border-radius: 6px;
+    border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+.tooltip-blood-icon {
+    font-size: 20px;
+    line-height: 1;
+    animation: pulse-blood 2s ease-in-out infinite;
+}
+
+.tooltip-blood-text {
+    flex: 1;
+    font-size: 12px;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.tooltip-blood-value {
+    color: #dc2626;
+    font-weight: bold;
+}
+
+/* Rodapé com informações adicionais */
+.tooltip-footer {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 16px;
+    border-top: 1px solid rgba(139, 0, 0, 0.3);
+    font-size: 11px;
+    color: #999999;
+    text-align: center;
+}
+
+/* Animações */
+@keyframes pulse-blood {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* Seta do tooltip */
+.tooltip-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+}
+
+.tooltip-arrow.top {
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 8px 8px 0 8px;
+    border-color: #8b0000 transparent transparent transparent;
+}
+
+.tooltip-arrow.bottom {
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 0 8px 8px 8px;
+    border-color: transparent transparent #8b0000 transparent;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .special-skill-tooltip {
+        max-width: 280px;
+        min-width: 240px;
+    }
+
+    .tooltip-skill-name {
+        font-size: 14px;
+    }
+
+    .tooltip-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .tooltip-description {
+        font-size: 12px;
+    }
+}

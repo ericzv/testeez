@@ -1443,6 +1443,9 @@ def use_special_skill_turn_based(player_id, skill_id, enemy=None):
         # Salvar alterações
         db.session.commit()
 
+        # Adicionar blood_stacks atualizados ao result_data
+        result_data["player_blood_stacks"] = player.blood_stacks
+
         message = f"{skill_data['name']} ativada! " + " | ".join(result_data["effects"])
         return True, message, result_data
 
