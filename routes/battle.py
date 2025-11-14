@@ -1041,6 +1041,7 @@ def damage_boss():
 
     # ===== ADICIONAR AQUI - HOOK APÓS ATAQUE =====
     relic_hooks.after_attack(player, {
+        'skill_id': skill_id,  # ← ADICIONAR SKILL_ID para Blood Stacks
         'damage': actual_damage_applied,
         'is_critical': is_critical,
         'skill_type': cache.skill_type
@@ -1374,6 +1375,7 @@ def damage_boss():
         'boss_hp': target_hp_after,
         'boss_max_hp': target.max_hp,
         'boss_defeated': target_defeated,
+        'blood_stacks': getattr(target, 'blood_stacks', 0),  # ← ADICIONAR BLOOD STACKS
         'player_hp': player.hp,
         'player_max_hp': player.max_hp,
         'player_energy': player.energy,

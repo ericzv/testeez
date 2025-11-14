@@ -631,42 +631,33 @@ function populateSpecialOptions() {
                     const tooltip = document.createElement('div');
                     tooltip.className = 'special-skill-tooltip';
 
-                    // Nome da skill e nível
+                    // Nome da skill (grande, centralizado, dourado)
                     const skillName = document.createElement('h3');
-                    skillName.textContent = `${skill.name} - Nível ${skill.current_level || 1}`;
+                    skillName.textContent = skill.name;
+                    skillName.style.cssText = 'font-size: 18px; text-align: center; color: #FFD700; margin-bottom: 8px; font-weight: bold;';
                     tooltip.appendChild(skillName);
+
+                    // Descrição da skill (se disponível)
+                    if (skill.description) {
+                        const description = document.createElement('div');
+                        description.className = 'skill-description';
+                        description.textContent = skill.description;
+                        description.style.cssText = 'font-size: 13px; color: #e0e0e0; margin-bottom: 10px; line-height: 1.4; text-align: center;';
+                        tooltip.appendChild(description);
+                    }
 
                     // Disponibilidade (baseado em turnos)
                     const availabilityInfo = document.createElement('div');
                     availabilityInfo.className = 'charges';
+                    availabilityInfo.style.cssText = 'font-size: 13px; margin-top: 8px; font-weight: bold; text-align: center;';
                     if (usedThisTurn) {
-                        availabilityInfo.textContent = 'Usada neste turno - Aguarde o próximo turno';
+                        availabilityInfo.innerHTML = '⏳ Usada neste turno';
                         availabilityInfo.style.color = '#ff6b6b';
                     } else {
-                        availabilityInfo.textContent = '1x por turno - Disponível';
+                        availabilityInfo.innerHTML = '✓ Disponível';
                         availabilityInfo.style.color = '#51cf66';
                     }
                     tooltip.appendChild(availabilityInfo);
-
-                    // Efeito positivo - Sempre incluir
-                    const effect = document.createElement('div');
-                    effect.className = 'effect';
-                    effect.textContent = positiveEffectText || "Efeito: Não disponível";
-                    tooltip.appendChild(effect);
-
-                    // Efeito negativo/custo
-                    if (negativeEffectText) {
-                        const cost = document.createElement('div');
-                        cost.className = 'cost';
-                        cost.textContent = negativeEffectText;
-                        tooltip.appendChild(cost);
-                    }
-
-                    // Duração - Sempre incluir
-                    const duration = document.createElement('div');
-                    duration.className = 'duration';
-                    duration.textContent = durationText || "Duração: Não especificada";
-                    tooltip.appendChild(duration);
 
                     // Adicionar tooltip ao item da skill
                     skillItem.appendChild(tooltip);
@@ -1005,10 +996,14 @@ function useSpecialSkill(skillId, skillName) {
                     // Atualizar interface
                     updateStats();
                     updatePlayerStatusCard();
-                    
+
+                    console.log("🎬 [VISUAL FX DEBUG] data.details:", data.details);
+
                     if (data.details && data.details.animation) {
+                        console.log("🎬 [VISUAL FX DEBUG] Usando animation data da API:", data.details.animation);
                         applySpecialSkillVisualEffect(data.details.animation);
                     } else if (data.details && data.details.effect_type) {
+                        console.log("🎬 [VISUAL FX DEBUG] Construindo animation data de effect_type:", data.details.effect_type);
                         // Converter o tipo de efeito em dados de animação
                         const animationData = {
                             animation_activate_1: `/static/game.data/activation/${data.details.effect_type}_a.png`,
@@ -1019,6 +1014,8 @@ function useSpecialSkill(skillId, skillName) {
                             sound_effect_2: ""
                         };
                         applySpecialSkillVisualEffect(animationData);
+                    } else {
+                        console.error("🎬 [VISUAL FX DEBUG] NENHUM dado de animação encontrado! data.details:", data.details);
                     }
                 })
                 .catch(error => {
@@ -1049,11 +1046,15 @@ function useSpecialSkill(skillId, skillName) {
 
 // Aplicar efeito visual das habilidades especiais
 function applySpecialSkillVisualEffect(animationData) {
-    console.log("Aplicando efeito visual com dados diretos da API:", animationData);
-    
+    console.log("🎬 [VISUAL FX] Aplicando efeito visual com dados diretos da API:", animationData);
+    console.log("🎬 [VISUAL FX] animation_activate_1:", animationData?.animation_activate_1);
+    console.log("🎬 [VISUAL FX] animation_activate_2:", animationData?.animation_activate_2);
+    console.log("🎬 [VISUAL FX] sound_prep_1:", animationData?.sound_prep_1);
+    console.log("🎬 [VISUAL FX] sound_effect_1:", animationData?.sound_effect_1);
+
     // Verificar se temos dados de animação
     if (!animationData) {
-        console.error("Dados de animação não fornecidos");
+        console.error("🎬 [VISUAL FX] ❌ Dados de animação não fornecidos");
         return;
     }
     

@@ -1237,6 +1237,16 @@ def use_special_skill(player_id, skill_id):
             # Consumir todos os Blood Stacks
             current_enemy.blood_stacks = 0
 
+            # IMPORTANTE: Verificar se o inimigo morreu
+            if current_enemy.hp <= 0:
+                from routes.relics.hooks import on_kill
+                enemy_data = {
+                    'enemy_id': current_enemy.id,
+                    'enemy_name': getattr(current_enemy, 'name', 'Inimigo')
+                }
+                on_kill(player, enemy_data)
+                print(f"💀 Inimigo morto por Lâmina de Sangue! HP: {current_enemy.hp}")
+
             effect_msg = f"Consumiu {blood_stacks}x Sangue Coagulado e causou {total_damage} de dano!"
 
         elif positive_type == "blood_barrier":
