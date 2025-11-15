@@ -1494,21 +1494,26 @@ def use_special():
             raise  # Re-lançar a exceção para ser capturada pelo bloco externo
 
         # ===== SE INIMIGO FOI DERROTADO, CRIAR RECOMPENSAS =====
-        if success and details.get('enemy_defeated'):
+        negative_effects = details.get('negative_effects', {})
+        if success and negative_effects.get('enemy_defeated'):
             print("🎯 Inimigo derrotado por skill especial! Criando recompensas...")
 
             from models import PendingReward, GenericEnemy, PlayerProgress
             from .battle_modules.reward_system import select_random_memory_options
             import random
 
-            # Buscar o inimigo que acabou de ser derrotado (is_available=False mais recente)
-            progress = PlayerProgress.query.filter_by(player_id=player.id).first()
+            # Buscar o inimigo que acabou de ser derrotado pelo ID
+            enemy_id = negative_effects.get('enemy_id')
+            current_enemy = None
 
-            # Buscar último inimigo derrotado do player
-            current_enemy = GenericEnemy.query.filter_by(
-                spawned_by_player_id=player.id,
-                is_available=False
-            ).order_by(GenericEnemy.id.desc()).first()
+            if enemy_id:
+                current_enemy = GenericEnemy.query.get(enemy_id)
+                print(f"🎯 Inimigo encontrado pelo ID {enemy_id}: {current_enemy.name if current_enemy else 'NÃO ENCONTRADO'}")
+            else:
+                print("⚠️ enemy_id não encontrado nos details, buscando último derrotado...")
+                current_enemy = GenericEnemy.query.filter_by(
+                    is_available=False
+                ).order_by(GenericEnemy.id.desc()).first()
 
             if current_enemy:
                 # Calcular recompensas baseado no inimigo

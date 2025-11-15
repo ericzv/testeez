@@ -1273,6 +1273,7 @@ def use_special_skill(player_id, skill_id):
             negative_effects["enemy_max_hp"] = current_enemy.max_hp
             negative_effects["enemy_defeated"] = enemy_defeated
             negative_effects["blood_stacks"] = 0
+            negative_effects["enemy_id"] = current_enemy.id  # Para buscar recompensas
 
         elif positive_type == "blood_barrier":
             # Barreira de Sangue: Consome Blood Stacks, gera barreira
