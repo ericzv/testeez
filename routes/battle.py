@@ -1492,7 +1492,99 @@ def use_special():
             print(f"ERRO NA FUNÇÃO use_special_skill: {str(e)}")
             print(f"TRACEBACK:\n{error_traceback}")
             raise  # Re-lançar a exceção para ser capturada pelo bloco externo
-        
+
+        # ===== SE INIMIGO FOI DERROTADO, CRIAR RECOMPENSAS =====
+        if success and details.get('enemy_defeated'):
+            print("🎯 Inimigo derrotado por skill especial! Criando recompensas...")
+
+            from models import PendingReward, GenericEnemy, PlayerProgress
+            from .battle_modules.reward_system import select_random_memory_options
+            import random
+
+            # Buscar o inimigo que acabou de ser derrotado (is_available=False mais recente)
+            progress = PlayerProgress.query.filter_by(player_id=player.id).first()
+
+            # Buscar último inimigo derrotado do player
+            current_enemy = GenericEnemy.query.filter_by(
+                spawned_by_player_id=player.id,
+                is_available=False
+            ).order_by(GenericEnemy.id.desc()).first()
+
+            if current_enemy:
+                # Calcular recompensas baseado no inimigo
+                base_exp = random.randint(30 + (current_enemy.enemy_number * 10), 50 + (current_enemy.enemy_number * 20))
+                rarity_multipliers = {1: 1.0, 2: 1.2, 3: 1.5, 4: 2.0}
+                rarity_multiplier = rarity_multipliers.get(current_enemy.rarity, 1.0)
+                equipment_bonus_percent = current_enemy.reward_bonus_percentage or 0
+
+                exp_reward = int(base_exp * rarity_multiplier * (1 + equipment_bonus_percent / 100))
+                crystals_gained = 0
+                gold_gained = 0
+                hourglasses_gained = 0
+
+                reward_type = current_enemy.reward_type or 'crystals'
+
+                if reward_type == 'crystals':
+                    base_crystals = random.randint(30 + (current_enemy.enemy_number * 5), 50 + (current_enemy.enemy_number * 8))
+                    crystals_gained = int(base_crystals * rarity_multiplier * (1 + equipment_bonus_percent / 100))
+                elif reward_type == 'gold':
+                    gold_gained = calculate_gold_reward(current_enemy.enemy_number, current_enemy.rarity, equipment_bonus_percent)
+                elif reward_type == 'hourglasses':
+                    hourglasses_gained = calculate_hourglass_reward(current_enemy.rarity)
+
+                # Aplicar bônus de relíquias
+                rewards = {'crystals': crystals_gained, 'gold': gold_gained, 'hourglasses': hourglasses_gained}
+                rewards = relic_hooks.modify_rewards(player, rewards)
+                crystals_gained = rewards['crystals']
+                gold_gained = rewards['gold']
+                hourglasses_gained = rewards['hourglasses']
+
+                # Criar PendingReward
+                pending_reward = PendingReward(
+                    player_id=player.id,
+                    exp_reward=exp_reward,
+                    crystals_gained=crystals_gained,
+                    gold_gained=gold_gained,
+                    hourglasses_gained=hourglasses_gained,
+                    reward_type=reward_type,
+                    reward_icon='...',
+                    victory_heal_amount=0,
+                    enemy_name=getattr(current_enemy, 'name', 'Inimigo'),
+                    damage_dealt=details.get('damage_dealt', 0),
+                    damage_taken=0,
+                    relic_bonus_messages=''
+                )
+                db.session.add(pending_reward)
+
+                # Gerar opções de lembranças
+                memory_options = select_random_memory_options()
+                session['pending_memory_reward'] = {
+                    'enemy_rarity': current_enemy.rarity,
+                    'timestamp': datetime.utcnow().isoformat(),
+                    'memory_options': memory_options
+                }
+
+                # Chamar on_victory
+                relic_hooks.on_victory(player)
+
+                # Resetar flags de batalha
+                session['battle_started'] = False
+                session['player_took_damage'] = False
+
+                db.session.commit()
+
+                # Adicionar informações de recompensa aos details
+                details['exp_reward'] = exp_reward
+                details['crystals_gained'] = crystals_gained
+                details['gold_gained'] = gold_gained
+                details['hourglasses_gained'] = hourglasses_gained
+                details['reward_type'] = reward_type
+                details['enemy_name'] = getattr(current_enemy, 'name', 'Inimigo')
+
+                print(f"✅ Recompensas criadas: EXP={exp_reward}, Crystals={crystals_gained}, Gold={gold_gained}")
+            else:
+                print("⚠️ Não foi possível encontrar o inimigo derrotado")
+
         # Se for uma requisição AJAX, retornar JSON
         if request.headers.get('Accept') == 'application/json':
             response_data = {
