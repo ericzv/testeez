@@ -287,7 +287,7 @@ def battle():
             relic_hooks.on_combat_start(player, current_enemy)
 
             # Resetar skills especiais (last_used_at_enemy_turn)
-            from models import PlayerSkill
+            from characters import PlayerSkill
             special_skills_reset = PlayerSkill.query.filter_by(
                 player_id=player.id,
                 skill_type="special"

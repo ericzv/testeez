@@ -349,7 +349,7 @@ def reset_battle_counters(player):
     # total_* NÃO reseta
 
     # ===== RESETAR SKILLS ESPECIAIS PARA PRÓXIMA BATALHA =====
-    from models import PlayerSkill
+    from characters import PlayerSkill
     special_skills = PlayerSkill.query.filter_by(
         player_id=player.id,
         skill_type="special"
