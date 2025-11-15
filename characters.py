@@ -1242,13 +1242,28 @@ def use_special_skill(player_id, skill_id):
             enemy_defeated = False
             if current_enemy.hp <= 0:
                 enemy_defeated = True
-                from routes.relics.hooks import on_kill
+                from routes.relics.hooks import on_kill, reset_battle_counters
+                from models import PlayerProgress
+
                 enemy_data = {
                     'enemy_id': current_enemy.id,
                     'enemy_name': getattr(current_enemy, 'name', 'Inimigo')
                 }
                 on_kill(player, enemy_data)
+
+                # MARCAR INIMIGO COMO DERROTADO
+                current_enemy.is_available = False
+
+                # LIMPAR SELEÇÃO DO INIMIGO
+                progress = PlayerProgress.query.filter_by(player_id=player.id).first()
+                if progress:
+                    progress.selected_enemy_id = None
+
+                # RESETAR CONTADORES DE BATALHA
+                reset_battle_counters(player)
+
                 print(f"💀 Inimigo morto por Lâmina de Sangue! HP: {current_enemy.hp}")
+                print(f"✅ Inimigo marcado como derrotado e seleção limpa")
 
             effect_msg = f"Consumiu {blood_stacks}x Sangue Coagulado e causou {total_damage} de dano!"
 

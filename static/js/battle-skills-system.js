@@ -956,54 +956,13 @@ function useSpecialSkill(skillId, skillName) {
         if (data.success) {
             showTempMessage(`${skillName} ativada com sucesso!`, "#9933ff");
 
-            // VERIFICAR SE SKILL CAUSOU DANO NO INIMIGO (ex: Lâmina de Sangue)
+            // GUARDAR DADOS DE DANO PARA APLICAR APÓS ANIMAÇÃO
+            let pendingDamageData = null;
             if (data.details && data.details.negative_effects) {
                 const negEffects = data.details.negative_effects;
-
-                // Atualizar HP do inimigo se fornecido
                 if (negEffects.enemy_hp !== undefined && negEffects.enemy_max_hp !== undefined) {
-                    console.log(`🩸 Lâmina de Sangue causou ${negEffects.damage_dealt} de dano!`);
-                    console.log(`👹 HP do inimigo: ${negEffects.enemy_hp}/${negEffects.enemy_max_hp}`);
-
-                    // Atualizar gameState
-                    gameState.boss.hp = negEffects.enemy_hp;
-                    gameState.boss.maxHp = negEffects.enemy_max_hp;
-                    if (negEffects.blood_stacks !== undefined) {
-                        gameState.boss.bloodStacks = negEffects.blood_stacks;
-                    }
-
-                    // Atualizar visual imediatamente
-                    updateStats();
-
-                    // Mostrar dano na tela
-                    if (negEffects.damage_dealt > 0) {
-                        updateDamageDisplay(negEffects.damage_dealt, false);
-                    }
-
-                    // VERIFICAR SE INIMIGO FOI DERROTADO
-                    if (negEffects.enemy_defeated) {
-                        console.log("💀 INIMIGO DERROTADO POR LÂMINA DE SANGUE!");
-
-                        // Salvar dados de vitória no localStorage
-                        localStorage.setItem('lastVictoryTime', Date.now());
-                        localStorage.setItem('victoryData', JSON.stringify({
-                            bossDefeated: true,
-                            damageDealt: window.totalBattleDamage || negEffects.damage_dealt,
-                            enemyName: gameState.boss?.name || 'Inimigo',
-                            expGained: 0, // Será calculado pelo servidor
-                            timestamp: Date.now()
-                        }));
-
-                        // Aguardar animação e então processar morte
-                        setTimeout(() => {
-                            if (typeof handleBossDeathAnimation === 'function') {
-                                handleBossDeathAnimation(true, gameState.boss.rarity || 1);
-                            } else {
-                                // Fallback: redirecionar para hub
-                                window.location.href = '/gamification';
-                            }
-                        }, 2000);
-                    }
+                    pendingDamageData = negEffects;
+                    console.log(`🩸 Dano pendente para aplicar após animação: ${negEffects.damage_dealt}`);
                 }
             }
 
@@ -1062,6 +1021,56 @@ function useSpecialSkill(skillId, skillName) {
                     if (data.details && data.details.animation) {
                         console.log("🎬 [VISUAL FX DEBUG] Usando animation data da API:", data.details.animation);
                         applySpecialSkillVisualEffect(data.details.animation);
+
+                        // APLICAR DANO APÓS ANIMAÇÃO (delay para view swap + som + efeito)
+                        if (pendingDamageData) {
+                            const delayForDamage = 2500; // 600ms view + 1500ms som/efeito + 400ms buffer
+                            console.log(`⏳ Agendando aplicação de dano em ${delayForDamage}ms`);
+
+                            setTimeout(() => {
+                                console.log(`🩸 Aplicando dano: ${pendingDamageData.damage_dealt}`);
+                                console.log(`👹 HP do inimigo: ${pendingDamageData.enemy_hp}/${pendingDamageData.enemy_max_hp}`);
+
+                                // Atualizar gameState
+                                gameState.boss.hp = pendingDamageData.enemy_hp;
+                                gameState.boss.maxHp = pendingDamageData.enemy_max_hp;
+                                if (pendingDamageData.blood_stacks !== undefined) {
+                                    gameState.boss.bloodStacks = pendingDamageData.blood_stacks;
+                                }
+
+                                // Atualizar visual
+                                updateStats();
+
+                                // Mostrar dano na tela
+                                if (pendingDamageData.damage_dealt > 0) {
+                                    updateDamageDisplay(pendingDamageData.damage_dealt, false);
+                                }
+
+                                // VERIFICAR SE INIMIGO FOI DERROTADO
+                                if (pendingDamageData.enemy_defeated) {
+                                    console.log("💀 INIMIGO DERROTADO POR LÂMINA DE SANGUE!");
+
+                                    // Salvar dados de vitória no localStorage
+                                    localStorage.setItem('lastVictoryTime', Date.now());
+                                    localStorage.setItem('victoryData', JSON.stringify({
+                                        bossDefeated: true,
+                                        damageDealt: window.totalBattleDamage || pendingDamageData.damage_dealt,
+                                        enemyName: gameState.boss?.name || 'Inimigo',
+                                        expGained: 0,
+                                        timestamp: Date.now()
+                                    }));
+
+                                    // Aguardar um pouco e então processar morte
+                                    setTimeout(() => {
+                                        if (typeof handleBossDeathAnimation === 'function') {
+                                            handleBossDeathAnimation(true, gameState.boss.rarity || 1);
+                                        } else {
+                                            window.location.href = '/gamification';
+                                        }
+                                    }, 1500);
+                                }
+                            }, delayForDamage);
+                        }
                     } else if (data.details && data.details.effect_type) {
                         console.log("🎬 [VISUAL FX DEBUG] Construindo animation data de effect_type:", data.details.effect_type);
                         // Converter o tipo de efeito em dados de animação
