@@ -1071,13 +1071,40 @@ function applySpecialSkillVisualEffect(animationData) {
     if (effectTarget === "enemy") {
         targetElement = document.getElementById('boss');
         console.log("🎯 [VISUAL FX] Efeito será aplicado no INIMIGO");
+
+        // VERIFICAR SE O INIMIGO ESTÁ VISÍVEL (não está na character-view)
+        const isCharacterView = document.querySelector('.battle-arena.character-view') !== null;
+        if (isCharacterView) {
+            console.log("⚠️ [VISUAL FX] Estamos na character-view! Trocando para view padrão...");
+
+            // Trocar para view padrão onde o inimigo aparece
+            if (typeof toggleCharacterView === 'function' && window.gameState.characterView) {
+                toggleCharacterView();
+            }
+
+            // Aguardar a transição e então aplicar o efeito
+            setTimeout(() => {
+                console.log("✅ [VISUAL FX] View trocada! Agora aplicando efeito no inimigo...");
+                processRestOfEffect();
+            }, 600); // Esperar transição da camera
+            return; // Sair para não processar duas vezes
+        }
     } else {
         targetElement = document.getElementById('character');
         console.log("🎯 [VISUAL FX] Efeito será aplicado no JOGADOR");
     }
 
-    // PARTE 1: PROCESSAR SONS EXATAMENTE COMO VIERAM DA API
-    const delay = 500; // 500ms entre os sons
+    // Processar o resto do efeito normalmente
+    processRestOfEffect();
+
+    function processRestOfEffect() {
+        // Re-obter targetElement caso tenha mudado de view
+        if (effectTarget === "enemy") {
+            targetElement = document.getElementById('boss');
+        }
+
+        // PARTE 1: PROCESSAR SONS EXATAMENTE COMO VIERAM DA API
+        const delay = 500; // 500ms entre os sons
     
     // Tocar os sons em sequência
     if (animationData.sound_prep_1) {
@@ -1109,29 +1136,38 @@ function applySpecialSkillVisualEffect(animationData) {
     // PARTE 2: PROCESSAR ANIMAÇÕES VISUAIS COM SISTEMA HÍBRIDO
     const hasVisualEffect1 = animationData.animation_activate_1;
     const hasVisualEffect2 = animationData.animation_activate_2;
-    
+
     if (!hasVisualEffect1 && !hasVisualEffect2) {
         console.log("Nenhuma animação visual disponível nos dados da API");
         return;
     }
-    
+
     // Verificar se estamos na character-view
-    const isCharacterView = document.querySelector('.battle-arena.character-view') !== null;
-    
-    if (!isCharacterView) {
-        console.log("Forçando character-view para animação...");
+    const isInCharacterView = document.querySelector('.battle-arena.character-view') !== null;
+
+    // LÓGICA DE VIEW:
+    // - Efeitos no JOGADOR → mostrar na character-view
+    // - Efeitos no INIMIGO → mostrar na view padrão (onde inimigo aparece)
+
+    if (effectTarget === "enemy") {
+        // Para efeitos no inimigo, NÃO precisamos mudar de view (já foi tratado acima)
+        console.log("🎯 Aplicando efeito no INIMIGO na view atual");
+        processSpecialEffects();
+    } else if (!isInCharacterView) {
+        // Para efeitos no jogador, forçar character-view
+        console.log("Forçando character-view para animação no jogador...");
         const previousView = {
             zoomedView: window.gameState.zoomedView,
             characterView: window.gameState.characterView,
             bossView: window.gameState.bossView
         };
-        
+
         if (typeof toggleCharacterView === 'function' && !window.gameState.characterView) {
             toggleCharacterView();
-            
+
             setTimeout(() => {
                 processSpecialEffects();
-                
+
                 // Restaurar view anterior após a animação
                 setTimeout(() => {
                     if (previousView.zoomedView && !window.gameState.zoomedView) {
@@ -1260,6 +1296,7 @@ function applySpecialSkillVisualEffect(animationData) {
             console.log(`🗑️ Sprite FX removido após ${animationDuration}s`);
         }, animationDuration * 1000 + 200);
     }
+    } // Fecha processRestOfEffect()
 }
 
 // Verificar imagem de sprite
