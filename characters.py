@@ -610,6 +610,17 @@ def get_player_attacks(player_id):
                         stack_bonus = effect.get('stack_bonus', 2)
                         total_damage += stacks * stack_bonus  # APENAS os stacks, não o initial
 
+            # ===== BÔNUS DE BLOOD STACKS PARA SUPREMA DO VLAD =====
+            if cache.skill_type == 'ultimate' and player.character_id == 'vlad':
+                from routes.battle import get_current_battle_enemy
+                current_enemy = get_current_battle_enemy(player_id)
+                if current_enemy:
+                    blood_stacks = getattr(current_enemy, 'blood_stacks', 0) or 0
+                    if blood_stacks > 0:
+                        blood_bonus = blood_stacks * 2  # +2 dano por stack
+                        total_damage += blood_bonus
+                        skill['blood_stacks_bonus'] = blood_bonus  # Para mostrar no tooltip
+
             # Adicionar dados do cache para exibição no frontend
             skill['cache_data'] = {
                 'base_damage': total_damage,  # Agora inclui todos os bônus

@@ -59,7 +59,7 @@ def get_base_stats_by_type(skill_type):
     elif skill_type == 'special':
         return 18
     elif skill_type == 'ultimate':
-        return 30
+        return 20  # Base 20, +2 por Blood Stack (Vlad)
     else:
         return 50
 
