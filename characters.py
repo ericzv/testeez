@@ -1232,13 +1232,16 @@ def use_special_skill(player_id, skill_id):
             total_damage = blood_stacks * damage_per_stack
 
             # Aplicar dano no inimigo
+            hp_before = current_enemy.hp
             current_enemy.hp = max(0, current_enemy.hp - total_damage)
 
             # Consumir todos os Blood Stacks
             current_enemy.blood_stacks = 0
 
             # IMPORTANTE: Verificar se o inimigo morreu
+            enemy_defeated = False
             if current_enemy.hp <= 0:
+                enemy_defeated = True
                 from routes.relics.hooks import on_kill
                 enemy_data = {
                     'enemy_id': current_enemy.id,
@@ -1248,6 +1251,13 @@ def use_special_skill(player_id, skill_id):
                 print(f"💀 Inimigo morto por Lâmina de Sangue! HP: {current_enemy.hp}")
 
             effect_msg = f"Consumiu {blood_stacks}x Sangue Coagulado e causou {total_damage} de dano!"
+
+            # Adicionar informações extras para o frontend
+            negative_effects["damage_dealt"] = total_damage
+            negative_effects["enemy_hp"] = current_enemy.hp
+            negative_effects["enemy_max_hp"] = current_enemy.max_hp
+            negative_effects["enemy_defeated"] = enemy_defeated
+            negative_effects["blood_stacks"] = 0
 
         elif positive_type == "blood_barrier":
             # Barreira de Sangue: Consome Blood Stacks, gera barreira

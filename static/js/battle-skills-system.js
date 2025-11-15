@@ -955,7 +955,58 @@ function useSpecialSkill(skillId, skillName) {
         // Mostrar mensagem de sucesso ou erro
         if (data.success) {
             showTempMessage(`${skillName} ativada com sucesso!`, "#9933ff");
-            
+
+            // VERIFICAR SE SKILL CAUSOU DANO NO INIMIGO (ex: Lâmina de Sangue)
+            if (data.details && data.details.negative_effects) {
+                const negEffects = data.details.negative_effects;
+
+                // Atualizar HP do inimigo se fornecido
+                if (negEffects.enemy_hp !== undefined && negEffects.enemy_max_hp !== undefined) {
+                    console.log(`🩸 Lâmina de Sangue causou ${negEffects.damage_dealt} de dano!`);
+                    console.log(`👹 HP do inimigo: ${negEffects.enemy_hp}/${negEffects.enemy_max_hp}`);
+
+                    // Atualizar gameState
+                    gameState.boss.hp = negEffects.enemy_hp;
+                    gameState.boss.maxHp = negEffects.enemy_max_hp;
+                    if (negEffects.blood_stacks !== undefined) {
+                        gameState.boss.bloodStacks = negEffects.blood_stacks;
+                    }
+
+                    // Atualizar visual imediatamente
+                    updateStats();
+
+                    // Mostrar dano na tela
+                    if (negEffects.damage_dealt > 0) {
+                        updateDamageDisplay(negEffects.damage_dealt, false);
+                    }
+
+                    // VERIFICAR SE INIMIGO FOI DERROTADO
+                    if (negEffects.enemy_defeated) {
+                        console.log("💀 INIMIGO DERROTADO POR LÂMINA DE SANGUE!");
+
+                        // Salvar dados de vitória no localStorage
+                        localStorage.setItem('lastVictoryTime', Date.now());
+                        localStorage.setItem('victoryData', JSON.stringify({
+                            bossDefeated: true,
+                            damageDealt: window.totalBattleDamage || negEffects.damage_dealt,
+                            enemyName: gameState.boss?.name || 'Inimigo',
+                            expGained: 0, // Será calculado pelo servidor
+                            timestamp: Date.now()
+                        }));
+
+                        // Aguardar animação e então processar morte
+                        setTimeout(() => {
+                            if (typeof handleBossDeathAnimation === 'function') {
+                                handleBossDeathAnimation(true, gameState.boss.rarity || 1);
+                            } else {
+                                // Fallback: redirecionar para hub
+                                window.location.href = '/gamification';
+                            }
+                        }, 2000);
+                    }
+                }
+            }
+
             // Aplicar feedback visual ao botão
             if (skillButton) {
                 // Adicionar classe para efeito visual de sucesso
