@@ -819,8 +819,8 @@ def damage_boss():
         'force_critical': False,
         'skill_type': cache.skill_type
     }
-    
-    skill_data = {'type': cache.skill_type, 'name': cache.skill_name}
+
+    skill_data = {'id': cache.skill_id, 'type': cache.skill_type, 'name': cache.skill_name}
     attack_data = relic_hooks.before_attack(player, skill_data, attack_data)
     
     print(f"📊 APÓS RELÍQUIAS: multiplicador={attack_data['damage_multiplier']:.2f}, vampirismo extra={attack_data['lifesteal_bonus']*100:.1f}%")
@@ -935,11 +935,17 @@ def damage_boss():
         'crit_chance': 0,
         'crit_damage': 0,
         'lifesteal': 0,
-        'ignore_defense': 0
+        'ignore_defense': 0,
+        'damage_flat': 0  # Bônus flat de dano (ex: Autofagia +5)
     }
 
     # Aplicar buffs
     offensive_stats = apply_buffs_to_stats(active_buffs, offensive_stats)
+
+    # Aplicar bônus flat de dano dos buffs
+    if offensive_stats['damage_flat'] > 0:
+        final_damage += int(offensive_stats['damage_flat'])
+        print(f"⚔️ Bônus flat de buffs (Autofagia): +{int(offensive_stats['damage_flat'])} (total: {final_damage})")
 
     # Usar valores
     buffs_damage_multiplier = 1.0 + offensive_stats['damage']
