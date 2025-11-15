@@ -1539,7 +1539,7 @@ def use_special():
 
                 # Aplicar bônus de relíquias
                 rewards = {'crystals': crystals_gained, 'gold': gold_gained, 'hourglasses': hourglasses_gained}
-                rewards = relic_hooks.modify_rewards(player, rewards)
+                rewards = relic_hooks.on_rewards(player, rewards)
                 crystals_gained = rewards['crystals']
                 gold_gained = rewards['gold']
                 hourglasses_gained = rewards['hourglasses']
