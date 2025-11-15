@@ -868,9 +868,16 @@ def damage_boss():
         return jsonify({'success': False, 'message': 'Nenhum inimigo ou boss selecionado.'})
 
     target = current_boss if is_boss_fight else current_enemy
-    
+
     # ===== 4. COMEÇAR COM VALORES MODIFICADOS POR RELÍQUIAS =====
     final_damage = attack_data['base_damage']
+
+    # ===== 4.1. APLICAR BÔNUS FLAT DE DAMAGE (ex: Blood Stacks do Vlad Ultimate) =====
+    flat_bonus = attack_data.get('flat_damage_bonus', 0)
+    if flat_bonus > 0:
+        final_damage += flat_bonus
+        print(f"⚔️ Bônus flat de dano: +{flat_bonus} (total: {final_damage})")
+
     final_crit_chance = cache.base_crit_chance
     final_crit_multiplier = cache.base_crit_multiplier
     lifesteal_percent = cache.lifesteal_percent + attack_data.get('lifesteal_bonus', 0.0)  # ← ADICIONAR BÔNUS DAS RELÍQUIAS
