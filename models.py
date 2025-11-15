@@ -530,7 +530,10 @@ class GenericEnemy(db.Model):
     
     # Sistema de cargas de ataque
     attack_charges_count = db.Column(db.Integer, nullable=False, default=0)  # cargas disponíveis
-    
+
+    # Sistema de Blood Stacks (acúmulos de sangue) - Específico para Vlad
+    blood_stacks = db.Column(db.Integer, nullable=False, default=0)  # Acúmulos de sangue coagulado
+
     # Sistema modular de fila de ações (para futuras expansões)
     action_queue = db.Column(db.Text, nullable=False, default='[]')  # JSON array de ações
 
@@ -778,6 +781,9 @@ class LastBoss(db.Model):
     last_charge_generated = db.Column(db.DateTime)
     next_charge_at = db.Column(db.DateTime)
     action_queue = db.Column(db.Text, default='[]')
+
+    # Sistema de Blood Stacks (acúmulos de sangue) - Específico para Vlad
+    blood_stacks = db.Column(db.Integer, nullable=False, default=0)  # Acúmulos de sangue coagulado
     
     # Sistema de skills (similar ao GenericEnemy) 
     skill_charges = db.Column(db.Text, default='{}')
@@ -818,6 +824,7 @@ class LastBoss(db.Model):
             'sprite_frames': self.sprite_frames,
             'sprite_size': self.sprite_size,
             'hit_animation': self.hit_animation,
+            'blood_stacks': self.blood_stacks,
             'hit_sound': self.hit_sound,
             'reward_crystals': self.reward_crystals,
             'is_active': self.is_active,

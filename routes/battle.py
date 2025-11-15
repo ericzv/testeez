@@ -275,9 +275,30 @@ def battle():
             flash('Nenhum inimigo ou boss disponível!', 'error')
             return redirect(url_for('battle.gamification'))
 
-        # Hooks de relíquias ao entrar na batalha
-        relic_hooks.on_combat_start(player, current_enemy)
-        
+        # Verificar se é uma batalha NOVA ou apenas reload (F5)
+        last_enemy_id = session.get('last_battle_enemy_id')
+        is_new_battle = (last_enemy_id != current_enemy.id)
+
+        if is_new_battle:
+            print(f"🆕 NOVA BATALHA iniciada contra {current_enemy.name}")
+            session['last_battle_enemy_id'] = current_enemy.id
+
+            # Hooks de relíquias apenas em batalha NOVA (reseta energia)
+            relic_hooks.on_combat_start(player, current_enemy)
+
+            # Resetar skills especiais (last_used_at_enemy_turn)
+            from characters import PlayerSkill
+            special_skills_reset = PlayerSkill.query.filter_by(
+                player_id=player.id,
+                skill_type="special"
+            ).all()
+            for skill in special_skills_reset:
+                skill.last_used_at_enemy_turn = None
+            db.session.commit()
+            print(f"♻️ Skills especiais resetadas para nova batalha")
+        else:
+            print(f"🔄 Reload de batalha existente contra {current_enemy.name} - energia mantida")
+
         # Carregar skills
         try:
             attack_skills = get_player_attacks(player.id) or []
@@ -396,7 +417,8 @@ def get_battle_data():
                     'sprite_frames': current_boss.sprite_frames,
                     'sprite_size': current_boss.sprite_size,
                     'is_boss': True,
-                    'boss_type': 'last_boss'
+                    'boss_type': 'last_boss',
+                    'blood_stacks': getattr(current_boss, 'blood_stacks', 0)
                 }
                 print(f"👑 Carregando boss: {current_boss.name}")
                 print(f"👑 DEBUG BOSS DATA: {boss_data}")
@@ -424,7 +446,8 @@ def get_battle_data():
                         'weapon': current_enemy.sprite_weapon
                     },
                     'is_boss': False,
-                    'boss_type': 'generic'
+                    'boss_type': 'generic',
+                    'blood_stacks': getattr(current_enemy, 'blood_stacks', 0)
                 }
                 print(f"🎯 Carregando inimigo genérico: {current_enemy.name}")
             else:
@@ -796,8 +819,8 @@ def damage_boss():
         'force_critical': False,
         'skill_type': cache.skill_type
     }
-    
-    skill_data = {'type': cache.skill_type, 'name': cache.skill_name}
+
+    skill_data = {'id': cache.skill_id, 'type': cache.skill_type, 'name': cache.skill_name}
     attack_data = relic_hooks.before_attack(player, skill_data, attack_data)
     
     print(f"📊 APÓS RELÍQUIAS: multiplicador={attack_data['damage_multiplier']:.2f}, vampirismo extra={attack_data['lifesteal_bonus']*100:.1f}%")
@@ -845,9 +868,16 @@ def damage_boss():
         return jsonify({'success': False, 'message': 'Nenhum inimigo ou boss selecionado.'})
 
     target = current_boss if is_boss_fight else current_enemy
-    
+
     # ===== 4. COMEÇAR COM VALORES MODIFICADOS POR RELÍQUIAS =====
     final_damage = attack_data['base_damage']
+
+    # ===== 4.1. APLICAR BÔNUS FLAT DE DAMAGE (ex: Blood Stacks do Vlad Ultimate) =====
+    flat_bonus = attack_data.get('flat_damage_bonus', 0)
+    if flat_bonus > 0:
+        final_damage += flat_bonus
+        print(f"⚔️ Bônus flat de dano: +{flat_bonus} (total: {final_damage})")
+
     final_crit_chance = cache.base_crit_chance
     final_crit_multiplier = cache.base_crit_multiplier
     lifesteal_percent = cache.lifesteal_percent + attack_data.get('lifesteal_bonus', 0.0)  # ← ADICIONAR BÔNUS DAS RELÍQUIAS
@@ -905,11 +935,17 @@ def damage_boss():
         'crit_chance': 0,
         'crit_damage': 0,
         'lifesteal': 0,
-        'ignore_defense': 0
+        'ignore_defense': 0,
+        'damage_flat': 0  # Bônus flat de dano (ex: Autofagia +5)
     }
 
     # Aplicar buffs
     offensive_stats = apply_buffs_to_stats(active_buffs, offensive_stats)
+
+    # Aplicar bônus flat de dano dos buffs
+    if offensive_stats['damage_flat'] > 0:
+        final_damage += int(offensive_stats['damage_flat'])
+        print(f"⚔️ Bônus flat de buffs (Autofagia): +{int(offensive_stats['damage_flat'])} (total: {final_damage})")
 
     # Usar valores
     buffs_damage_multiplier = 1.0 + offensive_stats['damage']
@@ -1039,6 +1075,7 @@ def damage_boss():
 
     # ===== ADICIONAR AQUI - HOOK APÓS ATAQUE =====
     relic_hooks.after_attack(player, {
+        'skill_id': skill_id,  # ← ADICIONAR SKILL_ID para Blood Stacks
         'damage': actual_damage_applied,
         'is_critical': is_critical,
         'skill_type': cache.skill_type
@@ -1372,6 +1409,7 @@ def damage_boss():
         'boss_hp': target_hp_after,
         'boss_max_hp': target.max_hp,
         'boss_defeated': target_defeated,
+        'blood_stacks': getattr(target, 'blood_stacks', 0),  # ← ADICIONAR BLOOD STACKS
         'player_hp': player.hp,
         'player_max_hp': player.max_hp,
         'player_energy': player.energy,
@@ -1467,7 +1505,104 @@ def use_special():
             print(f"ERRO NA FUNÇÃO use_special_skill: {str(e)}")
             print(f"TRACEBACK:\n{error_traceback}")
             raise  # Re-lançar a exceção para ser capturada pelo bloco externo
-        
+
+        # ===== SE INIMIGO FOI DERROTADO, CRIAR RECOMPENSAS =====
+        negative_effects = details.get('negative_effects', {})
+        if success and negative_effects.get('enemy_defeated'):
+            print("🎯 Inimigo derrotado por skill especial! Criando recompensas...")
+
+            from models import PendingReward, GenericEnemy, PlayerProgress
+            from .battle_modules.reward_system import select_random_memory_options
+            import random
+
+            # Buscar o inimigo que acabou de ser derrotado pelo ID
+            enemy_id = negative_effects.get('enemy_id')
+            current_enemy = None
+
+            if enemy_id:
+                current_enemy = GenericEnemy.query.get(enemy_id)
+                print(f"🎯 Inimigo encontrado pelo ID {enemy_id}: {current_enemy.name if current_enemy else 'NÃO ENCONTRADO'}")
+            else:
+                print("⚠️ enemy_id não encontrado nos details, buscando último derrotado...")
+                current_enemy = GenericEnemy.query.filter_by(
+                    is_available=False
+                ).order_by(GenericEnemy.id.desc()).first()
+
+            if current_enemy:
+                # Calcular recompensas baseado no inimigo
+                base_exp = random.randint(30 + (current_enemy.enemy_number * 10), 50 + (current_enemy.enemy_number * 20))
+                rarity_multipliers = {1: 1.0, 2: 1.2, 3: 1.5, 4: 2.0}
+                rarity_multiplier = rarity_multipliers.get(current_enemy.rarity, 1.0)
+                equipment_bonus_percent = current_enemy.reward_bonus_percentage or 0
+
+                exp_reward = int(base_exp * rarity_multiplier * (1 + equipment_bonus_percent / 100))
+                crystals_gained = 0
+                gold_gained = 0
+                hourglasses_gained = 0
+
+                reward_type = current_enemy.reward_type or 'crystals'
+
+                if reward_type == 'crystals':
+                    base_crystals = random.randint(30 + (current_enemy.enemy_number * 5), 50 + (current_enemy.enemy_number * 8))
+                    crystals_gained = int(base_crystals * rarity_multiplier * (1 + equipment_bonus_percent / 100))
+                elif reward_type == 'gold':
+                    gold_gained = calculate_gold_reward(current_enemy.enemy_number, current_enemy.rarity, equipment_bonus_percent)
+                elif reward_type == 'hourglasses':
+                    hourglasses_gained = calculate_hourglass_reward(current_enemy.rarity)
+
+                # Aplicar bônus de relíquias
+                rewards = {'crystals': crystals_gained, 'gold': gold_gained, 'hourglasses': hourglasses_gained}
+                rewards = relic_hooks.on_rewards(player, rewards)
+                crystals_gained = rewards['crystals']
+                gold_gained = rewards['gold']
+                hourglasses_gained = rewards['hourglasses']
+
+                # Criar PendingReward
+                pending_reward = PendingReward(
+                    player_id=player.id,
+                    exp_reward=exp_reward,
+                    crystals_gained=crystals_gained,
+                    gold_gained=gold_gained,
+                    hourglasses_gained=hourglasses_gained,
+                    reward_type=reward_type,
+                    reward_icon='...',
+                    victory_heal_amount=0,
+                    enemy_name=getattr(current_enemy, 'name', 'Inimigo'),
+                    damage_dealt=details.get('damage_dealt', 0),
+                    damage_taken=0,
+                    relic_bonus_messages=''
+                )
+                db.session.add(pending_reward)
+
+                # Gerar opções de lembranças
+                memory_options = select_random_memory_options()
+                session['pending_memory_reward'] = {
+                    'enemy_rarity': current_enemy.rarity,
+                    'timestamp': datetime.utcnow().isoformat(),
+                    'memory_options': memory_options
+                }
+
+                # Chamar on_victory
+                relic_hooks.on_victory(player)
+
+                # Resetar flags de batalha
+                session['battle_started'] = False
+                session['player_took_damage'] = False
+
+                db.session.commit()
+
+                # Adicionar informações de recompensa aos details
+                details['exp_reward'] = exp_reward
+                details['crystals_gained'] = crystals_gained
+                details['gold_gained'] = gold_gained
+                details['hourglasses_gained'] = hourglasses_gained
+                details['reward_type'] = reward_type
+                details['enemy_name'] = getattr(current_enemy, 'name', 'Inimigo')
+
+                print(f"✅ Recompensas criadas: EXP={exp_reward}, Crystals={crystals_gained}, Gold={gold_gained}")
+            else:
+                print("⚠️ Não foi possível encontrar o inimigo derrotado")
+
         # Se for uma requisição AJAX, retornar JSON
         if request.headers.get('Accept') == 'application/json':
             response_data = {

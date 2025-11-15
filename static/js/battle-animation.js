@@ -337,7 +337,11 @@ function updatePlayerStatusCard() {
     // Atualizar os valores no card
     pointsEl.textContent = points;
     hpEl.textContent = `${hp}/${maxHp}`;
-    mpEl.textContent = `${mp}/${maxMp}`;
+
+    // MP é opcional (sistema usa energia ao invés de MP)
+    if (mpEl) {
+        mpEl.textContent = `${mp}/${maxMp}`;
+    }
     
     // Aplicar classe de modificação (buff/debuff) nos valores alterados
     damageEl.textContent = `${modifiedDamage.toFixed(1)}`;

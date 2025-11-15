@@ -530,38 +530,8 @@ function populateSpecialOptions() {
                     };
                     skillItem.appendChild(skillImage);
                     
-                    // Criar badge de cargas disponíveis
-                    const chargesBadge = document.createElement('div');
-                    chargesBadge.className = 'special-skill-charges';
-                    chargesBadge.textContent = skill.current_charges;
-                    skillItem.appendChild(chargesBadge);
-                    
-                    // Formatar tempo restante para próxima carga
-                    let timeText = '';
-                    let rechargeFullMessage = false;
-
-                    // Verificar se a skill tem todas as cargas
-                    if (skill.current_charges >= skill.max_charges) {
-                        rechargeFullMessage = true;
-                        timeText = 'Aguardando uso';
-                    } else if (skill.time_until_next !== null) {
-                        const seconds = skill.time_until_next;
-                        if (seconds <= 0) {
-                            timeText = 'Pronto';
-                        } else {
-                            const hours = Math.floor(seconds / 3600);
-                            const minutes = Math.floor((seconds % 3600) / 60);
-                            const secs = Math.floor(seconds % 60);
-                            
-                            if (hours > 0) {
-                                timeText = `${hours}h ${minutes}min`;
-                            } else if (minutes > 0) {
-                                timeText = `${minutes}min ${secs}s`;
-                            } else {
-                                timeText = `${secs}s`;
-                            }
-                        }
-                    }
+                    // Sistema novo: baseado em turnos, não em tempo
+                    let usedThisTurn = skill.used_this_turn || false;
                     
                     // Formatar efeito positivo em texto legível
                     let positiveEffectText = '';
@@ -661,66 +631,39 @@ function populateSpecialOptions() {
                     const tooltip = document.createElement('div');
                     tooltip.className = 'special-skill-tooltip';
 
-                    // Nome da skill e nível
+                    // Nome da skill (grande, centralizado, dourado)
                     const skillName = document.createElement('h3');
-                    skillName.textContent = `${skill.name} - Nível ${skill.current_level || 1}`;
+                    skillName.textContent = skill.name;
+                    skillName.style.cssText = 'font-size: 18px; text-align: center; color: #FFD700; margin-bottom: 8px; font-weight: bold;';
                     tooltip.appendChild(skillName);
 
-                    // Cargas
-                    const chargesInfo = document.createElement('div');
-                    chargesInfo.className = 'charges';
-                    chargesInfo.textContent = `Cargas: ${skill.current_charges}/${skill.max_charges}`;
-
-                    if (!rechargeFullMessage && skill.time_until_next !== null && skill.time_until_next > 0) {
-                        chargesInfo.textContent += ` • Recarga: ${timeText}`;
-                    } else if (rechargeFullMessage) {
-                        chargesInfo.textContent += ` • ${timeText}`;
-                    }
-                    tooltip.appendChild(chargesInfo);
-
-                    // Adicionar tempo de recarga fixo
-                    if (skill.cooldown_minutes) {
-                        const cooldownHours = Math.floor(skill.cooldown_minutes / 60);
-                        const cooldownMins = skill.cooldown_minutes % 60;
-                        
-                        const cooldownInfo = document.createElement('div');
-                        cooldownInfo.className = 'charges';
-                        cooldownInfo.style.marginTop = '4px';
-                        
-                        if (cooldownHours > 0) {
-                            cooldownInfo.textContent = `Tempo de Recarga: ${cooldownHours}h${cooldownMins > 0 ? ` ${cooldownMins}min` : ''}`;
-                        } else {
-                            cooldownInfo.textContent = `Tempo de Recarga: ${cooldownMins}min`;
-                        }
-                        
-                        tooltip.appendChild(cooldownInfo);
+                    // Descrição da skill (se disponível)
+                    if (skill.description) {
+                        const description = document.createElement('div');
+                        description.className = 'skill-description';
+                        description.textContent = skill.description;
+                        description.style.cssText = 'font-size: 13px; color: #e0e0e0; margin-bottom: 10px; line-height: 1.4; text-align: center;';
+                        tooltip.appendChild(description);
                     }
 
-                    // Efeito positivo - Sempre incluir
-                    const effect = document.createElement('div');
-                    effect.className = 'effect';
-                    effect.textContent = positiveEffectText || "Efeito: Não disponível";
-                    tooltip.appendChild(effect);
-
-                    // Efeito negativo/custo
-                    if (negativeEffectText) {
-                        const cost = document.createElement('div');
-                        cost.className = 'cost';
-                        cost.textContent = negativeEffectText;
-                        tooltip.appendChild(cost);
+                    // Disponibilidade (baseado em turnos)
+                    const availabilityInfo = document.createElement('div');
+                    availabilityInfo.className = 'charges';
+                    availabilityInfo.style.cssText = 'font-size: 13px; margin-top: 8px; font-weight: bold; text-align: center;';
+                    if (usedThisTurn) {
+                        availabilityInfo.innerHTML = '⏳ Usada neste turno';
+                        availabilityInfo.style.color = '#ff6b6b';
+                    } else {
+                        availabilityInfo.innerHTML = '✓ Disponível';
+                        availabilityInfo.style.color = '#51cf66';
                     }
-
-                    // Duração - Sempre incluir
-                    const duration = document.createElement('div');
-                    duration.className = 'duration';
-                    duration.textContent = durationText || "Duração: Não especificada";
-                    tooltip.appendChild(duration);
+                    tooltip.appendChild(availabilityInfo);
 
                     // Adicionar tooltip ao item da skill
                     skillItem.appendChild(tooltip);
 
-                    // Verificar cargas e adicionar eventos
-                    if (skill.current_charges <= 0) {
+                    // Verificar disponibilidade (se foi usada neste turno)
+                    if (usedThisTurn) {
                         skillItem.classList.add('disabled');
                     } else {
                         // Adicionar eventos de mouse mais robustos
@@ -1012,7 +955,17 @@ function useSpecialSkill(skillId, skillName) {
         // Mostrar mensagem de sucesso ou erro
         if (data.success) {
             showTempMessage(`${skillName} ativada com sucesso!`, "#9933ff");
-            
+
+            // GUARDAR DADOS DE DANO PARA APLICAR APÓS ANIMAÇÃO
+            let pendingDamageData = null;
+            if (data.details && data.details.negative_effects) {
+                const negEffects = data.details.negative_effects;
+                if (negEffects.enemy_hp !== undefined && negEffects.enemy_max_hp !== undefined) {
+                    pendingDamageData = negEffects;
+                    console.log(`🩸 Dano pendente para aplicar após animação: ${negEffects.damage_dealt}`);
+                }
+            }
+
             // Aplicar feedback visual ao botão
             if (skillButton) {
                 // Adicionar classe para efeito visual de sucesso
@@ -1050,13 +1003,81 @@ function useSpecialSkill(skillId, skillName) {
             // Recarregar dados de batalha para atualizar interface
             loadBattleData()
                 .then(() => {
-                    // Atualizar interface
-                    updateStats();
-                    updatePlayerStatusCard();
-                    
+                    // Atualizar interface (com try-catch para não bloquear animações)
+                    try {
+                        updateStats();
+                        updatePlayerStatusCard();
+                    } catch (err) {
+                        console.warn("⚠️ Erro ao atualizar interface, mas continuando com animações:", err);
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro ao recarregar dados após usar skill:", error);
+                })
+                .finally(() => {
+                    // SEMPRE tocar animações, mesmo se loadBattleData falhar
+                    console.log("🎬 [VISUAL FX DEBUG] data.details:", data.details);
+
                     if (data.details && data.details.animation) {
+                        console.log("🎬 [VISUAL FX DEBUG] Usando animation data da API:", data.details.animation);
                         applySpecialSkillVisualEffect(data.details.animation);
+
+                        // APLICAR DANO APÓS ANIMAÇÃO (delay para view swap + som + efeito)
+                        if (pendingDamageData) {
+                            const delayForDamage = 2500; // 600ms view + 1500ms som/efeito + 400ms buffer
+                            console.log(`⏳ Agendando aplicação de dano em ${delayForDamage}ms`);
+
+                            setTimeout(() => {
+                                console.log(`🩸 Aplicando dano: ${pendingDamageData.damage_dealt}`);
+                                console.log(`👹 HP do inimigo: ${pendingDamageData.enemy_hp}/${pendingDamageData.enemy_max_hp}`);
+
+                                // Atualizar gameState
+                                gameState.boss.hp = pendingDamageData.enemy_hp;
+                                gameState.boss.maxHp = pendingDamageData.enemy_max_hp;
+                                if (pendingDamageData.blood_stacks !== undefined) {
+                                    gameState.boss.bloodStacks = pendingDamageData.blood_stacks;
+                                }
+
+                                // Atualizar visual
+                                updateStats();
+
+                                // Mostrar dano na tela
+                                if (pendingDamageData.damage_dealt > 0) {
+                                    updateDamageDisplay(pendingDamageData.damage_dealt, false);
+                                }
+
+                                // VERIFICAR SE INIMIGO FOI DERROTADO
+                                if (pendingDamageData.enemy_defeated) {
+                                    console.log("💀 INIMIGO DERROTADO POR LÂMINA DE SANGUE!");
+
+                                    // Salvar dados de vitória no localStorage
+                                    // Usar dados de recompensa retornados pelo backend
+                                    localStorage.setItem('lastVictoryTime', Date.now());
+                                    localStorage.setItem('victoryData', JSON.stringify({
+                                        bossDefeated: true,
+                                        damageDealt: window.totalBattleDamage || pendingDamageData.damage_dealt,
+                                        enemyName: data.details.enemy_name || gameState.boss?.name || 'Inimigo',
+                                        expGained: data.details.exp_reward || 0,
+                                        crystalsGained: data.details.crystals_gained || 0,
+                                        goldGained: data.details.gold_gained || 0,
+                                        hourglassesGained: data.details.hourglasses_gained || 0,
+                                        rewardType: data.details.reward_type || 'crystals',
+                                        timestamp: Date.now()
+                                    }));
+
+                                    // Aguardar um pouco e então processar morte
+                                    setTimeout(() => {
+                                        if (typeof handleBossDeathAnimation === 'function') {
+                                            handleBossDeathAnimation(true, gameState.boss.rarity || 1);
+                                        } else {
+                                            window.location.href = '/gamification';
+                                        }
+                                    }, 1500);
+                                }
+                            }, delayForDamage);
+                        }
                     } else if (data.details && data.details.effect_type) {
+                        console.log("🎬 [VISUAL FX DEBUG] Construindo animation data de effect_type:", data.details.effect_type);
                         // Converter o tipo de efeito em dados de animação
                         const animationData = {
                             animation_activate_1: `/static/game.data/activation/${data.details.effect_type}_a.png`,
@@ -1067,10 +1088,9 @@ function useSpecialSkill(skillId, skillName) {
                             sound_effect_2: ""
                         };
                         applySpecialSkillVisualEffect(animationData);
+                    } else {
+                        console.error("🎬 [VISUAL FX DEBUG] NENHUM dado de animação encontrado! data.details:", data.details);
                     }
-                })
-                .catch(error => {
-                    console.error("Erro ao recarregar dados após usar skill:", error);
                 });
         } else {
             showTempMessage(data.message || "Erro ao ativar skill", "#ff3333");
@@ -1097,16 +1117,59 @@ function useSpecialSkill(skillId, skillName) {
 
 // Aplicar efeito visual das habilidades especiais
 function applySpecialSkillVisualEffect(animationData) {
-    console.log("Aplicando efeito visual com dados diretos da API:", animationData);
-    
+    console.log("🎬 [VISUAL FX] Aplicando efeito visual com dados diretos da API:", animationData);
+    console.log("🎬 [VISUAL FX] animation_activate_1:", animationData?.animation_activate_1);
+    console.log("🎬 [VISUAL FX] animation_activate_2:", animationData?.animation_activate_2);
+    console.log("🎬 [VISUAL FX] sound_prep_1:", animationData?.sound_prep_1);
+    console.log("🎬 [VISUAL FX] sound_effect_1:", animationData?.sound_effect_1);
+    console.log("🎬 [VISUAL FX] target:", animationData?.target || "player");
+
     // Verificar se temos dados de animação
     if (!animationData) {
-        console.error("Dados de animação não fornecidos");
+        console.error("🎬 [VISUAL FX] ❌ Dados de animação não fornecidos");
         return;
     }
-    
-    // PARTE 1: PROCESSAR SONS EXATAMENTE COMO VIERAM DA API
-    const delay = 500; // 500ms entre os sons
+
+    // Determinar onde aplicar o efeito (player ou enemy)
+    const effectTarget = animationData.target || "player";
+    let targetElement = null;
+    if (effectTarget === "enemy") {
+        targetElement = document.getElementById('boss');
+        console.log("🎯 [VISUAL FX] Efeito será aplicado no INIMIGO");
+
+        // VERIFICAR SE O INIMIGO ESTÁ VISÍVEL (não está na character-view)
+        const isCharacterView = document.querySelector('.battle-arena.character-view') !== null;
+        if (isCharacterView) {
+            console.log("⚠️ [VISUAL FX] Estamos na character-view! Trocando para view padrão...");
+
+            // Trocar para view padrão onde o inimigo aparece
+            if (typeof toggleCharacterView === 'function' && window.gameState.characterView) {
+                toggleCharacterView();
+            }
+
+            // Aguardar a transição e então aplicar o efeito
+            setTimeout(() => {
+                console.log("✅ [VISUAL FX] View trocada! Agora aplicando efeito no inimigo...");
+                processRestOfEffect();
+            }, 600); // Esperar transição da camera
+            return; // Sair para não processar duas vezes
+        }
+    } else {
+        targetElement = document.getElementById('character');
+        console.log("🎯 [VISUAL FX] Efeito será aplicado no JOGADOR");
+    }
+
+    // Processar o resto do efeito normalmente
+    processRestOfEffect();
+
+    function processRestOfEffect() {
+        // Re-obter targetElement caso tenha mudado de view
+        if (effectTarget === "enemy") {
+            targetElement = document.getElementById('boss');
+        }
+
+        // PARTE 1: PROCESSAR SONS EXATAMENTE COMO VIERAM DA API
+        const delay = 500; // 500ms entre os sons
     
     // Tocar os sons em sequência
     if (animationData.sound_prep_1) {
@@ -1138,29 +1201,38 @@ function applySpecialSkillVisualEffect(animationData) {
     // PARTE 2: PROCESSAR ANIMAÇÕES VISUAIS COM SISTEMA HÍBRIDO
     const hasVisualEffect1 = animationData.animation_activate_1;
     const hasVisualEffect2 = animationData.animation_activate_2;
-    
+
     if (!hasVisualEffect1 && !hasVisualEffect2) {
         console.log("Nenhuma animação visual disponível nos dados da API");
         return;
     }
-    
+
     // Verificar se estamos na character-view
-    const isCharacterView = document.querySelector('.battle-arena.character-view') !== null;
-    
-    if (!isCharacterView) {
-        console.log("Forçando character-view para animação...");
+    const isInCharacterView = document.querySelector('.battle-arena.character-view') !== null;
+
+    // LÓGICA DE VIEW:
+    // - Efeitos no JOGADOR → mostrar na character-view
+    // - Efeitos no INIMIGO → mostrar na view padrão (onde inimigo aparece)
+
+    if (effectTarget === "enemy") {
+        // Para efeitos no inimigo, NÃO precisamos mudar de view (já foi tratado acima)
+        console.log("🎯 Aplicando efeito no INIMIGO na view atual");
+        processSpecialEffects();
+    } else if (!isInCharacterView) {
+        // Para efeitos no jogador, forçar character-view
+        console.log("Forçando character-view para animação no jogador...");
         const previousView = {
             zoomedView: window.gameState.zoomedView,
             characterView: window.gameState.characterView,
             bossView: window.gameState.bossView
         };
-        
+
         if (typeof toggleCharacterView === 'function' && !window.gameState.characterView) {
             toggleCharacterView();
-            
+
             setTimeout(() => {
                 processSpecialEffects();
-                
+
                 // Restaurar view anterior após a animação
                 setTimeout(() => {
                     if (previousView.zoomedView && !window.gameState.zoomedView) {
@@ -1179,8 +1251,9 @@ function applySpecialSkillVisualEffect(animationData) {
     // Função para processar efeitos especiais
     function processSpecialEffects() {
         console.log("Processando efeitos especiais de skill especial");
-        
-        // ANIMATION_ACTIVATE_1 - Efeito frontal (character front)
+        console.log("🎯 Target element:", targetElement?.id || "não encontrado");
+
+        // ANIMATION_ACTIVATE_1 - Efeito frontal
         if (hasVisualEffect1) {
             if (isPixiEffect(hasVisualEffect1)) {
                 console.log("🎭 Aplicando PixiJS activate_1:", hasVisualEffect1);
@@ -1188,15 +1261,15 @@ function applySpecialSkillVisualEffect(animationData) {
                     playPixiEffect(hasVisualEffect1, 'character', 'front', 'applySpecialSkillVisualEffect_activate_1');
                 }, delay * 3); // Sincronizar com sound_effect_1
             } else {
-                console.log("🖼️ Aplicando sprite activate_1:", hasVisualEffect1);
-                // Usar sistema existente de sprites para character
+                console.log("🖼️ Aplicando sprite activate_1:", hasVisualEffect1, "no target:", targetElement?.id);
+                // Usar sistema existente de sprites - agora com TARGET correto
                 setTimeout(() => {
-                    createSpriteAnimationLayers(hasVisualEffect1, 'front');
+                    createSpriteAnimationLayers(hasVisualEffect1, 'front', targetElement);
                 }, delay * 3);
             }
         }
-        
-        // ANIMATION_ACTIVATE_2 - Efeito traseiro (character back)  
+
+        // ANIMATION_ACTIVATE_2 - Efeito traseiro
         if (hasVisualEffect2) {
             if (isPixiEffect(hasVisualEffect2)) {
                 console.log("🎭 Aplicando PixiJS activate_2:", hasVisualEffect2);
@@ -1204,58 +1277,91 @@ function applySpecialSkillVisualEffect(animationData) {
                     playPixiEffect(hasVisualEffect2, 'character', 'back', 'applySpecialSkillVisualEffect_activate_2');
                 }, delay * 3); // Sincronizar com sound_effect_1
             } else {
-                console.log("🖼️ Aplicando sprite activate_2:", hasVisualEffect2);
-                // Usar sistema existente de sprites para character
+                console.log("🖼️ Aplicando sprite activate_2:", hasVisualEffect2, "no target:", targetElement?.id);
+                // Usar sistema existente de sprites - agora com TARGET correto
                 setTimeout(() => {
-                    createSpriteAnimationLayers(hasVisualEffect2, 'back');
+                    createSpriteAnimationLayers(hasVisualEffect2, 'back', targetElement);
                 }, delay * 3);
             }
         }
     }
     
     // Função para criar sprites (manter sistema existente)
-    function createSpriteAnimationLayers(imageUrl, layer) {
+    function createSpriteAnimationLayers(imageUrl, layer, targetElement = null) {
         console.log("Criando sprite de skill especial:", imageUrl, "camada:", layer);
-        
-        const characterContainer = document.getElementById('character');
-        if (!characterContainer) {
-            console.error("Container do personagem não encontrado");
+
+        // Determinar container: character (padrão) ou boss (para skills de dano)
+        let container = targetElement || document.getElementById('character');
+        if (!container) {
+            console.error("Container não encontrado para animação");
             return;
         }
-        
+
         // Remover camadas anteriores
         document.querySelectorAll('.skill-fx-layer').forEach(el => el.remove());
-        
+
+        // Extrair informações do nome do arquivo (ex: autofagia300-300-7f.png)
+        const filename = imageUrl.split('/').pop();
+        const match = filename.match(/(\d+)-(\d+)-(\d+)f/);
+
+        let frameWidth = 300;
+        let frameHeight = 300;
+        let frameCount = 7;
+
+        if (match) {
+            frameWidth = parseInt(match[1]);
+            frameHeight = parseInt(match[2]);
+            frameCount = parseInt(match[3]);
+            console.log(`📏 Sprite detectado: ${frameWidth}x${frameHeight}, ${frameCount} frames`);
+        }
+
+        const totalWidth = frameWidth * frameCount;
+        const animationDuration = frameCount * 0.1; // 100ms por frame
+
+        // Criar keyframes dinamicamente
+        const keyframeId = `skill-fx-${Date.now()}`;
+        const styleEl = document.createElement('style');
+        styleEl.id = keyframeId;
+        styleEl.textContent = `
+            @keyframes ${keyframeId} {
+                from { background-position: 0 0; }
+                to { background-position: -${totalWidth}px 0; }
+            }
+        `;
+        document.head.appendChild(styleEl);
+
         const fxLayer = document.createElement('div');
         fxLayer.className = `skill-fx-layer skill-fx-${layer}`;
-        
+
         fxLayer.style.cssText = `
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: ${frameWidth}px;
+            height: ${frameHeight}px;
             background-image: url("${imageUrl}");
             background-repeat: no-repeat;
             background-position: 0 0;
-            background-size: cover;
-            opacity: 0;
+            background-size: ${totalWidth}px ${frameHeight}px;
+            opacity: 1;
             pointer-events: none;
-            z-index: ${layer === 'front' ? '12' : '8'};
+            z-index: ${layer === 'front' ? '100' : '8'};
+            animation: ${keyframeId} ${animationDuration}s steps(${frameCount}) forwards;
         `;
-        
-        characterContainer.appendChild(fxLayer);
-        
-        // Aplicar animação
-        void fxLayer.offsetWidth;
-        fxLayer.style.opacity = '1';
-        fxLayer.classList.add('animate-skill-fx');
-        
+
+        container.appendChild(fxLayer);
+        console.log(`✅ Sprite FX adicionado ao container:`, container.id || container.className);
+
         // Remover após animação
         setTimeout(() => {
             fxLayer.remove();
-        }, 1200);
+            const keyframeStyle = document.getElementById(keyframeId);
+            if (keyframeStyle) keyframeStyle.remove();
+            console.log(`🗑️ Sprite FX removido após ${animationDuration}s`);
+        }, animationDuration * 1000 + 200);
     }
+    } // Fecha processRestOfEffect()
 }
 
 // Verificar imagem de sprite

@@ -86,13 +86,29 @@ def before_attack(player, skill_data, attack_data):
     Chamado antes de calcular dano.
     Retorna attack_data modificado.
     """
+    from routes.battle import get_current_battle_enemy
+
     active_relics = get_active_relics(player.id)
-    
+
     # Adicionar campos necessários se não existirem
     if 'damage_multiplier' not in attack_data:
         attack_data['damage_multiplier'] = 1.0
     if 'lifesteal_bonus' not in attack_data:
         attack_data['lifesteal_bonus'] = 0.0
+
+    # ===== SISTEMA DE BLOOD STACKS DO VLAD - ULTIMATE =====
+    skill_id = skill_data.get('id')
+    if skill_id == 53 and player.character_id == 'vlad':  # ID 53 = Beijo da Morte (Ultimate)
+        current_enemy = get_current_battle_enemy(player.id)
+        if current_enemy:
+            blood_stacks = current_enemy.blood_stacks or 0
+            if blood_stacks > 0:
+                bonus_damage = blood_stacks * 2
+                # Adicionar dano extra ao attack_data
+                if 'flat_damage_bonus' not in attack_data:
+                    attack_data['flat_damage_bonus'] = 0
+                attack_data['flat_damage_bonus'] += bonus_damage
+                print(f"🩸 Ultimate consumirá {blood_stacks} stacks | +{bonus_damage} dano extra")
     
     for relic in active_relics:
         definition = get_relic_definition(relic.relic_id)
@@ -113,12 +129,38 @@ def before_attack(player, skill_data, attack_data):
 
 def after_attack(player, attack_result):
     """Chamado após aplicar dano"""
+    from routes.battle import get_current_battle_enemy
+
     active_relics = get_active_relics(player.id)
-    
+
     # Incrementar contadores globais
     player.attacks_this_battle += 1
     player.total_attacks_any_type += 1
-    
+
+    # ===== SISTEMA DE BLOOD STACKS DO VLAD =====
+    skill_id = attack_result.get('skill_id')
+    if skill_id and player.character_id == 'vlad':
+        current_enemy = get_current_battle_enemy(player.id)
+        if current_enemy:
+            # ID 51 (Garras Sangrentas - Ataque Básico) = +2 Blood Stacks
+            if skill_id == 51:
+                current_enemy.blood_stacks = (current_enemy.blood_stacks or 0) + 2
+                print(f"🩸 Blood Stacks: +2 (Ataque Básico) | Total: {current_enemy.blood_stacks}")
+
+            # ID 50 (Energia Escura - Poder) ou ID 52 (Abraço da Escuridão - Especial) = +1 Blood Stack
+            elif skill_id in [50, 52]:
+                current_enemy.blood_stacks = (current_enemy.blood_stacks or 0) + 1
+                print(f"🩸 Blood Stacks: +1 (Poder/Especial) | Total: {current_enemy.blood_stacks}")
+
+            # ID 53 (Beijo da Morte - Ultimate) = CONSOME todos e adiciona +2 dano por stack
+            elif skill_id == 53:
+                blood_stacks = current_enemy.blood_stacks or 0
+                if blood_stacks > 0:
+                    bonus_damage = blood_stacks * 2
+                    # O dano bonus já deve ter sido aplicado, mas registramos aqui
+                    print(f"🩸 Blood Stacks: CONSUMIU {blood_stacks} stacks (+{bonus_damage} dano)")
+                    current_enemy.blood_stacks = 0
+
     # Rastrear skill usada
     skill_type = attack_result.get('skill_type')
     if skill_type:
@@ -305,12 +347,22 @@ def reset_battle_counters(player):
     player.enemy_first_attack_blocked = False
     # accumulated_* NÃO reseta
     # total_* NÃO reseta
-    
+
+    # ===== RESETAR SKILLS ESPECIAIS PARA PRÓXIMA BATALHA =====
+    from characters import PlayerSkill
+    special_skills = PlayerSkill.query.filter_by(
+        player_id=player.id,
+        skill_type="special"
+    ).all()
+    for skill in special_skills:
+        skill.last_used_at_enemy_turn = None
+    print(f"♻️ Skills especiais resetadas após vitória ({len(special_skills)} skills)")
+
     # ===== LIMPAR STATE_DATA DAS RELÍQUIAS ENTRE BATALHAS =====
     battle_relics = PlayerRelic.query.filter_by(player_id=player.id, is_active=True).all()
     for relic in battle_relics:
         state = json.loads(relic.state_data or '{}')
-        
+
         # Limpar flags de batalha (mas manter stacks permanentes)
         state.pop('healed_this_battle', None)
         state.pop('pd_given_this_battle', None)

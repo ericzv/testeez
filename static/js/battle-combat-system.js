@@ -1256,12 +1256,19 @@ function performAttack(skill) {
         // Finalizar sequência de ataque
         finishAttackSequence() {
             console.log("Sequência de ataque finalizada");
-            
+
             // Restaurar estado do jogo
             if (!gameState.boss.hp <= 0) {
                 gameState.inAction = false;
             }
-            
+
+            // IMPORTANTE: Atualizar Blood Stacks após ataque
+            if (typeof loadBattleData === 'function') {
+                loadBattleData().then(() => {
+                    console.log("✅ Blood Stacks atualizados após ataque");
+                });
+            }
+
             // Reexibir HUDs
             setTimeout(() => {
                 alignHUDs();
@@ -3871,6 +3878,17 @@ function saveBossDamage(skill, damage, isCritical) {
             gameState.player.hp = data.player_hp;
             gameState.player.maxHp = data.player_max_hp;
             gameState.player.barrier = data.player_barrier;
+
+            // ATUALIZAR BLOOD STACKS
+            if (data.blood_stacks !== undefined) {
+                gameState.boss.bloodStacks = data.blood_stacks;
+                console.log(`🩸 Blood Stacks atualizados: ${data.blood_stacks}`);
+
+                // Atualizar display imediatamente
+                if (typeof updateBloodStacksDisplay === 'function') {
+                    updateBloodStacksDisplay(data.blood_stacks);
+                }
+            }
 
             // Atualizar energia do jogador
             if (data.player_energy !== undefined) {

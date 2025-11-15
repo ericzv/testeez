@@ -80,9 +80,12 @@ class PlayerSkill(db.Model):
     player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
     skill_type = db.Column(db.String(20))  # "attack" ou "special"
     skill_id = db.Column(db.Integer, nullable=False)
-    current_charges = db.Column(db.Integer, default=0)
-    last_charge_time = db.Column(db.DateTime, default=datetime.utcnow)
+    current_charges = db.Column(db.Integer, default=0)  # DEPRECATED - Sistema antigo
+    last_charge_time = db.Column(db.DateTime, default=datetime.utcnow)  # DEPRECATED - Sistema antigo
     unlocked_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Novo sistema: controle por turnos (para skills especiais)
+    last_used_at_enemy_turn = db.Column(db.Integer, default=-1)  # -1 = nunca usada ou turno desconhecido
     
     def __repr__(self):
         return f"<PlayerSkill type={self.skill_type} id={self.skill_id}>"
@@ -272,74 +275,74 @@ VLAD_SPECIAL_SKILLS_DATA = [
     {
         "id": 138,
         "name": "Autofagia",
-        "description": "Sacrifica sangue para aumentar poder de ataque",
-        "max_charges": 1,
-        "cooldown_minutes": 600,
-        "positive_effect_type": "multi_boost",
-        "positive_effect_value": '{"crit_chance": 0.25, "crit_damage": 0.5}',
-        "negative_effect_type": "hp_cost",
-        "negative_effect_value": 0.25,
+        "description": "Consome 7HP para formar 3x Sangue Coagulado e aumentar em 5 o dano do próximo ataque. [1x por turno]",
+        "max_charges": 1,  # DEPRECATED - sistema antigo
+        "cooldown_minutes": 0,  # DEPRECATED - sistema antigo
+        "positive_effect_type": "autofagia",
+        "positive_effect_value": '{"hp_cost": 7, "blood_stacks": 3, "damage_bonus": 5}',
+        "negative_effect_type": None,
+        "negative_effect_value": None,
         "duration_type": "attacks",
-        "duration_value": 4,
-        "animation_activate_1": "/static/game.data/activation/activation2a.png",
-        "animation_activate_2": "/static/game.data/activation/activation2b.png",
-        "icon": "/static/game.data/icons/icon3.png",
-        "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
-        "sound_effect_1": "/static/game.data/sounds/sfx2.mp3"
+        "duration_value": 1,  # Bônus de dano válido por 1 ataque
+        "animation_activate_1": "/static/game.data/fx/autofagia300-300-7f.png",
+        "animation_activate_2": "",
+        "icon": "/static/game.data/icons/sk1.png",
+        "sound_prep_1": "",
+        "sound_effect_1": "/static/game.data/sounds/autofagia.mp3"
     },
     {
         "id": 139,
-        "name": "Aura Vampírica",
-        "description": "Emana aura que drena vida com cada ataque",
-        "max_charges": 1,
-        "cooldown_minutes": 600,
-        "positive_effect_type": "lifesteal",
-        "positive_effect_value": "0.15",
+        "name": "Lâmina de Sangue",
+        "description": "Consome todo Sangue Coagulado para gerar um ataque que causa 2 de dano por acúmulo. Custo: 2 Energia. [1x por turno]",
+        "max_charges": 1,  # DEPRECATED
+        "cooldown_minutes": 0,  # DEPRECATED
+        "positive_effect_type": "blood_blade",
+        "positive_effect_value": '{"damage_per_stack": 2, "energy_cost": 2}',
         "negative_effect_type": None,
         "negative_effect_value": None,
-        "duration_type": "time",
-        "duration_value": 240,
-        "animation_activate_1": "/static/game.data/activation/activation2a.png",
-        "animation_activate_2": "/static/game.data/activation/activation2b.png",
-        "icon": "/static/game.data/icons/icon3.png",
-        "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
-        "sound_effect_1": "/static/game.data/sounds/sfx2.mp3"
+        "duration_type": "instant",
+        "duration_value": 0,
+        "animation_activate_1": "/static/game.data/fx/autofagia300-300-7f.png",
+        "animation_activate_2": "",
+        "icon": "/static/game.data/icons/sk2.png",
+        "sound_prep_1": "",
+        "sound_effect_1": "/static/game.data/sounds/blood_blade.mp3"
     },
     {
         "id": 140,
-        "name": "Domínio Mental",
-        "description": "Controla mente do inimigo temporariamente",
-        "max_charges": 1,
-        "cooldown_minutes": 1080,
-        "positive_effect_type": "mind_control",
-        "positive_effect_value": "0.7",
-        "negative_effect_type": "mp_cost",
-        "negative_effect_value": 0.4,
-        "duration_type": "attacks",
-        "duration_value": 1,
-        "animation_activate_1": "/static/game.data/activation/activation2a.png",
-        "animation_activate_2": "/static/game.data/activation/activation2b.png",
-        "icon": "/static/game.data/icons/icon3.png",
-        "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
-        "sound_effect_1": "/static/game.data/sounds/sfx2.mp3"
+        "name": "Barreira de Sangue",
+        "description": "Consome todo Sangue Coagulado para gerar barreira de 2 por acúmulo. Custo: 3 Energia. [1x por turno]",
+        "max_charges": 1,  # DEPRECATED
+        "cooldown_minutes": 0,  # DEPRECATED
+        "positive_effect_type": "blood_barrier",
+        "positive_effect_value": '{"barrier_per_stack": 2, "energy_cost": 3}',
+        "negative_effect_type": None,
+        "negative_effect_value": None,
+        "duration_type": "instant",
+        "duration_value": 0,
+        "animation_activate_1": "/static/game.data/fx/blood_barrier.png",
+        "animation_activate_2": "",
+        "icon": "/static/game.data/icons/sk3.png",
+        "sound_prep_1": "",
+        "sound_effect_1": "/static/game.data/sounds/blood_barrier.mp3"
     },
     {
         "id": 141,
-        "name": "Abraço Sanguíneo",
-        "description": "Poder supremo que drena toda essência vital",
-        "max_charges": 1,
-        "cooldown_minutes": 2880,
-        "positive_effect_type": "blood_embrace",
-        "positive_effect_value": "1.0",
+        "name": "Regeneração",
+        "description": "Consome todo Sangue Coagulado para curar 1HP por acúmulo. Custo: 2 Energia. [1x por turno]",
+        "max_charges": 1,  # DEPRECATED
+        "cooldown_minutes": 0,  # DEPRECATED
+        "positive_effect_type": "blood_regen",
+        "positive_effect_value": '{"heal_per_stack": 1, "energy_cost": 2}',
         "negative_effect_type": None,
         "negative_effect_value": None,
-        "duration_type": "attacks",
-        "duration_value": 1,
-        "animation_activate_1": "/static/game.data/activation/activation2a.png",
-        "animation_activate_2": "/static/game.data/activation/activation2b.png",
-        "icon": "/static/game.data/icons/icon3.png",
-        "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
-        "sound_effect_1": "/static/game.data/sounds/sfx2.mp3"
+        "duration_type": "instant",
+        "duration_value": 0,
+        "animation_activate_1": "/static/game.data/fx/regen.png",
+        "animation_activate_2": "",
+        "icon": "/static/game.data/icons/sk3.png",
+        "sound_prep_1": "",
+        "sound_effect_1": "/static/game.data/sounds/regen.mp3"
     }
 ]
 
@@ -351,7 +354,7 @@ def init_vlad_skills():
     """Inicializa as skills do Vlad no banco - SEM IMPORT CIRCULAR"""
     try:
         print("🔄 Inicializando skills do Vlad...")
-        
+
         # Adicionar skills de ataque do Vlad
         for skill_data in VLAD_ATTACK_SKILLS_DATA:
             existing = AttackSkill.query.get(skill_data["id"])
@@ -361,8 +364,8 @@ def init_vlad_skills():
                 print(f"  ✅ Skill de ataque criada: {skill_data['name']} (ID: {skill_data['id']})")
             else:
                 print(f"  ⏭️ Skill de ataque já existe: {skill_data['name']} (ID: {skill_data['id']})")
-        
-        # Adicionar skills especiais do Vlad
+
+        # Adicionar/ATUALIZAR skills especiais do Vlad
         for skill_data in VLAD_SPECIAL_SKILLS_DATA:
             existing = SpecialSkill.query.get(skill_data["id"])
             if not existing:
@@ -370,14 +373,20 @@ def init_vlad_skills():
                 db.session.add(skill)
                 print(f"  ✅ Skill especial criada: {skill_data['name']} (ID: {skill_data['id']})")
             else:
-                print(f"  ⏭️ Skill especial já existe: {skill_data['name']} (ID: {skill_data['id']})")
-        
+                # ATUALIZAR skill existente com novos dados
+                for key, value in skill_data.items():
+                    if key != "id":  # Não atualizar o ID
+                        setattr(existing, key, value)
+                print(f"  🔄 Skill especial ATUALIZADA: {skill_data['name']} (ID: {skill_data['id']})")
+
         db.session.commit()
         print("✅ Skills do Vlad inicializadas com sucesso!")
         return True
-        
+
     except Exception as e:
         print(f"❌ Erro ao inicializar skills do Vlad: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 def init_skills():
@@ -600,6 +609,17 @@ def get_player_attacks(player_id):
                         stacks = state.get('battle_stacks', 0)
                         stack_bonus = effect.get('stack_bonus', 2)
                         total_damage += stacks * stack_bonus  # APENAS os stacks, não o initial
+
+            # ===== BÔNUS DE BLOOD STACKS PARA SUPREMA DO VLAD =====
+            if cache.skill_type == 'ultimate' and player.character_id == 'vlad':
+                from routes.battle import get_current_battle_enemy
+                current_enemy = get_current_battle_enemy(player_id)
+                if current_enemy:
+                    blood_stacks = getattr(current_enemy, 'blood_stacks', 0) or 0
+                    if blood_stacks > 0:
+                        blood_bonus = blood_stacks * 2  # +2 dano por stack
+                        total_damage += blood_bonus
+                        skill['blood_stacks_bonus'] = blood_bonus  # Para mostrar no tooltip
 
             # Adicionar dados do cache para exibição no frontend
             skill['cache_data'] = {
@@ -943,26 +963,31 @@ def get_player_attacks(player_id):
 
 def get_player_specials(player_id):
     """Retorna as habilidades especiais que o jogador já desbloqueou"""
+    from models import Player, PlayerProgress, GenericEnemy, LastBoss
+    from routes.battle import get_current_battle_enemy
+
     player_skills = PlayerSkill.query.filter_by(
         player_id=player_id,
         skill_type="special"
     ).all()
-    
+
+    # Obter o turno atual do inimigo
+    current_enemy = get_current_battle_enemy(player_id)
+    current_enemy_turn = current_enemy.battle_turn_counter if current_enemy else 0
+
     result = []
     for ps in player_skills:
         skill = SpecialSkill.query.get(ps.skill_id)
         if skill:
-            time_until_next = ps.get_time_until_next_charge()
-            
+            # NOVO SISTEMA: Verificar se foi usada neste turno
+            used_this_turn = (ps.last_used_at_enemy_turn == current_enemy_turn)
+
             result.append({
                 "id": skill.id,
                 "name": skill.name,
                 "description": skill.description,
                 "level": 1,
-                "current_charges": ps.current_charges,
-                "max_charges": skill.max_charges,
-                "cooldown_minutes": skill.cooldown_minutes,
-                "time_until_next": time_until_next.total_seconds() if time_until_next else None,
+                "used_this_turn": used_this_turn,  # NOVO
                 "positive_effect": {
                     "type": skill.positive_effect_type,
                     "value": skill.positive_effect_value
@@ -977,7 +1002,7 @@ def get_player_specials(player_id):
                 },
                 "icon": skill.icon
             })
-    
+
     return result
 
 def use_attack_skill(player_id, skill_id, session_points=0):
@@ -1131,45 +1156,194 @@ def use_special_skill(player_id, skill_id):
     print(f"==== INICIANDO use_special_skill(player_id={player_id}, skill_id={skill_id}) ====")
     try:
         from models import Player
-        
+        from routes.battle import get_current_battle_enemy
+
         player = Player.query.get(player_id)
         if not player:
             return False, "Jogador não encontrado.", {}
-        
+
         player_skill = PlayerSkill.query.filter_by(
             player_id=player_id,
             skill_id=skill_id,
             skill_type="special"
         ).first()
-        
+
         if not player_skill:
             return False, "Você não possui esta habilidade.", {}
-        
+
         skill = SpecialSkill.query.get(skill_id)
         if not skill:
             return False, "Habilidade não encontrada.", {}
-        
-        if player_skill.current_charges <= 0:
-            time_until_next = player_skill.get_time_until_next_charge()
-            hours, remainder = divmod(time_until_next.total_seconds(), 3600)
-            minutes, seconds = divmod(remainder, 60)
-            time_str = ""
-            if hours > 0:
-                time_str += f"{int(hours)}h "
-            if minutes > 0:
-                time_str += f"{int(minutes)}min "
-            time_str += f"{int(seconds)}s"
-            
-            return False, f"Sem cargas disponíveis. Próxima carga em: {time_str}", {}
+
+        # NOVO SISTEMA: Verificar se já foi usada neste turno
+        current_enemy = get_current_battle_enemy(player_id)
+        if not current_enemy:
+            return False, "Nenhum inimigo ativo na batalha.", {}
+
+        current_enemy_turn = current_enemy.battle_turn_counter
+
+        if player_skill.last_used_at_enemy_turn == current_enemy_turn:
+            return False, f"Você já usou {skill.name} neste turno. Aguarde o próximo turno.", {}
         
         positive_type = skill.positive_effect_type
         positive_value = skill.positive_effect_value
         duration_type = skill.duration_type
         duration_value = skill.duration_value
         skill_icon = skill.icon if hasattr(skill, 'icon') else None
-        
+
+        effect_msg = ""
+        negative_effects = {}
+
+        # ===== PROCESSAR NOVAS SKILLS ESPECIAIS DO VLAD (BLOOD STACKS) =====
+        if positive_type == "autofagia":
+            # Autofagia: Consome HP, gera Blood Stacks, adiciona bônus de dano
+            params = json.loads(positive_value)
+            hp_cost = params.get("hp_cost", 7)
+            blood_stacks = params.get("blood_stacks", 3)
+            damage_bonus = params.get("damage_bonus", 5)
+
+            # Consumir HP
+            player.hp = max(1, player.hp - hp_cost)
+            negative_effects["hp_loss"] = hp_cost
+
+            # Adicionar Blood Stacks no inimigo
+            current_enemy.blood_stacks = (current_enemy.blood_stacks or 0) + blood_stacks
+
+            # Adicionar bônus de dano no próximo ataque
+            extend_or_create_buff(
+                player_id=player_id,
+                source_skill_id=skill_id,
+                effect_type="damage_flat",
+                effect_value=damage_bonus,
+                duration_type="attacks",
+                duration_value=1,
+                icon=skill_icon
+            )
+
+            effect_msg = f"Consumiu {hp_cost}HP, gerou {blood_stacks}x Sangue Coagulado e +{damage_bonus} de dano no próximo ataque"
+
+        elif positive_type == "blood_blade":
+            # Lâmina de Sangue: Consome Blood Stacks, causa dano
+            params = json.loads(positive_value)
+            damage_per_stack = params.get("damage_per_stack", 2)
+            energy_cost = params.get("energy_cost", 2)
+
+            # Verificar energia
+            if player.energy < energy_cost:
+                return False, f"Energia insuficiente! Necessário: {energy_cost}", {}
+
+            # Consumir energia
+            player.energy -= energy_cost
+
+            # Calcular dano
+            blood_stacks = current_enemy.blood_stacks or 0
+            if blood_stacks <= 0:
+                return False, "Nenhum Sangue Coagulado para consumir!", {}
+
+            total_damage = blood_stacks * damage_per_stack
+
+            # Aplicar dano no inimigo
+            hp_before = current_enemy.hp
+            current_enemy.hp = max(0, current_enemy.hp - total_damage)
+
+            # Consumir todos os Blood Stacks
+            current_enemy.blood_stacks = 0
+
+            # IMPORTANTE: Verificar se o inimigo morreu
+            enemy_defeated = False
+            if current_enemy.hp <= 0:
+                enemy_defeated = True
+                from routes.relics.hooks import on_kill, reset_battle_counters
+                from models import PlayerProgress
+
+                enemy_data = {
+                    'enemy_id': current_enemy.id,
+                    'enemy_name': getattr(current_enemy, 'name', 'Inimigo')
+                }
+                on_kill(player, enemy_data)
+
+                # MARCAR INIMIGO COMO DERROTADO
+                current_enemy.is_available = False
+
+                # LIMPAR SELEÇÃO DO INIMIGO
+                progress = PlayerProgress.query.filter_by(player_id=player.id).first()
+                if progress:
+                    progress.selected_enemy_id = None
+
+                # RESETAR CONTADORES DE BATALHA
+                reset_battle_counters(player)
+
+                print(f"💀 Inimigo morto por Lâmina de Sangue! HP: {current_enemy.hp}")
+                print(f"✅ Inimigo marcado como derrotado e seleção limpa")
+
+            effect_msg = f"Consumiu {blood_stacks}x Sangue Coagulado e causou {total_damage} de dano!"
+
+            # Adicionar informações extras para o frontend
+            negative_effects["damage_dealt"] = total_damage
+            negative_effects["enemy_hp"] = current_enemy.hp
+            negative_effects["enemy_max_hp"] = current_enemy.max_hp
+            negative_effects["enemy_defeated"] = enemy_defeated
+            negative_effects["blood_stacks"] = 0
+            negative_effects["enemy_id"] = current_enemy.id  # Para buscar recompensas
+
+        elif positive_type == "blood_barrier":
+            # Barreira de Sangue: Consome Blood Stacks, gera barreira
+            params = json.loads(positive_value)
+            barrier_per_stack = params.get("barrier_per_stack", 2)
+            energy_cost = params.get("energy_cost", 3)
+
+            # Verificar energia
+            if player.energy < energy_cost:
+                return False, f"Energia insuficiente! Necessário: {energy_cost}", {}
+
+            # Consumir energia
+            player.energy -= energy_cost
+
+            # Calcular barreira
+            blood_stacks = current_enemy.blood_stacks or 0
+            if blood_stacks <= 0:
+                return False, "Nenhum Sangue Coagulado para consumir!", {}
+
+            total_barrier = blood_stacks * barrier_per_stack
+
+            # Adicionar barreira
+            player.barrier = (player.barrier or 0) + total_barrier
+
+            # Consumir todos os Blood Stacks
+            current_enemy.blood_stacks = 0
+
+            effect_msg = f"Consumiu {blood_stacks}x Sangue Coagulado e gerou {total_barrier} de barreira!"
+
+        elif positive_type == "blood_regen":
+            # Regeneração: Consome Blood Stacks, cura HP
+            params = json.loads(positive_value)
+            heal_per_stack = params.get("heal_per_stack", 1)
+            energy_cost = params.get("energy_cost", 2)
+
+            # Verificar energia
+            if player.energy < energy_cost:
+                return False, f"Energia insuficiente! Necessário: {energy_cost}", {}
+
+            # Consumir energia
+            player.energy -= energy_cost
+
+            # Calcular cura
+            blood_stacks = current_enemy.blood_stacks or 0
+            if blood_stacks <= 0:
+                return False, "Nenhum Sangue Coagulado para consumir!", {}
+
+            total_heal = blood_stacks * heal_per_stack
+
+            # Curar HP
+            player.hp = min(player.max_hp, player.hp + total_heal)
+
+            # Consumir todos os Blood Stacks
+            current_enemy.blood_stacks = 0
+
+            effect_msg = f"Consumiu {blood_stacks}x Sangue Coagulado e curou {total_heal}HP!"
+
         # Processar efeitos comuns
-        if positive_type in ["crit_chance", "crit_damage", "damage", "lifesteal", "block_bonus", "damage_reduction"]:
+        elif positive_type in ["crit_chance", "crit_damage", "damage", "lifesteal", "block_bonus", "damage_reduction"]:
             extend_or_create_buff(
                 player_id=player_id,
                 source_skill_id=skill_id,
@@ -1196,10 +1370,9 @@ def use_special_skill(player_id, skill_id):
                         duration_value=duration_value,
                         icon=skill_icon
                     )
-        
-        # Aplicar efeitos negativos
-        negative_effects = {}
-        if skill.negative_effect_type:
+
+        # Aplicar efeitos negativos (SOMENTE para skills antigas que ainda usam isso)
+        if skill.negative_effect_type and positive_type not in ["autofagia", "blood_blade", "blood_barrier", "blood_regen"]:
             negative_type = skill.negative_effect_type
             negative_value = skill.negative_effect_value
             
@@ -1213,11 +1386,8 @@ def use_special_skill(player_id, skill_id):
                 player.mp = max(0, player.mp - mp_cost)
                 negative_effects["mp_loss"] = mp_cost
         
-        # Consumir carga
-        player_skill.current_charges -= 1
-        
-        if player_skill.current_charges == 0:
-            player_skill.last_charge_time = datetime.utcnow()
+        # NOVO SISTEMA: Marcar como usada neste turno
+        player_skill.last_used_at_enemy_turn = current_enemy_turn
         
         # Log de combate
         combat_log = CombatLog(
@@ -1231,38 +1401,46 @@ def use_special_skill(player_id, skill_id):
         db.session.add(combat_log)
         db.session.commit()
         
-        # Formatar mensagem
-        duration_msg = ""
-        if duration_type == "attacks":
-            duration_msg = f"por {duration_value} ataques"
-        else:
-            if duration_value < 60:
-                duration_msg = f"por {duration_value} minutos"
+        # Formatar mensagem (SOMENTE se effect_msg ainda não foi setado)
+        if not effect_msg:
+            duration_msg = ""
+            if duration_type == "attacks":
+                duration_msg = f"por {duration_value} ataques"
             else:
-                hours = duration_value // 60
-                minutes = duration_value % 60
-                duration_msg = f"por {hours}h{minutes}min"
+                if duration_value < 60:
+                    duration_msg = f"por {duration_value} minutos"
+                else:
+                    hours = duration_value // 60
+                    minutes = duration_value % 60
+                    duration_msg = f"por {hours}h{minutes}min"
+
+            if positive_type == "crit_chance":
+                effect_msg = f"+{float(positive_value)*100:.0f}% Chance de Crítico {duration_msg}"
+            elif positive_type == "crit_damage":
+                effect_msg = f"+{float(positive_value)*100:.0f}% Dano Crítico {duration_msg}"
+            elif positive_type == "damage":
+                effect_msg = f"+{float(positive_value)*100:.0f}% Dano {duration_msg}"
+            elif positive_type == "lifesteal":
+                effect_msg = f"+{float(positive_value)*100:.0f}% Roubo de Vida {duration_msg}"
         
-        effect_msg = ""
-        if positive_type == "crit_chance":
-            effect_msg = f"+{float(positive_value)*100:.0f}% Chance de Crítico"
-        elif positive_type == "crit_damage":
-            effect_msg = f"+{float(positive_value)*100:.0f}% Dano Crítico"
-        elif positive_type == "damage":
-            effect_msg = f"+{float(positive_value)*100:.0f}% Dano"
-        elif positive_type == "lifesteal":
-            effect_msg = f"+{float(positive_value)*100:.0f}% Roubo de Vida"
-        
+        # Determinar target da animação (player ou enemy)
+        animation_target = "player"  # Padrão
+        if positive_type in ["blood_blade", "blood_barrier", "blood_regen"]:
+            # Skills que causam dano ou consomem stacks mostram efeito no inimigo
+            if positive_type == "blood_blade":
+                animation_target = "enemy"
+
         animation_data = {
             "animation_activate_1": getattr(skill, 'animation_activate_1', None),
             "animation_activate_2": getattr(skill, 'animation_activate_2', None),
             "sound_prep_1": getattr(skill, 'sound_prep_1', None),
             "sound_prep_2": getattr(skill, 'sound_prep_2', None),
             "sound_effect_1": getattr(skill, 'sound_effect_1', None),
-            "sound_effect_2": getattr(skill, 'sound_effect_2', None)
+            "sound_effect_2": getattr(skill, 'sound_effect_2', None),
+            "target": animation_target
         }
-        
-        return True, f"Habilidade {skill.name} ativada! {effect_msg} {duration_msg}", {
+
+        return True, f"Habilidade {skill.name} ativada! {effect_msg}", {
             "positive_effect": {
                 "type": positive_type,
                 "value": positive_value,
@@ -1304,6 +1482,11 @@ def update_skill_charges(player_id, specific_skill_id=None):
             continue
         
         cooldown_minutes = skill.cooldown_minutes
+
+        # SISTEMA NOVO: Skills com cooldown=0 não usam cargas por tempo
+        if cooldown_minutes <= 0:
+            continue  # Pular skills do sistema novo
+
         elapsed = now - ps.last_charge_time
         elapsed_minutes = elapsed.total_seconds() / 60
         charges_to_add = int(elapsed_minutes / cooldown_minutes)

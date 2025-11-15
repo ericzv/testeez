@@ -764,8 +764,14 @@ function loadBattleData() {
                         gameState.boss.hp = data.boss.hp;
                         gameState.boss.maxHp = data.boss.max_hp;
                         gameState.boss.description = data.boss.description;
+                        gameState.boss.bloodStacks = data.boss.blood_stacks || 0;
                         document.getElementById('boss_hp').innerText = data.boss.hp;
                         document.getElementById('boss_max_hp').innerText = data.boss.max_hp;
+
+                        // Atualizar exibição de Blood Stacks
+                        if (typeof updateBloodStacksDisplay === 'function') {
+                            updateBloodStacksDisplay(gameState.boss.bloodStacks);
+                        }
                         
                         // NOVO: Suporte para sprites de inimigos genéricos E bosses
                         if (data.boss.is_boss) {
