@@ -1051,12 +1051,17 @@ function useSpecialSkill(skillId, skillName) {
                                     console.log("💀 INIMIGO DERROTADO POR LÂMINA DE SANGUE!");
 
                                     // Salvar dados de vitória no localStorage
+                                    // Usar dados de recompensa retornados pelo backend
                                     localStorage.setItem('lastVictoryTime', Date.now());
                                     localStorage.setItem('victoryData', JSON.stringify({
                                         bossDefeated: true,
                                         damageDealt: window.totalBattleDamage || pendingDamageData.damage_dealt,
-                                        enemyName: gameState.boss?.name || 'Inimigo',
-                                        expGained: 0,
+                                        enemyName: data.details.enemy_name || gameState.boss?.name || 'Inimigo',
+                                        expGained: data.details.exp_reward || 0,
+                                        crystalsGained: data.details.crystals_gained || 0,
+                                        goldGained: data.details.gold_gained || 0,
+                                        hourglassesGained: data.details.hourglasses_gained || 0,
+                                        rewardType: data.details.reward_type || 'crystals',
                                         timestamp: Date.now()
                                     }));
 
