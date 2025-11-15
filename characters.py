@@ -1386,15 +1386,23 @@ def use_special_skill(player_id, skill_id):
             elif positive_type == "lifesteal":
                 effect_msg = f"+{float(positive_value)*100:.0f}% Roubo de Vida {duration_msg}"
         
+        # Determinar target da animação (player ou enemy)
+        animation_target = "player"  # Padrão
+        if positive_type in ["blood_blade", "blood_barrier", "blood_regen"]:
+            # Skills que causam dano ou consomem stacks mostram efeito no inimigo
+            if positive_type == "blood_blade":
+                animation_target = "enemy"
+
         animation_data = {
             "animation_activate_1": getattr(skill, 'animation_activate_1', None),
             "animation_activate_2": getattr(skill, 'animation_activate_2', None),
             "sound_prep_1": getattr(skill, 'sound_prep_1', None),
             "sound_prep_2": getattr(skill, 'sound_prep_2', None),
             "sound_effect_1": getattr(skill, 'sound_effect_1', None),
-            "sound_effect_2": getattr(skill, 'sound_effect_2', None)
+            "sound_effect_2": getattr(skill, 'sound_effect_2', None),
+            "target": animation_target
         }
-        
+
         return True, f"Habilidade {skill.name} ativada! {effect_msg}", {
             "positive_effect": {
                 "type": positive_type,

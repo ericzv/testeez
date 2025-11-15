@@ -347,12 +347,22 @@ def reset_battle_counters(player):
     player.enemy_first_attack_blocked = False
     # accumulated_* NÃO reseta
     # total_* NÃO reseta
-    
+
+    # ===== RESETAR SKILLS ESPECIAIS PARA PRÓXIMA BATALHA =====
+    from models import PlayerSkill
+    special_skills = PlayerSkill.query.filter_by(
+        player_id=player.id,
+        skill_type="special"
+    ).all()
+    for skill in special_skills:
+        skill.last_used_at_enemy_turn = None
+    print(f"♻️ Skills especiais resetadas após vitória ({len(special_skills)} skills)")
+
     # ===== LIMPAR STATE_DATA DAS RELÍQUIAS ENTRE BATALHAS =====
     battle_relics = PlayerRelic.query.filter_by(player_id=player.id, is_active=True).all()
     for relic in battle_relics:
         state = json.loads(relic.state_data or '{}')
-        
+
         # Limpar flags de batalha (mas manter stacks permanentes)
         state.pop('healed_this_battle', None)
         state.pop('pd_given_this_battle', None)

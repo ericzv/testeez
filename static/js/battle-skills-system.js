@@ -1057,13 +1057,25 @@ function applySpecialSkillVisualEffect(animationData) {
     console.log("🎬 [VISUAL FX] animation_activate_2:", animationData?.animation_activate_2);
     console.log("🎬 [VISUAL FX] sound_prep_1:", animationData?.sound_prep_1);
     console.log("🎬 [VISUAL FX] sound_effect_1:", animationData?.sound_effect_1);
+    console.log("🎬 [VISUAL FX] target:", animationData?.target || "player");
 
     // Verificar se temos dados de animação
     if (!animationData) {
         console.error("🎬 [VISUAL FX] ❌ Dados de animação não fornecidos");
         return;
     }
-    
+
+    // Determinar onde aplicar o efeito (player ou enemy)
+    const effectTarget = animationData.target || "player";
+    let targetElement = null;
+    if (effectTarget === "enemy") {
+        targetElement = document.getElementById('boss');
+        console.log("🎯 [VISUAL FX] Efeito será aplicado no INIMIGO");
+    } else {
+        targetElement = document.getElementById('character');
+        console.log("🎯 [VISUAL FX] Efeito será aplicado no JOGADOR");
+    }
+
     // PARTE 1: PROCESSAR SONS EXATAMENTE COMO VIERAM DA API
     const delay = 500; // 500ms entre os sons
     
@@ -1138,8 +1150,9 @@ function applySpecialSkillVisualEffect(animationData) {
     // Função para processar efeitos especiais
     function processSpecialEffects() {
         console.log("Processando efeitos especiais de skill especial");
-        
-        // ANIMATION_ACTIVATE_1 - Efeito frontal (character front)
+        console.log("🎯 Target element:", targetElement?.id || "não encontrado");
+
+        // ANIMATION_ACTIVATE_1 - Efeito frontal
         if (hasVisualEffect1) {
             if (isPixiEffect(hasVisualEffect1)) {
                 console.log("🎭 Aplicando PixiJS activate_1:", hasVisualEffect1);
@@ -1147,15 +1160,15 @@ function applySpecialSkillVisualEffect(animationData) {
                     playPixiEffect(hasVisualEffect1, 'character', 'front', 'applySpecialSkillVisualEffect_activate_1');
                 }, delay * 3); // Sincronizar com sound_effect_1
             } else {
-                console.log("🖼️ Aplicando sprite activate_1:", hasVisualEffect1);
-                // Usar sistema existente de sprites para character
+                console.log("🖼️ Aplicando sprite activate_1:", hasVisualEffect1, "no target:", targetElement?.id);
+                // Usar sistema existente de sprites - agora com TARGET correto
                 setTimeout(() => {
-                    createSpriteAnimationLayers(hasVisualEffect1, 'front');
+                    createSpriteAnimationLayers(hasVisualEffect1, 'front', targetElement);
                 }, delay * 3);
             }
         }
-        
-        // ANIMATION_ACTIVATE_2 - Efeito traseiro (character back)  
+
+        // ANIMATION_ACTIVATE_2 - Efeito traseiro
         if (hasVisualEffect2) {
             if (isPixiEffect(hasVisualEffect2)) {
                 console.log("🎭 Aplicando PixiJS activate_2:", hasVisualEffect2);
@@ -1163,57 +1176,89 @@ function applySpecialSkillVisualEffect(animationData) {
                     playPixiEffect(hasVisualEffect2, 'character', 'back', 'applySpecialSkillVisualEffect_activate_2');
                 }, delay * 3); // Sincronizar com sound_effect_1
             } else {
-                console.log("🖼️ Aplicando sprite activate_2:", hasVisualEffect2);
-                // Usar sistema existente de sprites para character
+                console.log("🖼️ Aplicando sprite activate_2:", hasVisualEffect2, "no target:", targetElement?.id);
+                // Usar sistema existente de sprites - agora com TARGET correto
                 setTimeout(() => {
-                    createSpriteAnimationLayers(hasVisualEffect2, 'back');
+                    createSpriteAnimationLayers(hasVisualEffect2, 'back', targetElement);
                 }, delay * 3);
             }
         }
     }
     
     // Função para criar sprites (manter sistema existente)
-    function createSpriteAnimationLayers(imageUrl, layer) {
+    function createSpriteAnimationLayers(imageUrl, layer, targetElement = null) {
         console.log("Criando sprite de skill especial:", imageUrl, "camada:", layer);
-        
-        const characterContainer = document.getElementById('character');
-        if (!characterContainer) {
-            console.error("Container do personagem não encontrado");
+
+        // Determinar container: character (padrão) ou boss (para skills de dano)
+        let container = targetElement || document.getElementById('character');
+        if (!container) {
+            console.error("Container não encontrado para animação");
             return;
         }
-        
+
         // Remover camadas anteriores
         document.querySelectorAll('.skill-fx-layer').forEach(el => el.remove());
-        
+
+        // Extrair informações do nome do arquivo (ex: autofagia300-300-7f.png)
+        const filename = imageUrl.split('/').pop();
+        const match = filename.match(/(\d+)-(\d+)-(\d+)f/);
+
+        let frameWidth = 300;
+        let frameHeight = 300;
+        let frameCount = 7;
+
+        if (match) {
+            frameWidth = parseInt(match[1]);
+            frameHeight = parseInt(match[2]);
+            frameCount = parseInt(match[3]);
+            console.log(`📏 Sprite detectado: ${frameWidth}x${frameHeight}, ${frameCount} frames`);
+        }
+
+        const totalWidth = frameWidth * frameCount;
+        const animationDuration = frameCount * 0.1; // 100ms por frame
+
+        // Criar keyframes dinamicamente
+        const keyframeId = `skill-fx-${Date.now()}`;
+        const styleEl = document.createElement('style');
+        styleEl.id = keyframeId;
+        styleEl.textContent = `
+            @keyframes ${keyframeId} {
+                from { background-position: 0 0; }
+                to { background-position: -${totalWidth}px 0; }
+            }
+        `;
+        document.head.appendChild(styleEl);
+
         const fxLayer = document.createElement('div');
         fxLayer.className = `skill-fx-layer skill-fx-${layer}`;
-        
+
         fxLayer.style.cssText = `
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: ${frameWidth}px;
+            height: ${frameHeight}px;
             background-image: url("${imageUrl}");
             background-repeat: no-repeat;
             background-position: 0 0;
-            background-size: cover;
-            opacity: 0;
+            background-size: ${totalWidth}px ${frameHeight}px;
+            opacity: 1;
             pointer-events: none;
-            z-index: ${layer === 'front' ? '12' : '8'};
+            z-index: ${layer === 'front' ? '100' : '8'};
+            animation: ${keyframeId} ${animationDuration}s steps(${frameCount}) forwards;
         `;
-        
-        characterContainer.appendChild(fxLayer);
-        
-        // Aplicar animação
-        void fxLayer.offsetWidth;
-        fxLayer.style.opacity = '1';
-        fxLayer.classList.add('animate-skill-fx');
-        
+
+        container.appendChild(fxLayer);
+        console.log(`✅ Sprite FX adicionado ao container:`, container.id || container.className);
+
         // Remover após animação
         setTimeout(() => {
             fxLayer.remove();
-        }, 1200);
+            const keyframeStyle = document.getElementById(keyframeId);
+            if (keyframeStyle) keyframeStyle.remove();
+            console.log(`🗑️ Sprite FX removido após ${animationDuration}s`);
+        }, animationDuration * 1000 + 200);
     }
 }
 
