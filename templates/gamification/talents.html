@@ -18,9 +18,9 @@
     <!-- Barra superior com informações do jogador e botão para modo teste -->
     <div class="player-info-bar">
         <div class="player-level">NÍVEL {{ player.level }}</div>
-        <div class="talent-points">PONTOS DE TALENTO: <span id="available-points">{{ player.talent_points }}</span></div>
-        <button id="gain-points-btn" class="admin-btn">Ganhar Pontos</button>
-        <!-- Botão para inicialização de talentos (se necessário) -->
+        <div class="talent-points">💎 CRISTAIS: <span id="available-crystals">{{ player.crystals }}</span></div>
+        <button id="gain-crystals-btn" class="admin-btn">+1000 Cristais</button>
+        <button id="reset-talents-btn" class="admin-btn" style="background: #a44;">Reset Talentos</button>
     </div>
     
     <!-- Navegação entre constelações -->
@@ -43,6 +43,9 @@
     <div id="talent-details" class="talent-details">
         <h3 id="talent-name">Selecione um Talento</h3>
         <p id="talent-description">Escolha um talento na constelação para ver seus detalhes.</p>
+        <div id="talent-cost" style="color: #a0d8ef; font-size: 18px; margin-bottom: 15px; display: none;">
+            💎 Custo: <span id="cost-value">0</span> cristais
+        </div>
         <button id="learn-talent-btn" class="learn-btn disabled">APRENDER</button>
     </div>
 </div>
@@ -459,125 +462,75 @@ function log(...args) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Definição de mapeamento de posições dos talentos
+    // Definição de mapeamento de posições dos talentos (NOVO SISTEMA - 10 nós por constelação)
     const talentPositions = {
         'Draco': [
-            { id: 1, x: 50, y: 50, requires: null },
-            { id: 2, x: 46, y: 43, requires: 1 },
-            { id: 3, x: 42, y: 35, requires: 2 },
-            { id: 4, x: 36, y: 30, requires: 3 },
-            { id: 5, x: 29, y: 28, requires: 4 },
-            { id: 6, x: 22, y: 30, requires: 5 },
-            { id: 7, x: 16, y: 35, requires: 6 },
-            { id: 8, x: 12, y: 42, requires: 7 },
-            { id: 9, x: 14, y: 50, requires: 8 },
-            { id: 10, x: 20, y: 56, requires: 9 },
-            { id: 11, x: 27, y: 60, requires: 10 },
-            { id: 12, x: 35, y: 62, requires: 11 },
-            { id: 13, x: 42, y: 65, requires: 12 },
-            { id: 14, x: 50, y: 66, requires: 13 },
-            { id: 15, x: 58, y: 65, requires: 14 },
-            { id: 16, x: 65, y: 61, requires: 15 },
-            { id: 17, x: 71, y: 56, requires: 16 },
-            { id: 18, x: 76, y: 50, requires: 17 },
-            { id: 19, x: 79, y: 42, requires: 18 },
-            { id: 20, x: 78, y: 34, requires: 19 }
+            { id: 1, x: 50, y: 50 },
+            { id: 2, x: 42, y: 44 },
+            { id: 3, x: 35, y: 38 },
+            { id: 4, x: 28, y: 34 },
+            { id: 5, x: 22, y: 40 },
+            { id: 6, x: 25, y: 48 },
+            { id: 7, x: 32, y: 54 },
+            { id: 8, x: 40, y: 58 },
+            { id: 9, x: 48, y: 60 },
+            { id: 10, x: 56, y: 56 }
         ],
         'Taurus': [
-            { id: 101, x: 50, y: 50, requires: null },
-            { id: 106, x: 42, y: 45, requires: 101 },
-            { id: 109, x: 35, y: 42, requires: 106 },
-            { id: 114, x: 30, y: 38, requires: 109 },
-            { id: 102, x: 27, y: 45, requires: 114 },
-            { id: 110, x: 30, y: 52, requires: 102 },
-            { id: 117, x: 35, y: 58, requires: 110 },
-            { id: 107, x: 42, y: 60, requires: 117 },
-            { id: 116, x: 50, y: 62, requires: 107 },
-            { id: 103, x: 58, y: 60, requires: 116 },
-            { id: 111, x: 65, y: 58, requires: 103 },
-            { id: 118, x: 70, y: 52, requires: 111 },
-            { id: 104, x: 73, y: 45, requires: 118 },
-            { id: 112, x: 70, y: 38, requires: 104 },
-            { id: 105, x: 65, y: 42, requires: 112 },
-            { id: 115, x: 58, y: 45, requires: 105 },
-            { id: 108, x: 54, y: 40, requires: 115 },
-            { id: 119, x: 50, y: 35, requires: 108 },
-            { id: 113, x: 54, y: 30, requires: 119 },
-            { id: 120, x: 60, y: 35, requires: 113 }
+            { id: 101, x: 50, y: 50 },
+            { id: 102, x: 42, y: 45 },
+            { id: 103, x: 35, y: 40 },
+            { id: 104, x: 30, y: 46 },
+            { id: 105, x: 34, y: 54 },
+            { id: 106, x: 42, y: 58 },
+            { id: 107, x: 50, y: 60 },
+            { id: 108, x: 58, y: 56 },
+            { id: 109, x: 64, y: 50 },
+            { id: 110, x: 62, y: 42 }
         ],
         'Aquarius': [
-            { id: 201, x: 30, y: 35, requires: null },
-            { id: 210, x: 35, y: 30, requires: 201 },
-            { id: 206, x: 41, y: 28, requires: 210 },
-            { id: 202, x: 48, y: 30, requires: 206 },
-            { id: 204, x: 54, y: 35, requires: 202 },
-            { id: 211, x: 59, y: 41, requires: 204 },
-            { id: 207, x: 62, y: 48, requires: 211 },
-            { id: 209, x: 62, y: 55, requires: 207 },
-            { id: 218, x: 58, y: 61, requires: 209 },
-            { id: 212, x: 52, y: 66, requires: 218 },
-            { id: 205, x: 45, y: 68, requires: 212 },
-            { id: 208, x: 38, y: 67, requires: 205 },
-            { id: 213, x: 33, y: 62, requires: 208 },
-            { id: 215, x: 31, y: 55, requires: 213 },
-            { id: 216, x: 34, y: 48, requires: 215 },
-            { id: 203, x: 39, y: 42, requires: 216 },
-            { id: 214, x: 47, y: 40, requires: 203 },
-            { id: 217, x: 55, y: 52, requires: 214 },
-            { id: 219, x: 48, y: 58, requires: 217 },
-            { id: 220, x: 40, y: 50, requires: 219 }
+            { id: 201, x: 35, y: 40 },
+            { id: 202, x: 42, y: 35 },
+            { id: 203, x: 50, y: 38 },
+            { id: 204, x: 56, y: 44 },
+            { id: 205, x: 58, y: 52 },
+            { id: 206, x: 54, y: 60 },
+            { id: 207, x: 46, y: 64 },
+            { id: 208, x: 38, y: 62 },
+            { id: 209, x: 32, y: 56 },
+            { id: 210, x: 30, y: 48 }
         ],
         'Hercules': [
-            { id: 301, x: 50, y: 50, requires: null },
-            { id: 307, x: 42, y: 53, requires: 301 },
-            { id: 310, x: 35, y: 48, requires: 307 },
-            { id: 313, x: 28, y: 53, requires: 310 },
-            { id: 302, x: 22, y: 60, requires: 313 },
-            { id: 315, x: 30, y: 67, requires: 302 },
-            { id: 318, x: 38, y: 72, requires: 315 },
-            { id: 303, x: 45, y: 69, requires: 318 },
-            { id: 311, x: 52, y: 65, requires: 303 },
-            { id: 316, x: 55, y: 57, requires: 311 },
-            { id: 304, x: 60, y: 50, requires: 316 },
-            { id: 314, x: 67, y: 46, requires: 304 },
-            { id: 308, x: 74, y: 50, requires: 314 },
-            { id: 305, x: 69, y: 42, requires: 308 },
-            { id: 319, x: 62, y: 37, requires: 305 },
-            { id: 312, x: 55, y: 32, requires: 319 },
-            { id: 306, x: 48, y: 28, requires: 312 },
-            { id: 309, x: 42, y: 34, requires: 306 },
-            { id: 317, x: 40, y: 42, requires: 309 },
-            { id: 320, x: 45, y: 37, requires: 317 }
+            { id: 301, x: 50, y: 50 },
+            { id: 302, x: 44, y: 44 },
+            { id: 303, x: 38, y: 50 },
+            { id: 304, x: 44, y: 56 },
+            { id: 305, x: 52, y: 58 },
+            { id: 306, x: 60, y: 54 },
+            { id: 307, x: 64, y: 46 },
+            { id: 308, x: 60, y: 38 },
+            { id: 309, x: 52, y: 36 },
+            { id: 310, x: 56, y: 44 }
         ],
         'Pegasus': [
-            { id: 401, x: 40, y: 40, requires: null },
-            { id: 413, x: 45, y: 32, requires: 401 },
-            { id: 412, x: 51, y: 25, requires: 413 },
-            { id: 418, x: 60, y: 22, requires: 412 },
-            { id: 407, x: 68, y: 25, requires: 418 },
-            { id: 402, x: 65, y: 32, requires: 407 },
-            { id: 405, x: 72, y: 38, requires: 402 },
-            { id: 409, x: 74, y: 46, requires: 405 },
-            { id: 414, x: 70, y: 54, requires: 409 },
-            { id: 415, x: 62, y: 60, requires: 414 },
-            { id: 403, x: 53, y: 63, requires: 415 },
-            { id: 406, x: 45, y: 60, requires: 403 },
-            { id: 408, x: 38, y: 55, requires: 406 },
-            { id: 410, x: 35, y: 47, requires: 408 },
-            { id: 411, x: 52, y: 53, requires: 410 },
-            { id: 404, x: 60, y: 45, requires: 411 },
-            { id: 416, x: 56, y: 38, requires: 404 },
-            { id: 419, x: 50, y: 30, requires: 416 },
-            { id: 417, x: 45, y: 46, requires: 419 },
-            { id: 420, x: 55, y: 46, requires: 417 }
+            { id: 401, x: 40, y: 45 },
+            { id: 402, x: 46, y: 38 },
+            { id: 403, x: 54, y: 36 },
+            { id: 404, x: 62, y: 40 },
+            { id: 405, x: 66, y: 48 },
+            { id: 406, x: 62, y: 56 },
+            { id: 407, x: 54, y: 60 },
+            { id: 408, x: 46, y: 58 },
+            { id: 409, x: 40, y: 52 },
+            { id: 410, x: 50, y: 48 }
         ],
         'Phoenix': [
-            { id: 501, x: 75, y: 50, requires: null },
-            { id: 502, x: 63, y: 72, requires: null },
-            { id: 503, x: 37, y: 72, requires: null },
-            { id: 504, x: 25, y: 50, requires: null },
-            { id: 505, x: 37, y: 28, requires: null },
-            { id: 506, x: 63, y: 28, requires: null }
+            { id: 501, x: 75, y: 50 },
+            { id: 502, x: 63, y: 68 },
+            { id: 503, x: 37, y: 68 },
+            { id: 504, x: 25, y: 50 },
+            { id: 505, x: 37, y: 32 },
+            { id: 506, x: 63, y: 32 }
         ]
     };
 
@@ -605,259 +558,46 @@ document.addEventListener('DOMContentLoaded', function() {
     
     initShootingStar();
     
+    // Mapa global para custos dos talentos
+    let talentCostsMap = {};
+
     // Carregar dados dos talentos do backend
     fetch('/gamification/get_talent_data')
         .then(response => response.json())
         .then(data => {
             log("Dados recebidos da API:", data);
-            
-            // Verificar se temos dados úteis da API
-            if (Object.keys(data).length === 0 || !data.talents) {
-                log("API retornou dados incompletos. Usando dados locais.");
-                
-                // Aqui convertemos os talentos de skilltree_final.py
-                const talentData = {
-                    "Ofensiva Brutal": [],
-                    "Defesa e Sobrevivência": [],
-                    "Artes Arcanas": [],
-                    "Sorte e Caos": [],
-                    "Mente Estratégica": [],
-                    "Constelação Oculta": []
-                };
-                
-                // Preencher com dados de skilltree_final.py 
-                // Ofensiva Brutal (Draco) - IDs 1-20
-                const ofensivaBrutalNames = [
-                    "Ataque Pesado I", "Golpe Crítico I", "Dano Crítico I", "Bloqueio Ofensivo",
-                    "Vampirismo I", "Ataque Pesado II", "Golpe Crítico II", "Dano Crítico II",
-                    "Vampirismo II", "Ataque Pesado III", "Golpe Crítico III", "Dano Crítico III",
-                    "Ataque Pesado IV", "Golpe Crítico IV", "Dano Crítico IV", "Bloqueio Ofensivo II",
-                    "Vampirismo III", "Ataque Pesado V", "Golpe Crítico V", "Vampirismo Supremo"
-                ];
-
-                const ofensivaBrutalDesc = [
-                    "Aumenta dano base em +0.2x (20%)", "+2% chance de acerto crítico", "Aumenta o bônus de dano do acerto crítico em 10%",
-                    "Aumenta o bloqueio em 2%", "Cura 0,5% HP do dano causado", "Aumenta dano base em +0.2x (20%)",
-                    "+2% chance de acerto crítico", "Aumenta o bônus de dano do acerto crítico em 10%", "Cura 0,5% HP do dano causado",
-                    "Aumenta dano base em +0.2x (20%)", "+2% chance de acerto crítico", "Aumenta o bônus de dano do acerto crítico em 10%",
-                    "Aumenta dano base em +0.2x (20%)", "+2% chance de acerto crítico", "Aumenta o bônus de dano do acerto crítico em 10%",
-                    "Aumenta o bloqueio em 2%", "Cura 0,5% HP do dano causado", "Aumenta dano base em +0.2x (20%)",
-                    "+2% chance de acerto crítico", "Cura 3% HP do dano causado e aumenta o dano em 0.5x (50%)"
-                ];
-
-                // Popular os talentos de Ofensiva Brutal
-                for (let i = 1; i <= 20; i++) {
-                    talentData["Ofensiva Brutal"].push({
-                        id: i,
-                        name: ofensivaBrutalNames[i-1],
-                        description: ofensivaBrutalDesc[i-1]
-                    });
-                }
-
-                // Defesa e Sobrevivência (Taurus) - IDs 101-120
-                const defesaSobrevivenciaNames = [
-                    "Bloqueio I", "Bloqueio II", "Bloqueio III", "Bloqueio IV", "Bloqueio V",
-                    "HP Máximo I", "HP Máximo II", "HP Máximo III", "Vitalidade I", "Vitalidade II",
-                    "Vitalidade III", "Vitalidade IV", "Vitalidade V", "Cura de Batalha I", "Cura de Batalha II",
-                    "Regeneração Dupla", "Cura Matinal I", "Cura Matinal II", "Cura Matinal III", "Renovação Total"
-                ];
-
-                const defesaSobrevivenciaDesc = [
-                    "Aumenta 2% bloqueio", "Aumenta 2% bloqueio", "Aumenta 2% bloqueio", "Aumenta 2% bloqueio", "Aumenta 2% bloqueio",
-                    "+15 HP máximo", "+15 HP máximo", "+15 HP máximo", "+2 Vitalidade", "+2 Vitalidade", 
-                    "+2 Vitalidade", "+2 Vitalidade", "+2 Vitalidade", "Cura 20HP após derrotar um inimigo", "Cura 20HP após derrotar um inimigo",
-                    "Duplica a regeneração de HP se o HP atual for <30%", "Cura 10HP todo início do dia", "Cura 10HP todo início do dia",
-                    "Cura 10HP todo início do dia", "Após derrotar um inimigo, cura completamente o HP"
-                ];
-
-                // Popular os talentos de Defesa e Sobrevivência
-                for (let i = 101; i <= 120; i++) {
-                    talentData["Defesa e Sobrevivência"].push({
-                        id: i,
-                        name: defesaSobrevivenciaNames[i-101],
-                        description: defesaSobrevivenciaDesc[i-101]
-                    });
-                }
-
-                // Artes Arcanas (Aquarius) - IDs 201-220
-                const artesArcanasNames = [
-                    "MP Máximo I", "MP Máximo II", "MP Máximo III", "Regeneração Mágica", "Regeneração Dobrada",
-                    "Concentração I", "Concentração II", "Concentração III", "Recuperação Arcana", "Escudo de Mana I",
-                    "Escudo de Mana II", "Escudo de Mana III", "Escudo de Mana IV", "Escudo de Mana V", "Regeneração Menor",
-                    "Concentração IV", "Concentração V", "Recuperação Mística", "Regeneração Superior", "Conversão de Mana"
-                ];
-
-                const artesArcanasDesc = [
-                    "+15 MP máximo", "+15 MP máximo", "+15 MP máximo", "Regenera 20 MP no início do dia", 
-                    "Duplica a regeneração de MP se MP for <30%", "+2 Concentração", "+2 Concentração", "+2 Concentração",
-                    "Recupera 25MP após derrotar um inimigo", "Escudo de mana: concede defesa de 1% da mana gasta no dia anterior", 
-                    "Escudo de mana: concede defesa de 1% da mana gasta no dia anterior", "Escudo de mana: concede defesa de 1% da mana gasta no dia anterior",
-                    "Escudo de mana: concede defesa de 1% da mana gasta no dia anterior", "Escudo de mana: concede defesa de 1% da mana gasta no dia anterior",
-                    "Regenera 5 MP no início do dia", "+2 Concentração", "+2 Concentração", "Recupera 25MP após derrotar um inimigo",
-                    "Regenera 15 MP no início do dia", "Cura 10% de HP de todo MP consumido em habilidades"
-                ];
-
-                // Popular os talentos de Artes Arcanas
-                for (let i = 201; i <= 220; i++) {
-                    talentData["Artes Arcanas"].push({
-                        id: i,
-                        name: artesArcanasNames[i-201],
-                        description: artesArcanasDesc[i-201]
-                    });
-                }
-
-                // Sorte e Caos (Hercules) - IDs 301-320
-                const sorteCaosNames = [
-                    "Sorte I", "Sorte II", "Sorte III", "Sorte IV", "Sorte V",
-                    "Sorte VI", "Desconto I", "Desconto II", "Desconto III", "Crítico Caótico I",
-                    "Crítico Caótico II", "Crítico Caótico III", "Cura Caótica I", "Cura Caótica II", "Cristais Dobrados I",
-                    "Cristais Dobrados II", "Cristais Dobrados III", "EXP Turbinada I", "EXP Turbinada II", "Ladrão Mestre"
-                ];
-
-                const sorteCaosDesc = [
-                    "+2 Sorte", "+2 Sorte", "+2 Sorte", "+2 Sorte", "+2 Sorte", 
-                    "+2 Sorte", "10% desconto na loja", "10% desconto na loja", "10% desconto na loja", "+5% chance de acerto crítico",
-                    "+5% chance de acerto crítico", "+5% chance de acerto crítico", "5% de chance de curar totalmente HP e MP no início do dia",
-                    "5% de chance de curar totalmente HP e MP no início do dia", "10% de chance de duplicar a quantidade de cristais recebidos",
-                    "10% de chance de duplicar a quantidade de cristais recebidos", "10% de chance de duplicar a quantidade de cristais recebidos",
-                    "Aumenta EXP recebido em 5%", "Aumenta EXP recebido em 5%", 
-                    "20% de chance de conseguir um baú de recompensa ao logar, tendo logado diariamente nos últimos 5 dias"
-                ];
-
-                // Popular os talentos de Sorte e Caos
-                for (let i = 301; i <= 320; i++) {
-                    talentData["Sorte e Caos"].push({
-                        id: i,
-                        name: sorteCaosNames[i-301],
-                        description: sorteCaosDesc[i-301]
-                    });
-                }
-
-                // Mente Estratégica (Pegasus) - IDs 401-420
-                const menteEstrategicaNames = [
-                    "EXP Estratégico I", "EXP Estratégico II", "EXP Estratégico III", "EXP Estratégico IV", "Cura Matinal I",
-                    "Cura Matinal II", "Recuperação Matinal I", "Recuperação Matinal II", "Atributo Adicional I", "Atributo Adicional II",
-                    "Manhã Potente", "Início Revitalizante", "Vitória Pós-Batalha", "Recuperação Pós-Batalha", "Defesa Emergencial I",
-                    "Defesa Emergencial II", "Dano Retaliatório", "EXP Impecável I", "EXP Impecável II", "Privança do Mestre"
-                ];
-
-                const menteEstrategicaDesc = [
-                    "+5% EXP recebido", "+5% EXP recebido", "+5% EXP recebido", "+5% EXP recebido", "Cura +5 HP todo início de dia",
-                    "Cura +5 HP todo início de dia", "Recupera +5 MP todo início de dia", "Recupera +5 MP todo início de dia",
-                    "Recebe 1 ponto de atributo adicional a cada 10 níveis", "Recebe 1 ponto de atributo adicional a cada 10 níveis",
-                    "Cura 20HP se começar o dia com MP cheio", "Recupera 20MP se começar o dia com HP cheio",
-                    "Cura 15 HP ao derrotar um inimigo", "Recupera 10 MP ao derrotar um inimigo",
-                    "Aumenta o bloqueio em 5% se HP atual estiver abaixo de 50% do HP máximo", "Aumenta o bloqueio em 5% se HP atual estiver abaixo de 50% do HP máximo",
-                    "+0.5x dano se o dano causado aos inimigos no dia anterior foi 500 ou mais", "Recebe 10% a mais de EXP ao derrotar um inimigo sem sofrer dano",
-                    "Recebe 10% a mais de EXP ao derrotar um inimigo sem sofrer dano", "+20 Sorte, +15 Vitalidade, +15 Concentração"
-                ];
-
-                // Popular os talentos de Mente Estratégica
-                for (let i = 401; i <= 420; i++) {
-                    talentData["Mente Estratégica"].push({
-                        id: i,
-                        name: menteEstrategicaNames[i-401],
-                        description: menteEstrategicaDesc[i-401]
-                    });
-                }
-
-                // Constelação Oculta (Phoenix) - IDs 501-506
-                const constelacaoOcultaNames = [
-                    "Espada do Verbo", "Juízo Final", "Selo de Luz", "Graça", "Guardião Silencioso", "Inspiração Sagrada"
-                ];
-
-                const constelacaoOcultaDesc = [
-                    "Aumenta o dano base em +1.0", "Aumenta a chance de crítico em 5%",
-                    "Concede +7 HP e +7 MP por golpe carregado", "Aumenta chance de esquiva em 5%",
-                    "Ao iniciar o dia com HP cheio, concede um escudo de 25 HP", "Regenera 3% do HP e 3% do MP a cada 10 minutos de estudo"
-                ];
-
-                // Popular os talentos da Constelação Oculta
-                for (let i = 501; i <= 506; i++) {
-                    talentData["Constelação Oculta"].push({
-                        id: i,
-                        name: constelacaoOcultaNames[i-501],
-                        description: constelacaoOcultaDesc[i-501]
-                    });
-                }
-                
-                // Preparar dados no formato correto para o frontend
-                data = {
-                    "Ofensiva Brutal": {
-                        "id": "Draco",
-                        "name": "Draco",
-                        "oldName": "Ofensiva Brutal",
-                        "talents": talentData["Ofensiva Brutal"]
-                    },
-                    "Defesa e Sobrevivência": {
-                        "id": "Taurus",
-                        "name": "Taurus",
-                        "oldName": "Defesa e Sobrevivência",
-                        "talents": talentData["Defesa e Sobrevivência"]
-                    },
-                    "Artes Arcanas": {
-                        "id": "Aquarius",
-                        "name": "Aquarius",
-                        "oldName": "Artes Arcanas",
-                        "talents": talentData["Artes Arcanas"]
-                    },
-                    "Sorte e Caos": {
-                        "id": "Hercules",
-                        "name": "Hercules", 
-                        "oldName": "Sorte e Caos",
-                        "talents": talentData["Sorte e Caos"]
-                    },
-                    "Mente Estratégica": {
-                        "id": "Pegasus",
-                        "name": "Pegasus",
-                        "oldName": "Mente Estratégica",
-                        "talents": talentData["Mente Estratégica"]
-                    },
-                    "Constelação Oculta": {
-                        "id": "Phoenix",
-                        "name": "Phoenix",
-                        "oldName": "Constelação Oculta",
-                        "talents": talentData["Constelação Oculta"]
-                    }
-                };
-            }
 
             // Transformar os dados em array de constelações
             constellations = Object.values(data).map(branch => {
                 const constId = branch.id;
-                
-                log(`Processando constelação ${constId}...`);
-                
+
+                log(`Processando constelação ${constId} com ${branch.talents.length} talentos...`);
+
                 // Combinar dados de talentos com suas posições
-                const talents = branch.talents.map(talent => {
-                    // Buscar posição pelo ID numérico
+                const talents = branch.talents.map((talent, index) => {
                     const talentId = parseInt(talent.id);
                     const positions = talentPositions[constId] || [];
-                    const position = positions.find(pos => parseInt(pos.id) === talentId);
-                    
+                    const position = positions[index]; // Usar índice sequencial
+
                     if (!position) {
-                        log(`Posição não encontrada para talento ID ${talent.id} na constelação ${constId}`);
+                        log(`Posição não encontrada para talento índice ${index} (ID ${talentId}) na constelação ${constId}`);
                         return null;
                     }
-                    
-                    // Obter a descrição do efeito se estiver disponível
-                    let description = talent.description || "";
-                    
-                    // Se tiver níveis, pegar efeito do primeiro nível
-                    if (talent.levels && talent.levels.length > 0) {
-                        description = talent.levels[0].effect || description;
-                    }
-                    
+
+                    // Salvar custo no mapa global
+                    talentCostsMap[talentId] = talent.cost || 0;
+
                     return {
                         id: talentId,
                         name: talent.name || `Talento ${talentId}`,
-                        description: description,
+                        description: talent.description || "Descrição não disponível",
+                        cost: talent.cost || 0,
                         x: position.x,
                         y: position.y,
-                        requires: position.requires
+                        requires: talent.requires || null
                     };
                 }).filter(t => t !== null);
-                
+
                 return {
                     id: constId,
                     name: branch.name,
@@ -866,17 +606,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     talents: talents
                 };
             });
-            
+
             log("Constelações processadas:", constellations);
-            
+            log("Mapa de custos:", talentCostsMap);
+
             // Inicializar a interface
             initConstellations();
             hideSecretConstellation();
             loadUnlockedTalents();
-            
-            // Definir a constelação inicial (posição 3 - Aquarius)
-            updateConstellation(2); // Índice 2 é a terceira posição (0-based)
-            
+
+            // Definir a constelação inicial (posição 1 - Draco/Ofensiva)
+            updateConstellation(0);
+
             // Verificação adicional para garantir que constelações sejam exibidas
             setTimeout(garantirConstelacaoVisivel, 500);
         })
@@ -923,20 +664,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const talentNode = document.createElement('div');
                 talentNode.className = 'talent-node locked';
-                if(talent.requires === null || talent.requires === undefined) { 
-                    talentNode.className += ' root-talent'; 
+                if(talent.requires === null || talent.requires === undefined) {
+                    talentNode.className += ' root-talent';
                 }
                 talentNode.id = `talent-${talent.id}`;
                 talentNode.dataset.id = talent.id;
                 talentNode.dataset.name = talent.name || `Talento ${talent.id}`;
                 talentNode.dataset.description = talent.description || "Descrição não disponível.";
-                talentNode.dataset.requires = talent.requires || null;
+                talentNode.dataset.requires = talent.requires || "null";
+                talentNode.dataset.cost = talent.cost || 0;
                 talentNode.style.left = `${talent.x}%`;
                 talentNode.style.top = `${talent.y}%`;
                 talentNode.style.color = constellation.color;
-                
+
                 constellationElem.appendChild(talentNode);
-                log(`Criado nó de talento ${talent.id} em (${talent.x}%, ${talent.y}%)`);
+                log(`Criado nó de talento ${talent.id} (${talent.name}) em (${talent.x}%, ${talent.y}%) - Custo: ${talent.cost}`);
             });
         });
         
@@ -1012,9 +754,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('learn-talent-btn').addEventListener('click', learnTalent);
     
-    // Botão "Modo Teste" para ganhar pontos de talento
-    document.getElementById('gain-points-btn').addEventListener('click', function() {
-        fetch('/gamification/add_talent_points', {
+    // Botão "Modo Teste" para ganhar cristais
+    document.getElementById('gain-crystals-btn').addEventListener('click', function() {
+        fetch('/gamification/add_crystals', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ amount: 1000 })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                let crystalsElem = document.getElementById('available-crystals');
+                crystalsElem.textContent = data.total_crystals;
+                updateAvailableTalents();
+                if (selectedTalent) {
+                    updateTalentDetails();
+                }
+                log(`Adicionados 1000 cristais. Total: ${data.total_crystals}`);
+            } else {
+                alert('Erro ao adicionar cristais: ' + (data.message || 'Erro desconhecido'));
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao comunicar com o servidor');
+        });
+    });
+
+    // Botão para resetar talentos
+    document.getElementById('reset-talents-btn').addEventListener('click', function() {
+        if (!confirm('Tem certeza que deseja resetar todos os talentos? Esta ação não pode ser desfeita!')) {
+            return;
+        }
+
+        fetch('/gamification/reset_talents', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1024,14 +800,24 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if(data.success) {
-                let pointsElem = document.getElementById('available-points');
-                pointsElem.textContent = data.total_points;
+                // Resetar todos os nós visuais
+                document.querySelectorAll('.talent-node').forEach(node => {
+                    node.classList.remove('unlocked', 'available');
+                    node.classList.add('locked');
+                });
+
+                updateAllConnections();
                 updateAvailableTalents();
+                checkAndToggleSecretConstellation();
+
                 if (selectedTalent) {
                     updateTalentDetails();
                 }
+
+                alert('Todos os talentos foram resetados!');
+                log('Talentos resetados com sucesso');
             } else {
-                alert('Erro ao adicionar pontos: ' + (data.message || 'Erro desconhecido'));
+                alert('Erro ao resetar talentos: ' + (data.message || 'Erro desconhecido'));
             }
         })
         .catch(error => {
@@ -1052,11 +838,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function loadUnlockedTalents() {
-        // Carregar talentos desbloqueados
+        // Carregar talentos desbloqueados e cristais
         fetch('/gamification/get_player_talents')
         .then(response => response.json())
         .then(data => {
             if(data.success) {
+                // Atualizar cristais na interface
+                const crystalsElem = document.getElementById('available-crystals');
+                if (crystalsElem && data.crystals !== undefined) {
+                    crystalsElem.textContent = data.crystals;
+                }
+
                 data.talents.forEach(talent => {
                     const talentNode = document.getElementById(`talent-${talent.id}`);
                     if(talentNode) {
@@ -1064,7 +856,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         talentNode.classList.add('unlocked');
                     }
                 });
-                
+
                 // Atualizar tudo
                 updateAllConnections();
                 updateAvailableTalents();
@@ -1081,29 +873,30 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.talent-node.available').forEach(node => {
             node.classList.remove('available');
         });
-        
-        // Obter pontos disponíveis
-        const currentPoints = parseInt(document.getElementById('available-points').textContent) || 0;
-        
-        if (currentPoints <= 0) {
-            log("Sem pontos disponíveis para gastar");
-            return; // Se não há pontos, não há talentos disponíveis
+
+        // Obter cristais disponíveis
+        const currentCrystals = parseInt(document.getElementById('available-crystals').textContent) || 0;
+
+        if (currentCrystals <= 0) {
+            log("Sem cristais disponíveis para gastar");
+            return;
         }
-        
+
         // Verificar quais talentos estão disponíveis
         document.querySelectorAll('.talent-node.locked').forEach(node => {
             const requiresId = node.dataset.requires;
+            const cost = parseInt(node.dataset.cost) || 0;
             let requirementsMet = true;
-            
+
             if (requiresId && requiresId !== "null") {
                 const requiredNode = document.getElementById(`talent-${requiresId}`);
                 if (!requiredNode || !requiredNode.classList.contains('unlocked')) {
                     requirementsMet = false;
                 }
             }
-            
-            // Se os requisitos foram atendidos e o jogador tem pontos, marcar como disponível
-            if (requirementsMet) {
+
+            // Se os requisitos foram atendidos e o jogador tem cristais suficientes, marcar como disponível
+            if (requirementsMet && currentCrystals >= cost) {
                 node.classList.add('available');
             }
         });
@@ -1271,48 +1064,76 @@ document.addEventListener('DOMContentLoaded', function() {
         const nameElem = document.getElementById('talent-name');
         const descElem = document.getElementById('talent-description');
         const learnBtn = document.getElementById('learn-talent-btn');
+        const costContainer = document.getElementById('talent-cost');
+        const costValue = document.getElementById('cost-value');
+
         if(selectedTalent) {
             const talentNode = document.getElementById(`talent-${selectedTalent}`);
             if(!talentNode) return;
             const isUnlocked = talentNode.classList.contains('unlocked');
-            const currentPoints = parseInt(document.getElementById('available-points').textContent) || 0;
-            const canLearn = currentPoints > 0 && !isUnlocked;
+            const currentCrystals = parseInt(document.getElementById('available-crystals').textContent) || 0;
+            const cost = parseInt(talentNode.dataset.cost) || 0;
+            const canAfford = currentCrystals >= cost;
             let requirementsMet = true;
             const requiresId = talentNode.dataset.requires;
+
             if(requiresId && requiresId !== "null") {
                 const requiredNode = document.getElementById(`talent-${requiresId}`);
-                if(!requiredNode || !requiredNode.classList.contains('unlocked')) { 
-                    requirementsMet = false; 
+                if(!requiredNode || !requiredNode.classList.contains('unlocked')) {
+                    requirementsMet = false;
                 }
             }
+
             nameElem.textContent = talentNode.dataset.name;
             descElem.textContent = talentNode.dataset.description;
+
+            // Mostrar custo
+            if (!isUnlocked) {
+                costContainer.style.display = 'block';
+                costValue.textContent = cost.toLocaleString('pt-BR');
+                if (!canAfford) {
+                    costContainer.style.color = '#ff6666';
+                } else {
+                    costContainer.style.color = '#a0d8ef';
+                }
+            } else {
+                costContainer.style.display = 'none';
+            }
+
             if(isUnlocked) {
                 learnBtn.classList.add('disabled');
                 learnBtn.textContent = 'APRENDIDO';
-            } else if(canLearn && requirementsMet) {
+            } else if(canAfford && requirementsMet) {
                 learnBtn.classList.remove('disabled');
-                learnBtn.textContent = 'APRENDER';
+                learnBtn.textContent = `COMPRAR (${cost.toLocaleString('pt-BR')} 💎)`;
             } else if(!requirementsMet) {
                 learnBtn.classList.add('disabled');
                 learnBtn.textContent = 'REQUISITO NÃO ATENDIDO';
             } else {
                 learnBtn.classList.add('disabled');
-                learnBtn.textContent = 'PONTOS INSUFICIENTES';
+                learnBtn.textContent = 'CRISTAIS INSUFICIENTES';
             }
         } else {
             nameElem.textContent = 'Selecione um Talento';
             descElem.textContent = 'Escolha um talento na constelação para ver seus detalhes.';
+            costContainer.style.display = 'none';
             learnBtn.classList.add('disabled');
             learnBtn.textContent = 'APRENDER';
         }
     }
     
     function learnTalent() {
-        const currentPoints = parseInt(document.getElementById('available-points').textContent) || 0;
-        if(!selectedTalent || currentPoints <= 0) return;
+        const currentCrystals = parseInt(document.getElementById('available-crystals').textContent) || 0;
+        if(!selectedTalent) return;
         const talentNode = document.getElementById(`talent-${selectedTalent}`);
         if(!talentNode || talentNode.classList.contains('unlocked')) return;
+
+        const cost = parseInt(talentNode.dataset.cost) || 0;
+        if (currentCrystals < cost) {
+            alert(`Cristais insuficientes! Você precisa de ${cost} cristais.`);
+            return;
+        }
+
         const requiresId = talentNode.dataset.requires;
         if(requiresId && requiresId !== "null") {
             const requiredNode = document.getElementById(`talent-${requiresId}`);
@@ -1321,6 +1142,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
         }
+
         fetch('/gamification/unlock_talent', {
             method: 'POST',
             headers: {
@@ -1334,28 +1156,29 @@ document.addEventListener('DOMContentLoaded', function() {
             if(data.success) {
                 // Efeito visual
                 createTalentParticles(talentNode);
-                
+
                 talentNode.style.animation = 'talent-acquired-flash 0.8s forwards';
                 setTimeout(() => {
                     talentNode.style.animation = '';
                     talentNode.classList.remove('locked', 'available');
                     talentNode.classList.add('unlocked');
-                    
+
                     // Atualizar conexões e disponibilidade
                     updateAllConnections();
                     updateAvailableTalents();
-                    
+
                     // Verificar constelação secreta
                     checkAndToggleSecretConstellation();
                 }, 800);
-                
-                // Atualizar pontos disponíveis
-                const pointsElem = document.getElementById('available-points');
-                const newPoints = parseInt(pointsElem.textContent) - 1;
-                pointsElem.textContent = newPoints;
-                
+
+                // Atualizar cristais disponíveis
+                const crystalsElem = document.getElementById('available-crystals');
+                crystalsElem.textContent = data.new_crystals;
+
                 // Atualizar interface
                 updateTalentDetails();
+
+                log(`Talento ${data.talent_name} desbloqueado! Cristais restantes: ${data.new_crystals}`);
             } else {
                 alert('Erro ao desbloquear talento: ' + (data.message || 'Erro desconhecido'));
             }
@@ -1540,7 +1363,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function isConstellationComplete(constellationId) {
         const constellation = constellations.find(c => c.id === constellationId);
         if(!constellation) return false;
-        const mainTalents = constellation.talents.slice(0,20);
+        // Novo sistema: 10 talentos por constelação
+        const mainTalents = constellation.talents.slice(0, 10);
         return mainTalents.every(talent => {
             const node = document.getElementById(`talent-${talent.id}`);
             return node && node.classList.contains('unlocked');
@@ -1679,99 +1503,77 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function initWithBackupData() {
         console.warn("Usando dados de backup devido a erro na API");
-        
-        // Dados mínimos para funcionamento básico
+
+        // Dados mínimos para funcionamento básico (novo sistema - 10 talentos por constelação)
+        const buildBackupTalents = (positions, baseId) => {
+            return positions.map((pos, index) => ({
+                id: pos.id,
+                name: `Talento ${pos.id}`,
+                description: "Descrição indisponível.",
+                cost: [350, 400, 450, 500, 600, 750, 1000, 1250, 1500, 2000][index] || 500,
+                x: pos.x,
+                y: pos.y,
+                requires: index === 0 ? null : positions[index - 1].id
+            }));
+        };
+
         constellations = [
             {
                 id: 'Draco',
                 name: 'Draco',
-                oldName: 'Ofensiva Brutal',
+                oldName: 'Ofensiva',
                 color: '#ff7832',
-                talents: talentPositions['Draco'].map(pos => ({
-                    id: pos.id,
-                    name: `Talento ${pos.id}`,
-                    description: "Descrição indisponível.",
-                    x: pos.x,
-                    y: pos.y,
-                    requires: pos.requires
-                }))
+                talents: buildBackupTalents(talentPositions['Draco'], 1)
             },
             {
                 id: 'Taurus',
                 name: 'Taurus',
-                oldName: 'Defesa e Sobrevivência',
+                oldName: 'Vitalidade',
                 color: '#85ffa1',
-                talents: talentPositions['Taurus'].map(pos => ({
-                    id: pos.id,
-                    name: `Talento ${pos.id}`,
-                    description: "Descrição indisponível.",
-                    x: pos.x,
-                    y: pos.y,
-                    requires: pos.requires
-                }))
+                talents: buildBackupTalents(talentPositions['Taurus'], 101)
             },
             {
                 id: 'Aquarius',
                 name: 'Aquarius',
-                oldName: 'Artes Arcanas',
+                oldName: 'Proteção',
                 color: '#41b0e4',
-                talents: talentPositions['Aquarius'].map(pos => ({
-                    id: pos.id,
-                    name: `Talento ${pos.id}`,
-                    description: "Descrição indisponível.",
-                    x: pos.x,
-                    y: pos.y,
-                    requires: pos.requires
-                }))
+                talents: buildBackupTalents(talentPositions['Aquarius'], 201)
             },
             {
                 id: 'Hercules',
                 name: 'Hercules',
-                oldName: 'Sorte e Caos',
+                oldName: 'Economia',
                 color: '#c88cff',
-                talents: talentPositions['Hercules'].map(pos => ({
-                    id: pos.id,
-                    name: `Talento ${pos.id}`,
-                    description: "Descrição indisponível.",
-                    x: pos.x,
-                    y: pos.y,
-                    requires: pos.requires
-                }))
+                talents: buildBackupTalents(talentPositions['Hercules'], 301)
             },
             {
                 id: 'Pegasus',
                 name: 'Pegasus',
-                oldName: 'Mente Estratégica',
+                oldName: 'Precisão',
                 color: '#ffdc87',
-                talents: talentPositions['Pegasus'].map(pos => ({
-                    id: pos.id,
-                    name: `Talento ${pos.id}`,
-                    description: "Descrição indisponível.",
-                    x: pos.x,
-                    y: pos.y,
-                    requires: pos.requires
-                }))
+                talents: buildBackupTalents(talentPositions['Pegasus'], 401)
             },
             {
                 id: 'Phoenix',
                 name: 'Phoenix',
-                oldName: 'Constelação Oculta',
+                oldName: 'Constelação Secreta',
                 color: '#ff6464',
-                talents: talentPositions['Phoenix'].map(pos => ({
+                talents: talentPositions['Phoenix'].map((pos, index) => ({
                     id: pos.id,
                     name: `Talento ${pos.id}`,
                     description: "Descrição indisponível.",
+                    cost: 2500,
                     x: pos.x,
                     y: pos.y,
-                    requires: pos.requires
+                    requires: null
                 }))
             }
         ];
-        
+
         initConstellations();
         hideSecretConstellation();
         loadUnlockedTalents();
-        updateConstellation(2); // Iniciar na posição 3 (índice 2)
+        updateConstellation(0); // Iniciar na posição 1 (Draco/Ofensiva)
     }
     
     // Verificar constelações após um tempo para garantir que ao menos uma esteja visível
