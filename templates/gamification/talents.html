@@ -9,7 +9,12 @@
     
     <!-- Estrela cadente -->
     <div id="shooting-star"></div>
-    
+
+    <!-- Mensagem de revelação da constelação secreta -->
+    <div id="secret-reveal-message" class="secret-reveal-message">
+        <div class="reveal-text">Uma nova constelação surgiu...</div>
+    </div>
+
     <!-- Navegação -->
     <a href="/gamification" class="nav-button">
         <i class="fas fa-arrow-left"></i> Voltar
@@ -448,6 +453,60 @@
     100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 15px 5px currentColor; }
 }
 
+/* Mensagem de revelação da constelação secreta */
+.secret-reveal-message {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    background: radial-gradient(circle, rgba(255,100,100,0.3) 0%, rgba(0,0,0,0.9) 70%);
+    animation: reveal-bg-pulse 3s ease-in-out;
+}
+
+.secret-reveal-message.active {
+    display: flex;
+}
+
+.reveal-text {
+    font-size: 48px;
+    color: white;
+    text-shadow:
+        0 0 20px rgba(255,100,100,1),
+        0 0 40px rgba(255,100,100,0.8),
+        0 0 60px rgba(255,100,100,0.6),
+        0 0 80px rgba(255,100,100,0.4);
+    animation: reveal-text-shake 0.15s infinite, reveal-text-glow 2s ease-in-out;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-family: 'Cinzel', serif;
+}
+
+@keyframes reveal-text-shake {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(-2px, 1px); }
+    50% { transform: translate(2px, -1px); }
+    75% { transform: translate(-1px, -2px); }
+}
+
+@keyframes reveal-text-glow {
+    0% { opacity: 0; transform: scale(0.8); }
+    20% { opacity: 1; transform: scale(1.1); }
+    80% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.2); }
+}
+
+@keyframes reveal-bg-pulse {
+    0% { background: radial-gradient(circle, rgba(255,100,100,0) 0%, rgba(0,0,0,0) 70%); }
+    30% { background: radial-gradient(circle, rgba(255,100,100,0.4) 0%, rgba(0,0,0,0.95) 70%); }
+    70% { background: radial-gradient(circle, rgba(255,100,100,0.3) 0%, rgba(0,0,0,0.9) 70%); }
+    100% { background: radial-gradient(circle, rgba(255,100,100,0) 0%, rgba(0,0,0,0) 70%); }
+}
+
 </style>
 
 <script>
@@ -462,6 +521,45 @@ function log(...args) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // ===== SISTEMA DE SONS =====
+    let currentBellIndex = 1;  // Contador para talentbell (1-6)
+    let secretConstellationWasHidden = true;  // Rastrear se constelação secreta estava oculta
+
+    // Função para tocar som de aquisição de talento
+    function playTalentBellSound() {
+        const audio = new Audio(`/static/game.data/sounds/talentbell${currentBellIndex}.wav`);
+        audio.volume = 0.6;
+        audio.play().catch(e => log('Erro ao tocar som:', e));
+
+        // Avançar para o próximo bell (1-6, depois volta para 1)
+        currentBellIndex++;
+        if (currentBellIndex > 6) {
+            currentBellIndex = 1;
+        }
+        log(`Som talentbell${currentBellIndex - 1 || 6} tocado. Próximo: talentbell${currentBellIndex}`);
+    }
+
+    // Função para mostrar mensagem de revelação da constelação secreta
+    function showSecretRevealMessage() {
+        const messageElement = document.getElementById('secret-reveal-message');
+        if (!messageElement) return;
+
+        // Tocar som de revelação
+        const revealSound = new Audio('/static/game.data/sounds/reveal-sound.wav');
+        revealSound.volume = 0.8;
+        revealSound.play().catch(e => log('Erro ao tocar som de revelação:', e));
+
+        // Mostrar mensagem
+        messageElement.classList.add('active');
+
+        // Remover após 3 segundos
+        setTimeout(() => {
+            messageElement.classList.remove('active');
+        }, 3000);
+
+        log('🌟 Constelação secreta revelada!');
+    }
+
     // Definição de mapeamento de posições dos talentos (NOVO SISTEMA - 10 nós por constelação)
     const talentPositions = {
         'Draco': [
@@ -1154,6 +1252,9 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if(data.success) {
+                // Tocar som de aquisição de talento
+                playTalentBellSound();
+
                 // Efeito visual
                 createTalentParticles(talentNode);
 
@@ -1376,9 +1477,21 @@ document.addEventListener('DOMContentLoaded', function() {
         if(secretIndex < 0) return;
         const secretElem = document.getElementById(`constellation-${constellations[secretIndex].id}`);
         if(!secretElem) return;
+
         const anyComplete = constellations.some(c => c.id !== 'Phoenix' && isConstellationComplete(c.id));
-        secretElem.style.display = anyComplete ? 'flex' : 'none';
-        if(secretElem.style.display === 'none' && currentConstellation === secretIndex) { updateConstellation(2); }
+        const shouldBeVisible = anyComplete;
+        const wasHidden = secretElem.style.display === 'none';
+
+        // Se estava oculta e agora deve ser visível = REVELAÇÃO!
+        if (wasHidden && shouldBeVisible && secretConstellationWasHidden) {
+            showSecretRevealMessage();
+            secretConstellationWasHidden = false;  // Não mostrar novamente nesta sessão
+        }
+
+        secretElem.style.display = shouldBeVisible ? 'flex' : 'none';
+        if(secretElem.style.display === 'none' && currentConstellation === secretIndex) {
+            updateConstellation(0);
+        }
     }
     
     function generateStars(layer, count, size) {
