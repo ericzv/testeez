@@ -1,771 +1,887 @@
-# routes/talents.py
+# routes/talents.py - NOVO SISTEMA DE TALENTOS
 
-import math
 import json
-import random
 from datetime import datetime, timezone
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
 from sqlalchemy import text
 
 from database import db
 from models import Player, Talent, PlayerTalent, AppliedTalentEffect
-from game_formulas import calculate_strength_damage, calculate_resistance_block
 from routes.cards import flash_gamification, get_exp_for_next_level
 
 # Criar o blueprint para as rotas de talentos
 talents_bp = Blueprint('talents', __name__)
 
-# Dicionário completo de talentos
+# ============================================================================
+# NOVO SISTEMA DE TALENTOS - EFEITOS FLAT E DISCRETOS
+# ============================================================================
+
 talents_data = {
-    "Ofensiva Brutal": {
+    "Ofensiva": {
         "id": "Draco",
         "name": "Draco",
-        "oldName": "Ofensiva Brutal",
+        "oldName": "Ofensiva",
         "talents": [
-            {"id": 1, "name": "Ataque Pesado I", "description": "Aumenta dano base em +0.2x (20%)",
-             "effect_type": "damage", "effect_value": "0.2", "requires": None},
-            {"id": 2, "name": "Golpe Crítico I", "description": "+2% chance de acerto crítico",
-             "effect_type": "critical_chance", "effect_value": "2", "requires": 1},
-            {"id": 3, "name": "Dano Crítico I", "description": "Aumenta o dano do acerto crítico em 10%",
-             "effect_type": "critical_damage", "effect_value": "10", "requires": 2},
-            {"id": 4, "name": "Bloqueio Ofensivo", "description": "Aumenta o bloqueio em 2%",
-             "effect_type": "resistance", "effect_value": "2", "requires": 3},
-            {"id": 5, "name": "Vampirismo I", "description": "Cura 0,5% do HP ao causar dano",
-             "effect_type": "heal_on_damage", "effect_value": "0.005", "requires": 4},
-            {"id": 6, "name": "Ataque Pesado II", "description": "Aumenta dano base em +0.2x (20%)",
-             "effect_type": "damage", "effect_value": "0.2", "requires": 5},
-            {"id": 7, "name": "Golpe Crítico II", "description": "+2% chance de acerto crítico",
-             "effect_type": "critical_chance", "effect_value": "2", "requires": 6},
-            {"id": 8, "name": "Dano Crítico II", "description": "Aumenta o dano do acerto crítico em 10%",
-             "effect_type": "critical_damage", "effect_value": "10", "requires": 7},
-            {"id": 9, "name": "Vampirismo II", "description": "Cura 0,5% do HP ao causar dano",
-             "effect_type": "heal_on_damage", "effect_value": "0.005", "requires": 8},
-            {"id": 10, "name": "Ataque Pesado III", "description": "Aumenta dano base em +0.2x (20%)",
-             "effect_type": "damage", "effect_value": "0.2", "requires": 9},
-            {"id": 11, "name": "Golpe Crítico III", "description": "+2% chance de acerto crítico",
-             "effect_type": "critical_chance", "effect_value": "2", "requires": 10},
-            {"id": 12, "name": "Dano Crítico III", "description": "Aumenta o dano do acerto crítico em 10%",
-             "effect_type": "critical_damage", "effect_value": "10", "requires": 11},
-            {"id": 13, "name": "Ataque Pesado IV", "description": "Aumenta dano base em +0.2x (20%)",
-             "effect_type": "damage", "effect_value": "0.2", "requires": 12},
-            {"id": 14, "name": "Golpe Crítico IV", "description": "+2% chance de acerto crítico",
-             "effect_type": "critical_chance", "effect_value": "2", "requires": 13},
-            {"id": 15, "name": "Dano Crítico IV", "description": "Aumenta o dano do acerto crítico em 10%",
-             "effect_type": "critical_damage", "effect_value": "10", "requires": 14},
-            {"id": 16, "name": "Bloqueio Ofensivo II", "description": "Aumenta o bloqueio em 2%",
-             "effect_type": "resistance", "effect_value": "2", "requires": 15},
-            {"id": 17, "name": "Vampirismo III", "description": "Cura 0,5% do HP ao causar dano",
-             "effect_type": "heal_on_damage", "effect_value": "0.005", "requires": 16},
-            {"id": 18, "name": "Ataque Pesado V", "description": "Aumenta dano base em +0.2x (20%)",
-             "effect_type": "damage", "effect_value": "0.2", "requires": 17},
-            {"id": 19, "name": "Golpe Crítico V", "description": "+2% chance de acerto crítico",
-             "effect_type": "critical_chance", "effect_value": "2", "requires": 18},
-            {"id": 20, "name": "Vampirismo Supremo", "description": "Ao causar dano, cura 3% do HP com base no dano causado e aumenta o dano em 0.5x",
-             "effect_type": "special", "effect_value": "heal_percent:3,damage_boost:0.5", "requires": 19}
+            {
+                "id": 1,
+                "name": "Primeiro Golpe I",
+                "description": "+1 dano no primeiro ataque de cada batalha",
+                "effect_type": "first_attack_damage",
+                "effect_value": "1",
+                "cost": 350,
+                "requires": None
+            },
+            {
+                "id": 2,
+                "name": "Ataque Básico I",
+                "description": "+1 dano em ataques básicos",
+                "effect_type": "basic_attack_damage",
+                "effect_value": "1",
+                "cost": 400,
+                "requires": 1
+            },
+            {
+                "id": 3,
+                "name": "Ataque de Poder I",
+                "description": "+1 dano em ataques de poder",
+                "effect_type": "power_attack_damage",
+                "effect_value": "1",
+                "cost": 450,
+                "requires": 2
+            },
+            {
+                "id": 4,
+                "name": "Ataque Especial I",
+                "description": "+1 dano em ataques especiais",
+                "effect_type": "special_attack_damage",
+                "effect_value": "1",
+                "cost": 500,
+                "requires": 3
+            },
+            {
+                "id": 5,
+                "name": "Devastação",
+                "description": "+1 dano em ultimates",
+                "effect_type": "ultimate_damage",
+                "effect_value": "1",
+                "cost": 600,
+                "requires": 4
+            },
+            {
+                "id": 6,
+                "name": "Primeiro Golpe II",
+                "description": "+1 dano no primeiro ataque de cada batalha",
+                "effect_type": "first_attack_damage",
+                "effect_value": "1",
+                "cost": 750,
+                "requires": 5
+            },
+            {
+                "id": 7,
+                "name": "Ataque Básico II",
+                "description": "+1 dano em ataques básicos",
+                "effect_type": "basic_attack_damage",
+                "effect_value": "1",
+                "cost": 1000,
+                "requires": 6
+            },
+            {
+                "id": 8,
+                "name": "Ataque de Poder II",
+                "description": "+1 dano em ataques de poder",
+                "effect_type": "power_attack_damage",
+                "effect_value": "1",
+                "cost": 1250,
+                "requires": 7
+            },
+            {
+                "id": 9,
+                "name": "Ataque Especial II",
+                "description": "+1 dano em ataques especiais",
+                "effect_type": "special_attack_damage",
+                "effect_value": "1",
+                "cost": 1500,
+                "requires": 8
+            },
+            {
+                "id": 10,
+                "name": "Caçador de Bosses",
+                "description": "+2 dano a cada boss vencido na run",
+                "effect_type": "damage_per_boss",
+                "effect_value": "2",
+                "cost": 2000,
+                "requires": 9
+            }
         ]
     },
-    "Defesa e Sobrevivência": {
+    "Vitalidade": {
         "id": "Taurus",
         "name": "Taurus",
-        "oldName": "Defesa e Sobrevivência",
+        "oldName": "Vitalidade",
         "talents": [
-            {"id": 101, "name": "Bloqueio I", "description": "Aumenta 2% bloqueio", 
-            "effect_type": "resistance", "effect_value": "2", "requires": None},
-            {"id": 106, "name": "+HP Máximo I", "description": "+15 HP máximo", 
-            "effect_type": "max_hp", "effect_value": "15", "requires": 101},
-            {"id": 109, "name": "Vitalidade I", "description": "+2 Vitalidade", 
-            "effect_type": "vitality", "effect_value": "2", "requires": 106},
-            {"id": 114, "name": "Cura de Batalha I", "description": "Cura 20HP após derrotar um inimigo", 
-            "effect_type": "heal_on_victory", "effect_value": "20", "requires": 109},
-            {"id": 102, "name": "Bloqueio II", "description": "Aumenta 2% bloqueio", 
-            "effect_type": "resistance", "effect_value": "2", "requires": 114},
-            {"id": 110, "name": "Vitalidade II", "description": "+2 Vitalidade", 
-            "effect_type": "vitality", "effect_value": "2", "requires": 102},
-            {"id": 117, "name": "Cura Matinal I", "description": "Cura 10HP todo início do dia", 
-            "effect_type": "morning_heal", "effect_value": "10", "requires": 110},
-            {"id": 107, "name": "+HP Máximo II", "description": "+15 HP máximo", 
-            "effect_type": "max_hp", "effect_value": "15", "requires": 117},
-            {"id": 116, "name": "Regeneração Dupla", "description": "Duplica a regeneração de HP se o HP atual for <30%", 
-            "effect_type": "regen_boost_low_hp", "effect_value": "2.0", "requires": 107},
-            {"id": 103, "name": "Bloqueio III", "description": "Aumenta 2% bloqueio", 
-            "effect_type": "resistance", "effect_value": "2", "requires": 116},
-            {"id": 111, "name": "Vitalidade III", "description": "+2 Vitalidade", 
-            "effect_type": "vitality", "effect_value": "2", "requires": 103},
-            {"id": 118, "name": "Cura Matinal II", "description": "Cura 10HP todo início do dia", 
-            "effect_type": "morning_heal", "effect_value": "10", "requires": 111},
-            {"id": 104, "name": "Bloqueio IV", "description": "Aumenta 2% bloqueio", 
-            "effect_type": "resistance", "effect_value": "2", "requires": 118},
-            {"id": 112, "name": "Vitalidade IV", "description": "+2 Vitalidade", 
-            "effect_type": "vitality", "effect_value": "2", "requires": 104},
-            {"id": 105, "name": "Bloqueio V", "description": "Aumenta 2% bloqueio", 
-            "effect_type": "resistance", "effect_value": "2", "requires": 112},
-            {"id": 115, "name": "Cura de Batalha II", "description": "Cura 20HP após derrotar um inimigo", 
-            "effect_type": "heal_on_victory", "effect_value": "20", "requires": 105},
-            {"id": 108, "name": "+HP Máximo III", "description": "+15 HP máximo", 
-            "effect_type": "max_hp", "effect_value": "15", "requires": 115},
-            {"id": 119, "name": "Cura Matinal III", "description": "Cura 10HP todo início do dia", 
-            "effect_type": "morning_heal", "effect_value": "10", "requires": 108},
-            {"id": 113, "name": "Vitalidade V", "description": "+2 Vitalidade", 
-            "effect_type": "vitality", "effect_value": "2", "requires": 119},
-            {"id": 120, "name": "Renovação Total", "description": "Após derrotar um inimigo, cura completamente o HP", 
-            "effect_type": "special", "effect_value": "full_heal_on_victory", "requires": 113}
+            {
+                "id": 101,
+                "name": "Vigor I",
+                "description": "+5 HP máximo",
+                "effect_type": "max_hp_flat",
+                "effect_value": "5",
+                "cost": 350,
+                "requires": None
+            },
+            {
+                "id": 102,
+                "name": "Preparação I",
+                "description": "+1 HP ao iniciar batalha",
+                "effect_type": "start_battle_heal",
+                "effect_value": "1",
+                "cost": 400,
+                "requires": 101
+            },
+            {
+                "id": 103,
+                "name": "Triunfo I",
+                "description": "+1 HP ao vencer batalha",
+                "effect_type": "heal_on_victory",
+                "effect_value": "1",
+                "cost": 450,
+                "requires": 102
+            },
+            {
+                "id": 104,
+                "name": "Vigor II",
+                "description": "+5 HP máximo",
+                "effect_type": "max_hp_flat",
+                "effect_value": "5",
+                "cost": 500,
+                "requires": 103
+            },
+            {
+                "id": 105,
+                "name": "Preparação II",
+                "description": "+2 HP ao iniciar batalha",
+                "effect_type": "start_battle_heal",
+                "effect_value": "2",
+                "cost": 600,
+                "requires": 104
+            },
+            {
+                "id": 106,
+                "name": "Triunfo II",
+                "description": "+1 HP ao vencer batalha",
+                "effect_type": "heal_on_victory",
+                "effect_value": "1",
+                "cost": 750,
+                "requires": 105
+            },
+            {
+                "id": 107,
+                "name": "Vigor III",
+                "description": "+5 HP máximo",
+                "effect_type": "max_hp_flat",
+                "effect_value": "5",
+                "cost": 1000,
+                "requires": 106
+            },
+            {
+                "id": 108,
+                "name": "Triunfo III",
+                "description": "+2 HP ao vencer batalha",
+                "effect_type": "heal_on_victory",
+                "effect_value": "2",
+                "cost": 1250,
+                "requires": 107
+            },
+            {
+                "id": 109,
+                "name": "Resistência",
+                "description": "+10 HP máximo",
+                "effect_type": "max_hp_flat",
+                "effect_value": "10",
+                "cost": 1500,
+                "requires": 108
+            },
+            {
+                "id": 110,
+                "name": "Matador de Bosses",
+                "description": "+3 HP ao derrotar boss",
+                "effect_type": "heal_on_boss_kill",
+                "effect_value": "3",
+                "cost": 2000,
+                "requires": 109
+            }
         ]
     },
-    "Artes Arcanas": {
+    "Proteção": {
         "id": "Aquarius",
         "name": "Aquarius",
-        "oldName": "Artes Arcanas",
+        "oldName": "Proteção",
         "talents": [
-            {"id": 201, "name": "MP Máximo I", "description": "+15 MP máximo", 
-            "effect_type": "max_mp", "effect_value": "15", "requires": None},
-            {"id": 210, "name": "Escudo de Mana I", "description": "Escudo de mana: concede defesa de 1% da mana gasta no dia anterior", 
-            "effect_type": "mana_shield", "effect_value": "1", "requires": 201},
-            {"id": 206, "name": "Concentração I", "description": "+2 Concentração", 
-            "effect_type": "concentration", "effect_value": "2", "requires": 210},
-            {"id": 202, "name": "MP Máximo II", "description": "+15 MP máximo", 
-            "effect_type": "max_mp", "effect_value": "15", "requires": 206},
-            {"id": 204, "name": "Regeneração Mágica", "description": "Regenera 20 MP no início do dia", 
-            "effect_type": "morning_mana", "effect_value": "20", "requires": 202},
-            {"id": 211, "name": "Escudo de Mana II", "description": "Escudo de mana: concede defesa de 1% da mana gasta no dia anterior", 
-            "effect_type": "mana_shield", "effect_value": "1", "requires": 204},
-            {"id": 207, "name": "Concentração II", "description": "+2 Concentração", 
-            "effect_type": "concentration", "effect_value": "2", "requires": 211},
-            {"id": 209, "name": "Recuperação Arcana", "description": "Recupera 25MP após derrotar um inimigo", 
-            "effect_type": "mana_on_victory", "effect_value": "25", "requires": 207},
-            {"id": 218, "name": "Recuperação Mística", "description": "Recupera 25MP após derrotar um inimigo", 
-            "effect_type": "mana_on_victory", "effect_value": "25", "requires": 209},
-            {"id": 212, "name": "Escudo de Mana III", "description": "Escudo de mana: concede defesa de 1% da mana gasta no dia anterior", 
-            "effect_type": "mana_shield", "effect_value": "1", "requires": 218},
-            {"id": 205, "name": "Regeneração Dobrada", "description": "Duplica a regeneração de MP se MP for <30%", 
-            "effect_type": "regen_boost_low_mp", "effect_value": "2.0", "requires": 212},
-            {"id": 208, "name": "Concentração III", "description": "+2 Concentração", 
-            "effect_type": "concentration", "effect_value": "2", "requires": 205},
-            {"id": 213, "name": "Escudo de Mana IV", "description": "Escudo de mana: concede defesa de 1% da mana gasta no dia anterior", 
-            "effect_type": "mana_shield", "effect_value": "1", "requires": 208},
-            {"id": 215, "name": "Regeneração Menor", "description": "Regenera 5 MP no início do dia", 
-            "effect_type": "morning_mana", "effect_value": "5", "requires": 213},
-            {"id": 216, "name": "Concentração IV", "description": "+2 Concentração", 
-            "effect_type": "concentration", "effect_value": "2", "requires": 215},
-            {"id": 203, "name": "MP Máximo III", "description": "+15 MP máximo", 
-            "effect_type": "max_mp", "effect_value": "15", "requires": 216},
-            {"id": 214, "name": "Escudo de Mana V", "description": "Escudo de mana: concede defesa de 1% da mana gasta no dia anterior", 
-            "effect_type": "mana_shield", "effect_value": "1", "requires": 203},
-            {"id": 217, "name": "Concentração V", "description": "+2 Concentração", 
-            "effect_type": "concentration", "effect_value": "2", "requires": 214},
-            {"id": 219, "name": "Regeneração Superior", "description": "Regenera 15 MP no início do dia", 
-            "effect_type": "morning_mana", "effect_value": "15", "requires": 217},
-            {"id": 220, "name": "Conversão de Mana", "description": "Cura 10% de HP de todo MP consumido em habilidades", 
-            "effect_type": "hp_to_mana_conversion", "effect_value": "10", "requires": 219}
+            {
+                "id": 201,
+                "name": "Escudo Inicial I",
+                "description": "Começa batalha com 1 de barreira",
+                "effect_type": "start_barrier",
+                "effect_value": "1",
+                "cost": 350,
+                "requires": None
+            },
+            {
+                "id": 202,
+                "name": "Força da Barreira I",
+                "description": "Enquanto com barreira ativa, +1 dano",
+                "effect_type": "damage_with_barrier",
+                "effect_value": "1",
+                "cost": 400,
+                "requires": 201
+            },
+            {
+                "id": 203,
+                "name": "Escudo Inicial II",
+                "description": "Começa batalha com 1 de barreira",
+                "effect_type": "start_barrier",
+                "effect_value": "1",
+                "cost": 450,
+                "requires": 202
+            },
+            {
+                "id": 204,
+                "name": "Vampirismo Protetor I",
+                "description": "Enquanto com barreira ativa, +1 HP ao atacar",
+                "effect_type": "heal_with_barrier",
+                "effect_value": "1",
+                "cost": 500,
+                "requires": 203
+            },
+            {
+                "id": 205,
+                "name": "Escudo Inicial III",
+                "description": "Começa batalha com 1 de barreira",
+                "effect_type": "start_barrier",
+                "effect_value": "1",
+                "cost": 600,
+                "requires": 204
+            },
+            {
+                "id": 206,
+                "name": "Força da Barreira II",
+                "description": "Enquanto com barreira ativa, +1 dano",
+                "effect_type": "damage_with_barrier",
+                "effect_value": "1",
+                "cost": 750,
+                "requires": 205
+            },
+            {
+                "id": 207,
+                "name": "Escudo Inicial IV",
+                "description": "Começa batalha com 1 de barreira",
+                "effect_type": "start_barrier",
+                "effect_value": "1",
+                "cost": 1000,
+                "requires": 206
+            },
+            {
+                "id": 208,
+                "name": "Vampirismo Protetor II",
+                "description": "Enquanto com barreira ativa, +1 HP ao atacar",
+                "effect_type": "heal_with_barrier",
+                "effect_value": "1",
+                "cost": 1250,
+                "requires": 207
+            },
+            {
+                "id": 209,
+                "name": "Escudo Inicial V",
+                "description": "Começa batalha com 1 de barreira",
+                "effect_type": "start_barrier",
+                "effect_value": "1",
+                "cost": 1500,
+                "requires": 208
+            },
+            {
+                "id": 210,
+                "name": "Escudo Inicial VI",
+                "description": "Começa batalha com 1 de barreira",
+                "effect_type": "start_barrier",
+                "effect_value": "1",
+                "cost": 2000,
+                "requires": 209
+            }
         ]
     },
-    "Sorte e Caos": {
+    "Economia": {
         "id": "Hercules",
-        "name": "Hercules", 
-        "oldName": "Sorte e Caos",
+        "name": "Hercules",
+        "oldName": "Economia",
         "talents": [
-            {"id": 301, "name": "Sorte I", "description": "+2 Sorte", 
-            "effect_type": "luck", "effect_value": "2", "requires": None},
-            {"id": 307, "name": "Desconto I", "description": "10% desconto na loja", 
-            "effect_type": "shop_discount", "effect_value": "10", "requires": 301},
-            {"id": 310, "name": "Crítico Caótico I", "description": "+5% chance de acerto crítico", 
-            "effect_type": "chaos_critical", "effect_value": "5", "requires": 307},
-            {"id": 313, "name": "Cura Caótica I", "description": "5% de chance de curar totalmente HP e MP no início do dia", 
-            "effect_type": "chaos_heal", "effect_value": "5", "requires": 310},
-            {"id": 302, "name": "Sorte II", "description": "+2 Sorte", 
-            "effect_type": "luck", "effect_value": "2", "requires": 313},
-            {"id": 315, "name": "Cristais Dobrados I", "description": "10% de chance de duplicar a quantidade de cristais recebidos", 
-            "effect_type": "crystal_double", "effect_value": "10", "requires": 302},
-            {"id": 318, "name": "EXP Turbinada I", "description": "Aumenta EXP recebido em 5%", 
-            "effect_type": "exp_boost", "effect_value": "5", "requires": 315},
-            {"id": 303, "name": "Sorte III", "description": "+2 Sorte", 
-            "effect_type": "luck", "effect_value": "2", "requires": 318},
-            {"id": 311, "name": "Crítico Caótico II", "description": "+5% chance de acerto crítico", 
-            "effect_type": "chaos_critical", "effect_value": "5", "requires": 303},
-            {"id": 316, "name": "Cristais Dobrados II", "description": "10% de chance de duplicar a quantidade de cristais recebidos", 
-            "effect_type": "crystal_double", "effect_value": "10", "requires": 311},
-            {"id": 304, "name": "Sorte IV", "description": "+2 Sorte", 
-            "effect_type": "luck", "effect_value": "2", "requires": 316},
-            {"id": 314, "name": "Cura Caótica II", "description": "5% de chance de curar totalmente HP e MP no início do dia", 
-            "effect_type": "chaos_heal", "effect_value": "5", "requires": 304},
-            {"id": 308, "name": "Desconto II", "description": "10% desconto na loja", 
-            "effect_type": "shop_discount", "effect_value": "10", "requires": 314},
-            {"id": 305, "name": "Sorte V", "description": "+2 Sorte", 
-            "effect_type": "luck", "effect_value": "2", "requires": 308},
-            {"id": 319, "name": "EXP Turbinada II", "description": "Aumenta EXP recebido em 5%", 
-            "effect_type": "exp_boost", "effect_value": "5", "requires": 305},
-            {"id": 312, "name": "Crítico Caótico III", "description": "+5% chance de acerto crítico", 
-            "effect_type": "chaos_critical", "effect_value": "5", "requires": 319},
-            {"id": 306, "name": "Sorte VI", "description": "+2 Sorte", 
-            "effect_type": "luck", "effect_value": "2", "requires": 312},
-            {"id": 309, "name": "Desconto III", "description": "10% desconto na loja", 
-            "effect_type": "shop_discount", "effect_value": "10", "requires": 306},
-            {"id": 317, "name": "Cristais Dobrados III", "description": "10% de chance de duplicar a quantidade de cristais recebidos", 
-            "effect_type": "crystal_double", "effect_value": "10", "requires": 309},
-            {"id": 320, "name": "Ladrão Mestre", "description": "20% de chance de conseguir um baú de recompensa ao logar, tendo logado diariamente nos últimos 5 dias", 
-            "effect_type": "special", "effect_value": "reward_chest:20", "requires": 317}
+            {
+                "id": 301,
+                "name": "Viajante do Tempo I",
+                "description": "+1 Ampulheta ao iniciar run",
+                "effect_type": "start_run_hourglasses",
+                "effect_value": "1",
+                "cost": 350,
+                "requires": None
+            },
+            {
+                "id": 302,
+                "name": "Bolso Cheio I",
+                "description": "+25 de ouro ao iniciar run",
+                "effect_type": "start_run_gold",
+                "effect_value": "25",
+                "cost": 400,
+                "requires": 301
+            },
+            {
+                "id": 303,
+                "name": "Viajante do Tempo II",
+                "description": "+1 Ampulheta ao iniciar run",
+                "effect_type": "start_run_hourglasses",
+                "effect_value": "1",
+                "cost": 450,
+                "requires": 302
+            },
+            {
+                "id": 304,
+                "name": "Bolso Cheio II",
+                "description": "+25 de ouro ao iniciar run",
+                "effect_type": "start_run_gold",
+                "effect_value": "25",
+                "cost": 500,
+                "requires": 303
+            },
+            {
+                "id": 305,
+                "name": "Caça-Recompensas I",
+                "description": "+50 ouro ao derrotar boss",
+                "effect_type": "gold_on_boss_kill",
+                "effect_value": "50",
+                "cost": 600,
+                "requires": 304
+            },
+            {
+                "id": 306,
+                "name": "Viajante do Tempo III",
+                "description": "+1 Ampulheta ao iniciar run",
+                "effect_type": "start_run_hourglasses",
+                "effect_value": "1",
+                "cost": 750,
+                "requires": 305
+            },
+            {
+                "id": 307,
+                "name": "Bolso Cheio III",
+                "description": "+25 de ouro ao iniciar run",
+                "effect_type": "start_run_gold",
+                "effect_value": "25",
+                "cost": 1000,
+                "requires": 306
+            },
+            {
+                "id": 308,
+                "name": "Viajante do Tempo IV",
+                "description": "+1 Ampulheta ao iniciar run",
+                "effect_type": "start_run_hourglasses",
+                "effect_value": "1",
+                "cost": 1250,
+                "requires": 307
+            },
+            {
+                "id": 309,
+                "name": "Bolso Cheio IV",
+                "description": "+25 de ouro ao iniciar run",
+                "effect_type": "start_run_gold",
+                "effect_value": "25",
+                "cost": 1500,
+                "requires": 308
+            },
+            {
+                "id": 310,
+                "name": "Caça-Recompensas II",
+                "description": "+50 ouro ao derrotar boss",
+                "effect_type": "gold_on_boss_kill",
+                "effect_value": "50",
+                "cost": 2000,
+                "requires": 309
+            }
         ]
     },
-    "Mente Estratégica": {
+    "Precisão": {
         "id": "Pegasus",
         "name": "Pegasus",
-        "oldName": "Mente Estratégica",
+        "oldName": "Precisão",
         "talents": [
-            {"id": 401, "name": "EXP Estratégico I", "description": "+5% EXP recebido", 
-            "effect_type": "exp_boost", "effect_value": "5", "requires": None},
-            {"id": 413, "name": "Vitória Pós-Batalha", "description": "Cura 15 HP ao derrotar um inimigo", 
-            "effect_type": "heal_on_victory", "effect_value": "15", "requires": 401},
-            {"id": 412, "name": "Início Revitalizante", "description": "Recupera 20MP se começar o dia com HP cheio", 
-            "effect_type": "morning_mana_if_full_hp", "effect_value": "20", "requires": 413},
-            {"id": 418, "name": "EXP Impecável I", "description": "Recebe 10% a mais de EXP ao derrotar um inimigo sem sofrer dano", 
-            "effect_type": "perfect_exp", "effect_value": "10", "requires": 412},
-            {"id": 407, "name": "Recuperação Matinal I", "description": "Recupera +5 MP todo início de dia", 
-            "effect_type": "morning_mana", "effect_value": "5", "requires": 418},
-            {"id": 402, "name": "EXP Estratégico II", "description": "+5% EXP recebido", 
-            "effect_type": "exp_boost", "effect_value": "5", "requires": 407},
-            {"id": 405, "name": "Cura Matinal I", "description": "Cura +5 HP todo início de dia", 
-            "effect_type": "morning_heal", "effect_value": "5", "requires": 402},
-            {"id": 409, "name": "Atributo Adicional I", "description": "Recebe 1 ponto de atributo adicional a cada 10 níveis", 
-            "effect_type": "bonus_attribute", "effect_value": "1", "requires": 405},
-            {"id": 414, "name": "Recuperação Pós-Batalha", "description": "Recupera 10 MP ao derrotar um inimigo", 
-            "effect_type": "mana_on_victory", "effect_value": "10", "requires": 409},
-            {"id": 415, "name": "Defesa Emergencial I", "description": "Aumenta o bloqueio em 5% se HP atual estiver abaixo de 50% do HP máximo", 
-            "effect_type": "emergency_defense", "effect_value": "5", "requires": 414},
-            {"id": 403, "name": "EXP Estratégico III", "description": "+5% EXP recebido", 
-            "effect_type": "exp_boost", "effect_value": "5", "requires": 415},
-            {"id": 406, "name": "Cura Matinal II", "description": "Cura +5 HP todo início de dia", 
-            "effect_type": "morning_heal", "effect_value": "5", "requires": 403},
-            {"id": 408, "name": "Recuperação Matinal II", "description": "Recupera +5 MP todo início de dia", 
-            "effect_type": "morning_mana", "effect_value": "5", "requires": 406},
-            {"id": 410, "name": "Atributo Adicional II", "description": "Recebe 1 ponto de atributo adicional a cada 10 níveis", 
-            "effect_type": "bonus_attribute", "effect_value": "1", "requires": 408},
-            {"id": 411, "name": "Manhã Potente", "description": "Cura 20HP se começar o dia com MP cheio", 
-            "effect_type": "morning_heal_if_full_mp", "effect_value": "20", "requires": 410},
-            {"id": 404, "name": "EXP Estratégico IV", "description": "+5% EXP recebido", 
-            "effect_type": "exp_boost", "effect_value": "5", "requires": 411},
-            {"id": 416, "name": "Defesa Emergencial II", "description": "Aumenta o bloqueio em 5% se HP atual estiver abaixo de 50% do HP máximo", 
-            "effect_type": "emergency_defense", "effect_value": "5", "requires": 404},
-            {"id": 419, "name": "EXP Impecável II", "description": "Recebe 10% a mais de EXP ao derrotar um inimigo sem sofrer dano", 
-            "effect_type": "perfect_exp", "effect_value": "10", "requires": 416},
-            {"id": 417, "name": "Dano Retaliatório", "description": "+0.5x dano se o dano causado aos inimigos no dia anterior foi 500 ou mais", 
-            "effect_type": "retaliatory_damage", "effect_value": "0.5", "requires": 419},
-            {"id": 420, "name": "Privança do Mestre", "description": "+20 Sorte, +15 Vitalidade, +15 Concentração", 
-            "effect_type": "multi_attribute_boost", "effect_value": "sorte:20,vitalidade:15,concentracao:15", "requires": 417}
+            {
+                "id": 401,
+                "name": "Golpe Certeiro I",
+                "description": "+1 HP ao acertar crítico",
+                "effect_type": "heal_on_crit",
+                "effect_value": "1",
+                "cost": 350,
+                "requires": None
+            },
+            {
+                "id": 402,
+                "name": "Crítico Devastador I",
+                "description": "+1 dano em ataques críticos",
+                "effect_type": "crit_damage_flat",
+                "effect_value": "1",
+                "cost": 400,
+                "requires": 401
+            },
+            {
+                "id": 403,
+                "name": "Ganância I",
+                "description": "+10% ouro ganho em batalhas",
+                "effect_type": "gold_bonus_percent",
+                "effect_value": "10",
+                "cost": 450,
+                "requires": 402
+            },
+            {
+                "id": 404,
+                "name": "Golpe Certeiro II",
+                "description": "+1 HP ao acertar crítico",
+                "effect_type": "heal_on_crit",
+                "effect_value": "1",
+                "cost": 500,
+                "requires": 403
+            },
+            {
+                "id": 405,
+                "name": "Crítico Devastador II",
+                "description": "+1 dano em ataques críticos",
+                "effect_type": "crit_damage_flat",
+                "effect_value": "1",
+                "cost": 600,
+                "requires": 404
+            },
+            {
+                "id": 406,
+                "name": "Resistência Combativa I",
+                "description": "+1 energia a cada 10 ataques realizados",
+                "effect_type": "energy_per_attacks",
+                "effect_value": "1",
+                "cost": 750,
+                "requires": 405
+            },
+            {
+                "id": 407,
+                "name": "Ganância II",
+                "description": "+10% ouro ganho em batalhas",
+                "effect_type": "gold_bonus_percent",
+                "effect_value": "10",
+                "cost": 1000,
+                "requires": 406
+            },
+            {
+                "id": 408,
+                "name": "Desconto I",
+                "description": "-5% custo na loja",
+                "effect_type": "shop_discount_percent",
+                "effect_value": "5",
+                "cost": 1250,
+                "requires": 407
+            },
+            {
+                "id": 409,
+                "name": "Resistência Combativa II",
+                "description": "+1 energia a cada 10 ataques realizados",
+                "effect_type": "energy_per_attacks",
+                "effect_value": "1",
+                "cost": 1500,
+                "requires": 408
+            },
+            {
+                "id": 410,
+                "name": "Desconto II",
+                "description": "-10% custo na loja",
+                "effect_type": "shop_discount_percent",
+                "effect_value": "10",
+                "cost": 2000,
+                "requires": 409
+            }
         ]
     },
-    "Constelação Oculta": {
+    "Constelação Secreta": {
         "id": "Phoenix",
         "name": "Phoenix",
-        "oldName": "Constelação Oculta",
+        "oldName": "Constelação Secreta",
         "talents": [
-            {"id": 501, "name": "Espada do Verbo", "description": "Aumenta o dano base em +1.0x",
-             "effect_type": "damage", "effect_value": "1.0", "requires": None},
-            {"id": 502, "name": "Juízo Final", "description": "Aumenta a chance de crítico em 5%",
-             "effect_type": "global_critical_chance", "effect_value": "5", "requires": None},
-            {"id": 503, "name": "Selo de Luz", "description": "Concede +7 HP e +7 MP por golpe carregado",
-             "effect_type": "charged_attack_bonus", "effect_value": "hp:7,mp:7", "requires": None},
-            {"id": 504, "name": "Graça", "description": "Aumenta a chance de esquiva em 5%",
-            "effect_type": "dodge", "effect_value": "5", "requires": None},
-            {"id": 505, "name": "Guardião Silencioso", "description": "Ao iniciar o dia com HP cheio, concede um escudo de 25 HP",
-             "effect_type": "special", "effect_value": "shield_on_full_hp:25", "requires": None},
-            {"id": 506, "name": "Inspiração Sagrada", "description": "Regenera 3% do HP e 3% do MP a cada 10 minutos de estudo",
-             "effect_type": "special", "effect_value": "regeneration:3", "requires": None}
+            {
+                "id": 501,
+                "name": "Primeiro Golpe Supremo",
+                "description": "+2 dano no primeiro ataque de cada batalha",
+                "effect_type": "first_attack_damage",
+                "effect_value": "2",
+                "cost": 2500,
+                "requires": None
+            },
+            {
+                "id": 502,
+                "name": "Escudo Supremo",
+                "description": "Começa batalha com 4 de barreira",
+                "effect_type": "start_barrier",
+                "effect_value": "4",
+                "cost": 2500,
+                "requires": None
+            },
+            {
+                "id": 503,
+                "name": "Vigor Supremo",
+                "description": "+15 HP máximo",
+                "effect_type": "max_hp_flat",
+                "effect_value": "15",
+                "cost": 2500,
+                "requires": None
+            },
+            {
+                "id": 504,
+                "name": "Fortuna Suprema",
+                "description": "+150 de ouro ao iniciar run",
+                "effect_type": "start_run_gold",
+                "effect_value": "150",
+                "cost": 2500,
+                "requires": None
+            },
+            {
+                "id": 505,
+                "name": "Tempo Supremo",
+                "description": "+2 Ampulhetas ao iniciar run",
+                "effect_type": "start_run_hourglasses",
+                "effect_value": "2",
+                "cost": 2500,
+                "requires": None
+            },
+            {
+                "id": 506,
+                "name": "Energia Suprema",
+                "description": "+2 energia máxima",
+                "effect_type": "max_energy_bonus",
+                "effect_value": "2",
+                "cost": 2500,
+                "requires": None
+            }
         ]
     }
 }
 
-# Importando SimpleNamespace para criar objetos temporários
-from types import SimpleNamespace
 
-def parse_talent_effect(effect_description):
+# ============================================================================
+# CACHE DE TALENTOS OTIMIZADO
+# ============================================================================
+
+# Cache global para evitar recálculos frequentes
+_talent_cache = {}
+
+
+def get_player_talent_bonuses(player_id):
     """
-    Extrai o tipo e valor do efeito a partir da descrição do talento.
+    Retorna todos os bônus de talentos do jogador de forma otimizada.
+    Usa cache para evitar consultas repetidas ao banco.
     """
-    print(f"Analisando efeito: '{effect_description}'")
-    effect_description = effect_description.lower()
-    
-    # Mapeamento de padrões para tipos de efeito
-    effect_patterns = {
-        "dano em": "damage",
-        "dano base em": "damage",
-        "aumenta o dano em": "damage",
-        "chance de acerto crítico": "critical_chance",
-        "chance crítico": "critical_chance",
-        "dano do acerto crítico": "critical_damage",
-        "bloqueio": "block",  # Alterado para 'block' em vez de 'resistance'
-        "hp máximo": "max_hp",
-        "vitalidade": "vitality",
-        "sorte": "luck",
-        "resistência": "resistance",  # Para aumentos diretos de resistência
-        "cura": "heal",
-        "recupera": "heal",
-        "regenera": "regen",
-        "exp recebido": "bonus_xp",
-        "desconto": "shop_discount",
-        "duplicar": "double_chance",
-        "chance de duplicar": "double_chance",
-        "atributo adicional": "bonus_attribute",
+    global _talent_cache
+
+    cache_key = f"talents_{player_id}"
+
+    # Verificar se temos cache válido (validade de 60 segundos)
+    if cache_key in _talent_cache:
+        cached_data, timestamp = _talent_cache[cache_key]
+        if (datetime.utcnow() - timestamp).seconds < 60:
+            return cached_data
+
+    # Inicializar estrutura de bônus
+    bonuses = {
+        # Dano flat por tipo de ataque
+        "first_attack_damage": 0,
+        "basic_attack_damage": 0,
+        "power_attack_damage": 0,
+        "special_attack_damage": 0,
+        "ultimate_damage": 0,
+        "damage_per_boss": 0,
+
+        # HP
+        "max_hp_flat": 0,
+        "start_battle_heal": 0,
+        "heal_on_victory": 0,
+        "heal_on_boss_kill": 0,
+
+        # Barreira
+        "start_barrier": 0,
+        "damage_with_barrier": 0,
+        "heal_with_barrier": 0,
+
+        # Economia
+        "start_run_hourglasses": 0,
+        "start_run_gold": 0,
+        "gold_on_boss_kill": 0,
+        "gold_bonus_percent": 0,
+        "shop_discount_percent": 0,
+
+        # Crítico e Energia
+        "heal_on_crit": 0,
+        "crit_damage_flat": 0,
+        "energy_per_attacks": 0,
+
+        # Energia máxima
+        "max_energy_bonus": 0
     }
-    
-    # Identificar o tipo de efeito
-    effect_type = None
-    for pattern, type_id in effect_patterns.items():
-        if pattern in effect_description:
-            effect_type = type_id
-            print(f"Padrão '{pattern}' encontrado -> tipo: {type_id}")
-            break
-    
-    # Tratamentos especiais
-    if "cura" in effect_description and "ao causar dano" in effect_description:
-        effect_type = "heal_on_damage"
-        print("Efeito especial detectado: heal_on_damage")
-    
-    # Extrair valor numérico
-    import re
-    numeric_values = re.findall(r'(\d+(?:\.\d+)?)', effect_description)
-    effect_value = float(numeric_values[0]) if numeric_values else 0
-    print(f"Valor numérico extraído: {effect_value}")
-    
-    if not effect_type:
-        effect_type = "special"
-        print("Nenhum tipo específico identificado, usando 'special'")
-        
-    return effect_type, effect_value
 
-def initialize_player_attributes(player_id):
-    """Inicializa os atributos necessários para os talentos no jogador."""
-    player = Player.query.get(player_id)
-    if not player:
-        print("Jogador não encontrado para inicialização de atributos")
-        return False
-    
-    # Configurar atributos para efeitos de talentos se não existirem
-    if not hasattr(player, 'damage_bonus'):
-        player.damage_bonus = 0.0
-    
-    if not hasattr(player, 'critical_chance_bonus'):
-        player.critical_chance_bonus = 0.0
-    
-    if not hasattr(player, 'critical_damage_bonus'):
-        player.critical_damage_bonus = 0.0
-    
-    if not hasattr(player, 'heal_on_damage_percent'):
-        player.heal_on_damage_percent = 0.0
-    
-    if not hasattr(player, 'heal_on_victory'):
-        player.heal_on_victory = 0
-    
-    if not hasattr(player, 'exp_boost'):
-        player.exp_bonus = 0.0
-    
-    if not hasattr(player, 'block_bonus'):
-        player.block_bonus = 0.0
-    
-    if not hasattr(player, 'max_hp_bonus'):
-        player.max_hp_bonus = 0
-    
-    
-    # Salvar no banco de dados
-    db.session.commit()
-    print(f"Atributos do jogador {player.id} inicializados com sucesso")
-    return True
+    # Buscar todos os talentos do jogador de uma vez
+    player_talents = PlayerTalent.query.filter_by(player_id=player_id).all()
+
+    if not player_talents:
+        _talent_cache[cache_key] = (bonuses, datetime.utcnow())
+        return bonuses
+
+    # Mapear IDs para acesso rápido
+    talent_ids = {pt.talent_id for pt in player_talents}
+
+    # Iterar sobre todas as constelações e acumular bônus
+    for constellation in talents_data.values():
+        for talent in constellation["talents"]:
+            if talent["id"] in talent_ids:
+                effect_type = talent["effect_type"]
+                effect_value = int(talent["effect_value"])
+
+                if effect_type in bonuses:
+                    bonuses[effect_type] += effect_value
+
+    # Armazenar no cache
+    _talent_cache[cache_key] = (bonuses, datetime.utcnow())
+
+    return bonuses
 
 
-@talents_bp.before_app_request
-def apply_daily_talent_effects():
-    """Aplica efeitos diários dos talentos, como cura matinal."""
-    # Pular para arquivos estáticos e solicitações não-GET
-    if request.endpoint and (request.endpoint.startswith('static') or request.method != 'GET'):
-        return
-    
-    # Verificar se estamos na página principal de gamificação ou em uma página de batalha
-    if request.endpoint in ['gamification', 'battle']:
-        player = Player.query.first()
-        if not player:
-            return
-        
-        # Obter a data atual
-        today = datetime.now(timezone.utc).date()
-        
-        # Verificar se já aplicamos efeitos hoje (armazenado na sessão)
-        last_effects_date = session.get('last_daily_effects_date')
-        
-        if not last_effects_date or last_effects_date != today.isoformat():
-            print("Aplicando efeitos diários de talentos...")
-            
-            # Aplicar cura matinal
-            if hasattr(player, 'morning_heal_amount') and player.morning_heal_amount > 0:
-                heal_amount = player.morning_heal_amount
-                old_hp = player.hp
-                player.hp = min(player.hp + heal_amount, player.max_hp)
-                actual_heal = player.hp - old_hp
-                
-                if actual_heal > 0:
-                    flash_gamification(f"Cura Matinal: Recuperou {actual_heal} HP!")
-                    print(f"Aplicada cura matinal: +{actual_heal} HP")
-            
-            # Verificar efeitos de cura caótica (chance de cura total)
-            if hasattr(player, 'chaos_heal_chance') and player.chaos_heal_chance > 0:
-                # Valor base de chance (ajustado pela sorte)
-                base_chance = player.chaos_heal_chance
-                luck_bonus = player.luck / 1000  # Cada 100 de sorte adiciona 10% à chance base
-                final_chance = min(base_chance * (1 + luck_bonus), 0.50)  # Máximo de 50%
-                
-                if random.random() < final_chance:
-                    old_hp = player.hp
-                    player.hp = player.max_hp
-                    
-                    flash_gamification("✨ Cura Caótica ativada! HP totalmente recuperado!")
-                    print(f"Cura caótica ativada: HP {old_hp}->{player.hp}")
-            
-            # Verificar escudo se HP estiver cheio
-            if hasattr(player, 'shield_on_full_hp') and player.shield_on_full_hp > 0:
-                if player.hp >= player.max_hp:  # HP está cheio
-                    # Escudo é implementado como um bônus temporário de HP
-                    # Aqui precisaríamos criar um sistema de buff temporário
-                    # Por enquanto, apenas notificamos o jogador
-                    shield_amount = player.shield_on_full_hp
-                    flash_gamification(f"🛡️ Guardião Silencioso: Obteve escudo de {shield_amount} HP!")
-                    print(f"Escudo ativado: +{shield_amount} HP de proteção")
-            
-            if getattr(player, 'retaliatory_damage', 0) > 0:
-                yesterday = today - timedelta(days=1)
-                # supondo que você armazene em DailyStats o total de dano; adapte conforme seu esquema
-                stats_yesterday = DailyStats.query.filter_by(date=yesterday).first()
-                damage_yesterday = stats_yesterday.cards_studied_damage if stats_yesterday else 0
-                if damage_yesterday >= 500:
-                    player.damage_multiplier += player.retaliatory_damage
-                    flash(f"Dano Retaliatório ativado: +{player.retaliatory_damage:.1f}× de dano hoje!", "gamification")
-            
-            # Salvar mudanças
-            db.session.commit()
-            
-            # Marcar que já aplicamos efeitos hoje
-            session['last_daily_effects_date'] = today.isoformat()
+def invalidate_talent_cache(player_id):
+    """Invalida o cache de talentos do jogador."""
+    global _talent_cache
+    cache_key = f"talents_{player_id}"
+    if cache_key in _talent_cache:
+        del _talent_cache[cache_key]
 
-def apply_talent_effects(player, talent):
+
+def apply_talent_to_player_stats(player):
     """
-    Aplica os efeitos do talento ao jogador.
-    Manipula todos os tipos de efeitos e salva diretamente nos atributos do jogador.
+    Aplica os bônus permanentes de talentos ao jogador (HP máximo, energia máxima).
+    Deve ser chamado quando o jogador carrega ou quando talentos mudam.
     """
-    # Verifica se já foi aplicado antes - NÃO removerá talentos diários! É só pra permanentes
-    exists = AppliedTalentEffect.query.filter_by(
-        player_id=player.id,
-        talent_id=talent.id
-    ).first()
-    if exists:
-        return  # já aplicado, não faz nada
-    
-    print(f"\n===== APLICANDO EFEITO DO TALENTO =====")
-    print(f"Talento: {talent.id} - {talent.name}")
-    print(f"Descrição: {talent.description}")
-    
-    # Estado antes da aplicação
-    print(f"ANTES - HP Máx: {player.max_hp}")
-    print(f"ANTES - Vitality: {player.vitality}")
-    print(f"ANTES - Resistência: {player.resistance}, Sorte: {player.luck}")
-    print(f"ANTES - Dano base: {calculate_strength_damage(player.strength) + player.damage_bonus:.2f}")
-    
-    effect_type = talent.effect_type
-    effect_value = talent.effect_value
-    
-    # Converter effect_value para float se possível
-    try:
-        effect_value = float(effect_value)
-    except (ValueError, TypeError):
-        # Se não puder ser convertido, manter como string
-        pass
-    
-    # Aplicar efeito baseado no tipo
-    if effect_type == 'damage':
-        player.damage_bonus += effect_value
-        novo = calculate_strength_damage(player.strength) + player.damage_bonus
-        print(f"✅ Dano base aumentado em {effect_value} → Novo dano base: {novo:.2f}")
-    
-    elif effect_type == 'critical_chance' or effect_type == 'chaos_critical':
-        # Converter porcentagem para decimal (ex: 3% → 0.03)
-        chance_value = effect_value / 100 if effect_value > 1 else effect_value
-        player.critical_chance_bonus += chance_value
-        print(f"✅ Chance crítica aumentada em {effect_value}% → Total: {player.critical_chance_bonus*100:.1f}%")
-    
-    elif effect_type == 'critical_damage':
-        # Converter porcentagem para decimal (ex: 15% → 0.15)
-        damage_value = effect_value / 100 if effect_value > 1 else effect_value
-        player.critical_damage_bonus += damage_value
-        print(f"✅ Dano crítico aumentado em {effect_value}% → Total: {player.critical_damage_bonus*100:.1f}%")
+    bonuses = get_player_talent_bonuses(player.id)
 
-    elif effect_type == 'resistance':
-        # Verificar se o efeito é de um talento de Bloqueio
-        if "Bloqueio" in talent.name:
-            player.block_bonus += effect_value
-            print(f"✅ Bloqueio aumentado em {effect_value}% → Total: {player.block_bonus}%")
-        else:
-            # Aumentar o atributo resistência diretamente
-            player.resistance += effect_value
-            print(f"✅ Resistência aumentada em {effect_value} → Novo valor: {player.resistance}")
-    
-    elif effect_type == 'vitality':
-        player.vitality += effect_value
-        print(f"✅ Vitalidade aumentada em {effect_value} → Novo valor: {player.vitality}")
+    # Aplicar HP máximo (flat)
+    player.max_hp_bonus = bonuses["max_hp_flat"]
 
-    elif effect_type == 'max_hp':
-        # Bônus de HP máximo de talentos
-        player.max_hp_bonus = getattr(player, 'max_hp_bonus', 0) + effect_value
-        print(f"✅ Bônus de HP Máximo aumentado em {effect_value} → total max_hp_bonus: {player.max_hp_bonus}")
+    # Aplicar energia máxima (flat)
+    player.max_energy = 10 + bonuses["max_energy_bonus"]
 
-    elif effect_type == 'luck':
-        player.luck += effect_value
-        print(f"✅ Sorte aumentada em {effect_value} → Novo valor: {player.luck}")
-    
-    elif effect_type == 'heal_on_damage':
-        player.heal_on_damage_percent += effect_value
-        print(f"✅ Cura ao Causar Dano: {effect_value*100}% do dano → Total: {player.heal_on_damage_percent*100:.1f}%")
-    
-    elif effect_type == 'heal_on_victory':
-        player.heal_on_victory += int(effect_value)
-        print(f"✅ Cura ao Vencer: +{effect_value} HP → Total: {player.heal_on_victory}")
-    
-    elif effect_type == 'morning_heal':
-        player.morning_heal_amount += int(effect_value)
-        print(f"✅ Cura Matinal: +{effect_value} HP → Total: {player.morning_heal_amount}")
-    
-    elif effect_type == 'regen_boost_low_hp':
-        player.hp_regen_low_hp_multiplier = float(effect_value)
-        print(f"✅ Multiplicador de Regeneração HP: x{effect_value} quando HP < 30%")
-    
-    elif effect_type == 'emergency_defense':
-        player.emergency_defense_bonus += float(effect_value)
-        print(f"✅ Defesa Emergencial: +{effect_value}% quando HP < 50% → Total: {player.emergency_defense_bonus}%")
-    
-    elif effect_type == 'exp_boost':
-        # Converter porcentagem para decimal (ex: 10% → 0.1)
-        exp_boost = effect_value / 100 if effect_value > 1 else effect_value
-        player.exp_boost += exp_boost
-        print(f"✅ Bônus de EXP: +{effect_value}% → Total: {player.exp_boost*100:.1f}%")
-    
-    elif effect_type == 'shop_discount':
-        # Converter porcentagem para decimal (ex: 10% → 0.1)
-        discount = effect_value / 100 if effect_value > 1 else effect_value
-        player.shop_discount += discount
-        print(f"✅ Desconto na Loja: +{effect_value}% → Total: {player.shop_discount*100:.1f}%")
-    
-    elif effect_type == 'perfect_exp':
-        # Bônus de XP para vitória sem dano
-        bonus = effect_value / 100 if effect_value > 1 else effect_value
-        player.perfect_exp_bonus += bonus
-        print(f"✅ EXP por Vitória Perfeita: +{effect_value}% → Total: {player.perfect_exp_bonus*100:.1f}%")
-    
-    elif effect_type == 'bonus_attribute':
-        player.bonus_attribute_per_10 += int(effect_value)
-        print(f"✅ +{effect_value} ponto(s) de atributo a cada 10 níveis → Total: {player.bonus_attribute_per_10}")
-    
-    elif effect_type == 'chaos_heal':
-        # Chance de cura total aleatória
-        chance = effect_value / 100 if effect_value > 1 else effect_value
-        player.chaos_heal_chance += chance
-        print(f"✅ Chance de Cura Caótica: +{effect_value}% → Total: {player.chaos_heal_chance*100:.1f}%")
-    
-    elif effect_type == 'crystal_double':
-        # Chance de cristais duplos
-        chance = effect_value / 100 if effect_value > 1 else effect_value
-        player.crystal_double_chance += chance
-        print(f"✅ Chance de Cristais Dobrados: +{effect_value}% → Total: {player.crystal_double_chance*100:.1f}%")
+    # Atualizar HP se necessário
+    if player.hp > player.max_hp + player.max_hp_bonus:
+        player.hp = player.max_hp + player.max_hp_bonus
 
-    elif effect_type == 'multi_attribute_boost':
-        # Mapeamento de nomes em português para inglês
-        attr_mapping = {
-            'sorte': 'luck',
-            'vitalidade': 'vitality', 
-            'concentracao': 'concentration',
-            'resistencia': 'resistance',
-            'forca': 'strength'
-        }
-        
-        for part in effect_value.split(','):
-            attr, val = part.split(':')
-            val = int(val)
-            
-            # Usar o mapeamento para obter o nome correto do atributo
-            attr_name = attr_mapping.get(attr, attr)
-            
-            setattr(player, attr_name, getattr(player, attr_name) + val)
-            print(f"✅ {attr.capitalize()} aumentada em {val} → Novo valor: {getattr(player, attr_name)}")
 
-    elif effect_type == 'regeneration':
-        # effect_value = 5 → 5%
-        regen_pct = effect_value / 100
-        player.regen_per_study_time = regen_pct
-        print(f"✅ Regeneração periódica: {effect_value}% do HP/MP máximo a cada 10 min")
-
-    elif effect_type == 'retaliatory_damage':
-        # effect_value vem como string, ex: "0.5"
-        bonus = float(effect_value)
-        # Armazena na instância do jogador
-        player.retaliatory_damage_bonus = bonus
-        print(f"✅ Dano Retaliatório: +{effect_value}× dano se ontem ≥ 500")
-
-    elif effect_type == 'dodge':
-        # Adicionar bônus de esquiva
-        player.dodge_talent_bonus += float(effect_value) / 100
-        print(f"✅ Chance de Esquiva aumentada em {effect_value}% → Total: {player.dodge_talent_bonus*100:.1f}%")
-
-    elif effect_type == 'special':
-        # Efeitos especiais - processar caso a caso
-        if effect_value == 'full_heal_on_victory':
-            player.full_heal_on_victory = True
-            print("✅ Efeito Especial: Cura completa após vitória ativada")
-        
-        elif isinstance(effect_value, str) and 'reward_chest' in effect_value:
-            # Formato: "reward_chest:20" (20% de chance)
-            parts = effect_value.split(':')
-            if len(parts) > 1:
-                chance = float(parts[1]) / 100
-                player.login_chest_chance = chance
-                print(f"✅ Efeito Especial: {parts[1]}% chance de baú de recompensa ao fazer login")
-        
-        elif isinstance(effect_value, str) and 'double_attack_chance' in effect_value:
-            # Formato: "double_attack_chance:10" (10% de chance)
-            parts = effect_value.split(':')
-            if len(parts) > 1:
-                chance = float(parts[1]) / 100
-                player.double_attack_chance = chance
-                print(f"✅ Efeito Especial: {parts[1]}% chance de ataque duplo")
-        
-        elif isinstance(effect_value, str) and 'shield_on_full_hp' in effect_value:
-            # Formato: "shield_on_full_hp:25" (25 pontos de escudo)
-            parts = effect_value.split(':')
-            if len(parts) > 1:
-                shield = int(parts[1])
-                player.shield_on_full_hp = shield
-                print(f"✅ Efeito Especial: Escudo de {shield} HP ao iniciar com HP cheio")
-        
-        elif isinstance(effect_value, str) and 'regeneration' in effect_value:
-            # Formato: "regeneration:5" (5% de regeneração)
-            parts = effect_value.split(':')
-            if len(parts) > 1:
-                regen = float(parts[1]) / 100
-                player.regen_per_study_time = regen
-                print(f"✅ Efeito Especial: {parts[1]}% regeneração a cada 10 minutos de estudo")
-        
-        elif isinstance(effect_value, str) and 'heal_percent' in effect_value:
-            # Formato complexo: "heal_percent:3,damage_boost:0.5"
-            parts = effect_value.split(',')
-            for part in parts:
-                if ':' in part:
-                    key, val = part.split(':')
-                    if key == 'heal_percent':
-                        player.heal_on_damage_percent += float(val) / 100
-                        print(f"✅ Efeito Especial: Cura {val}% do dano causado")
-                    elif key == 'damage_boost':
-                        player.damage_bonus += float(val)
-                        print(f"✅ Efeito Especial: +{val} de dano base")
-        
-        elif isinstance(effect_value, str) and 'multi_attribute_boost' in effect_value:
-            # Formato: "sorte:20,vitalidade:15,concentracao:15"
-            parts = effect_value.split(',')
-            for part in parts:
-                if ':' in part:
-                    key, val = part.split(':')
-                    if key == 'sorte':
-                        player.luck += int(val)
-                        print(f"✅ Efeito Especial: +{val} Sorte")
-                    elif key == 'vitalidade':
-                        player.vitality += int(val)
-                        print(f"✅ Efeito Especial: +{val} Vitalidade")
-    
-    # Registrar que o efeito foi aplicado
-    new_effect = AppliedTalentEffect(
-        player_id=player.id,
-        talent_id=talent.id,
-        effect_type=talent.effect_type,
-        effect_value=talent.effect_value
-    )
-    db.session.add(new_effect)
-    
-    # Imprimir estado após a aplicação
-    print(f"DEPOIS - HP Máx: {player.max_hp}")
-    print(f"DEPOIS - Vitality: {player.vitality}")
-    print(f"DEPOIS - Resistência: {player.resistance}, Sorte: {player.luck}")
-    print(f"DEPOIS - Dano base: {1.0 + player.damage_bonus:.2f}")
-    print("========================================\n")
-
-    # Recalcular cache quando talentos afetam dano/defesa
-    cache_affecting_talents = [
-        'damage', 'damage_bonus', 'critical_chance', 'critical_damage', 'lifesteal',
-        'vitality', 'luck', 'resistance', 'block_bonus',
-        'dodge_bonus', 'strength', 'max_hp_bonus'
-    ]
-    
-    if talent.effect_type in cache_affecting_talents:
-        from .battle_cache import calculate_attack_cache
-        calculate_attack_cache(player.id)
-        print(f"Cache recalculado - talento {talent.name} aplicado")
-
-    db.session.commit()
-
-def initialize_player_talents_simple(player_id):
+def apply_start_run_bonuses(player):
     """
-    Zera todos os bônus de talentos e reaplica todos os talentos desbloqueados pelo jogador.
+    Aplica bônus ao iniciar uma nova run (ampulhetas, ouro inicial).
+    Deve ser chamado UMA VEZ quando a run começa.
     """
-    player = Player.query.get(player_id)
-    if not player:
-        print("Jogador não encontrado")
-        return
-    
-    # Limpar todas as aplicações anteriores para este jogador,
-    # forçando o apply_talent_effects a ser executado de novo em cada talento.
-    AppliedTalentEffect.query.filter_by(player_id=player.id).delete()
-    db.session.commit()
+    bonuses = get_player_talent_bonuses(player.id)
 
-    print(f"==== INICIALIZANDO TALENTOS DO JOGADOR {player.id} ====")
+    # Ampulhetas
+    hourglasses = bonuses["start_run_hourglasses"]
+    if hourglasses > 0:
+        player.eternal_hourglasses += hourglasses
+        player.run_hourglasses_gained += hourglasses
+        print(f"🕐 Talentos: +{hourglasses} ampulhetas ao iniciar run")
 
-    # Zerar todos os bônus de talentos
-    player.damage_bonus              = 0.0
-    player.critical_chance_bonus     = 0.0
-    player.critical_damage_bonus     = 0.0
-    player.heal_on_damage_percent    = 0.0
-    player.heal_on_victory           = 0.0
-    player.morning_heal_amount       = 0.0
-    player.regen_boost_low_hp        = 1.0
-    player.block_bonus               = 0.0
-    player.emergency_defense_bonus   = 0.0
-    player.exp_boost                 = 0.0
-    player.bonus_attribute_per_10    = 0
-    player.chaos_critical_chance     = 0.0
-    player.chaos_heal_chance         = 0.0
-    player.perfect_exp_bonus         = 0.0
-    player.full_heal_on_victory      = False
-    player.reward_chest_chance       = 0.0
-    player.double_attack_chance      = 0.0
-    player.shield_on_full_hp         = 0.0
-    player.regen_per_study_time      = 0.0
-    player.max_hp_bonus              = 0.0
-    player.shop_discount             = 0.0
-    player.dodge_talent_bonus        = 0.0
+    # Ouro inicial
+    gold = bonuses["start_run_gold"]
+    if gold > 0:
+        player.run_gold += gold
+        player.run_gold_gained += gold
+        print(f"💰 Talentos: +{gold} ouro ao iniciar run")
 
-    print("Bônus zerados com sucesso")
 
-    # Reaplicar todos os talentos desbloqueados (exceto atributos)
-    player_talents = PlayerTalent.query.filter_by(player_id=player.id).all()
-    for pt in player_talents:
-        talent = Talent.query.get(pt.talent_id)
-        if not talent:
-            continue
+def apply_start_battle_bonuses(player):
+    """
+    Aplica bônus ao iniciar uma batalha (barreira, heal).
+    Deve ser chamado no início de cada batalha.
+    """
+    bonuses = get_player_talent_bonuses(player.id)
 
-        # Pula talentos de atributo para não duplicar bônus
-        if talent.effect_type in ['vitality', 'luck']:
-            continue
+    # Barreira inicial
+    barrier = bonuses["start_barrier"]
+    if barrier > 0:
+        player.barrier += barrier
+        print(f"🛡️ Talentos: +{barrier} barreira ao iniciar batalha")
 
-        apply_talent_effects(player, talent)
+    # Cura inicial
+    heal = bonuses["start_battle_heal"]
+    if heal > 0:
+        old_hp = player.hp
+        max_hp = player.max_hp + bonuses["max_hp_flat"]
+        player.hp = min(player.hp + heal, max_hp)
+        actual_heal = player.hp - old_hp
+        if actual_heal > 0:
+            print(f"❤️ Talentos: +{actual_heal} HP ao iniciar batalha")
 
-    # Recalcular estatísticas
-    if hasattr(player, 'recalculate_stats_enhanced'):
-        player.recalculate_stats_enhanced()
-    else:
-        player.recalculate_stats()
-    db.session.commit()
-    print("==== INICIALIZAÇÃO DE TALENTOS CONCLUÍDA ====")
 
-# Rotas do Blueprint
+def calculate_talent_damage_bonus(player, attack_type, is_first_attack=False, is_critical=False):
+    """
+    Calcula o bônus de dano flat dos talentos para um ataque específico.
+
+    Args:
+        player: Objeto do jogador
+        attack_type: "basic", "power", "special", "ultimate"
+        is_first_attack: Se é o primeiro ataque da batalha
+        is_critical: Se o ataque é crítico
+
+    Returns:
+        int: Bônus de dano flat
+    """
+    bonuses = get_player_talent_bonuses(player.id)
+    total_bonus = 0
+
+    # Bônus por tipo de ataque
+    if attack_type == "basic":
+        total_bonus += bonuses["basic_attack_damage"]
+    elif attack_type == "power":
+        total_bonus += bonuses["power_attack_damage"]
+    elif attack_type == "special":
+        total_bonus += bonuses["special_attack_damage"]
+    elif attack_type == "ultimate":
+        total_bonus += bonuses["ultimate_damage"]
+
+    # Bônus de primeiro ataque
+    if is_first_attack:
+        total_bonus += bonuses["first_attack_damage"]
+
+    # Bônus de crítico
+    if is_critical:
+        total_bonus += bonuses["crit_damage_flat"]
+
+    # Bônus por barreira ativa
+    if player.barrier > 0:
+        total_bonus += bonuses["damage_with_barrier"]
+
+    # Bônus por bosses derrotados na run
+    total_bonus += bonuses["damage_per_boss"] * player.run_bosses_defeated
+
+    return total_bonus
+
+
+def apply_talent_on_attack(player, is_critical=False):
+    """
+    Aplica efeitos de talentos após um ataque (heal com barreira, heal no crit).
+
+    Args:
+        player: Objeto do jogador
+        is_critical: Se o ataque foi crítico
+
+    Returns:
+        int: Total de HP curado
+    """
+    bonuses = get_player_talent_bonuses(player.id)
+    total_heal = 0
+
+    # Heal com barreira ativa
+    if player.barrier > 0:
+        total_heal += bonuses["heal_with_barrier"]
+
+    # Heal em crítico
+    if is_critical:
+        total_heal += bonuses["heal_on_crit"]
+
+    if total_heal > 0:
+        max_hp = player.max_hp + bonuses["max_hp_flat"]
+        old_hp = player.hp
+        player.hp = min(player.hp + total_heal, max_hp)
+        actual_heal = player.hp - old_hp
+        if actual_heal > 0:
+            print(f"❤️ Talentos: +{actual_heal} HP após ataque")
+        return actual_heal
+
+    return 0
+
+
+def apply_talent_on_victory(player, is_boss=False):
+    """
+    Aplica efeitos de talentos após vencer uma batalha.
+
+    Args:
+        player: Objeto do jogador
+        is_boss: Se o inimigo derrotado era um boss
+
+    Returns:
+        tuple: (hp_healed, gold_bonus)
+    """
+    bonuses = get_player_talent_bonuses(player.id)
+
+    # Heal ao vencer
+    heal = bonuses["heal_on_victory"]
+
+    # Bônus extra se for boss
+    if is_boss:
+        heal += bonuses["heal_on_boss_kill"]
+
+    hp_healed = 0
+    if heal > 0:
+        max_hp = player.max_hp + bonuses["max_hp_flat"]
+        old_hp = player.hp
+        player.hp = min(player.hp + heal, max_hp)
+        hp_healed = player.hp - old_hp
+        if hp_healed > 0:
+            print(f"❤️ Talentos: +{hp_healed} HP ao vencer batalha")
+
+    # Ouro ao derrotar boss
+    gold_bonus = 0
+    if is_boss:
+        gold_bonus = bonuses["gold_on_boss_kill"]
+        if gold_bonus > 0:
+            player.run_gold += gold_bonus
+            player.run_gold_gained += gold_bonus
+            print(f"💰 Talentos: +{gold_bonus} ouro ao derrotar boss")
+
+    return hp_healed, gold_bonus
+
+
+def calculate_gold_bonus_percent(player_id):
+    """Retorna o bônus percentual de ouro dos talentos."""
+    bonuses = get_player_talent_bonuses(player_id)
+    return bonuses["gold_bonus_percent"] / 100  # Converter para decimal
+
+
+def calculate_shop_discount(player_id):
+    """Retorna o desconto percentual da loja dos talentos."""
+    bonuses = get_player_talent_bonuses(player_id)
+    return bonuses["shop_discount_percent"] / 100  # Converter para decimal
+
+
+def check_energy_per_attacks(player):
+    """
+    Verifica se o jogador deve ganhar energia por ataques realizados.
+    Deve ser chamado após cada ataque.
+
+    Returns:
+        int: Energia ganha (0 se nenhuma)
+    """
+    bonuses = get_player_talent_bonuses(player.id)
+    energy_per_10 = bonuses["energy_per_attacks"]
+
+    if energy_per_10 <= 0:
+        return 0
+
+    # Verificar se atingiu múltiplo de 10
+    if player.total_attacks_any_type > 0 and player.total_attacks_any_type % 10 == 0:
+        energy_gained = energy_per_10
+        player.energy = min(player.energy + energy_gained, player.max_energy)
+        print(f"⚡ Talentos: +{energy_gained} energia (total de {player.total_attacks_any_type} ataques)")
+        return energy_gained
+
+    return 0
+
+
+# ============================================================================
+# ROTAS DO BLUEPRINT
+# ============================================================================
 
 @talents_bp.route('/gamification/talents')
 def talents():
@@ -773,14 +889,15 @@ def talents():
     player = Player.query.first()
     if not player:
         return redirect(url_for('gamification'))
-    
+
     # Obter talentos desbloqueados pelo jogador
     player_talents = PlayerTalent.query.filter_by(player_id=player.id).all()
-    
-    return render_template('gamification/talents.html', 
-                          player=player, 
+
+    return render_template('gamification/talents.html',
+                          player=player,
                           player_talents=player_talents,
                           get_exp_for_next_level=get_exp_for_next_level)
+
 
 @talents_bp.route('/gamification/get_player_talents')
 def get_player_talents():
@@ -788,33 +905,36 @@ def get_player_talents():
     player = Player.query.first()
     if not player:
         return jsonify({'success': False, 'message': 'Jogador não encontrado'})
-    
+
     # Obter talentos desbloqueados pelo jogador
     player_talents = PlayerTalent.query.filter_by(player_id=player.id).all()
-    
+
     # Converter para formato JSON
     talents = [
         {
             'id': pt.talent_id,
-            'level': pt.level,  # Incluir o nível
+            'level': pt.level,
             'unlocked_at': pt.unlocked_at.isoformat() if pt.unlocked_at else None
         }
         for pt in player_talents
     ]
-    
+
     return jsonify({
-        'success': True, 
+        'success': True,
         'talents': talents,
-        'talent_points': player.talent_points
+        'crystals': player.crystals
     })
+
 
 @talents_bp.route('/gamification/get_talent_data')
 def get_talent_data():
     """Retorna o dicionário completo de talentos em JSON."""
     return jsonify(talents_data)
 
+
 @talents_bp.route('/gamification/unlock_talent', methods=['POST'])
 def unlock_talent():
+    """Desbloqueia um talento usando cristais de memória."""
     data = request.get_json()
     try:
         talent_id = int(data.get("talent_id"))
@@ -826,15 +946,7 @@ def unlock_talent():
     if not player:
         return jsonify({'success': False, 'message': 'Jogador não encontrado'}), 404
 
-    # 2) Verificar pontos
-    if player.talent_points <= 0:
-        return jsonify({'success': False, 'message': "Pontos de talento insuficientes"}), 400
-
-    # 3) Checar se já desbloqueado
-    if PlayerTalent.query.filter_by(player_id=player.id, talent_id=talent_id).first():
-        return jsonify({'success': False, 'message': "Talento já desbloqueado"}), 400
-
-    # 4) Localizar no talents_data e verificar pré-requisito
+    # 2) Localizar talento no talents_data
     talent_data = None
     for branch in talents_data.values():
         for t in branch["talents"]:
@@ -843,64 +955,94 @@ def unlock_talent():
                 break
         if talent_data:
             break
+
     if not talent_data:
         return jsonify({'success': False, 'message': "Talento não encontrado"}), 404
 
+    # 3) Verificar se já desbloqueado
+    if PlayerTalent.query.filter_by(player_id=player.id, talent_id=talent_id).first():
+        return jsonify({'success': False, 'message': "Talento já desbloqueado"}), 400
+
+    # 4) Verificar pré-requisito
     required = talent_data.get("requires")
     if required:
         if not PlayerTalent.query.filter_by(player_id=player.id, talent_id=required).first():
-            return jsonify({'success': False, 'message': "Pré‑requisito não atendido"}), 400
+            return jsonify({'success': False, 'message': "Pré-requisito não atendido"}), 400
 
-    # 5) Obter objeto Talent do DB ou, se não existir, criar um temporário a partir de talents_data
-    talent_obj = Talent.query.get(talent_id)
-    if talent_obj is None:
-        # cria um objeto simples com os mesmos atributos que apply_talent_effects usa
-        d = talent_data
-        talent_obj = SimpleNamespace(
-            id=d['id'],
-            name=d['name'],
-            description=d['description'],
-            effect_type=d['effect_type'],
-            effect_value=d['effect_value']
-        )
+    # 5) Verificar cristais suficientes
+    cost = talent_data.get("cost", 0)
+    if player.crystals < cost:
+        return jsonify({'success': False, 'message': f"Cristais insuficientes. Necessário: {cost}, Disponível: {player.crystals}"}), 400
 
-    # 6) Aplicar o efeito via função centralizada
-    try:
-        apply_talent_effects(player, talent_obj)
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'message': f"Erro ao aplicar talento: {e}"}), 500
-
-    # 7) Deduzir ponto e registrar desbloqueio
-    player.talent_points -= 1
+    # 6) Deduzir cristais e registrar desbloqueio
+    player.crystals -= cost
     new_unlock = PlayerTalent(player_id=player.id, talent_id=talent_id)
     db.session.add(new_unlock)
 
-    # 8) Recalcular estatísticas completas
+    # 7) Invalidar cache
+    invalidate_talent_cache(player.id)
+
+    # 8) Aplicar efeitos permanentes (HP máximo, energia máxima)
+    apply_talent_to_player_stats(player)
+
+    # 9) Recalcular estatísticas
     if hasattr(player, 'recalculate_stats_enhanced'):
         player.recalculate_stats_enhanced()
-    else:
-        player.recalculate_stats()
 
-    # 9) Persistir tudo
+    # 10) Persistir tudo
     db.session.commit()
-    return jsonify({'success': True, 'new_points': player.talent_points})
+
+    return jsonify({
+        'success': True,
+        'new_crystals': player.crystals,
+        'talent_name': talent_data["name"],
+        'message': f"Talento '{talent_data['name']}' desbloqueado!"
+    })
 
 
-@talents_bp.route('/gamification/add_talent_points', methods=['POST'])
-def add_talent_points():
-    """Adiciona pontos de talento para testes."""
+@talents_bp.route('/gamification/add_crystals', methods=['POST'])
+def add_crystals():
+    """Adiciona cristais para testes."""
     player = Player.query.first()
     if not player:
         return jsonify({'success': False, 'message': 'Jogador não encontrado'})
-    
-    # Adicionar 5 pontos de talento (ou a quantidade desejada)
-    points_to_add = 5
-    player.talent_points += points_to_add
+
+    # Adicionar cristais (padrão 1000)
+    crystals_to_add = request.json.get('amount', 1000)
+    player.crystals += crystals_to_add
     db.session.commit()
-    
+
     return jsonify({
-        'success': True, 
-        'message': f'Adicionados {points_to_add} pontos de talento', 
-        'total_points': player.talent_points
+        'success': True,
+        'message': f'Adicionados {crystals_to_add} cristais',
+        'total_crystals': player.crystals
+    })
+
+
+@talents_bp.route('/gamification/reset_talents', methods=['POST'])
+def reset_talents():
+    """Reseta todos os talentos do jogador (para testes)."""
+    player = Player.query.first()
+    if not player:
+        return jsonify({'success': False, 'message': 'Jogador não encontrado'})
+
+    # Remover todos os talentos do jogador
+    PlayerTalent.query.filter_by(player_id=player.id).delete()
+    AppliedTalentEffect.query.filter_by(player_id=player.id).delete()
+
+    # Invalidar cache
+    invalidate_talent_cache(player.id)
+
+    # Resetar stats relacionados
+    player.max_hp_bonus = 0
+    player.max_energy = 10
+
+    if hasattr(player, 'recalculate_stats_enhanced'):
+        player.recalculate_stats_enhanced()
+
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': 'Todos os talentos foram resetados'
     })

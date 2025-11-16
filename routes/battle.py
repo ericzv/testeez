@@ -1029,13 +1029,28 @@ def damage_boss():
     
     # ===== 7. ROLL DE CRÍTICO =====
     is_critical = attack_data.get('force_critical', False) or (random.random() < final_crit_chance)
-    
+
     if is_critical:
         final_damage = int(final_damage * final_crit_multiplier)
         print(f"💥 CRÍTICO! {final_crit_multiplier:.2f}x → Dano final: {final_damage}")
     else:
         print(f"📊 DANO FINAL (sem crítico): {final_damage}")
-    
+
+    # ===== 7.5. APLICAR BÔNUS FLAT DE TALENTOS (NOVO SISTEMA) =====
+    try:
+        from routes.talents import calculate_talent_damage_bonus, apply_talent_on_attack, check_energy_per_attacks
+        talent_flat_bonus = calculate_talent_damage_bonus(
+            player,
+            cache.skill_type,  # "attack", "power", "special", "ultimate"
+            is_first_attack=not player.first_attack_done,
+            is_critical=is_critical
+        )
+        if talent_flat_bonus > 0:
+            final_damage += talent_flat_bonus
+            print(f"🎯 Bônus Flat de Talentos: +{talent_flat_bonus} (total: {final_damage})")
+    except Exception as e:
+        print(f"⚠️ Erro ao calcular bônus de talentos: {e}")
+
     # ===== 8. APLICAR DANO AO TARGET =====
     damage_before = target.current_hp if is_boss_fight else target.hp
     actual_damage_applied = min(final_damage, damage_before)
@@ -1088,6 +1103,19 @@ def damage_boss():
         player.hp = min(player.hp + heal_amount, player.max_hp)
         special_effects.append(f"Roubo de Vida: +{heal_amount} HP")
         print(f"🩸 Vampirismo: +{heal_amount} HP")
+
+    # ===== 9.1. EFEITOS DE TALENTOS APÓS ATAQUE =====
+    try:
+        talent_heal = apply_talent_on_attack(player, is_critical=is_critical)
+        if talent_heal > 0:
+            special_effects.append(f"Talentos: +{talent_heal} HP")
+
+        # Verificar energia por ataques
+        energy_gained = check_energy_per_attacks(player)
+        if energy_gained > 0:
+            special_effects.append(f"Talentos: +{energy_gained} Energia")
+    except Exception as e:
+        print(f"⚠️ Erro ao aplicar efeitos de talentos: {e}")
 
     # ===== 9.5. LÓGICA DE BARREIRA (CONCESSÃO) =====
     barrier_percent = 0.0
@@ -1258,6 +1286,17 @@ def damage_boss():
             elif reward_type == 'gold':
                 # Função já existente
                 gold_gained = calculate_gold_reward(current_enemy.enemy_number, current_enemy.rarity, equipment_bonus_percent)
+
+                # ===== APLICAR BÔNUS PERCENTUAL DE OURO DOS TALENTOS =====
+                try:
+                    from routes.talents import calculate_gold_bonus_percent
+                    gold_bonus_percent = calculate_gold_bonus_percent(player.id)
+                    if gold_bonus_percent > 0:
+                        bonus_gold = int(gold_gained * gold_bonus_percent)
+                        gold_gained += bonus_gold
+                        print(f"💰 Bônus de ouro de talentos: +{bonus_gold} ({gold_bonus_percent*100:.0f}%)")
+                except Exception as e:
+                    print(f"⚠️ Erro ao calcular bônus de ouro: {e}")
             
             elif reward_type == 'hourglasses':
                 # Função já existente
@@ -1292,6 +1331,19 @@ def damage_boss():
             hourglasses_gained = rewards['hourglasses']
 
             print(f"🎁 RECOMPENSAS APÓS RELÍQUIAS: {rewards}")
+
+        # ===== APLICAR BÔNUS DE TALENTOS AO VENCER =====
+        try:
+            from routes.talents import apply_talent_on_victory
+            talent_hp_healed, talent_gold_bonus = apply_talent_on_victory(player, is_boss=is_boss_fight)
+            if talent_hp_healed > 0:
+                victory_heal_amount += talent_hp_healed
+                relic_bonus_messages.append(f"❤️ Talentos: +{talent_hp_healed} HP")
+            if talent_gold_bonus > 0:
+                gold_gained += talent_gold_bonus
+                relic_bonus_messages.append(f"💰 Talentos: +{talent_gold_bonus} Ouro")
+        except Exception as e:
+            print(f"⚠️ Erro ao aplicar bônus de vitória de talentos: {e}")
 
             # ===== GERAR MENSAGENS DE BÔNUS =====
             if rewards['gold'] > original_rewards['gold']:
@@ -1977,14 +2029,29 @@ def reset_player_run(player_id):
             player.recalculate_stats_enhanced()
         else:
             player.recalculate_stats()
-        
-        # Forçar HP e energia base corretos
-        player.max_hp = 80
-        player.hp = 80
-        player.max_energy = 10
-        player.energy = 10
+
+        # ===== APLICAR BÔNUS DE TALENTOS PERMANENTES =====
+        try:
+            from routes.talents import apply_talent_to_player_stats, apply_start_run_bonuses
+            apply_talent_to_player_stats(player)
+        except ImportError:
+            pass
+
+        # Forçar HP e energia base corretos (com bônus de talentos)
+        base_hp = 80 + int(getattr(player, 'max_hp_bonus', 0))
+        player.max_hp = base_hp
+        player.hp = base_hp
+        player.max_energy = 10 + int(getattr(player, 'max_energy_bonus', 0))
+        player.energy = player.max_energy
         print(f"❤️ HP resetado: {player.hp}/{player.max_hp}")
         print(f"⚡ Energia resetada: {player.energy}/{player.max_energy}")
+
+        # ===== APLICAR BÔNUS DE INÍCIO DE RUN (TALENTOS) =====
+        try:
+            apply_start_run_bonuses(player)
+            print(f"🎯 Bônus de início de run aplicados (talentos)")
+        except Exception as e:
+            print(f"⚠️ Erro ao aplicar bônus de início de run: {e}")
         
         # ===== RESETAR SISTEMA DE INIMIGOS =====
         GenericEnemy.query.filter_by(is_available=True).update(
@@ -2258,8 +2325,16 @@ def select_enemy():
         player.enemy_reroll_count = 0
         print("🔄 Contador de reroll de inimigos resetado")
 
+        # ===== APLICAR BÔNUS DE INÍCIO DE BATALHA (TALENTOS) =====
+        try:
+            from routes.talents import apply_start_battle_bonuses
+            apply_start_battle_bonuses(player)
+            print(f"🎯 Bônus de início de batalha aplicados (talentos)")
+        except Exception as e:
+            print(f"⚠️ Erro ao aplicar bônus de início de batalha: {e}")
+
         db.session.commit()
-        
+
         return jsonify({
             'success': True,
             'message': f'Inimigo {enemy.name} selecionado!',
@@ -2268,7 +2343,10 @@ def select_enemy():
                 'name': enemy.name,
                 'hp': enemy.hp,
                 'max_hp': enemy.max_hp
-            }
+            },
+            'player_hp': player.hp,
+            'player_max_hp': player.max_hp,
+            'player_barrier': player.barrier
         })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})

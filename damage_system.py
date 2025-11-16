@@ -6,12 +6,12 @@ import math
 import random
 from game_formulas import calculate_strength_damage, calculate_critical_chance, calculate_critical_bonus
 
-def calculate_total_damage(player, skill, damage_points, active_buffs=None, run_buffs=None, is_critical=None):
+def calculate_total_damage(player, skill, damage_points, active_buffs=None, run_buffs=None, is_critical=None, attack_type=None, is_first_attack=False):
     """
     Sistema centralizado de cálculo de dano.
-    
-    Fórmula: DANO_FINAL = damage_points × (1 + total_bonus_percentage) × critical_multiplier
-    
+
+    Fórmula: DANO_FINAL = damage_points × (1 + total_bonus_percentage) × critical_multiplier + flat_bonus
+
     Args:
         player: Objeto do jogador
         skill: Objeto da skill usada ou dict com damage_modifier
@@ -19,7 +19,9 @@ def calculate_total_damage(player, skill, damage_points, active_buffs=None, run_
         active_buffs: Lista de buffs ativos (opcional)
         run_buffs: Dict com bônus de lembranças (opcional)
         is_critical: Se deve ser crítico (None = calcular automaticamente)
-    
+        attack_type: Tipo de ataque ("basic", "power", "special", "ultimate") para bônus flat
+        is_first_attack: Se é o primeiro ataque da batalha
+
     Returns:
         dict: {
             'damage': int,
@@ -50,7 +52,9 @@ def calculate_total_damage(player, skill, damage_points, active_buffs=None, run_
         'critical_hit': False,
         'critical_multiplier': 1.0,
         'critical_damage_breakdown': {},
-        'final_damage': 0
+        'final_damage': 0,
+        # BÔNUS FLAT DE TALENTOS (novo sistema)
+        'talent_flat_bonus': 0
     }
     
     # BÔNUS DE FORÇA (sempre aplicado)
@@ -241,11 +245,32 @@ def calculate_total_damage(player, skill, damage_points, active_buffs=None, run_
         }
     
     breakdown['critical_multiplier'] = critical_multiplier
-    
-    # 6. DANO FINAL
-    final_damage = int(damage_before_crit * critical_multiplier)
+
+    # 6. DANO ANTES DO FLAT
+    damage_after_crit = int(damage_before_crit * critical_multiplier)
+
+    # 7. ADICIONAR BÔNUS FLAT DE TALENTOS (NOVO SISTEMA)
+    talent_flat_bonus = 0
+    if attack_type:
+        try:
+            from routes.talents import calculate_talent_damage_bonus
+            talent_flat_bonus = calculate_talent_damage_bonus(
+                player,
+                attack_type,
+                is_first_attack=is_first_attack,
+                is_critical=is_critical
+            )
+            if talent_flat_bonus > 0:
+                print(f"  🎯 Bônus Flat de Talentos: +{talent_flat_bonus}")
+        except ImportError:
+            pass  # Sistema de talentos não disponível
+
+    breakdown['talent_flat_bonus'] = talent_flat_bonus
+
+    # 8. DANO FINAL = Dano após crítico + Bônus flat
+    final_damage = damage_after_crit + talent_flat_bonus
     breakdown['final_damage'] = final_damage
-    
+
     return {
         'damage': final_damage,
         'is_critical': is_critical,
