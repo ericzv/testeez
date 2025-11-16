@@ -1046,3 +1046,25 @@ def reset_talents():
         'success': True,
         'message': 'Todos os talentos foram resetados'
     })
+
+
+# ============================================================================
+# FUNÇÃO DE INICIALIZAÇÃO PARA COMPATIBILIDADE COM APP.PY
+# ============================================================================
+
+def initialize_player_talents_simple(player_id):
+    """
+    Função de compatibilidade - garante que o sistema de talentos está pronto.
+    No novo sistema, não é necessário inicializar talentos individuais.
+    Apenas aplica os bônus permanentes se o jogador já tiver talentos.
+    """
+    player = Player.query.get(player_id)
+    if not player:
+        return
+
+    # Aplicar bônus permanentes de talentos existentes
+    apply_talent_to_player_stats(player)
+
+    # Commit se houver mudanças
+    db.session.commit()
+    print(f"✅ Sistema de talentos inicializado para jogador {player_id}")
