@@ -974,6 +974,15 @@ EVENT_DEFINITIONS = {
                         {'chance': 0.5, 'effects': []}
                     ]}
                 ]
+            },
+            {
+                'id': 'ir_embora',
+                'text': 'Ir embora',
+                'description': 'Não confio nesse goblin',
+                'icon': '🚶',
+                'sound': None,
+                'requirements': {},
+                'effects': []
             }
         ]
     },

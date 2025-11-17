@@ -230,9 +230,13 @@ def battle():
             )
             db.session.add(progress)
             db.session.commit()
-        
-        # Se não tem inimigo, criar um de teste
-        if not progress.selected_enemy_id:
+
+        # Verificar se tem boss ou inimigo selecionado
+        has_boss_selected = progress.selected_boss_id is not None
+        has_enemy_selected = progress.selected_enemy_id is not None
+
+        # Se não tem inimigo NEM boss, criar um de teste
+        if not has_enemy_selected and not has_boss_selected:
             available_enemy = GenericEnemy.query.filter_by(is_available=True).first()
             
             if not available_enemy:
