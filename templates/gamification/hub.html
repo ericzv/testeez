@@ -2760,6 +2760,11 @@ async function handleCurrentNodeClick(node) {
       } else if (node.boss_id) {
         const bossName = bossNames[node.boss_id] || `Boss #${node.boss_id}`;
         selectBoss(node.boss_id, bossName);
+      } else if (node.node_type === 'elite') {
+        // Fallback para elite sem boss_id: escolhe aleatório entre 2 e 3
+        const eliteBossId = Math.random() < 0.5 ? 2 : 3;
+        const eliteBossName = bossNames[eliteBossId];
+        selectBoss(eliteBossId, eliteBossName);
       } else {
         showBossSelection();
       }
@@ -2895,8 +2900,14 @@ async function handleMapNodeClick(node) {
         const bossName = bossNames[node.boss_id] || `Boss #${node.boss_id}`;
         console.log(`⚔️ Iniciando batalha com ${bossName} (ID: ${node.boss_id})`);
         selectBoss(node.boss_id, bossName);
+      } else if (node.node_type === 'elite') {
+        // Fallback para elite sem boss_id: escolhe aleatório entre 2 e 3
+        const eliteBossId = Math.random() < 0.5 ? 2 : 3;
+        const eliteBossName = bossNames[eliteBossId];
+        console.log(`⚔️ Elite sem boss_id, escolhendo ${eliteBossName} (ID: ${eliteBossId})`);
+        selectBoss(eliteBossId, eliteBossName);
       } else {
-        console.error('Nó elite/boss sem boss_id definido!');
+        console.error('Nó boss sem boss_id definido!');
         showBossSelection();
       }
       break;

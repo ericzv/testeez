@@ -665,37 +665,37 @@ def _duplicate_random_relic(player) -> dict:
 def _add_memory_buff(player, memory_id: str) -> dict:
     """Adiciona uma memória (buff permanente) ao jogador"""
 
-    # Define as memórias disponíveis
+    # Define as memórias disponíveis - USANDO TIPOS VÁLIDOS DO SISTEMA
     MEMORY_DEFINITIONS = {
         'sede_de_sangue': {
             'name': 'Sede de Sangue',
-            'buff_type': 'lifesteal',
-            'value': 0.05,  # 5% lifesteal
-            'description': '+5% lifesteal'
+            'buff_type': 'damage_global',  # Usar tipo válido
+            'value': 3,  # +3 dano global
+            'description': '+3 dano em todos os ataques'
         },
         'pureza': {
             'name': 'Pureza',
-            'buff_type': 'damage_reduction',
-            'value': 0.05,  # 5% redução de dano
-            'description': '-5% dano recebido'
+            'buff_type': 'maxhp',  # Usar tipo válido
+            'value': 5,  # +5 HP máximo
+            'description': '+5 HP Máximo'
         },
         'sorte': {
             'name': 'Sorte',
-            'buff_type': 'critical_chance',
-            'value': 0.03,  # 3% crit
-            'description': '+3% chance crítica'
+            'buff_type': 'damage_special',  # Usar tipo válido
+            'value': 3,  # +3 dano especial
+            'description': '+3 dano no Especial'
         },
         'disciplina': {
             'name': 'Disciplina',
-            'buff_type': 'damage_bonus',
+            'buff_type': 'damage_global',  # Usar tipo válido
             'value': 3,  # +3 dano flat
             'description': '+3 dano geral'
         },
         'amuleto': {
             'name': 'Amuleto',
-            'buff_type': 'critical_chance',
-            'value': 0.02,  # 2% crit
-            'description': '+2% chance crítica'
+            'buff_type': 'damage_attack',  # Usar tipo válido
+            'value': 2,  # +2 dano ataque básico
+            'description': '+2 dano no Ataque Básico'
         },
         'random': None  # Escolhe aleatório
     }
@@ -733,6 +733,9 @@ def _add_memory_buff(player, memory_id: str) -> dict:
         )
         db.session.add(buff)
 
+    # Commit imediatamente para persistir
+    db.session.commit()
+
     return {
         'type': 'memory_gain',
         'memory_name': memory_def['name'],
@@ -765,8 +768,14 @@ def _add_memory_buff_direct(player, buff_type: str, value: float) -> None:
 def _add_skill_damage_bonus(player, skill_type: str, value: int) -> dict:
     """Adiciona bônus de dano a uma habilidade específica"""
 
-    # Usa o sistema de buffs acumulados existente ou cria novo
-    buff_type = f'skill_damage_{skill_type}'
+    # Mapeia tipos para os tipos válidos do sistema MEMORY_TYPES
+    skill_to_buff_type = {
+        'ataque': 'damage_attack',
+        'poder': 'damage_power',
+        'ataque_especial': 'damage_special'
+    }
+
+    buff_type = skill_to_buff_type.get(skill_type, 'damage_global')
 
     buff = PlayerRunBuff.query.filter_by(
         player_id=player.id,
@@ -784,6 +793,9 @@ def _add_skill_damage_bonus(player, skill_type: str, value: int) -> dict:
             count=1
         )
         db.session.add(buff)
+
+    # Commit para persistir
+    db.session.commit()
 
     skill_names = {
         'ataque': 'Ataque Básico',

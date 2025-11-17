@@ -421,30 +421,31 @@ EVENT_DEFINITIONS = {
         'choices': [
             {
                 'id': 'pagar_informacao',
-                'text': 'Pagar pela informação',
-                'description': 'Pague 80 ouro - próximo Elite dá 200 ouro extra',
+                'text': 'Comprar técnicas de combate',
+                'description': 'Pague 80 ouro para ganhar +4 dano no Ataque de Poder',
                 'icon': '💎',
                 'sound': None,
                 'requirements': {'min_gold': 80},
                 'effects': [
                     {'type': 'lose_gold', 'value': 80},
-                    {'type': 'apply_next_elite_bonus', 'bonus_gold': 200}
+                    {'type': 'add_skill_damage', 'skill_type': 'poder', 'value': 4}
                 ]
             },
             {
                 'id': 'aceitar_missao',
-                'text': 'Aceitar missão',
-                'description': 'Próxima batalha dá +80 ouro extra se vencer sem tomar dano',
+                'text': 'Treinar com ele',
+                'description': 'Perca 20 HP no treino, ganhe +3 dano geral (Memória)',
                 'icon': '⚔️',
                 'sound': None,
-                'requirements': {},
+                'requirements': {'min_hp': 25},
                 'effects': [
-                    {'type': 'apply_mission', 'mission': 'no_damage_bonus', 'bonus_gold': 80}
+                    {'type': 'lose_hp', 'value': 20},
+                    {'type': 'gain_memory', 'memory_id': 'disciplina'}
                 ]
             },
             {
                 'id': 'negociar',
-                'text': 'Negociar informação barata',
+                'text': 'Pedir ouro emprestado',
                 'description': 'Receba 25 ouro agora',
                 'icon': '🤝',
                 'sound': None,
@@ -555,14 +556,14 @@ EVENT_DEFINITIONS = {
             },
             {
                 'id': 'reforcar_barreira',
-                'text': 'Reforçar geração de barreira',
-                'description': 'Pague 12 HP para ganhar +5 de bônus na geração de barreira',
+                'text': 'Aumentar vitalidade',
+                'description': 'Pague 12 HP para ganhar +10 HP Máximo permanente',
                 'icon': '🛡️',
                 'sound': None,
                 'requirements': {'min_hp': 17},
                 'effects': [
                     {'type': 'lose_hp', 'value': 12},
-                    {'type': 'add_barrier_bonus', 'value': 5}
+                    {'type': 'gain_max_hp', 'value': 10}
                 ]
             }
         ]
@@ -826,12 +827,12 @@ EVENT_DEFINITIONS = {
             {
                 'id': 'ouvir_historia',
                 'text': 'Ouvir sua história',
-                'description': 'Ganhe +10% de dano contra o próximo Elite',
+                'description': 'Ganhe a Memória "Disciplina" (+3 dano geral)',
                 'icon': '👻',
                 'sound': None,
                 'requirements': {},
                 'effects': [
-                    {'type': 'apply_next_elite_bonus', 'bonus_damage_percent': 0.10}
+                    {'type': 'gain_memory', 'memory_id': 'disciplina'}
                 ]
             },
             {
@@ -884,34 +885,34 @@ EVENT_DEFINITIONS = {
             {
                 'id': 'caminho_vermelho',
                 'text': 'Caminho Vermelho (Sangue)',
-                'description': 'Próximos 2 combates dão +40 ouro cada',
+                'description': 'Ganhe +3 dano no Ataque Básico',
                 'icon': '🔴',
                 'sound': None,
                 'requirements': {},
                 'effects': [
-                    {'type': 'apply_combat_bonus', 'bonus_gold': 40, 'duration': 2}
+                    {'type': 'add_skill_damage', 'skill_type': 'ataque', 'value': 3}
                 ]
             },
             {
                 'id': 'caminho_dourado',
                 'text': 'Caminho Dourado (Riqueza)',
-                'description': 'Próximo shop tem 30% de desconto',
+                'description': 'Ganhe 60 ouro imediatamente',
                 'icon': '🟡',
                 'sound': None,
                 'requirements': {},
                 'effects': [
-                    {'type': 'apply_shop_discount', 'discount_percent': 0.30}
+                    {'type': 'gain_gold', 'min': 60, 'max': 60}
                 ]
             },
             {
                 'id': 'caminho_azul',
                 'text': 'Caminho Azul (Vitalidade)',
-                'description': 'Próximo descanso recupera +25% HP adicional',
+                'description': 'Ganhe +8 HP Máximo permanente',
                 'icon': '🔵',
                 'sound': None,
                 'requirements': {},
                 'effects': [
-                    {'type': 'apply_rest_bonus', 'bonus_heal_percent': 0.25}
+                    {'type': 'gain_max_hp', 'value': 8}
                 ]
             }
         ]
