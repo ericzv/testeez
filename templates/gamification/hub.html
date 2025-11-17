@@ -2766,8 +2766,16 @@ async function handleCurrentNodeClick(node) {
         const eliteBossName = bossNames[eliteBossId];
         selectBoss(eliteBossId, eliteBossName);
       } else if (node.node_type === 'boss') {
-        // Fallback para boss final sem boss_id: Purassombra (ID 1)
-        selectBoss(1, 'Purassombra');
+        // Fallback para boss final baseado no ato atual
+        const actNumber = currentMapData?.act_number || 1;
+        const actBossMap = {
+          1: { id: 1, name: 'Purassombra' },
+          2: { id: 4, name: 'Formofagus' },
+          3: { id: 5, name: 'Nefasto' }
+        };
+        const bossForAct = actBossMap[actNumber] || actBossMap[1];
+        console.log(`⚔️ Boss final do Ato ${actNumber}: ${bossForAct.name} (ID: ${bossForAct.id})`);
+        selectBoss(bossForAct.id, bossForAct.name);
       } else {
         showBossSelection();
       }
@@ -2910,9 +2918,16 @@ async function handleMapNodeClick(node) {
         console.log(`⚔️ Elite sem boss_id, escolhendo ${eliteBossName} (ID: ${eliteBossId})`);
         selectBoss(eliteBossId, eliteBossName);
       } else if (node.node_type === 'boss') {
-        // Fallback para boss final sem boss_id: Purassombra (ID 1)
-        console.log(`⚔️ Boss final sem boss_id, selecionando Purassombra (ID: 1)`);
-        selectBoss(1, 'Purassombra');
+        // Fallback para boss final baseado no ato atual
+        const actNumber = currentMapData?.act_number || 1;
+        const actBossMap = {
+          1: { id: 1, name: 'Purassombra' },
+          2: { id: 4, name: 'Formofagus' },
+          3: { id: 5, name: 'Nefasto' }
+        };
+        const bossForAct = actBossMap[actNumber] || actBossMap[1];
+        console.log(`⚔️ Boss final do Ato ${actNumber}: ${bossForAct.name} (ID: ${bossForAct.id})`);
+        selectBoss(bossForAct.id, bossForAct.name);
       } else {
         console.error('Nó boss sem boss_id definido!');
         showBossSelection();

@@ -7,6 +7,7 @@ import random
 from database import db
 from models import Player, PlayerRelic, PlayerRunBuff
 from flask import session
+from sqlalchemy.orm.attributes import flag_modified
 
 
 def apply_event_effects(player, effects: list) -> list:
@@ -48,6 +49,8 @@ def apply_single_effect(player, effect: dict) -> dict:
         amount = random.randint(min_val, max_val)
         player.run_gold += amount
         player.run_gold_gained += amount
+        flag_modified(player, 'run_gold')
+        flag_modified(player, 'run_gold_gained')
         return {
             'type': 'gold_gain',
             'value': amount,
@@ -59,6 +62,7 @@ def apply_single_effect(player, effect: dict) -> dict:
     elif effect_type == 'lose_gold':
         amount = effect.get('value', 0)
         player.run_gold = max(0, player.run_gold - amount)
+        flag_modified(player, 'run_gold')
         return {
             'type': 'gold_loss',
             'value': amount,
@@ -73,6 +77,8 @@ def apply_single_effect(player, effect: dict) -> dict:
             # Ganhou - dobra
             player.run_gold = current_gold * 2
             player.run_gold_gained += current_gold
+            flag_modified(player, 'run_gold')
+            flag_modified(player, 'run_gold_gained')
             return {
                 'type': 'gamble_win',
                 'value': current_gold,
@@ -83,6 +89,7 @@ def apply_single_effect(player, effect: dict) -> dict:
         else:
             # Perdeu - perde tudo
             player.run_gold = 0
+            flag_modified(player, 'run_gold')
             return {
                 'type': 'gamble_loss',
                 'value': current_gold,
@@ -96,6 +103,7 @@ def apply_single_effect(player, effect: dict) -> dict:
     elif effect_type == 'lose_hp':
         damage = effect.get('value', 0)
         player.hp = max(1, player.hp - damage)
+        flag_modified(player, 'hp')
         return {
             'type': 'hp_loss',
             'value': damage,
@@ -108,6 +116,7 @@ def apply_single_effect(player, effect: dict) -> dict:
         percent = effect.get('value', 0)
         damage = int(player.hp * percent)
         player.hp = max(1, player.hp - damage)
+        flag_modified(player, 'hp')
         return {
             'type': 'hp_loss',
             'value': damage,
@@ -121,6 +130,7 @@ def apply_single_effect(player, effect: dict) -> dict:
         old_hp = player.hp
         player.hp = min(player.hp + amount, player.max_hp)
         healed = player.hp - old_hp
+        flag_modified(player, 'hp')
         return {
             'type': 'heal',
             'value': healed,
@@ -135,6 +145,7 @@ def apply_single_effect(player, effect: dict) -> dict:
         old_hp = player.hp
         player.hp = min(player.hp + amount, player.max_hp)
         healed = player.hp - old_hp
+        flag_modified(player, 'hp')
         return {
             'type': 'heal',
             'value': healed,
@@ -147,6 +158,7 @@ def apply_single_effect(player, effect: dict) -> dict:
         old_hp = player.hp
         player.hp = player.max_hp
         healed = player.hp - old_hp
+        flag_modified(player, 'hp')
         return {
             'type': 'full_heal',
             'value': healed,
@@ -161,6 +173,8 @@ def apply_single_effect(player, effect: dict) -> dict:
         amount = effect.get('value', 0)
         player.max_hp += amount
         player.hp += amount  # Também aumenta HP atual
+        flag_modified(player, 'max_hp')
+        flag_modified(player, 'hp')
         return {
             'type': 'max_hp_gain',
             'value': amount,
@@ -171,8 +185,15 @@ def apply_single_effect(player, effect: dict) -> dict:
 
     elif effect_type == 'lose_max_hp':
         amount = effect.get('value', 0)
+        old_max_hp = player.max_hp
+        old_hp = player.hp
         player.max_hp = max(10, player.max_hp - amount)  # Mínimo 10 de max HP
         player.hp = min(player.hp, player.max_hp)
+        # Forçar SQLAlchemy a reconhecer as mudanças
+        flag_modified(player, 'max_hp')
+        flag_modified(player, 'hp')
+        print(f"🩸 LOSE_MAX_HP: {old_max_hp} -> {player.max_hp} (perdeu {amount})")
+        print(f"🩸 HP ajustado: {old_hp} -> {player.hp}")
         return {
             'type': 'max_hp_loss',
             'value': amount,
@@ -184,8 +205,15 @@ def apply_single_effect(player, effect: dict) -> dict:
     elif effect_type == 'lose_max_hp_percent':
         percent = effect.get('value', 0)
         amount = int(player.max_hp * percent)
+        old_max_hp = player.max_hp
+        old_hp = player.hp
         player.max_hp = max(10, player.max_hp - amount)
         player.hp = min(player.hp, player.max_hp)
+        # Forçar SQLAlchemy a reconhecer as mudanças
+        flag_modified(player, 'max_hp')
+        flag_modified(player, 'hp')
+        print(f"🩸 LOSE_MAX_HP_PERCENT: {old_max_hp} -> {player.max_hp} (perdeu {amount}, {int(percent*100)}%)")
+        print(f"🩸 HP ajustado: {old_hp} -> {player.hp}")
         return {
             'type': 'max_hp_loss',
             'value': amount,

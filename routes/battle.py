@@ -2136,17 +2136,23 @@ def select_boss():
     try:
         data = request.get_json()
         boss_id = data.get('boss_id')
-        
+
         player = Player.query.first()
         if not player:
             return jsonify({'success': False, 'message': 'Jogador não encontrado'})
-        
-        # Verificar se o boss existe e está ativo
+
+        # Verificar se o boss existe
         from models import LastBoss
         boss = LastBoss.query.get(boss_id)
-        if not boss or not boss.is_active:
-            return jsonify({'success': False, 'message': 'Boss não disponível'})
-        
+        if not boss:
+            return jsonify({'success': False, 'message': 'Boss não encontrado'})
+
+        # Se o boss não está ativo, ativá-lo automaticamente (para nós de boss final no mapa)
+        if not boss.is_active:
+            boss.is_active = True
+            boss.current_hp = boss.max_hp  # Resetar HP ao ativar
+            print(f"🔓 Boss {boss.name} ativado automaticamente para batalha")
+
         # Atualizar progresso do jogador para apontar para o boss
         progress = PlayerProgress.query.filter_by(player_id=player.id).first()
         if not progress:
