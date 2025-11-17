@@ -2904,7 +2904,8 @@ async function handleMapNodeClick(node) {
       openDialog('#shop-popup');
       break;
     case 'event':
-      openDialog('#event-popup');
+      // Redirecionar para página de evento
+      window.location.href = '/map/event';
       break;
     case 'rest':
       openRestArea();
