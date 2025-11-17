@@ -2135,109 +2135,32 @@ def reset_player_energy(player_id):
 def _create_default_boss(boss_id):
     """
     Cria um boss padrão baseado no ID se não existir.
-    Usado para inicializar bosses automaticamente quando selecionados.
+    Usa as definições completas do BOSS_DATA em enemy_generation.py.
     """
-    from models import LastBoss
-    import json
+    from routes.battle_modules.enemy_generation import create_boss_by_name
 
-    # Definições dos bosses por ato
-    BOSS_DEFINITIONS = {
-        1: {
-            'name': 'Purassombra',
-            'hp': 150,
-            'max_hp': 150,
-            'damage': 8,
-            'posture': 100,
-            'block_percentage': 0.0,
-            'sprite_idle': '/static/game.data/sprites/bosses/purassombra_idle.png',
-            'reward_crystals': 100,
-            'action_pattern': json.dumps(['attack', 'attack', 'buff']),
-            'actions_per_turn_probability': json.dumps({'1': 0.90, '2': 0.10, '3': 0.00})
-        },
-        2: {  # Elite - Heresiarca
-            'name': 'Heresiarca',
-            'hp': 120,
-            'max_hp': 120,
-            'damage': 10,
-            'posture': 80,
-            'block_percentage': 0.1,
-            'sprite_idle': '/static/game.data/sprites/bosses/heresiarca_idle.png',
-            'reward_crystals': 80,
-            'action_pattern': json.dumps(['attack', 'debuff', 'attack']),
-            'actions_per_turn_probability': json.dumps({'1': 0.85, '2': 0.15, '3': 0.00})
-        },
-        3: {  # Elite - Alma Negra
-            'name': 'Alma Negra',
-            'hp': 100,
-            'max_hp': 100,
-            'damage': 12,
-            'posture': 60,
-            'block_percentage': 0.0,
-            'sprite_idle': '/static/game.data/sprites/bosses/alma_negra_idle.png',
-            'reward_crystals': 80,
-            'action_pattern': json.dumps(['attack', 'attack', 'attack_skill']),
-            'actions_per_turn_probability': json.dumps({'1': 0.80, '2': 0.20, '3': 0.00})
-        },
-        4: {
-            'name': 'Formofagus',
-            'hp': 250,
-            'max_hp': 250,
-            'damage': 12,
-            'posture': 150,
-            'block_percentage': 0.1,
-            'sprite_idle': '/static/game.data/sprites/bosses/formofagus_idle.png',
-            'reward_crystals': 150,
-            'action_pattern': json.dumps(['attack', 'buff', 'attack', 'debuff']),
-            'actions_per_turn_probability': json.dumps({'1': 0.80, '2': 0.20, '3': 0.00})
-        },
-        5: {
-            'name': 'Nefasto',
-            'hp': 400,
-            'max_hp': 400,
-            'damage': 15,
-            'posture': 200,
-            'block_percentage': 0.15,
-            'sprite_idle': '/static/game.data/sprites/bosses/nefasto_idle.png',
-            'reward_crystals': 250,
-            'action_pattern': json.dumps(['attack', 'attack_skill', 'buff', 'debuff']),
-            'actions_per_turn_probability': json.dumps({'1': 0.70, '2': 0.25, '3': 0.05})
-        }
+    # Mapeamento de ID para nome do boss (usado no BOSS_DATA)
+    BOSS_ID_TO_NAME = {
+        1: 'purassombra',
+        2: 'heresiarca',
+        3: 'alma_negra',
+        4: 'formofagus',
+        5: 'nefasto'
     }
 
-    if boss_id not in BOSS_DEFINITIONS:
-        print(f"❌ Boss ID {boss_id} não tem definição padrão")
+    if boss_id not in BOSS_ID_TO_NAME:
+        print(f"❌ Boss ID {boss_id} não tem mapeamento")
         return None
 
-    definition = BOSS_DEFINITIONS[boss_id]
+    boss_name = BOSS_ID_TO_NAME[boss_id]
+    print(f"🎭 Criando boss {boss_name} (ID: {boss_id}) usando definições completas...")
 
-    # Criar o boss
-    boss = LastBoss(
-        id=boss_id,
-        name=definition['name'],
-        hp=definition['hp'],
-        max_hp=definition['max_hp'],
-        damage=definition['damage'],
-        posture=definition['posture'],
-        block_percentage=definition['block_percentage'],
-        sprite_idle=definition.get('sprite_idle', ''),
-        reward_crystals=definition['reward_crystals'],
-        is_active=False,
-        current_hp=definition['hp'],
-        action_pattern=definition.get('action_pattern', '[]'),
-        actions_per_turn_probability=definition.get('actions_per_turn_probability', '{}'),
-        next_intentions_cached='[]',
-        skill_charges='{}',
-        skill_charge_intervals='{}',
-        skill_last_charge_generated='{}',
-        skill_next_charge_at='{}',
-        buff_debuff_queue='[]',
-        action_queue='[]'
-    )
+    # Usar a função existente que já tem todas as configurações corretas
+    boss = create_boss_by_name(boss_name)
 
-    db.session.add(boss)
-    db.session.commit()
+    if boss:
+        print(f"✅ Boss {boss.name} pronto para batalha!")
 
-    print(f"✅ Boss {definition['name']} (ID: {boss_id}) criado automaticamente!")
     return boss
 
 @battle_bp.route('/select_boss', methods=['POST'])
