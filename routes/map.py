@@ -28,20 +28,16 @@ map_bp = Blueprint('map', __name__, url_prefix='/map')
 @map_bp.route('/')
 def map_view():
     """Página principal do mapa"""
-    player_id = session.get('player_id')
-    if not player_id:
-        return redirect(url_for('battle.gamification'))
-
-    player = Player.query.get(player_id)
+    player = Player.query.first()
     if not player:
         return redirect(url_for('battle.gamification'))
 
     # Obter progresso do jogador no mapa
-    progress = PlayerMapProgress.query.filter_by(player_id=player_id).first()
+    progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
 
     # Se não tem progresso, criar
     if not progress:
-        progress = PlayerMapProgress(player_id=player_id)
+        progress = PlayerMapProgress(player_id=player.id)
         db.session.add(progress)
         db.session.commit()
 
@@ -56,33 +52,30 @@ def map_view():
 @map_bp.route('/shop')
 def shop_view():
     """Página da loja (placeholder)"""
-    player_id = session.get('player_id')
-    if not player_id:
+    player = Player.query.first()
+    if not player:
         return redirect(url_for('battle.gamification'))
 
-    player = Player.query.get(player_id)
     return render_template('gamification/map_shop.html', player=player)
 
 
 @map_bp.route('/event')
 def event_view():
     """Página de evento aleatório (placeholder)"""
-    player_id = session.get('player_id')
-    if not player_id:
+    player = Player.query.first()
+    if not player:
         return redirect(url_for('battle.gamification'))
 
-    player = Player.query.get(player_id)
     return render_template('gamification/map_event.html', player=player)
 
 
 @map_bp.route('/rest')
 def rest_view():
     """Página de descanso"""
-    player_id = session.get('player_id')
-    if not player_id:
+    player = Player.query.first()
+    if not player:
         return redirect(url_for('battle.gamification'))
 
-    player = Player.query.get(player_id)
     return render_template('gamification/map_rest.html', player=player)
 
 
@@ -102,9 +95,9 @@ def generate_new_map():
     Returns:
         JSON com dados do mapa gerado
     """
-    player_id = session.get('player_id')
-    if not player_id:
-        return jsonify({'error': 'Jogador não logado'}), 401
+    player = Player.query.first()
+    if not player:
+        return jsonify({'error': 'Jogador não encontrado'}), 401
 
     data = request.get_json() or {}
     act_number = data.get('act_number', 1)
@@ -120,7 +113,7 @@ def generate_new_map():
 
     # Criar registro do mapa no banco
     new_map = ProceduralMap(
-        player_id=player_id,
+        player_id=player.id,
         act_number=act_number,
         seed=map_data['seed']
     )
@@ -156,9 +149,9 @@ def generate_new_map():
         node_id_map[(x, y)] = db_node.id
 
     # Atualizar progresso do jogador
-    progress = PlayerMapProgress.query.filter_by(player_id=player_id).first()
+    progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
     if not progress:
-        progress = PlayerMapProgress(player_id=player_id)
+        progress = PlayerMapProgress(player_id=player.id)
         db.session.add(progress)
 
     progress.current_map_id = new_map.id
@@ -201,11 +194,11 @@ def get_current_map():
     Returns:
         JSON com estado completo do mapa ou indicação de ausência
     """
-    player_id = session.get('player_id')
-    if not player_id:
-        return jsonify({'error': 'Jogador não logado'}), 401
+    player = Player.query.first()
+    if not player:
+        return jsonify({'error': 'Jogador não encontrado'}), 401
 
-    progress = PlayerMapProgress.query.filter_by(player_id=player_id).first()
+    progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
 
     if not progress or not progress.current_map_id:
         return jsonify({
@@ -249,9 +242,9 @@ def select_node(node_id):
     Returns:
         JSON com tipo do nó e URL de redirecionamento
     """
-    player_id = session.get('player_id')
-    if not player_id:
-        return jsonify({'error': 'Jogador não logado'}), 401
+    player = Player.query.first()
+    if not player:
+        return jsonify({'error': 'Jogador não encontrado'}), 401
 
     # Buscar nó
     node = MapNode.query.get(node_id)
@@ -262,7 +255,7 @@ def select_node(node_id):
         return jsonify({'error': 'Nó não está disponível'}), 400
 
     # Obter progresso
-    progress = PlayerMapProgress.query.filter_by(player_id=player_id).first()
+    progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
     if not progress:
         return jsonify({'error': 'Progresso não encontrado'}), 404
 
@@ -344,11 +337,11 @@ def complete_current_node():
     Returns:
         JSON com status atualizado
     """
-    player_id = session.get('player_id')
-    if not player_id:
-        return jsonify({'error': 'Jogador não logado'}), 401
+    player = Player.query.first()
+    if not player:
+        return jsonify({'error': 'Jogador não encontrado'}), 401
 
-    progress = PlayerMapProgress.query.filter_by(player_id=player_id).first()
+    progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
     if not progress or not progress.current_node_id:
         return jsonify({'error': 'Nenhum nó atual'}), 400
 
@@ -401,11 +394,11 @@ def advance_to_next_act():
     Returns:
         JSON com novo número do ato
     """
-    player_id = session.get('player_id')
-    if not player_id:
-        return jsonify({'error': 'Jogador não logado'}), 401
+    player = Player.query.first()
+    if not player:
+        return jsonify({'error': 'Jogador não encontrado'}), 401
 
-    progress = PlayerMapProgress.query.filter_by(player_id=player_id).first()
+    progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
     if not progress:
         return jsonify({'error': 'Progresso não encontrado'}), 404
 
@@ -440,11 +433,11 @@ def reset_map_progress():
     Returns:
         JSON confirmando reset
     """
-    player_id = session.get('player_id')
-    if not player_id:
-        return jsonify({'error': 'Jogador não logado'}), 401
+    player = Player.query.first()
+    if not player:
+        return jsonify({'error': 'Jogador não encontrado'}), 401
 
-    progress = PlayerMapProgress.query.filter_by(player_id=player_id).first()
+    progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
     if progress:
         # Deletar mapa atual se existir
         if progress.current_map_id:
@@ -474,13 +467,9 @@ def rest_heal():
     Returns:
         JSON com HP recuperado
     """
-    player_id = session.get('player_id')
-    if not player_id:
-        return jsonify({'error': 'Jogador não logado'}), 401
-
-    player = Player.query.get(player_id)
+    player = Player.query.first()
     if not player:
-        return jsonify({'error': 'Jogador não encontrado'}), 404
+        return jsonify({'error': 'Jogador não encontrado'}), 401
 
     # Calcular cura (30% do HP máximo)
     heal_percent = 0.30
@@ -491,7 +480,7 @@ def rest_heal():
     actual_heal = player.hp - old_hp
 
     # Marcar nó como completado
-    progress = PlayerMapProgress.query.filter_by(player_id=player_id).first()
+    progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
     if progress and progress.current_node_id:
         node = MapNode.query.get(progress.current_node_id)
         if node:

@@ -3,7 +3,7 @@ Rotas de batalha integradas ao sistema de mapa procedural.
 Conecta os nós de batalha do mapa com o sistema de combate existente.
 """
 
-from flask import Blueprint, jsonify, request, session, redirect, url_for, flash
+from flask import Blueprint, jsonify, request, redirect, url_for, flash
 from database import db
 from models_map import MapNode, PlayerMapProgress
 from models import Player, GenericEnemy, LastBoss, PlayerProgress, EnemyTheme
@@ -21,18 +21,13 @@ def start_battle():
     Inicia uma batalha comum baseada no nó atual do mapa.
     Gera um inimigo procedural adequado ao progresso no mapa.
     """
-    player_id = session.get('player_id')
-    if not player_id:
-        flash('Sessão expirada. Faça login novamente.', 'error')
-        return redirect(url_for('battle.gamification'))
-
-    player = Player.query.get(player_id)
+    player = Player.query.first()
     if not player:
         flash('Jogador não encontrado.', 'error')
         return redirect(url_for('battle.gamification'))
 
     # Verificar progresso no mapa
-    map_progress = PlayerMapProgress.query.filter_by(player_id=player_id).first()
+    map_progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
     if not map_progress or not map_progress.current_node_id:
         flash('Nenhum nó selecionado no mapa.', 'error')
         return redirect(url_for('map.map_view'))
@@ -59,7 +54,7 @@ def start_battle():
         enemy = generate_enemy_by_theme(
             theme_id=selected_theme.id,
             enemy_number=enemy_number,
-            player_id=player_id
+            player_id=player.id
         )
 
         if not enemy:
@@ -70,9 +65,9 @@ def start_battle():
         current_node.enemy_id = enemy.id
 
         # Atualizar progresso do jogador (sistema antigo)
-        progress = PlayerProgress.query.filter_by(player_id=player_id).first()
+        progress = PlayerProgress.query.filter_by(player_id=player.id).first()
         if not progress:
-            progress = PlayerProgress(player_id=player_id)
+            progress = PlayerProgress(player_id=player.id)
             db.session.add(progress)
 
         progress.selected_enemy_id = enemy.id
@@ -97,12 +92,7 @@ def start_elite_battle(boss_id):
     Inicia uma batalha contra Desafiante Infernal (sub-boss).
     Usa os bosses Heresiarca (ID 2) ou Alma Negra (ID 3).
     """
-    player_id = session.get('player_id')
-    if not player_id:
-        flash('Sessão expirada. Faça login novamente.', 'error')
-        return redirect(url_for('battle.gamification'))
-
-    player = Player.query.get(player_id)
+    player = Player.query.first()
     if not player:
         flash('Jogador não encontrado.', 'error')
         return redirect(url_for('battle.gamification'))
@@ -128,9 +118,9 @@ def start_elite_battle(boss_id):
     elite_boss.is_active = True
 
     # Atualizar progresso
-    progress = PlayerProgress.query.filter_by(player_id=player_id).first()
+    progress = PlayerProgress.query.filter_by(player_id=player.id).first()
     if not progress:
-        progress = PlayerProgress(player_id=player_id)
+        progress = PlayerProgress(player_id=player.id)
         db.session.add(progress)
 
     progress.selected_boss_id = elite_boss.id
@@ -150,18 +140,13 @@ def start_boss_battle(boss_id):
     Inicia batalha contra o Boss Final do Ato.
     Purassombra (Ato 1), Formofagus (Ato 2), Nefasto (Ato 3).
     """
-    player_id = session.get('player_id')
-    if not player_id:
-        flash('Sessão expirada. Faça login novamente.', 'error')
-        return redirect(url_for('battle.gamification'))
-
-    player = Player.query.get(player_id)
+    player = Player.query.first()
     if not player:
         flash('Jogador não encontrado.', 'error')
         return redirect(url_for('battle.gamification'))
 
     # Verificar progresso no mapa
-    map_progress = PlayerMapProgress.query.filter_by(player_id=player_id).first()
+    map_progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
     if not map_progress:
         flash('Progresso não encontrado.', 'error')
         return redirect(url_for('map.map_view'))
@@ -181,9 +166,9 @@ def start_boss_battle(boss_id):
     final_boss.is_active = True
 
     # Atualizar progresso
-    progress = PlayerProgress.query.filter_by(player_id=player_id).first()
+    progress = PlayerProgress.query.filter_by(player_id=player.id).first()
     if not progress:
-        progress = PlayerProgress(player_id=player_id)
+        progress = PlayerProgress(player_id=player.id)
         db.session.add(progress)
 
     progress.selected_boss_id = final_boss.id
@@ -203,11 +188,11 @@ def handle_map_victory():
     Chamado após vitória em batalha do mapa.
     Atualiza o nó como completado e prepara para próximo movimento.
     """
-    player_id = session.get('player_id')
-    if not player_id:
+    player = Player.query.first()
+    if not player:
         return jsonify({'error': 'Não logado'}), 401
 
-    map_progress = PlayerMapProgress.query.filter_by(player_id=player_id).first()
+    map_progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
     if not map_progress or not map_progress.current_node_id:
         return jsonify({'error': 'Sem nó atual'}), 400
 
@@ -248,11 +233,11 @@ def handle_map_defeat():
     Chamado após derrota em batalha do mapa.
     Reseta o progresso do mapa (run over).
     """
-    player_id = session.get('player_id')
-    if not player_id:
+    player = Player.query.first()
+    if not player:
         return jsonify({'error': 'Não logado'}), 401
 
-    map_progress = PlayerMapProgress.query.filter_by(player_id=player_id).first()
+    map_progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
     if map_progress:
         # Deletar mapa atual
         if map_progress.current_map_id:
