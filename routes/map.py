@@ -45,7 +45,8 @@ def map_view():
         'gamification/map.html',
         player=player,
         progress=progress,
-        act_number=progress.current_act if progress else 1
+        act_number=progress.current_act if progress else 1,
+        node_type_info=NODE_TYPE_INFO
     )
 
 
