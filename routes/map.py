@@ -656,6 +656,9 @@ def choose_event_option():
     # Aplicar efeitos
     results = apply_event_effects(player, choice.get('effects', []))
 
+    # SEMPRE commit para persistir mudanças no player (HP, gold, max_hp, etc)
+    db.session.commit()
+
     # Marcar nó como completo
     progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
     if progress and progress.current_node_id:

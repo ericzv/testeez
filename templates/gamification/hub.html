@@ -2765,6 +2765,9 @@ async function handleCurrentNodeClick(node) {
         const eliteBossId = Math.random() < 0.5 ? 2 : 3;
         const eliteBossName = bossNames[eliteBossId];
         selectBoss(eliteBossId, eliteBossName);
+      } else if (node.node_type === 'boss') {
+        // Fallback para boss final sem boss_id: Purassombra (ID 1)
+        selectBoss(1, 'Purassombra');
       } else {
         showBossSelection();
       }
@@ -2906,6 +2909,10 @@ async function handleMapNodeClick(node) {
         const eliteBossName = bossNames[eliteBossId];
         console.log(`⚔️ Elite sem boss_id, escolhendo ${eliteBossName} (ID: ${eliteBossId})`);
         selectBoss(eliteBossId, eliteBossName);
+      } else if (node.node_type === 'boss') {
+        // Fallback para boss final sem boss_id: Purassombra (ID 1)
+        console.log(`⚔️ Boss final sem boss_id, selecionando Purassombra (ID: 1)`);
+        selectBoss(1, 'Purassombra');
       } else {
         console.error('Nó boss sem boss_id definido!');
         showBossSelection();
