@@ -699,6 +699,41 @@ def get_battle_data():
         print(f"Erro ao obter dados de batalha: {str(e)}")
         return jsonify({'success': False, 'message': f'Erro ao processar requisição: {str(e)}'})
 
+
+@battle_bp.route('/check_battle_status')
+def check_battle_status():
+    """Verifica se há uma batalha ativa (inimigo ou boss selecionado)."""
+    try:
+        player = Player.query.first()
+        if not player:
+            return jsonify({'has_active_battle': False})
+
+        progress = PlayerProgress.query.filter_by(player_id=player.id).first()
+        if not progress:
+            return jsonify({'has_active_battle': False})
+
+        has_active = False
+
+        # Verificar se há boss selecionado e ativo
+        if progress.selected_boss_id:
+            from models import LastBoss
+            boss = LastBoss.query.get(progress.selected_boss_id)
+            if boss and boss.is_active:
+                has_active = True
+
+        # Verificar se há inimigo selecionado e ativo
+        if not has_active and progress.selected_enemy_id:
+            from models import Enemy
+            enemy = Enemy.query.get(progress.selected_enemy_id)
+            if enemy and enemy.hp > 0:
+                has_active = True
+
+        return jsonify({'has_active_battle': has_active})
+    except Exception as e:
+        print(f"Erro ao verificar status de batalha: {e}")
+        return jsonify({'has_active_battle': False})
+
+
 @battle_bp.route('/dev_check_vlad_skills')
 def dev_check_vlad_skills():
     """DEV: Verificar e criar skills do Vlad"""

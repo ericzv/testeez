@@ -98,6 +98,12 @@
   <span class="menu-text">Talentos</span>
 </a>
 
+<!-- Botão do Mapa Procedural -->
+<a href="#" onclick="openMapPopup(); return false;" class="menu-btn btn-9" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; padding: 20px 40px; border-radius: 15px; text-decoration: none; font-weight: bold; font-size: 20px; box-shadow: 0 0 30px rgba(255, 215, 0, 0.7); border: 3px solid #fff;">
+  <span class="menu-icon">🗺️</span>
+  <span class="menu-text">MAPA</span>
+</a>
+
 <!-- Notification Bell Icon -->
 <div class="notification-bell" id="notificationBell">
   <span class="bell-icon">🔔</span>
@@ -1427,7 +1433,15 @@
               alert('Erro ao aplicar recompensas: ' + result.message);
               return;
           }
-          
+
+          // 1.5) Marcar nó do mapa como completado (se estiver em uma run)
+          try {
+              await fetch('/map/api/complete-node', { method: 'POST' });
+              console.log("✅ Nó do mapa marcado como completado");
+          } catch (mapError) {
+              console.log("⚠️ Sem progresso de mapa ativo (normal se não estiver em run)");
+          }
+
           // 2) Fechar pop-up de vitória
           const rewardPopup = document.querySelector('.victory-rewards-popup');
           if (rewardPopup) {
@@ -2322,5 +2336,697 @@
   </div>
 </div>
 
+<!-- Pop-up do Mapa Procedural -->
+<div id="map-popup" class="ui-dialog" style="display:none">
+  <div class="ui-panel map-popup-panel" style="width: 90vw; height: 85vh; max-width: 1400px; padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+    <button class="close-popup-btn" onclick="closeMapPopup()" style="position: absolute; top: 15px; right: 15px; z-index: 1001;">✕</button>
+
+    <!-- Header do Mapa -->
+    <div style="background: rgba(0, 0, 0, 0.8); padding: 15px 20px; border-bottom: 2px solid rgba(255, 215, 0, 0.3); flex-shrink: 0;">
+      <h2 class="title" style="margin: 0;">Ato <span id="map-act-number">1</span> - Escolha seu Caminho</h2>
+    </div>
+
+    <!-- Container do Mapa com Scroll -->
+    <div id="map-scroll-container" style="flex: 1; overflow-y: auto; overflow-x: hidden; position: relative;">
+      <!-- Canvas do Mapa (tamanho dinâmico baseado nos nós) -->
+      <div id="map-canvas" style="position: relative; min-height: 100%; width: 100%;">
+        <!-- Background que acompanha os nós -->
+        <div id="map-background" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('/static/game.data/map/map.png'); background-size: 100% auto; background-repeat: repeat-y; background-position: top center;"></div>
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.3); pointer-events: none;"></div>
+
+        <!-- Conexões SVG -->
+        <svg id="map-connections" style="position: absolute; top: 0; left: 0; width: 100%; pointer-events: none; z-index: 1;"></svg>
+
+        <!-- Nós do Mapa -->
+        <div id="map-nodes" style="position: absolute; top: 0; left: 0; width: 100%; z-index: 2;"></div>
+
+        <!-- Carregando -->
+        <div id="map-loading" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ffd700; font-size: 20px; z-index: 10;">
+          Carregando mapa...
+        </div>
+      </div>
+    </div>
+
+    <!-- Legenda -->
+    <div style="background: rgba(0, 0, 0, 0.8); padding: 10px 20px; display: flex; justify-content: center; gap: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1); flex-shrink: 0; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 6px; color: #e0e0e0; font-size: 11px;">
+        <img src="/static/game.data/map/map-generic.png" alt="Batalha" style="width: 20px; height: 20px;">
+        <span>Batalha</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; color: #e0e0e0; font-size: 11px;">
+        <img src="/static/game.data/map/map-challanger.png" alt="Elite" style="width: 20px; height: 20px;">
+        <span>Elite</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; color: #e0e0e0; font-size: 11px;">
+        <img src="/static/game.data/map/map-shop.png" alt="Shop" style="width: 20px; height: 20px;">
+        <span>Loja</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; color: #e0e0e0; font-size: 11px;">
+        <img src="/static/game.data/map/map-random.png" alt="Evento" style="width: 20px; height: 20px;">
+        <span>Evento</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; color: #e0e0e0; font-size: 11px;">
+        <img src="/static/game.data/map/map-rest.png" alt="Descanso" style="width: 20px; height: 20px;">
+        <span>Descanso</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; color: #e0e0e0; font-size: 11px;">
+        <img src="/static/game.data/map/map-lastboss.png" alt="Boss" style="width: 20px; height: 20px;">
+        <span>Boss</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pop-up da Loja (Placeholder) -->
+<div id="shop-popup" class="ui-dialog" style="display:none">
+  <div class="ui-panel">
+    <h2 class="title">Loja</h2>
+    <button class="close-popup-btn" onclick="closeShopPopup()">✕</button>
+    <div style="color: #aaa; font-size: 18px; text-align: center; padding: 40px;">
+      <span style="font-size: 60px; display: block; margin-bottom: 20px;">🛒</span>
+      <p>A loja ainda está em construção!</p>
+      <p style="font-size: 14px; color: #888;">Em breve você poderá comprar itens e melhorias aqui.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Pop-up de Evento (Placeholder) -->
+<div id="event-popup" class="ui-dialog" style="display:none">
+  <div class="ui-panel">
+    <h2 class="title">Evento Aleatório</h2>
+    <button class="close-popup-btn" onclick="closeEventPopup()">✕</button>
+    <div style="color: #aaa; font-size: 18px; text-align: center; padding: 40px;">
+      <span style="font-size: 60px; display: block; margin-bottom: 20px;">❓</span>
+      <p>Um evento misterioso ocorreu!</p>
+      <p style="font-size: 14px; color: #888;">Eventos aleatórios serão implementados em breve.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Pop-up de Descanso (Placeholder) -->
+<div id="rest-popup" class="ui-dialog" style="display:none">
+  <div class="ui-panel">
+    <h2 class="title">Área de Descanso</h2>
+    <button class="close-popup-btn" onclick="closeDialog('#rest-popup')">✕</button>
+    <div style="color: #aaa; font-size: 18px; text-align: center; padding: 40px;">
+      <span style="font-size: 60px; display: block; margin-bottom: 20px;">🏕️</span>
+      <p>Você encontrou um local seguro para descansar.</p>
+      <p style="font-size: 14px; color: #888;">Funcionalidade de recuperação será implementada em breve.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Tooltip do Mapa -->
+<div id="map-tooltip" style="position: fixed; background: rgba(0, 0, 0, 0.95); color: #fff; padding: 10px 15px; border-radius: 8px; font-size: 14px; pointer-events: none; display: none; z-index: 2000; border: 1px solid rgba(255, 215, 0, 0.3); box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);">
+  <div id="map-tooltip-name" style="color: #ffd700; font-weight: bold; margin-bottom: 5px;"></div>
+  <div id="map-tooltip-desc" style="color: #ccc; font-size: 12px;"></div>
+</div>
+
+<script>
+// ===== SISTEMA DE MAPA PROCEDURAL =====
+let currentMapData = null;
+const nodeTypeInfo = {
+  'battle': {
+    'name': 'Batalha',
+    'image': '/static/game.data/map/map-generic.png',
+    'description': 'Enfrente um inimigo comum'
+  },
+  'elite': {
+    'name': 'Desafiante Infernal',
+    'image': '/static/game.data/map/map-challanger.png',
+    'description': 'Batalha difícil com melhor recompensa'
+  },
+  'shop': {
+    'name': 'Loja',
+    'image': '/static/game.data/map/map-shop.png',
+    'description': 'Compre itens e melhorias'
+  },
+  'event': {
+    'name': 'Evento Aleatório',
+    'image': '/static/game.data/map/map-random.png',
+    'description': 'Um encontro misterioso'
+  },
+  'rest': {
+    'name': 'Descanso',
+    'image': '/static/game.data/map/map-rest.png',
+    'description': 'Recupere HP e descanse'
+  },
+  'boss': {
+    'name': 'Boss Final',
+    'image': '/static/game.data/map/map-lastboss.png',
+    'description': 'O guardião desta fase'
+  }
+};
+
+// Abrir pop-up do mapa
+function openMapPopup() {
+  console.log('🗺️ Abrindo mapa...');
+  openDialog('#map-popup');
+  loadMap();
+}
+
+// Fechar pop-up do mapa
+function closeMapPopup() {
+  closeDialog('#map-popup');
+}
+
+// Carregar mapa atual ou gerar novo
+async function loadMap() {
+  const loadingEl = document.getElementById('map-loading');
+  loadingEl.style.display = 'block';
+  loadingEl.textContent = 'Carregando mapa...';
+
+  try {
+    // Tentar carregar mapa existente
+    const response = await fetch('/map/api/current');
+    const data = await response.json();
+
+    if (data.success && data.map_data) {
+      currentMapData = data.map_data;
+      renderMapNodes(data.map_data);
+      document.getElementById('map-act-number').textContent = data.map_data.act_number || 1;
+      loadingEl.style.display = 'none';
+    } else {
+      // Gerar novo mapa automaticamente
+      loadingEl.textContent = 'Gerando novo mapa...';
+      await generateMap();
+    }
+  } catch (error) {
+    console.error('Erro ao carregar mapa:', error);
+    loadingEl.textContent = 'Erro ao carregar mapa. Clique para tentar novamente.';
+    loadingEl.style.cursor = 'pointer';
+    loadingEl.onclick = loadMap;
+  }
+}
+
+// Gerar novo mapa
+async function generateMap() {
+  const loadingEl = document.getElementById('map-loading');
+
+  try {
+    const response = await fetch('/map/api/generate', { method: 'POST' });
+    const data = await response.json();
+
+    if (data.success) {
+      currentMapData = data.map_data;
+      renderMapNodes(data.map_data);
+      document.getElementById('map-act-number').textContent = data.map_data.act_number || 1;
+      loadingEl.style.display = 'none';
+    } else {
+      throw new Error(data.error || 'Erro ao gerar mapa');
+    }
+  } catch (error) {
+    console.error('Erro:', error);
+    loadingEl.textContent = 'Erro: ' + error.message;
+  }
+}
+
+// Renderizar nós do mapa
+function renderMapNodes(mapData) {
+  const canvas = document.getElementById('map-canvas');
+  const container = document.getElementById('map-nodes');
+  const svgContainer = document.getElementById('map-connections');
+
+  container.innerHTML = '';
+  svgContainer.innerHTML = '';
+
+  const scrollContainer = document.getElementById('map-scroll-container');
+  const containerWidth = scrollContainer.clientWidth;
+
+  const paddingX = 100;
+  const paddingY = 120;
+  const nodeSpacingY = 120; // Espaçamento vertical aumentado
+
+  // Encontrar dimensões do mapa
+  let maxX = 0, maxY = 0;
+  mapData.nodes.forEach(node => {
+    maxX = Math.max(maxX, node.x);
+    maxY = Math.max(maxY, node.y);
+  });
+
+  const usableWidth = containerWidth - (paddingX * 2);
+  const spacingX = usableWidth / (maxX || 1);
+
+  // Altura total do mapa (dinâmica baseada nos níveis)
+  const totalHeight = paddingY * 2 + (maxY * nodeSpacingY);
+
+  // Definir altura do canvas para permitir scroll
+  canvas.style.height = totalHeight + 'px';
+  svgContainer.style.height = totalHeight + 'px';
+
+  const nodePositions = {};
+  const nodesByCoord = {};
+
+  // Mapear nós por coordenada para conexões
+  mapData.nodes.forEach(node => {
+    nodesByCoord[`${node.x},${node.y}`] = node;
+  });
+
+  // Função para variação aleatória baseada no ID do nó
+  const getVariation = (id, multiplier = 1) => {
+    const hash = ((id * 2654435761) % 21) - 10; // -10 a +10
+    return hash * multiplier;
+  };
+
+  // Criar nós
+  mapData.nodes.forEach(node => {
+    // INVERTIDO: maxY - y para ir de baixo para cima (boss no topo, início embaixo)
+    const baseX = paddingX + (node.x * spacingX);
+    const baseY = paddingY + ((maxY - node.y) * nodeSpacingY);
+
+    // Adicionar variação aleatória (-10 a +10px)
+    const varX = getVariation(node.id, 1);
+    const varY = getVariation(node.id * 7, 1);
+    const posX = baseX + varX;
+    const posY = baseY + varY;
+
+    nodePositions[node.id] = { x: posX, y: posY };
+
+    const nodeEl = document.createElement('div');
+    nodeEl.style.cssText = `
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      left: ${posX - 25}px;
+      top: ${posY - 25}px;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: transform 0.2s ease, filter 0.2s ease;
+    `;
+
+    // Estado do nó
+    if (node.is_current) {
+      nodeEl.style.animation = 'mapNodePulse 1.5s infinite';
+    } else if (node.is_available) {
+      nodeEl.style.animation = 'mapNodeAvailable 2s infinite';
+    } else if (node.is_visited) {
+      nodeEl.style.opacity = '0.4';
+      nodeEl.style.cursor = 'default';
+    } else {
+      nodeEl.style.opacity = '0.3';
+      nodeEl.style.cursor = 'not-allowed';
+      nodeEl.style.filter = 'grayscale(100%)';
+    }
+
+    // Imagem com lazy loading
+    const img = document.createElement('img');
+    const typeInfo = nodeTypeInfo[node.node_type] || nodeTypeInfo['battle'];
+    img.src = typeInfo.image;
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.style.cssText = 'width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.8));';
+    nodeEl.appendChild(img);
+
+    // Eventos - nós clicáveis: disponíveis OU atual não completado
+    const isClickable = (node.is_available && !node.is_visited) || (node.is_current && !node.is_completed);
+
+    if (isClickable) {
+      if (node.is_current) {
+        // Nó atual: reabrir ação do nó
+        nodeEl.addEventListener('click', () => handleCurrentNodeClick(node));
+      } else {
+        // Nó disponível: avançar para ele
+        nodeEl.addEventListener('click', () => handleMapNodeClick(node));
+      }
+      nodeEl.addEventListener('mouseenter', () => {
+        nodeEl.style.transform = 'scale(1.2)';
+        nodeEl.style.filter = 'brightness(1.3)';
+      });
+      nodeEl.addEventListener('mouseleave', () => {
+        nodeEl.style.transform = 'scale(1)';
+        nodeEl.style.filter = '';
+      });
+    }
+
+    // Tooltip
+    nodeEl.addEventListener('mouseenter', (e) => showMapTooltip(e, node));
+    nodeEl.addEventListener('mousemove', moveMapTooltip);
+    nodeEl.addEventListener('mouseleave', hideMapTooltip);
+
+    container.appendChild(nodeEl);
+  });
+
+  // Desenhar conexões (connections_up contém coordenadas [x,y], não IDs)
+  mapData.nodes.forEach(node => {
+    if (node.connections_up && nodePositions[node.id]) {
+      node.connections_up.forEach(targetCoord => {
+        // targetCoord é [x, y]
+        const targetKey = `${targetCoord[0]},${targetCoord[1]}`;
+        const targetNode = nodesByCoord[targetKey];
+
+        if (targetNode && nodePositions[targetNode.id]) {
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', nodePositions[node.id].x);
+          line.setAttribute('y1', nodePositions[node.id].y);
+          line.setAttribute('x2', nodePositions[targetNode.id].x);
+          line.setAttribute('y2', nodePositions[targetNode.id].y);
+          line.setAttribute('stroke', 'rgba(255, 215, 0, 0.4)');
+          line.setAttribute('stroke-width', '3');
+          svgContainer.appendChild(line);
+        }
+      });
+    }
+  });
+
+  // Scroll para o nó atual (se existir) ou para o início
+  setTimeout(() => {
+    const currentNode = mapData.nodes.find(n => n.is_current);
+    if (currentNode && nodePositions[currentNode.id]) {
+      const nodeY = nodePositions[currentNode.id].y;
+      // Centralizar verticalmente o nó atual na viewport
+      const containerHeight = scrollContainer.clientHeight;
+      const scrollTarget = nodeY - (containerHeight / 2);
+      scrollContainer.scrollTop = Math.max(0, scrollTarget);
+    } else {
+      // Se não há nó atual, scroll para o início (embaixo do mapa)
+      scrollContainer.scrollTop = scrollContainer.scrollHeight;
+    }
+  }, 100);
+}
+
+// Mapeamento de boss_id para nome (usado em elite/boss)
+const bossNames = {
+  1: 'Purassombra',
+  2: 'Heresiarca',
+  3: 'Alma Negra',
+  4: 'Formofagus',
+  5: 'Nefasto'
+};
+
+// Verificar se jogador pode avançar no mapa (nó atual deve estar completo)
+function canAdvanceInMap() {
+  if (!currentMapData || !currentMapData.progress) return true;
+
+  const currentNodeId = currentMapData.progress.current_node_id;
+  if (!currentNodeId) return true;
+
+  // Buscar nó atual nos dados
+  const currentNode = currentMapData.nodes.find(n => n.id === currentNodeId);
+  if (!currentNode) return true;
+
+  // Se o nó atual não está completado, não pode avançar
+  if (!currentNode.is_completed) {
+    const typeInfo = nodeTypeInfo[currentNode.node_type] || {};
+    alert(`Você precisa completar o local atual (${typeInfo.name || currentNode.node_type}) antes de avançar!`);
+    return false;
+  }
+
+  return true;
+}
+
+// Handler para clique no nó ATUAL (reabrir ação sem re-selecionar)
+async function handleCurrentNodeClick(node) {
+  console.log('🔄 Clicou no nó atual:', node);
+
+  // Fechar mapa
+  closeMapPopup();
+
+  // Verificar se já há batalha ativa
+  const hasBattleActive = await checkActiveBattle();
+
+  // Ação baseada no tipo
+  switch (node.node_type) {
+    case 'battle':
+      if (hasBattleActive) {
+        window.location.href = '/gamification/battle';
+      } else {
+        showBossSelection();
+      }
+      break;
+    case 'elite':
+    case 'boss':
+      if (hasBattleActive) {
+        window.location.href = '/gamification/battle';
+      } else if (node.boss_id) {
+        const bossName = bossNames[node.boss_id] || `Boss #${node.boss_id}`;
+        selectBoss(node.boss_id, bossName);
+      } else {
+        showBossSelection();
+      }
+      break;
+    case 'shop':
+      openDialog('#shop-popup');
+      break;
+    case 'event':
+      openDialog('#event-popup');
+      break;
+    case 'rest':
+      openRestArea();
+      break;
+  }
+}
+
+// Verificar se há batalha ativa
+async function checkActiveBattle() {
+  try {
+    const response = await fetch('/gamification/check_battle_status');
+    const data = await response.json();
+    return data.has_active_battle || false;
+  } catch (error) {
+    console.log('Não foi possível verificar batalha ativa');
+    return false;
+  }
+}
+
+// Verificar se jogador pode avançar no mapa (nó atual deve estar completo)
+function canAdvanceInMap() {
+  if (!currentMapData || !currentMapData.progress) return true;
+
+  const currentNodeId = currentMapData.progress.current_node_id;
+  if (!currentNodeId) return true;
+
+  const currentNode = currentMapData.nodes.find(n => n.id === currentNodeId);
+  if (!currentNode) return true;
+
+  if (!currentNode.is_completed) {
+    const typeInfo = nodeTypeInfo[currentNode.node_type] || {};
+    alert(`Você precisa completar o local atual (${typeInfo.name || currentNode.node_type}) antes de avançar!`);
+    return false;
+  }
+
+  return true;
+}
+
+// Fechar loja e marcar como completado
+async function closeShopPopup() {
+  closeDialog('#shop-popup');
+  try {
+    await fetch('/map/api/complete-node', { method: 'POST' });
+    console.log("✅ Loja visitada, nó completado");
+    // Atualizar dados locais
+    if (currentMapData && currentMapData.progress) {
+      const currentNode = currentMapData.nodes.find(n => n.id === currentMapData.progress.current_node_id);
+      if (currentNode) currentNode.is_completed = true;
+    }
+  } catch (error) {
+    console.log("⚠️ Erro ao marcar loja como completada");
+  }
+}
+
+// Fechar evento e marcar como completado
+async function closeEventPopup() {
+  closeDialog('#event-popup');
+  try {
+    await fetch('/map/api/complete-node', { method: 'POST' });
+    console.log("✅ Evento concluído, nó completado");
+    // Atualizar dados locais
+    if (currentMapData && currentMapData.progress) {
+      const currentNode = currentMapData.nodes.find(n => n.id === currentMapData.progress.current_node_id);
+      if (currentNode) currentNode.is_completed = true;
+    }
+  } catch (error) {
+    console.log("⚠️ Erro ao marcar evento como completado");
+  }
+}
+
+// Handler de clique no nó
+async function handleMapNodeClick(node) {
+  console.log('🎯 Nó clicado:', node);
+
+  // Verificar se pode avançar
+  if (!canAdvanceInMap()) {
+    return;
+  }
+
+  // Selecionar nó no backend (apenas marca progresso)
+  try {
+    const response = await fetch(`/map/api/select-node/${node.id}`, { method: 'POST' });
+    const data = await response.json();
+
+    if (!data.success) {
+      alert(data.error || 'Erro ao selecionar nó');
+      return;
+    }
+
+    // Atualizar dados locais do mapa
+    if (currentMapData) {
+      currentMapData.progress = currentMapData.progress || {};
+      currentMapData.progress.current_node_id = node.id;
+      // Marcar nó como atual nos dados locais
+      currentMapData.nodes.forEach(n => {
+        n.is_current = (n.id === node.id);
+        if (n.id === node.id) {
+          n.is_visited = true;
+          n.is_available = false;
+          n.is_completed = false; // Ainda não completado
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Erro:', error);
+    alert('Erro de conexão');
+    return;
+  }
+
+  // Fechar mapa
+  closeMapPopup();
+
+  // Ação baseada no tipo
+  switch (node.node_type) {
+    case 'battle':
+      // Batalha genérica: abre seleção de inimigos
+      showBossSelection();
+      break;
+    case 'elite':
+    case 'boss':
+      // Elite e Boss: inicia batalha diretamente com boss específico
+      if (node.boss_id) {
+        const bossName = bossNames[node.boss_id] || `Boss #${node.boss_id}`;
+        console.log(`⚔️ Iniciando batalha com ${bossName} (ID: ${node.boss_id})`);
+        selectBoss(node.boss_id, bossName);
+      } else {
+        console.error('Nó elite/boss sem boss_id definido!');
+        showBossSelection();
+      }
+      break;
+    case 'shop':
+      openDialog('#shop-popup');
+      break;
+    case 'event':
+      openDialog('#event-popup');
+      break;
+    case 'rest':
+      openRestArea();
+      break;
+  }
+}
+
+// Função de descanso
+function openRestArea() {
+  const restPopup = document.getElementById('rest-popup');
+  const panel = restPopup.querySelector('.ui-panel');
+
+  panel.innerHTML = `
+    <h2 class="title">Área de Descanso</h2>
+    <button class="close-popup-btn" onclick="closeDialog('#rest-popup')">✕</button>
+    <div style="color: #e0e0e0; text-align: center; padding: 20px;">
+      <span style="font-size: 60px; display: block; margin-bottom: 20px;">🏕️</span>
+      <p style="font-size: 18px; margin-bottom: 30px;">Você encontrou um local seguro para descansar.</p>
+      <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+        <button onclick="restAndHeal()" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-size: 16px; transition: transform 0.2s;">
+          <div style="font-size: 30px; margin-bottom: 5px;">❤️</div>
+          <div style="font-weight: bold;">Descansar</div>
+          <div style="font-size: 12px; opacity: 0.8;">Recupera 30% do HP</div>
+        </button>
+        <button disabled style="background: rgba(100, 100, 100, 0.5); color: #888; border: none; padding: 15px 30px; border-radius: 10px; cursor: not-allowed; font-size: 16px;">
+          <div style="font-size: 30px; margin-bottom: 5px;">🔨</div>
+          <div style="font-weight: bold;">Melhorar</div>
+          <div style="font-size: 12px; opacity: 0.8;">Em breve...</div>
+        </button>
+      </div>
+    </div>
+  `;
+
+  openDialog('#rest-popup');
+}
+
+// Descansar e curar
+async function restAndHeal() {
+  try {
+    const response = await fetch('/map/api/rest/heal', { method: 'POST' });
+    const data = await response.json();
+
+    if (data.success) {
+      alert(`Você descansou e recuperou ${data.healed} HP! (${data.new_hp}/${data.max_hp})`);
+      closeDialog('#rest-popup');
+    } else {
+      alert(data.error || 'Erro ao descansar');
+    }
+  } catch (error) {
+    console.error('Erro:', error);
+    alert('Erro de conexão');
+  }
+}
+
+// Tooltip do mapa
+function showMapTooltip(e, node) {
+  const tooltip = document.getElementById('map-tooltip');
+  const typeInfo = nodeTypeInfo[node.node_type] || {};
+
+  document.getElementById('map-tooltip-name').textContent = typeInfo.name || node.node_type;
+  document.getElementById('map-tooltip-desc').textContent = typeInfo.description || '';
+
+  tooltip.style.display = 'block';
+  moveMapTooltip(e);
+}
+
+function moveMapTooltip(e) {
+  const tooltip = document.getElementById('map-tooltip');
+  tooltip.style.left = (e.clientX + 15) + 'px';
+  tooltip.style.top = (e.clientY + 15) + 'px';
+}
+
+function hideMapTooltip() {
+  document.getElementById('map-tooltip').style.display = 'none';
+}
+</script>
+
+<style>
+/* Animações do mapa */
+@keyframes mapNodePulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+  }
+  50% {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1));
+  }
+}
+
+@keyframes mapNodeAvailable {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.map-popup-panel {
+  background: linear-gradient(135deg, #1a1a3e 0%, #0f0f23 100%) !important;
+}
+
+/* Scrollbar estilizado para o mapa */
+#map-scroll-container::-webkit-scrollbar {
+  width: 12px;
+}
+
+#map-scroll-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+}
+
+#map-scroll-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  border-radius: 6px;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+}
+
+#map-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #ffed4a, #ffa726);
+}
+
+#map-scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: #ffd700 rgba(0, 0, 0, 0.3);
+}
+</style>
 
 {% endblock %}

@@ -1,0 +1,926 @@
+{% extends 'gamification/base.html' %}
+
+{% block title %}Mapa - Ato {{ act_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .map-container {
+        width: 100vw;
+        height: 100vh;
+        background-image: url('/static/game.data/map/map.png');
+        background-size: cover;
+        background-position: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .map-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.3);
+        pointer-events: none;
+    }
+
+    .map-header {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        padding: 15px 30px;
+        border-radius: 10px;
+        border: 2px solid rgba(255, 215, 0, 0.5);
+        z-index: 100;
+        backdrop-filter: blur(5px);
+    }
+
+    .map-title {
+        font-family: 'Cinzel', serif;
+        color: #ffd700;
+        font-size: 28px;
+        margin: 0;
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        text-align: center;
+    }
+
+    .map-stats {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 10px 15px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        z-index: 100;
+        color: #e0e0e0;
+        font-size: 14px;
+    }
+
+    .stat-item {
+        margin: 5px 0;
+    }
+
+    .stat-value {
+        color: #ffd700;
+        font-weight: bold;
+    }
+
+    .hp-bar {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 10px 15px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .hp-bar-container {
+        width: 120px;
+        height: 16px;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .hp-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ef4444, #dc2626);
+        transition: width 0.3s ease;
+    }
+
+    .hp-text {
+        color: #ef4444;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    /* Nós do mapa */
+    .map-nodes-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+
+    .map-node {
+        position: absolute;
+        width: 60px;
+        height: 60px;
+        cursor: pointer;
+        pointer-events: auto;
+        transition: transform 0.2s ease, filter 0.2s ease;
+    }
+
+    .map-node img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.8));
+    }
+
+    .map-node.available {
+        animation: pulse 2s infinite;
+    }
+
+    .map-node.available:hover {
+        transform: scale(1.2);
+        filter: brightness(1.3);
+    }
+
+    .map-node.visited {
+        opacity: 0.4;
+        cursor: default;
+    }
+
+    .map-node.locked {
+        opacity: 0.3;
+        cursor: not-allowed;
+        filter: grayscale(100%);
+    }
+
+    .map-node.current {
+        animation: currentPulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    @keyframes currentPulse {
+        0%, 100% {
+            transform: scale(1);
+            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+        }
+        50% {
+            transform: scale(1.15);
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1));
+        }
+    }
+
+    /* Conexões entre nós */
+    .map-connections {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .map-nodes-container {
+        z-index: 2;
+    }
+
+    /* Legenda */
+    .map-legend {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        z-index: 100;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #e0e0e0;
+        font-size: 12px;
+    }
+
+    .legend-icon {
+        width: 30px;
+        height: 30px;
+    }
+
+    .legend-icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    /* Botão de início */
+    .start-journey-btn {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #ffd700, #ffaa00);
+        color: #000;
+        border: none;
+        padding: 20px 40px;
+        font-size: 24px;
+        font-family: 'Cinzel', serif;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+        z-index: 200;
+    }
+
+    .start-journey-btn:hover {
+        transform: translate(-50%, -50%) scale(1.1);
+        box-shadow: 0 0 50px rgba(255, 215, 0, 0.8);
+    }
+
+    /* Pop-ups */
+    .ui-dialog {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+    }
+
+    .ui-panel {
+        background: linear-gradient(135deg, #1a1a3e 0%, #2a2a5e 100%);
+        border-radius: 15px;
+        padding: 30px;
+        border: 2px solid rgba(255, 215, 0, 0.3);
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+        position: relative;
+        max-width: 90vw;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .ui-panel .title {
+        font-family: 'Cinzel', serif;
+        color: #ffd700;
+        font-size: 24px;
+        margin: 0 0 20px 0;
+        text-align: center;
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+
+    .close-popup-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(255, 0, 0, 0.3);
+        border: none;
+        color: #fff;
+        font-size: 20px;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .close-popup-btn:hover {
+        background: rgba(255, 0, 0, 0.6);
+    }
+
+    .enemy-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        justify-items: center;
+    }
+
+    .placeholder-message {
+        color: #aaa;
+        font-size: 18px;
+        text-align: center;
+        padding: 40px;
+    }
+
+    .placeholder-icon {
+        font-size: 60px;
+        margin-bottom: 20px;
+        display: block;
+    }
+
+    /* Tooltip */
+    .node-tooltip {
+        position: fixed;
+        background: rgba(0, 0, 0, 0.95);
+        color: #fff;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-size: 14px;
+        pointer-events: none;
+        display: none;
+        z-index: 500;
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+    }
+
+    .tooltip-name {
+        color: #ffd700;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .tooltip-desc {
+        color: #ccc;
+        font-size: 12px;
+    }
+
+    /* Animação de saída */
+    .ui-exit {
+        animation: fadeOut 0.14s ease-out;
+    }
+
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+
+    /* Notificações */
+    .map-notification {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: rgba(16, 185, 129, 0.9);
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 8px;
+        display: none;
+        z-index: 1001;
+        animation: slideIn 0.3s ease;
+    }
+
+    .map-error {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: rgba(220, 38, 38, 0.9);
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 8px;
+        display: none;
+        z-index: 1001;
+        animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+</style>
+{% endblock %}
+
+{% block game_content %}
+<div class="map-container">
+    <div class="map-overlay"></div>
+
+    <!-- Header -->
+    <div class="map-header">
+        <h1 class="map-title">Ato {{ act_number }} - Escolha seu Caminho</h1>
+    </div>
+
+    <!-- HP Bar -->
+    <div class="hp-bar">
+        <span style="color: #fff;">HP:</span>
+        <div class="hp-bar-container">
+            <div class="hp-bar-fill" style="width: {{ (player.hp / player.max_hp * 100)|int }}%"></div>
+        </div>
+        <span class="hp-text">{{ player.hp }}/{{ player.max_hp }}</span>
+    </div>
+
+    <!-- Stats -->
+    <div class="map-stats">
+        <div class="stat-item">
+            Batalhas: <span class="stat-value">{{ progress.battles_won if progress else 0 }}</span>
+        </div>
+        <div class="stat-item">
+            Elites: <span class="stat-value">{{ progress.elites_defeated if progress else 0 }}</span>
+        </div>
+        <div class="stat-item">
+            Cristais: <span class="stat-value">{{ player.crystals }}</span>
+        </div>
+    </div>
+
+    <!-- Conexões SVG -->
+    <svg class="map-connections" id="map-connections"></svg>
+
+    <!-- Container dos nós -->
+    <div class="map-nodes-container" id="map-nodes"></div>
+
+    <!-- Botão de início (aparece se não houver mapa) -->
+    <button class="start-journey-btn" id="start-journey-btn" style="display: none;">
+        INICIAR JORNADA
+    </button>
+
+    <!-- Legenda -->
+    <div class="map-legend">
+        <div class="legend-item">
+            <div class="legend-icon">
+                <img src="/static/game.data/map/map-generic.png" alt="Batalha">
+            </div>
+            <span>Batalha</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-icon">
+                <img src="/static/game.data/map/map-challanger.png" alt="Elite">
+            </div>
+            <span>Desafiante Infernal</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-icon">
+                <img src="/static/game.data/map/map-shop.png" alt="Shop">
+            </div>
+            <span>Loja</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-icon">
+                <img src="/static/game.data/map/map-random.png" alt="Evento">
+            </div>
+            <span>Evento</span>
+        </div>
+    </div>
+</div>
+
+<!-- Tooltip -->
+<div class="node-tooltip" id="node-tooltip">
+    <div class="tooltip-name"></div>
+    <div class="tooltip-desc"></div>
+</div>
+
+<!-- Pop-up de Seleção de Inimigo -->
+<div id="enemy-selection-popup" class="ui-dialog">
+    <div class="ui-panel enemy-selection-modal">
+        <h2 class="title">Escolha seu Oponente</h2>
+        <button class="close-popup-btn" onclick="closeEnemySelection()">×</button>
+        <div class="enemy-grid" id="enemy-grid"></div>
+    </div>
+</div>
+
+<!-- Pop-up da Loja (Placeholder) -->
+<div id="shop-popup" class="ui-dialog">
+    <div class="ui-panel">
+        <h2 class="title">Loja</h2>
+        <button class="close-popup-btn" onclick="closeShopPopup()">×</button>
+        <div class="placeholder-message">
+            <span class="placeholder-icon">🛒</span>
+            <p>A loja ainda está em construção!</p>
+            <p style="font-size: 14px; color: #888;">Em breve você poderá comprar itens e melhorias aqui.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Pop-up de Evento (Placeholder) -->
+<div id="event-popup" class="ui-dialog">
+    <div class="ui-panel">
+        <h2 class="title">Evento Aleatório</h2>
+        <button class="close-popup-btn" onclick="closeEventPopup()">×</button>
+        <div class="placeholder-message">
+            <span class="placeholder-icon">❓</span>
+            <p>Um evento misterioso ocorreu!</p>
+            <p style="font-size: 14px; color: #888;">Eventos aleatórios serão implementados em breve.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Pop-up de Descanso (Placeholder) -->
+<div id="rest-popup" class="ui-dialog">
+    <div class="ui-panel">
+        <h2 class="title">Área de Descanso</h2>
+        <button class="close-popup-btn" onclick="closeRestPopup()">×</button>
+        <div class="placeholder-message">
+            <span class="placeholder-icon">🏕️</span>
+            <p>Você encontrou um local seguro para descansar.</p>
+            <p style="font-size: 14px; color: #888;">Funcionalidade de recuperação será implementada em breve.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Notificações -->
+<div class="map-notification" id="map-notification"></div>
+<div class="map-error" id="map-error"></div>
+
+<script>
+// Dados do mapa
+let currentMapData = null;
+let nodeTypes = {{ node_type_info | tojson }};
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🗺️ Iniciando sistema de mapa...');
+    loadCurrentMap();
+
+    // Botão de início
+    document.getElementById('start-journey-btn').addEventListener('click', generateNewMap);
+});
+
+// Carregar mapa atual
+async function loadCurrentMap() {
+    try {
+        const response = await fetch('/map/api/current');
+        const data = await response.json();
+
+        if (data.success && data.map_data) {
+            currentMapData = data.map_data;
+            renderMap(data.map_data);
+            document.getElementById('start-journey-btn').style.display = 'none';
+        } else {
+            // Não há mapa, mostrar botão de início
+            document.getElementById('start-journey-btn').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Erro ao carregar mapa:', error);
+        document.getElementById('start-journey-btn').style.display = 'block';
+    }
+}
+
+// Gerar novo mapa
+async function generateNewMap() {
+    const btn = document.getElementById('start-journey-btn');
+    btn.disabled = true;
+    btn.textContent = 'Gerando...';
+
+    try {
+        const response = await fetch('/map/api/generate', { method: 'POST' });
+        const data = await response.json();
+
+        if (data.success) {
+            currentMapData = data.map_data;
+            renderMap(data.map_data);
+            btn.style.display = 'none';
+            showNotification('Mapa gerado! Clique em um nó inicial para começar.');
+        } else {
+            showError(data.error || 'Erro ao gerar mapa');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        showError('Erro de conexão');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'INICIAR JORNADA';
+    }
+}
+
+// Renderizar mapa
+function renderMap(mapData) {
+    const nodesContainer = document.getElementById('map-nodes');
+    const connectionsContainer = document.getElementById('map-connections');
+
+    nodesContainer.innerHTML = '';
+    connectionsContainer.innerHTML = '';
+
+    const containerWidth = window.innerWidth;
+    const containerHeight = window.innerHeight;
+
+    // Calcular espaçamento
+    const nodeWidth = 60;
+    const paddingX = 100;
+    const paddingY = 120;
+    const usableWidth = containerWidth - (paddingX * 2);
+    const usableHeight = containerHeight - (paddingY * 2);
+
+    // Encontrar dimensões do mapa
+    let maxX = 0, maxY = 0;
+    mapData.nodes.forEach(node => {
+        maxX = Math.max(maxX, node.x);
+        maxY = Math.max(maxY, node.y);
+    });
+
+    const spacingX = usableWidth / (maxX || 1);
+    const spacingY = usableHeight / (maxY || 1);
+
+    // Posicionar nós
+    const nodePositions = {};
+
+    mapData.nodes.forEach(node => {
+        const posX = paddingX + (node.x * spacingX);
+        const posY = paddingY + (node.y * spacingY);
+
+        nodePositions[node.id] = { x: posX, y: posY };
+
+        const nodeElement = createNodeElement(node, posX, posY);
+        nodesContainer.appendChild(nodeElement);
+    });
+
+    // Desenhar conexões
+    drawConnections(mapData.nodes, nodePositions);
+}
+
+// Criar elemento do nó
+function createNodeElement(node, x, y) {
+    const nodeDiv = document.createElement('div');
+    nodeDiv.className = 'map-node';
+    nodeDiv.dataset.nodeId = node.id;
+    nodeDiv.dataset.nodeType = node.node_type;
+
+    // Posição (centralizar o ícone)
+    nodeDiv.style.left = (x - 30) + 'px';
+    nodeDiv.style.top = (y - 30) + 'px';
+
+    // Estado do nó
+    if (node.is_current) {
+        nodeDiv.classList.add('current');
+    } else if (node.is_available) {
+        nodeDiv.classList.add('available');
+    } else if (node.is_visited) {
+        nodeDiv.classList.add('visited');
+    } else {
+        nodeDiv.classList.add('locked');
+    }
+
+    // Ícone
+    const img = document.createElement('img');
+    const typeInfo = nodeTypes[node.node_type] || {};
+    img.src = typeInfo.image || '/static/game.data/map/map-generic.png';
+    img.alt = typeInfo.name || node.node_type;
+    nodeDiv.appendChild(img);
+
+    // Eventos
+    if (node.is_available && !node.is_visited) {
+        nodeDiv.addEventListener('click', () => handleNodeClick(node));
+    }
+
+    // Tooltip
+    nodeDiv.addEventListener('mouseenter', (e) => showTooltip(e, node));
+    nodeDiv.addEventListener('mousemove', (e) => moveTooltip(e));
+    nodeDiv.addEventListener('mouseleave', hideTooltip);
+
+    return nodeDiv;
+}
+
+// Desenhar conexões
+function drawConnections(nodes, positions) {
+    const svg = document.getElementById('map-connections');
+    svg.innerHTML = '';
+
+    nodes.forEach(node => {
+        if (node.connections_up && positions[node.id]) {
+            node.connections_up.forEach(targetId => {
+                if (positions[targetId]) {
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', positions[node.id].x);
+                    line.setAttribute('y1', positions[node.id].y);
+                    line.setAttribute('x2', positions[targetId].x);
+                    line.setAttribute('y2', positions[targetId].y);
+                    line.setAttribute('stroke', 'rgba(255, 215, 0, 0.3)');
+                    line.setAttribute('stroke-width', '2');
+                    svg.appendChild(line);
+                }
+            });
+        }
+    });
+}
+
+// Handler de clique no nó
+async function handleNodeClick(node) {
+    console.log('🎯 Nó clicado:', node);
+
+    // Primeiro, selecionar o nó no backend
+    try {
+        const response = await fetch(`/map/api/select-node/${node.id}`, { method: 'POST' });
+        const data = await response.json();
+
+        if (!data.success) {
+            showError(data.error || 'Erro ao selecionar nó');
+            return;
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        showError('Erro de conexão');
+        return;
+    }
+
+    // Abrir pop-up ou redirecionar baseado no tipo
+    switch (node.node_type) {
+        case 'battle':
+            openEnemySelection();
+            break;
+        case 'elite':
+            // Iniciar batalha contra elite automaticamente
+            window.location.href = `/map/battle/elite/${node.boss_id || 2}`;
+            break;
+        case 'boss':
+            // Iniciar batalha contra boss final
+            window.location.href = `/map/battle/boss/${node.boss_id || 1}`;
+            break;
+        case 'shop':
+            openShopPopup();
+            break;
+        case 'event':
+            openEventPopup();
+            break;
+        case 'rest':
+            openRestPopup();
+            break;
+        default:
+            showError('Tipo de nó desconhecido');
+    }
+}
+
+// === SISTEMA DE POP-UPS ===
+
+function openDialog(selector) {
+    const dialog = document.querySelector(selector);
+    if (!dialog) return;
+    dialog.style.display = 'flex';
+    dialog.dataset.open = '1';
+}
+
+function closeDialog(selector) {
+    const dialog = document.querySelector(selector);
+    if (!dialog) return;
+    dialog.classList.add('ui-exit');
+    setTimeout(() => {
+        dialog.style.display = 'none';
+        dialog.classList.remove('ui-exit');
+    }, 140);
+    dialog.dataset.open = '';
+}
+
+// Seleção de inimigo
+async function openEnemySelection() {
+    const grid = document.getElementById('enemy-grid');
+    grid.innerHTML = '<p style="color: #fff;">Carregando inimigos...</p>';
+
+    openDialog('#enemy-selection-popup');
+
+    try {
+        // Buscar inimigos disponíveis
+        const response = await fetch('/gamification/generate_enemies', { method: 'POST' });
+        const data = await response.json();
+
+        if (data.success && data.enemies) {
+            grid.innerHTML = '';
+            data.enemies.forEach(enemy => {
+                const card = createEnemyCard(enemy);
+                grid.appendChild(card);
+            });
+        } else {
+            grid.innerHTML = '<p style="color: #f00;">Erro ao carregar inimigos</p>';
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        grid.innerHTML = '<p style="color: #f00;">Erro de conexão</p>';
+    }
+}
+
+function closeEnemySelection() {
+    closeDialog('#enemy-selection-popup');
+}
+
+function createEnemyCard(enemy) {
+    const card = document.createElement('div');
+    card.className = 'enemy-card';
+    card.style.cssText = `
+        background: rgba(0, 0, 0, 0.6);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        min-width: 180px;
+    `;
+
+    card.innerHTML = `
+        <div style="font-size: 40px; margin-bottom: 10px;">👹</div>
+        <div style="color: #ffd700; font-weight: bold; font-size: 16px; margin-bottom: 5px;">${enemy.name}</div>
+        <div style="color: #ff6666; font-size: 14px;">HP: ${enemy.hp}</div>
+        <div style="color: #66ff66; font-size: 12px; margin-top: 5px;">Tema: ${enemy.theme || 'Desconhecido'}</div>
+    `;
+
+    card.addEventListener('mouseenter', () => {
+        card.style.borderColor = '#ffd700';
+        card.style.transform = 'scale(1.05)';
+    });
+
+    card.addEventListener('mouseleave', () => {
+        card.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+        card.style.transform = 'scale(1)';
+    });
+
+    card.addEventListener('click', () => selectEnemy(enemy.id, enemy.name));
+
+    return card;
+}
+
+async function selectEnemy(enemyId, enemyName) {
+    console.log('Selecionando inimigo:', enemyId, enemyName);
+
+    try {
+        const response = await fetch('/gamification/select_enemy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enemy_id: enemyId })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            closeEnemySelection();
+            setTimeout(() => {
+                window.location.href = '/gamification/battle';
+            }, 200);
+        } else {
+            showError('Erro ao selecionar inimigo: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        showError('Erro de conexão');
+    }
+}
+
+// Shop
+function openShopPopup() {
+    openDialog('#shop-popup');
+}
+
+function closeShopPopup() {
+    closeDialog('#shop-popup');
+}
+
+// Evento
+function openEventPopup() {
+    openDialog('#event-popup');
+}
+
+function closeEventPopup() {
+    closeDialog('#event-popup');
+}
+
+// Descanso
+function openRestPopup() {
+    openDialog('#rest-popup');
+}
+
+function closeRestPopup() {
+    closeDialog('#rest-popup');
+}
+
+// === TOOLTIP ===
+function showTooltip(e, node) {
+    const tooltip = document.getElementById('node-tooltip');
+    const typeInfo = nodeTypes[node.node_type] || {};
+
+    tooltip.querySelector('.tooltip-name').textContent = typeInfo.name || node.node_type;
+    tooltip.querySelector('.tooltip-desc').textContent = typeInfo.description || '';
+
+    tooltip.style.display = 'block';
+    moveTooltip(e);
+}
+
+function moveTooltip(e) {
+    const tooltip = document.getElementById('node-tooltip');
+    tooltip.style.left = (e.clientX + 15) + 'px';
+    tooltip.style.top = (e.clientY + 15) + 'px';
+}
+
+function hideTooltip() {
+    document.getElementById('node-tooltip').style.display = 'none';
+}
+
+// === NOTIFICAÇÕES ===
+function showNotification(message) {
+    const notif = document.getElementById('map-notification');
+    notif.textContent = message;
+    notif.style.display = 'block';
+    setTimeout(() => { notif.style.display = 'none'; }, 3000);
+}
+
+function showError(message) {
+    const error = document.getElementById('map-error');
+    error.textContent = message;
+    error.style.display = 'block';
+    setTimeout(() => { error.style.display = 'none'; }, 4000);
+}
+
+// Redimensionar
+window.addEventListener('resize', () => {
+    if (currentMapData) {
+        renderMap(currentMapData);
+    }
+});
+</script>
+{% endblock %}
