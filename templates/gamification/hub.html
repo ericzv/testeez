@@ -2637,9 +2637,17 @@ function renderMapNodes(mapData) {
     img.style.cssText = 'width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.8));';
     nodeEl.appendChild(img);
 
-    // Eventos
-    if (node.is_available && !node.is_visited) {
-      nodeEl.addEventListener('click', () => handleMapNodeClick(node));
+    // Eventos - nós clicáveis: disponíveis OU atual não completado
+    const isClickable = (node.is_available && !node.is_visited) || (node.is_current && !node.is_completed);
+
+    if (isClickable) {
+      if (node.is_current) {
+        // Nó atual: reabrir ação do nó
+        nodeEl.addEventListener('click', () => handleCurrentNodeClick(node));
+      } else {
+        // Nó disponível: avançar para ele
+        nodeEl.addEventListener('click', () => handleMapNodeClick(node));
+      }
       nodeEl.addEventListener('mouseenter', () => {
         nodeEl.style.transform = 'scale(1.2)';
         nodeEl.style.filter = 'brightness(1.3)';
@@ -2707,6 +2715,88 @@ function canAdvanceInMap() {
   if (!currentNode) return true;
 
   // Se o nó atual não está completado, não pode avançar
+  if (!currentNode.is_completed) {
+    const typeInfo = nodeTypeInfo[currentNode.node_type] || {};
+    alert(`Você precisa completar o local atual (${typeInfo.name || currentNode.node_type}) antes de avançar!`);
+    return false;
+  }
+
+  return true;
+}
+
+// Mapeamento de boss_id para nome (usado em elite/boss)
+const bossNames = {
+  1: 'Purassombra',
+  2: 'Heresiarca',
+  3: 'Alma Negra',
+  4: 'Formofagus',
+  5: 'Nefasto'
+};
+
+// Handler para clique no nó ATUAL (reabrir ação sem re-selecionar)
+async function handleCurrentNodeClick(node) {
+  console.log('🔄 Clicou no nó atual:', node);
+
+  // Fechar mapa
+  closeMapPopup();
+
+  // Verificar se já há batalha ativa
+  const hasBattleActive = await checkActiveBattle();
+
+  // Ação baseada no tipo
+  switch (node.node_type) {
+    case 'battle':
+      if (hasBattleActive) {
+        window.location.href = '/gamification/battle';
+      } else {
+        showBossSelection();
+      }
+      break;
+    case 'elite':
+    case 'boss':
+      if (hasBattleActive) {
+        window.location.href = '/gamification/battle';
+      } else if (node.boss_id) {
+        const bossName = bossNames[node.boss_id] || `Boss #${node.boss_id}`;
+        selectBoss(node.boss_id, bossName);
+      } else {
+        showBossSelection();
+      }
+      break;
+    case 'shop':
+      openDialog('#shop-popup');
+      break;
+    case 'event':
+      openDialog('#event-popup');
+      break;
+    case 'rest':
+      openRestArea();
+      break;
+  }
+}
+
+// Verificar se há batalha ativa
+async function checkActiveBattle() {
+  try {
+    const response = await fetch('/gamification/check_battle_status');
+    const data = await response.json();
+    return data.has_active_battle || false;
+  } catch (error) {
+    console.log('Não foi possível verificar batalha ativa');
+    return false;
+  }
+}
+
+// Verificar se jogador pode avançar no mapa (nó atual deve estar completo)
+function canAdvanceInMap() {
+  if (!currentMapData || !currentMapData.progress) return true;
+
+  const currentNodeId = currentMapData.progress.current_node_id;
+  if (!currentNodeId) return true;
+
+  const currentNode = currentMapData.nodes.find(n => n.id === currentNodeId);
+  if (!currentNode) return true;
+
   if (!currentNode.is_completed) {
     const typeInfo = nodeTypeInfo[currentNode.node_type] || {};
     alert(`Você precisa completar o local atual (${typeInfo.name || currentNode.node_type}) antes de avançar!`);
