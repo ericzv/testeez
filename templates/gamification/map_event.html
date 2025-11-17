@@ -1,6 +1,6 @@
 {% extends 'gamification/base.html' %}
 
-{% block title %}Evento Aleatório{% endblock %}
+{% block title %}Evento - {{ event.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -8,156 +8,620 @@
         background: linear-gradient(135deg, #1a1a2e 0%, #0f3d0f 100%);
     }
 
-    .event-container {
-        max-width: 800px;
-        margin: 50px auto;
-        padding: 30px;
-        background: rgba(0, 0, 0, 0.7);
-        border-radius: 15px;
-        border: 2px solid rgba(16, 185, 129, 0.3);
-        backdrop-filter: blur(10px);
+    .event-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+    }
+
+    .event-popup {
+        background: linear-gradient(135deg, #1a1a3e 0%, #2a2a5e 100%);
+        border-radius: 20px;
+        padding: 0;
+        max-width: 900px;
+        width: 90%;
+        border: 3px solid rgba(16, 185, 129, 0.4);
+        box-shadow: 0 0 50px rgba(16, 185, 129, 0.3);
+        overflow: hidden;
+        animation: eventAppear 0.5s ease-out;
+    }
+
+    @keyframes eventAppear {
+        from {
+            opacity: 0;
+            transform: scale(0.8) translateY(-50px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
     }
 
     .event-header {
-        text-align: center;
-        margin-bottom: 30px;
-    }
-
-    .event-icon {
-        font-size: 60px;
-        margin-bottom: 15px;
-        animation: float 3s ease-in-out infinite;
-    }
-
-    @keyframes float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
+        background: linear-gradient(90deg, rgba(16, 185, 129, 0.3) 0%, transparent 100%);
+        padding: 20px 30px;
+        border-bottom: 2px solid rgba(16, 185, 129, 0.3);
     }
 
     .event-title {
         font-family: 'Cinzel', serif;
         color: #10b981;
-        font-size: 32px;
+        font-size: 28px;
         margin: 0;
-        text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        text-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
     }
 
-    .event-subtitle {
-        color: #aaa;
-        font-size: 16px;
-        margin-top: 10px;
-    }
-
-    .placeholder-message {
-        text-align: center;
-        padding: 40px;
-        background: rgba(16, 185, 129, 0.05);
-        border-radius: 10px;
-        margin: 20px 0;
-        border: 1px solid rgba(16, 185, 129, 0.2);
-    }
-
-    .placeholder-message h3 {
-        color: #10b981;
-        margin-bottom: 15px;
-    }
-
-    .placeholder-message p {
-        color: #888;
-        line-height: 1.6;
-    }
-
-    .mystery-box {
+    .event-content {
         display: flex;
-        justify-content: center;
-        margin: 30px 0;
+        padding: 25px;
+        gap: 25px;
     }
 
-    .mystery-item {
-        width: 80px;
-        height: 80px;
-        background: rgba(16, 185, 129, 0.2);
-        border: 2px solid rgba(16, 185, 129, 0.5);
-        border-radius: 10px;
+    .event-image-container {
+        flex: 0 0 280px;
+        min-height: 280px;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 15px;
+        border: 2px solid rgba(16, 185, 129, 0.2);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 40px;
-        margin: 0 10px;
-        animation: glow 2s ease-in-out infinite;
+        overflow: hidden;
+        position: relative;
     }
 
-    @keyframes glow {
-        0%, 100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
-        50% { box-shadow: 0 0 25px rgba(16, 185, 129, 0.6); }
+    .event-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
-    .back-btn {
-        display: block;
-        width: 200px;
-        margin: 30px auto 0;
-        padding: 12px 20px;
+    .event-image-placeholder {
+        font-size: 120px;
+        opacity: 0.7;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.7; }
+        50% { transform: scale(1.05); opacity: 1; }
+    }
+
+    .event-details {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .event-description {
+        color: #ccc;
+        font-size: 16px;
+        line-height: 1.8;
+        margin-bottom: 25px;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        border-left: 4px solid rgba(16, 185, 129, 0.5);
+    }
+
+    .player-status {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+        padding: 10px 15px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+    }
+
+    .status-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+    }
+
+    .status-icon {
+        font-size: 18px;
+    }
+
+    .status-value {
+        color: #fff;
+        font-weight: bold;
+    }
+
+    .status-label {
+        color: #888;
+    }
+
+    .choices-title {
+        color: #10b981;
+        font-size: 18px;
+        margin-bottom: 15px;
+        font-family: 'Cinzel', serif;
+    }
+
+    .event-choices {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .choice-button {
+        display: flex;
+        align-items: center;
+        padding: 15px 20px;
+        background: rgba(16, 185, 129, 0.1);
+        border: 2px solid rgba(16, 185, 129, 0.3);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .choice-button:hover:not(.disabled) {
+        background: rgba(16, 185, 129, 0.2);
+        border-color: rgba(16, 185, 129, 0.6);
+        transform: translateX(5px);
+        box-shadow: 0 5px 20px rgba(16, 185, 129, 0.3);
+    }
+
+    .choice-button.selected {
+        background: rgba(16, 185, 129, 0.3);
+        border-color: #10b981;
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .choice-button.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        border-color: rgba(255, 0, 0, 0.3);
+        background: rgba(255, 0, 0, 0.05);
+    }
+
+    .choice-icon {
+        font-size: 28px;
+        margin-right: 15px;
+        min-width: 40px;
+        text-align: center;
+    }
+
+    .choice-info {
+        flex: 1;
+    }
+
+    .choice-text {
+        color: #fff;
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .choice-description {
+        color: #aaa;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .choice-arrow {
+        color: #10b981;
+        font-size: 20px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .choice-button:hover:not(.disabled) .choice-arrow {
+        opacity: 1;
+    }
+
+    .choice-button.selected .choice-arrow {
+        opacity: 1;
+    }
+
+    .event-footer {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 20px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 2px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .confirm-button {
+        padding: 12px 40px;
         background: linear-gradient(135deg, #10b981, #059669);
         color: #fff;
-        text-decoration: none;
-        text-align: center;
-        border-radius: 8px;
+        border: none;
+        border-radius: 10px;
         font-family: 'Cinzel', serif;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+
+    .confirm-button:hover:not(:disabled) {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6);
+    }
+
+    .confirm-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .back-link {
+        color: #888;
+        text-decoration: none;
+        font-size: 14px;
+        transition: color 0.3s ease;
+    }
+
+    .back-link:hover {
+        color: #10b981;
+    }
+
+    /* Modal de Resultados */
+    .results-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+    }
+
+    .results-popup {
+        background: linear-gradient(135deg, #1a1a3e 0%, #2a2a5e 100%);
+        border-radius: 20px;
+        padding: 30px;
+        max-width: 500px;
+        width: 90%;
+        border: 3px solid rgba(255, 215, 0, 0.4);
+        box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+        animation: resultAppear 0.6s ease-out;
+    }
+
+    @keyframes resultAppear {
+        from {
+            opacity: 0;
+            transform: scale(0.5) rotate(-10deg);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) rotate(0);
+        }
+    }
+
+    .results-title {
+        color: #ffd700;
+        font-family: 'Cinzel', serif;
+        font-size: 24px;
+        text-align: center;
+        margin-bottom: 20px;
+        text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    }
+
+    .results-list {
+        margin-bottom: 25px;
+    }
+
+    .result-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 15px;
+        margin-bottom: 10px;
+        border-radius: 10px;
+        animation: slideIn 0.4s ease-out;
+    }
+
+    .result-item.positive {
+        background: rgba(16, 185, 129, 0.2);
+        border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .result-item.negative {
+        background: rgba(239, 68, 68, 0.2);
+        border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .result-item.neutral {
+        background: rgba(255, 215, 0, 0.2);
+        border: 1px solid rgba(255, 215, 0, 0.4);
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .result-icon {
+        font-size: 24px;
+        margin-right: 12px;
+    }
+
+    .result-message {
+        color: #fff;
+        font-size: 15px;
+    }
+
+    .continue-button {
+        display: block;
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, #ffd700, #f59e0b);
+        color: #000;
+        border: none;
+        border-radius: 10px;
+        font-family: 'Cinzel', serif;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
         transition: all 0.3s ease;
     }
 
-    .back-btn:hover {
+    .continue-button:hover {
         transform: translateY(-3px);
-        box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6);
+    }
+
+    /* Loading indicator */
+    .loading {
+        display: none;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .loading-spinner {
+        border: 4px solid rgba(16, 185, 129, 0.3);
+        border-top: 4px solid #10b981;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 10px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
 </style>
 {% endblock %}
 
 {% block game_content %}
-<a href="{{ url_for('map.map_view') }}" class="nav-button">
-    ← Voltar ao Mapa
-</a>
+<div class="event-overlay">
+    <div class="event-popup">
+        <div class="event-header">
+            <h1 class="event-title">{{ event.name }}</h1>
+        </div>
 
-<div class="event-container">
-    <div class="event-header">
-        <div class="event-icon">❓</div>
-        <h1 class="event-title">Evento Misterioso</h1>
-        <p class="event-subtitle">Você encontrou algo estranho no caminho...</p>
+        <div class="event-content">
+            <div class="event-image-container">
+                {% if event.image %}
+                    <img src="/static/game_data/events/{{ event.image }}"
+                         alt="{{ event.name }}"
+                         class="event-image"
+                         onerror="this.style.display='none'; this.parentElement.querySelector('.event-image-placeholder').style.display='block';">
+                    <div class="event-image-placeholder" style="display: none;">❓</div>
+                {% else %}
+                    <div class="event-image-placeholder">❓</div>
+                {% endif %}
+            </div>
+
+            <div class="event-details">
+                <div class="event-description">
+                    {{ event.description }}
+                </div>
+
+                <div class="player-status">
+                    <div class="status-item">
+                        <span class="status-icon">❤️</span>
+                        <span class="status-value" id="player-hp">{{ player.hp }}</span>
+                        <span class="status-label">/ {{ player.max_hp }} HP</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-icon">💰</span>
+                        <span class="status-value" id="player-gold">{{ player.run_gold }}</span>
+                        <span class="status-label">Ouro</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-icon">🏆</span>
+                        <span class="status-value">{{ player.relics|length }}</span>
+                        <span class="status-label">Relíquias</span>
+                    </div>
+                </div>
+
+                <h3 class="choices-title">Escolha sua ação:</h3>
+
+                <div class="event-choices">
+                    {% for choice in event.choices %}
+                    <div class="choice-button {% if not choice.can_select %}disabled{% endif %}"
+                         data-choice-id="{{ choice.id }}"
+                         {% if choice.can_select %}onclick="selectChoice('{{ choice.id }}')"{% endif %}>
+                        <div class="choice-icon">{{ choice.icon }}</div>
+                        <div class="choice-info">
+                            <div class="choice-text">{{ choice.text }}</div>
+                            <div class="choice-description">
+                                {{ choice.description }}
+                                {% if not choice.can_select %}
+                                    <br><span style="color: #ef4444; font-size: 12px;">❌ Requisitos não atendidos</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="choice-arrow">→</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="event-footer">
+            <a href="{{ url_for('map.map_view') }}" class="back-link">← Voltar ao Mapa</a>
+            <button id="confirm-btn" class="confirm-button" disabled onclick="confirmChoice()">
+                Confirmar Escolha
+            </button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <div style="color: #10b981;">Processando...</div>
+        </div>
     </div>
+</div>
 
-    <div class="mystery-box">
-        <div class="mystery-item">🎭</div>
-        <div class="mystery-item">🔮</div>
-        <div class="mystery-item">📜</div>
+<!-- Modal de Resultados -->
+<div class="results-overlay" id="results-overlay">
+    <div class="results-popup">
+        <h2 class="results-title">Consequências</h2>
+        <div class="results-list" id="results-list">
+            <!-- Resultados serão inseridos aqui -->
+        </div>
+        <button class="continue-button" onclick="continueJourney()">
+            Continuar Jornada
+        </button>
     </div>
-
-    <div class="placeholder-message">
-        <h3>🌟 Eventos em Breve 🌟</h3>
-        <p>
-            Os eventos aleatórios ainda estão sendo criados.<br>
-            Em breve você encontrará decisões importantes, NPCs misteriosos e surpresas!
-        </p>
-        <p style="color: #666; font-size: 14px; margin-top: 15px;">
-            Possíveis eventos futuros:<br>
-            • Altares antigos com escolhas difíceis<br>
-            • Mercadores ambulantes com ofertas únicas<br>
-            • Enigmas que testam sua sabedoria<br>
-            • Encontros com espíritos e criaturas
-        </p>
-    </div>
-
-    <a href="{{ url_for('map.map_view') }}" class="back-btn" onclick="completeNode()">
-        Continuar Jornada
-    </a>
 </div>
 
 <script>
-    async function completeNode() {
-        try {
-            await fetch('/map/api/complete-node', { method: 'POST' });
-        } catch (error) {
-            console.error('Erro ao completar nó:', error);
+    // Estado
+    let selectedChoiceId = null;
+    const eventId = '{{ event.id }}';
+
+    // Selecionar escolha
+    function selectChoice(choiceId) {
+        // Desmarcar anterior
+        document.querySelectorAll('.choice-button').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+
+        // Marcar novo
+        const choiceBtn = document.querySelector(`[data-choice-id="${choiceId}"]`);
+        if (choiceBtn && !choiceBtn.classList.contains('disabled')) {
+            choiceBtn.classList.add('selected');
+            selectedChoiceId = choiceId;
+            document.getElementById('confirm-btn').disabled = false;
         }
     }
+
+    // Confirmar escolha
+    async function confirmChoice() {
+        if (!selectedChoiceId) return;
+
+        const confirmBtn = document.getElementById('confirm-btn');
+        const loading = document.getElementById('loading');
+
+        // Mostrar loading
+        confirmBtn.disabled = true;
+        loading.style.display = 'block';
+
+        try {
+            const response = await fetch('/map/api/event/choose', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    event_id: eventId,
+                    choice_id: selectedChoiceId
+                })
+            });
+
+            const data = await response.json();
+
+            loading.style.display = 'none';
+
+            if (data.success) {
+                // Atualizar status do jogador
+                document.getElementById('player-hp').textContent = data.player_hp;
+                document.getElementById('player-gold').textContent = data.player_gold;
+
+                // Mostrar resultados
+                showResults(data.results);
+
+                // Se precisar de combate, redirecionar
+                if (data.requires_combat) {
+                    // TODO: Redirecionar para combate
+                    console.log('Combate necessário!');
+                }
+            } else {
+                alert('Erro: ' + (data.error || 'Erro desconhecido'));
+                confirmBtn.disabled = false;
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            loading.style.display = 'none';
+            alert('Erro de conexão. Tente novamente.');
+            confirmBtn.disabled = false;
+        }
+    }
+
+    // Mostrar resultados
+    function showResults(results) {
+        const resultsList = document.getElementById('results-list');
+        resultsList.innerHTML = '';
+
+        if (!results || results.length === 0) {
+            resultsList.innerHTML = `
+                <div class="result-item neutral">
+                    <div class="result-icon">🤷</div>
+                    <div class="result-message">Nada aconteceu...</div>
+                </div>
+            `;
+        } else {
+            results.forEach((result, index) => {
+                setTimeout(() => {
+                    const itemClass = result.positive ? 'positive' : (result.positive === false ? 'negative' : 'neutral');
+                    const resultHtml = `
+                        <div class="result-item ${itemClass}">
+                            <div class="result-icon">${result.icon || '❓'}</div>
+                            <div class="result-message">${result.message || 'Efeito aplicado'}</div>
+                        </div>
+                    `;
+                    resultsList.insertAdjacentHTML('beforeend', resultHtml);
+                }, index * 300);
+            });
+        }
+
+        // Mostrar overlay
+        document.getElementById('results-overlay').style.display = 'flex';
+    }
+
+    // Continuar jornada
+    function continueJourney() {
+        window.location.href = '/map';
+    }
+
+    // Adicionar efeito sonoro placeholder (campo para sons futuros)
+    function playEventSound(soundName) {
+        // TODO: Implementar sistema de sons
+        // const audio = new Audio(`/static/sounds/events/${soundName}`);
+        // audio.play();
+        console.log('Som do evento:', soundName);
+    }
+
+    // Tocar som de entrada do evento
+    {% if event.sound %}
+    playEventSound('{{ event.sound }}');
+    {% endif %}
 </script>
 {% endblock %}

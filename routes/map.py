@@ -15,7 +15,10 @@ from .map_modules.node_types import (
     get_elite_boss,
     get_final_boss
 )
+from .map_modules.events import EVENT_DEFINITIONS, get_event_by_id, get_events_for_act
+from .map_modules.event_effects import apply_event_effects, check_choice_requirements
 import json
+import random
 from datetime import datetime
 
 map_bp = Blueprint('map', __name__, url_prefix='/map')
@@ -62,12 +65,39 @@ def shop_view():
 
 @map_bp.route('/event')
 def event_view():
-    """Página de evento aleatório (placeholder)"""
+    """Página de evento aleatório"""
     player = Player.query.first()
     if not player:
         return redirect(url_for('battle.gamification'))
 
-    return render_template('gamification/map_event.html', player=player)
+    # Obter progresso e nó atual
+    progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+    if not progress or not progress.current_node_id:
+        return redirect(url_for('map.map_view'))
+
+    current_node = MapNode.query.get(progress.current_node_id)
+    if not current_node or current_node.node_type != 'event':
+        return redirect(url_for('map.map_view'))
+
+    # Selecionar evento baseado no nó
+    event = _select_event_for_node(current_node, player, progress)
+
+    # Verificar requisitos de cada escolha
+    choices_with_status = []
+    for choice in event['choices']:
+        can_select = check_choice_requirements(choice, player)
+        choice_copy = choice.copy()
+        choice_copy['can_select'] = can_select
+        choices_with_status.append(choice_copy)
+
+    event_data = event.copy()
+    event_data['choices'] = choices_with_status
+
+    return render_template(
+        'gamification/map_event.html',
+        player=player,
+        event=event_data
+    )
 
 
 @map_bp.route('/rest')
@@ -575,3 +605,169 @@ def get_player_map_state(player_id: int) -> dict:
         'battles_won': progress.battles_won,
         'elites_defeated': progress.elites_defeated
     }
+
+
+# ============================================================================
+# API - Sistema de Eventos Aleatórios
+# ============================================================================
+
+@map_bp.route('/api/event/choose', methods=['POST'])
+def choose_event_option():
+    """
+    Processa a escolha do jogador em um evento.
+
+    Request JSON:
+        event_id (str): ID do evento
+        choice_id (str): ID da escolha selecionada
+
+    Returns:
+        JSON com resultados da escolha
+    """
+    player = Player.query.first()
+    if not player:
+        return jsonify({'success': False, 'error': 'Jogador não encontrado'}), 404
+
+    data = request.get_json()
+    event_id = data.get('event_id')
+    choice_id = data.get('choice_id')
+
+    if not event_id or not choice_id:
+        return jsonify({'success': False, 'error': 'Dados incompletos'}), 400
+
+    # Buscar evento
+    event = get_event_by_id(event_id)
+    if not event:
+        return jsonify({'success': False, 'error': 'Evento não encontrado'}), 404
+
+    # Buscar escolha
+    choice = None
+    for c in event['choices']:
+        if c['id'] == choice_id:
+            choice = c
+            break
+
+    if not choice:
+        return jsonify({'success': False, 'error': 'Escolha não encontrada'}), 404
+
+    # Verificar requisitos
+    if not check_choice_requirements(choice, player):
+        return jsonify({'success': False, 'error': 'Você não atende aos requisitos'}), 400
+
+    # Aplicar efeitos
+    results = apply_event_effects(player, choice.get('effects', []))
+
+    # Marcar nó como completo
+    progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+    if progress and progress.current_node_id:
+        current_node = MapNode.query.get(progress.current_node_id)
+        if current_node:
+            current_node.is_completed = True
+            progress.events_completed = (progress.events_completed or 0) + 1
+            db.session.commit()
+
+    # Verificar se precisa redirecionar para combate
+    requires_combat = any(r.get('requires_combat', False) for r in results)
+
+    return jsonify({
+        'success': True,
+        'results': results,
+        'player_hp': player.hp,
+        'player_max_hp': player.max_hp,
+        'player_gold': player.run_gold,
+        'requires_combat': requires_combat,
+        'redirect_url': '/map' if not requires_combat else None
+    })
+
+
+@map_bp.route('/api/event/skip', methods=['POST'])
+def skip_event():
+    """
+    Pula o evento sem fazer escolha (caso raro).
+
+    Returns:
+        JSON com sucesso
+    """
+    player = Player.query.first()
+    if not player:
+        return jsonify({'success': False, 'error': 'Jogador não encontrado'}), 404
+
+    # Marcar nó como completo
+    progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+    if progress and progress.current_node_id:
+        current_node = MapNode.query.get(progress.current_node_id)
+        if current_node:
+            current_node.is_completed = True
+            progress.events_completed = (progress.events_completed or 0) + 1
+            db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'redirect_url': '/map'
+    })
+
+
+# ============================================================================
+# Funções Auxiliares - Eventos
+# ============================================================================
+
+def _select_event_for_node(node: MapNode, player, progress: PlayerMapProgress) -> dict:
+    """
+    Seleciona um evento aleatório baseado no nó, ato e seed.
+
+    Args:
+        node: Nó atual do mapa
+        player: Jogador
+        progress: Progresso do jogador no mapa
+
+    Returns:
+        Dicionário com dados do evento selecionado
+    """
+    # Obter mapa para seed
+    map_obj = ProceduralMap.query.get(node.map_id)
+    if not map_obj:
+        # Fallback: evento padrão
+        return list(EVENT_DEFINITIONS.values())[0]
+
+    # Criar seed determinística baseada no nó
+    event_seed = f"{map_obj.seed}_{node.x}_{node.y}_event"
+    random.seed(hash(event_seed) % (2**32))
+
+    # Filtrar eventos disponíveis para o ato atual
+    act_number = progress.current_act if progress else 1
+    available_events = get_events_for_act(act_number)
+
+    if not available_events:
+        available_events = list(EVENT_DEFINITIONS.values())
+
+    # Peso por raridade
+    weights = []
+    for event in available_events:
+        rarity = event.get('rarity', 'common')
+        if rarity == 'common':
+            weights.append(60)
+        elif rarity == 'uncommon':
+            weights.append(30)
+        else:  # rare
+            weights.append(10)
+
+    # Selecionar evento
+    selected = random.choices(available_events, weights=weights, k=1)[0]
+
+    # Resetar seed para não afetar outros sistemas
+    random.seed()
+
+    return selected
+
+
+def _get_event_image_path(event: dict) -> str:
+    """
+    Retorna o caminho completo da imagem do evento.
+
+    Args:
+        event: Dicionário do evento
+
+    Returns:
+        Caminho da imagem
+    """
+    image_name = event.get('image', 'default_event.png')
+    return f'/static/game_data/events/{image_name}'
