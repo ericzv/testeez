@@ -183,11 +183,13 @@ def generate_new_map():
 
     return jsonify({
         'success': True,
-        'map_id': new_map.id,
-        'act_number': act_number,
-        'seed': new_map.seed,
-        'nodes': nodes_response,
-        'statistics': generator.get_statistics()
+        'map_data': {
+            'map_id': new_map.id,
+            'act_number': act_number,
+            'seed': new_map.seed,
+            'nodes': nodes_response,
+            'statistics': generator.get_statistics()
+        }
     })
 
 
@@ -207,6 +209,7 @@ def get_current_map():
 
     if not progress or not progress.current_map_id:
         return jsonify({
+            'success': False,
             'has_map': False,
             'current_act': progress.current_act if progress else 1
         })
@@ -223,15 +226,17 @@ def get_current_map():
         nodes_data.append(node_dict)
 
     return jsonify({
-        'has_map': True,
-        'map_id': progress.current_map_id,
-        'act_number': current_map.act_number,
-        'seed': current_map.seed,
-        'current_node_id': progress.current_node_id,
-        'nodes_visited': progress.get_nodes_visited(),
-        'nodes': nodes_data,
-        'progress': progress.to_dict(),
-        'is_completed': current_map.is_completed
+        'success': True,
+        'map_data': {
+            'map_id': progress.current_map_id,
+            'act_number': current_map.act_number,
+            'seed': current_map.seed,
+            'current_node_id': progress.current_node_id,
+            'nodes_visited': progress.get_nodes_visited(),
+            'nodes': nodes_data,
+            'progress': progress.to_dict(),
+            'is_completed': current_map.is_completed
+        }
     })
 
 
