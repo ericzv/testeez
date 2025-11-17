@@ -100,7 +100,11 @@ def generate_new_map():
     if not player:
         return jsonify({'error': 'Jogador não encontrado'}), 401
 
-    data = request.get_json() or {}
+    # Aceitar tanto JSON quanto request vazio
+    if request.is_json:
+        data = request.get_json() or {}
+    else:
+        data = {}
     act_number = data.get('act_number', 1)
     seed = data.get('seed', None)
 
