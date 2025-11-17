@@ -1,0 +1,266 @@
+{% extends 'gamification/base.html' %}
+
+{% block title %}Área de Descanso{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #1e3a5f 100%);
+    }
+
+    .rest-container {
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 30px;
+        background: rgba(0, 0, 0, 0.7);
+        border-radius: 15px;
+        border: 2px solid rgba(59, 130, 246, 0.3);
+        backdrop-filter: blur(10px);
+    }
+
+    .rest-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .rest-icon {
+        font-size: 60px;
+        margin-bottom: 15px;
+    }
+
+    .rest-title {
+        font-family: 'Cinzel', serif;
+        color: #3b82f6;
+        font-size: 32px;
+        margin: 0;
+        text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    }
+
+    .rest-subtitle {
+        color: #aaa;
+        font-size: 16px;
+        margin-top: 10px;
+    }
+
+    .hp-display {
+        text-align: center;
+        margin: 30px 0;
+    }
+
+    .hp-bar-large {
+        width: 400px;
+        height: 30px;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 15px;
+        overflow: hidden;
+        margin: 15px auto;
+        border: 2px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .hp-bar-fill-large {
+        height: 100%;
+        background: linear-gradient(90deg, #ef4444, #dc2626);
+        transition: width 1s ease;
+    }
+
+    .hp-text-large {
+        color: #fff;
+        font-size: 20px;
+        margin-top: 10px;
+    }
+
+    .rest-options {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin: 30px 0;
+    }
+
+    .rest-option {
+        width: 200px;
+        padding: 20px;
+        background: rgba(59, 130, 246, 0.1);
+        border: 2px solid rgba(59, 130, 246, 0.3);
+        border-radius: 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .rest-option:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        border-color: rgba(59, 130, 246, 0.6);
+    }
+
+    .rest-option.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .rest-option.disabled:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .option-icon {
+        font-size: 40px;
+        margin-bottom: 10px;
+    }
+
+    .option-title {
+        color: #3b82f6;
+        font-family: 'Cinzel', serif;
+        font-size: 18px;
+        margin-bottom: 8px;
+    }
+
+    .option-desc {
+        color: #888;
+        font-size: 14px;
+    }
+
+    .heal-result {
+        text-align: center;
+        padding: 20px;
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 10px;
+        margin: 20px 0;
+        display: none;
+    }
+
+    .heal-result.show {
+        display: block;
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .heal-amount {
+        color: #10b981;
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .back-btn {
+        display: block;
+        width: 200px;
+        margin: 30px auto 0;
+        padding: 12px 20px;
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: #fff;
+        text-decoration: none;
+        text-align: center;
+        border-radius: 8px;
+        font-family: 'Cinzel', serif;
+        transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+    }
+
+    .back-btn.disabled {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+</style>
+{% endblock %}
+
+{% block game_content %}
+<a href="{{ url_for('map.map_view') }}" class="nav-button">
+    ← Voltar ao Mapa
+</a>
+
+<div class="rest-container">
+    <div class="rest-header">
+        <div class="rest-icon">🏕️</div>
+        <h1 class="rest-title">Área de Descanso</h1>
+        <p class="rest-subtitle">Um lugar seguro para recuperar suas forças</p>
+    </div>
+
+    <div class="hp-display">
+        <div class="hp-text-large">
+            HP: <span id="current-hp">{{ player.hp }}</span> / <span id="max-hp">{{ player.max_hp }}</span>
+        </div>
+        <div class="hp-bar-large">
+            <div class="hp-bar-fill-large" id="hp-bar" style="width: {{ (player.hp / player.max_hp * 100)|int }}%"></div>
+        </div>
+    </div>
+
+    <div class="rest-options">
+        <div class="rest-option" id="rest-heal" onclick="restHeal()">
+            <div class="option-icon">💚</div>
+            <div class="option-title">Descansar</div>
+            <div class="option-desc">Recupere 30% do HP máximo</div>
+        </div>
+
+        <div class="rest-option disabled" id="rest-upgrade">
+            <div class="option-icon">⚒️</div>
+            <div class="option-title">Forjar</div>
+            <div class="option-desc">Em breve: Melhore suas habilidades</div>
+        </div>
+    </div>
+
+    <div class="heal-result" id="heal-result">
+        <div class="heal-amount" id="heal-amount"></div>
+        <p style="color: #888;">Você se sente revigorado!</p>
+    </div>
+
+    <a href="{{ url_for('map.map_view') }}" class="back-btn disabled" id="continue-btn">
+        Continuar Jornada
+    </a>
+</div>
+
+<script>
+    let hasRested = false;
+
+    async function restHeal() {
+        if (hasRested) return;
+
+        const restOption = document.getElementById('rest-heal');
+        restOption.classList.add('disabled');
+        restOption.onclick = null;
+
+        try {
+            const response = await fetch('/map/api/rest/heal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Atualizar display
+                document.getElementById('current-hp').textContent = data.new_hp;
+                document.getElementById('hp-bar').style.width = `${(data.new_hp / data.max_hp * 100)}%`;
+
+                // Mostrar resultado
+                const healResult = document.getElementById('heal-result');
+                document.getElementById('heal-amount').textContent = `+${data.healed} HP`;
+                healResult.classList.add('show');
+
+                // Habilitar botão de continuar
+                const continueBtn = document.getElementById('continue-btn');
+                continueBtn.classList.remove('disabled');
+
+                hasRested = true;
+            } else {
+                alert('Erro ao descansar: ' + (data.error || 'Erro desconhecido'));
+                restOption.classList.remove('disabled');
+                restOption.onclick = restHeal;
+            }
+        } catch (error) {
+            console.error('Erro ao descansar:', error);
+            alert('Erro de conexão');
+            restOption.classList.remove('disabled');
+            restOption.onclick = restHeal;
+        }
+    }
+</script>
+{% endblock %}

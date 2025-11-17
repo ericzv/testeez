@@ -1,0 +1,367 @@
+/**
+ * Sistema de Mapa Procedural - Estilos CSS
+ * Baseado no estilo visual de Slay the Spire
+ */
+
+/* ============================================
+   CORES E VARIÁVEIS
+   ============================================ */
+:root {
+    --map-bg-primary: #0f0f23;
+    --map-bg-secondary: #1a1a3e;
+    --map-gold: #ffd700;
+    --map-text-primary: #e0e0e0;
+    --map-text-secondary: #888888;
+    --map-border: rgba(255, 255, 255, 0.1);
+
+    /* Cores dos nós */
+    --node-battle: #4a5568;
+    --node-elite: #dc2626;
+    --node-shop: #fbbf24;
+    --node-event: #10b981;
+    --node-rest: #3b82f6;
+    --node-boss: #9333ea;
+}
+
+/* ============================================
+   CONTAINER PRINCIPAL
+   ============================================ */
+.map-main-container {
+    background: linear-gradient(135deg, var(--map-bg-primary) 0%, var(--map-bg-secondary) 50%, var(--map-bg-primary) 100%);
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    color: var(--map-text-primary);
+}
+
+/* ============================================
+   HEADER DO MAPA
+   ============================================ */
+.map-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 25px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--map-border);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.map-title {
+    font-family: 'Cinzel', serif;
+    color: var(--map-gold);
+    font-size: 28px;
+    margin: 0;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    letter-spacing: 1px;
+}
+
+.act-badge {
+    background: linear-gradient(135deg, var(--map-gold), #ffaa00);
+    color: #000;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+/* ============================================
+   CANVAS DO MAPA
+   ============================================ */
+#map-canvas-container {
+    background: radial-gradient(ellipse at center, rgba(26, 26, 62, 0.9) 0%, rgba(15, 15, 35, 1) 100%);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    border: 2px solid var(--map-border);
+    box-shadow:
+        0 0 40px rgba(0, 0, 0, 0.6),
+        inset 0 0 50px rgba(0, 0, 0, 0.3);
+}
+
+#map-canvas-container canvas {
+    display: block;
+    cursor: grab;
+}
+
+#map-canvas-container canvas:active {
+    cursor: grabbing;
+}
+
+/* ============================================
+   LEGENDA DO MAPA
+   ============================================ */
+.map-legend {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 15px 25px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 12px;
+    margin-top: 20px;
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--map-border);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--map-text-primary);
+    font-size: 14px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.legend-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateY(-2px);
+}
+
+.legend-icon {
+    font-size: 22px;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+}
+
+.legend-name {
+    font-weight: 500;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    box-shadow: 0 0 8px currentColor;
+}
+
+.legend-color.battle { background: var(--node-battle); }
+.legend-color.elite { background: var(--node-elite); }
+.legend-color.shop { background: var(--node-shop); }
+.legend-color.event { background: var(--node-event); }
+.legend-color.rest { background: var(--node-rest); }
+.legend-color.boss { background: var(--node-boss); }
+
+/* ============================================
+   TOOLTIP
+   ============================================ */
+#map-tooltip {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.95);
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    pointer-events: none;
+    display: none;
+    z-index: 10000;
+    border: 1px solid var(--map-gold);
+    box-shadow:
+        0 0 20px rgba(0, 0, 0, 0.7),
+        0 0 10px rgba(255, 215, 0, 0.2);
+    max-width: 250px;
+}
+
+#map-tooltip strong {
+    color: var(--map-gold);
+    font-size: 16px;
+}
+
+#map-tooltip em {
+    color: #aaa;
+    font-style: normal;
+}
+
+/* ============================================
+   NOTIFICAÇÕES
+   ============================================ */
+#map-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
+    color: #fff;
+    padding: 15px 25px;
+    border-radius: 10px;
+    display: none;
+    z-index: 10001;
+    animation: slideInRight 0.4s ease;
+    box-shadow: 0 5px 20px rgba(16, 185, 129, 0.4);
+    font-weight: 500;
+}
+
+#map-error {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.95), rgba(185, 28, 28, 0.95));
+    color: #fff;
+    padding: 15px 25px;
+    border-radius: 10px;
+    display: none;
+    z-index: 10001;
+    animation: slideInRight 0.4s ease;
+    box-shadow: 0 5px 20px rgba(220, 38, 38, 0.4);
+    font-weight: 500;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* ============================================
+   BOTÃO DE GERAÇÃO
+   ============================================ */
+.generate-map-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, var(--map-gold), #ffaa00);
+    color: #000;
+    border: none;
+    padding: 18px 40px;
+    font-size: 20px;
+    font-family: 'Cinzel', serif;
+    font-weight: bold;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow:
+        0 0 30px rgba(255, 215, 0, 0.5),
+        0 5px 15px rgba(0, 0, 0, 0.3);
+    letter-spacing: 1px;
+}
+
+.generate-map-btn:hover {
+    transform: translate(-50%, -50%) scale(1.08);
+    box-shadow:
+        0 0 50px rgba(255, 215, 0, 0.7),
+        0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+.generate-map-btn:active {
+    transform: translate(-50%, -50%) scale(0.98);
+}
+
+.generate-map-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.generate-map-btn:disabled:hover {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* ============================================
+   ESTATÍSTICAS DO JOGADOR
+   ============================================ */
+.player-stats-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.hp-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.hp-bar-container {
+    width: 180px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid rgba(239, 68, 68, 0.3);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.hp-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ef4444, #dc2626, #b91c1c);
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+.hp-text {
+    color: #ef4444;
+    font-weight: bold;
+    font-size: 16px;
+    text-shadow: 0 0 5px rgba(239, 68, 68, 0.3);
+}
+
+/* ============================================
+   INSTRUÇÕES
+   ============================================ */
+.map-instructions {
+    position: absolute;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--map-text-secondary);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    z-index: 50;
+    backdrop-filter: blur(5px);
+    border: 1px solid var(--map-border);
+}
+
+/* ============================================
+   RESPONSIVIDADE
+   ============================================ */
+@media (max-width: 768px) {
+    .map-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .map-title {
+        font-size: 22px;
+    }
+
+    .map-legend {
+        gap: 10px;
+    }
+
+    .legend-item {
+        font-size: 12px;
+    }
+
+    .hp-bar-container {
+        width: 120px;
+    }
+
+    .generate-map-btn {
+        padding: 12px 25px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .map-legend {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .player-stats-bar {
+        flex-direction: column;
+        gap: 10px;
+    }
+}

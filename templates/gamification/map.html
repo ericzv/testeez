@@ -1,0 +1,320 @@
+{% extends 'gamification/base.html' %}
+
+{% block title %}Mapa - Ato {{ act_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0f0f23 100%);
+        overflow: hidden;
+    }
+
+    .map-wrapper {
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    .map-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 10px;
+        margin-bottom: 15px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .map-title {
+        font-family: 'Cinzel', serif;
+        color: #ffd700;
+        font-size: 24px;
+        margin: 0;
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+
+    .map-stats {
+        display: flex;
+        gap: 20px;
+        color: #e0e0e0;
+        font-size: 14px;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .stat-value {
+        color: #ffd700;
+        font-weight: bold;
+    }
+
+    #map-canvas-container {
+        flex: 1;
+        background: rgba(15, 15, 35, 0.9);
+        border-radius: 10px;
+        overflow: hidden;
+        position: relative;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    #map-canvas-container canvas {
+        display: block;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .map-legend {
+        display: flex;
+        justify-content: center;
+        gap: 25px;
+        padding: 12px 20px;
+        background: rgba(0, 0, 0, 0.7);
+        border-radius: 10px;
+        margin-top: 15px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #e0e0e0;
+        font-size: 13px;
+    }
+
+    .legend-icon {
+        font-size: 18px;
+    }
+
+    #map-tooltip {
+        position: fixed;
+        background: rgba(0, 0, 0, 0.9);
+        color: #fff;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-size: 13px;
+        pointer-events: none;
+        display: none;
+        z-index: 1000;
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    }
+
+    #map-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(16, 185, 129, 0.9);
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 8px;
+        display: none;
+        z-index: 1001;
+        animation: slideIn 0.3s ease;
+    }
+
+    #map-error {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(220, 38, 38, 0.9);
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 8px;
+        display: none;
+        z-index: 1001;
+        animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    .generate-map-btn {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #ffd700, #ffaa00);
+        color: #000;
+        border: none;
+        padding: 15px 30px;
+        font-size: 18px;
+        font-family: 'Cinzel', serif;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    }
+
+    .generate-map-btn:hover {
+        transform: translate(-50%, -50%) scale(1.05);
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+    }
+
+    .generate-map-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .player-stats-bar {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .hp-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .hp-bar-container {
+        width: 150px;
+        height: 20px;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .hp-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ef4444, #dc2626);
+        transition: width 0.3s ease;
+    }
+
+    .hp-text {
+        color: #ef4444;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .back-to-hub {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 100;
+    }
+
+    .instructions {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        color: #aaa;
+        padding: 8px 15px;
+        border-radius: 5px;
+        font-size: 12px;
+        z-index: 50;
+    }
+</style>
+{% endblock %}
+
+{% block game_content %}
+<a href="{{ url_for('gamification_route') }}" class="nav-button back-to-hub">
+    ← Voltar ao Hub
+</a>
+
+<div class="map-wrapper">
+    <div class="map-header">
+        <h2 class="map-title">Ato {{ act_number }} - Escolha seu Caminho</h2>
+
+        <div class="player-stats-bar">
+            <div class="hp-bar">
+                <span>HP:</span>
+                <div class="hp-bar-container">
+                    <div class="hp-bar-fill" style="width: {{ (player.hp / player.max_hp * 100)|int }}%"></div>
+                </div>
+                <span class="hp-text">{{ player.hp }}/{{ player.max_hp }}</span>
+            </div>
+        </div>
+
+        <div class="map-stats">
+            <div class="stat-item">
+                <span>Batalhas:</span>
+                <span class="stat-value">{{ progress.battles_won if progress else 0 }}</span>
+            </div>
+            <div class="stat-item">
+                <span>Elites:</span>
+                <span class="stat-value">{{ progress.elites_defeated if progress else 0 }}</span>
+            </div>
+            <div class="stat-item">
+                <span>Cristais:</span>
+                <span class="stat-value">{{ player.crystals }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="map-canvas-container">
+        <!-- Canvas do Pixi.js será inserido aqui -->
+    </div>
+
+    <div class="map-legend">
+        <div class="legend-item">
+            <span class="legend-icon">⚔️</span>
+            <span>Batalha</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-icon">🔥</span>
+            <span>Desafiante Infernal</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-icon">🛒</span>
+            <span>Loja</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-icon">❓</span>
+            <span>Evento</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-icon">🏕️</span>
+            <span>Descanso</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-icon">💀</span>
+            <span>Boss</span>
+        </div>
+    </div>
+
+    <div class="instructions">
+        Arraste para mover o mapa | Clique nos nós brilhantes para avançar
+    </div>
+</div>
+
+<!-- Elementos de UI -->
+<div id="map-tooltip"></div>
+<div id="map-notification"></div>
+<div id="map-error"></div>
+
+<!-- Scripts -->
+<script src="https://pixijs.download/v7.4.2/pixi.min.js"></script>
+<script src="{{ url_for('static', filename='js/map-system.js') }}"></script>
+
+<script>
+    // Dados do progresso para JavaScript
+    const mapProgressData = {
+        currentAct: {{ act_number }},
+        battlesWon: {{ progress.battles_won if progress else 0 }},
+        elitesDefeated: {{ progress.elites_defeated if progress else 0 }}
+    };
+</script>
+{% endblock %}

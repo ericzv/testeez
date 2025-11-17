@@ -1,0 +1,136 @@
+{% extends 'gamification/base.html' %}
+
+{% block title %}Loja do Mapa{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    }
+
+    .shop-container {
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 30px;
+        background: rgba(0, 0, 0, 0.7);
+        border-radius: 15px;
+        border: 2px solid rgba(255, 215, 0, 0.3);
+        backdrop-filter: blur(10px);
+    }
+
+    .shop-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .shop-icon {
+        font-size: 60px;
+        margin-bottom: 15px;
+    }
+
+    .shop-title {
+        font-family: 'Cinzel', serif;
+        color: #ffd700;
+        font-size: 32px;
+        margin: 0;
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+
+    .shop-subtitle {
+        color: #aaa;
+        font-size: 16px;
+        margin-top: 10px;
+    }
+
+    .placeholder-message {
+        text-align: center;
+        padding: 40px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        margin: 20px 0;
+    }
+
+    .placeholder-message h3 {
+        color: #fbbf24;
+        margin-bottom: 15px;
+    }
+
+    .placeholder-message p {
+        color: #888;
+        line-height: 1.6;
+    }
+
+    .gold-display {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        font-size: 24px;
+        color: #ffd700;
+        margin: 20px 0;
+    }
+
+    .back-btn {
+        display: block;
+        width: 200px;
+        margin: 30px auto 0;
+        padding: 12px 20px;
+        background: linear-gradient(135deg, #4a5568, #2d3748);
+        color: #fff;
+        text-decoration: none;
+        text-align: center;
+        border-radius: 8px;
+        font-family: 'Cinzel', serif;
+        transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block game_content %}
+<a href="{{ url_for('map.map_view') }}" class="nav-button">
+    ← Voltar ao Mapa
+</a>
+
+<div class="shop-container">
+    <div class="shop-header">
+        <div class="shop-icon">🛒</div>
+        <h1 class="shop-title">Loja do Mercador</h1>
+        <p class="shop-subtitle">Compre itens e melhorias para sua jornada</p>
+    </div>
+
+    <div class="gold-display">
+        <span>💰</span>
+        <span>Ouro: {{ player.run_gold }}</span>
+    </div>
+
+    <div class="placeholder-message">
+        <h3>🚧 Em Construção 🚧</h3>
+        <p>
+            A loja ainda está sendo preparada pelo mercador.<br>
+            Em breve você poderá comprar itens, poções e equipamentos aqui!
+        </p>
+        <p style="color: #666; font-size: 14px; margin-top: 15px;">
+            Por enquanto, clique em "Continuar" para marcar este nó como visitado e retornar ao mapa.
+        </p>
+    </div>
+
+    <a href="{{ url_for('map.map_view') }}" class="back-btn" onclick="completeNode()">
+        Continuar Jornada
+    </a>
+</div>
+
+<script>
+    async function completeNode() {
+        try {
+            await fetch('/map/api/complete-node', { method: 'POST' });
+        } catch (error) {
+            console.error('Erro ao completar nó:', error);
+        }
+    }
+</script>
+{% endblock %}

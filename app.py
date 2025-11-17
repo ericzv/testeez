@@ -31,6 +31,16 @@ except Exception as e:
 # INSERIR essas linhas nas importações (junto com os outros imports de rotas)
 from routes.sprite_organizer import sprite_organizer_bp
 
+# Importar blueprints do sistema de mapa procedural
+try:
+    from routes.map import map_bp
+    from routes.map_battle import map_battle_bp
+    print("✅ Map blueprints importados")
+except Exception as e:
+    print(f"⚠️ Erro ao importar map blueprints: {e}")
+    map_bp = None
+    map_battle_bp = None
+
 # Configuração do matplotlib
 import matplotlib
 matplotlib.use('Agg')
@@ -44,6 +54,16 @@ from filters import get_cards_recursive, count_cards_recursive
 from models import Deck, Card, Tag, Player, Talent, PlayerRunBuff
 from models import Boss, DailyStats, PlayerTalent, AppliedTalentEffect
 from models import Item, PlayerItem, Equipment, ShopQuote, BestiaryEntry, PlayerAchievement
+
+# Importar modelos do sistema de mapa procedural
+try:
+    from models_map import ProceduralMap, MapNode, PlayerMapProgress
+    print("✅ Modelos do mapa importados")
+except Exception as e:
+    print(f"⚠️ Erro ao importar modelos do mapa: {e}")
+    ProceduralMap = None
+    MapNode = None
+    PlayerMapProgress = None
 
 # Importar funções de game
 from game_formulas import (
@@ -118,6 +138,17 @@ try:
 except Exception as e:
     print(f"❌ Erro ao registrar battle blueprint: {e}")
 app.register_blueprint(sprite_organizer_bp)
+
+# Registrar blueprints do sistema de mapa procedural
+try:
+    if map_bp is not None:
+        app.register_blueprint(map_bp)
+        print("✅ Map blueprint registrado")
+    if map_battle_bp is not None:
+        app.register_blueprint(map_battle_bp)
+        print("✅ Map Battle blueprint registrado")
+except Exception as e:
+    print(f"⚠️ Erro ao registrar map blueprints: {e}")
 
 ##############################################
 #                 MODELOS
