@@ -2330,47 +2330,60 @@
 
 <!-- Pop-up do Mapa Procedural -->
 <div id="map-popup" class="ui-dialog" style="display:none">
-  <div class="ui-panel map-popup-panel" style="width: 90vw; height: 85vh; max-width: 1400px; padding: 0; overflow: hidden;">
+  <div class="ui-panel map-popup-panel" style="width: 90vw; height: 85vh; max-width: 1400px; padding: 0; overflow: hidden; display: flex; flex-direction: column;">
     <button class="close-popup-btn" onclick="closeMapPopup()" style="position: absolute; top: 15px; right: 15px; z-index: 1001;">✕</button>
 
     <!-- Header do Mapa -->
-    <div style="background: rgba(0, 0, 0, 0.8); padding: 15px 20px; border-bottom: 2px solid rgba(255, 215, 0, 0.3);">
+    <div style="background: rgba(0, 0, 0, 0.8); padding: 15px 20px; border-bottom: 2px solid rgba(255, 215, 0, 0.3); flex-shrink: 0;">
       <h2 class="title" style="margin: 0;">Ato <span id="map-act-number">1</span> - Escolha seu Caminho</h2>
     </div>
 
-    <!-- Container do Mapa -->
-    <div id="map-container" style="width: 100%; height: calc(100% - 120px); background-image: url('/static/game.data/map/map.png'); background-size: cover; background-position: center; position: relative;">
-      <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.3);"></div>
+    <!-- Container do Mapa com Scroll -->
+    <div id="map-scroll-container" style="flex: 1; overflow-y: auto; overflow-x: hidden; position: relative;">
+      <!-- Canvas do Mapa (tamanho dinâmico baseado nos nós) -->
+      <div id="map-canvas" style="position: relative; min-height: 100%; width: 100%;">
+        <!-- Background que acompanha os nós -->
+        <div id="map-background" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('/static/game.data/map/map.png'); background-size: 100% auto; background-repeat: repeat-y; background-position: top center;"></div>
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.3); pointer-events: none;"></div>
 
-      <!-- Conexões SVG -->
-      <svg id="map-connections" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;"></svg>
+        <!-- Conexões SVG -->
+        <svg id="map-connections" style="position: absolute; top: 0; left: 0; width: 100%; pointer-events: none; z-index: 1;"></svg>
 
-      <!-- Nós do Mapa -->
-      <div id="map-nodes" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2;"></div>
+        <!-- Nós do Mapa -->
+        <div id="map-nodes" style="position: absolute; top: 0; left: 0; width: 100%; z-index: 2;"></div>
 
-      <!-- Carregando -->
-      <div id="map-loading" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ffd700; font-size: 20px; z-index: 10;">
-        Carregando mapa...
+        <!-- Carregando -->
+        <div id="map-loading" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ffd700; font-size: 20px; z-index: 10;">
+          Carregando mapa...
+        </div>
       </div>
     </div>
 
     <!-- Legenda -->
-    <div style="background: rgba(0, 0, 0, 0.8); padding: 10px 20px; display: flex; justify-content: center; gap: 25px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-      <div style="display: flex; align-items: center; gap: 8px; color: #e0e0e0; font-size: 12px;">
-        <img src="/static/game.data/map/map-generic.png" alt="Batalha" style="width: 25px; height: 25px;">
+    <div style="background: rgba(0, 0, 0, 0.8); padding: 10px 20px; display: flex; justify-content: center; gap: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1); flex-shrink: 0; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 6px; color: #e0e0e0; font-size: 11px;">
+        <img src="/static/game.data/map/map-generic.png" alt="Batalha" style="width: 20px; height: 20px;">
         <span>Batalha</span>
       </div>
-      <div style="display: flex; align-items: center; gap: 8px; color: #e0e0e0; font-size: 12px;">
-        <img src="/static/game.data/map/map-challanger.png" alt="Elite" style="width: 25px; height: 25px;">
-        <span>Desafiante Infernal</span>
+      <div style="display: flex; align-items: center; gap: 6px; color: #e0e0e0; font-size: 11px;">
+        <img src="/static/game.data/map/map-challanger.png" alt="Elite" style="width: 20px; height: 20px;">
+        <span>Elite</span>
       </div>
-      <div style="display: flex; align-items: center; gap: 8px; color: #e0e0e0; font-size: 12px;">
-        <img src="/static/game.data/map/map-shop.png" alt="Shop" style="width: 25px; height: 25px;">
+      <div style="display: flex; align-items: center; gap: 6px; color: #e0e0e0; font-size: 11px;">
+        <img src="/static/game.data/map/map-shop.png" alt="Shop" style="width: 20px; height: 20px;">
         <span>Loja</span>
       </div>
-      <div style="display: flex; align-items: center; gap: 8px; color: #e0e0e0; font-size: 12px;">
-        <img src="/static/game.data/map/map-random.png" alt="Evento" style="width: 25px; height: 25px;">
+      <div style="display: flex; align-items: center; gap: 6px; color: #e0e0e0; font-size: 11px;">
+        <img src="/static/game.data/map/map-random.png" alt="Evento" style="width: 20px; height: 20px;">
         <span>Evento</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; color: #e0e0e0; font-size: 11px;">
+        <img src="/static/game.data/map/map-rest.png" alt="Descanso" style="width: 20px; height: 20px;">
+        <span>Descanso</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; color: #e0e0e0; font-size: 11px;">
+        <img src="/static/game.data/map/map-lastboss.png" alt="Boss" style="width: 20px; height: 20px;">
+        <span>Boss</span>
       </div>
     </div>
   </div>
@@ -2447,12 +2460,12 @@ const nodeTypeInfo = {
   },
   'rest': {
     'name': 'Descanso',
-    'image': '/static/game.data/map/map-random.png',
+    'image': '/static/game.data/map/map-rest.png',
     'description': 'Recupere HP e descanse'
   },
   'boss': {
     'name': 'Boss Final',
-    'image': '/static/game.data/map/map-challanger.png',
+    'image': '/static/game.data/map/map-lastboss.png',
     'description': 'O guardião desta fase'
   }
 };
@@ -2522,20 +2535,19 @@ async function generateMap() {
 
 // Renderizar nós do mapa
 function renderMapNodes(mapData) {
+  const canvas = document.getElementById('map-canvas');
   const container = document.getElementById('map-nodes');
   const svgContainer = document.getElementById('map-connections');
 
   container.innerHTML = '';
   svgContainer.innerHTML = '';
 
-  const containerRect = container.parentElement.getBoundingClientRect();
-  const width = containerRect.width;
-  const height = containerRect.height;
+  const scrollContainer = document.getElementById('map-scroll-container');
+  const containerWidth = scrollContainer.clientWidth;
 
-  const paddingX = 80;
-  const paddingY = 60;
-  const usableWidth = width - (paddingX * 2);
-  const usableHeight = height - (paddingY * 2);
+  const paddingX = 100;
+  const paddingY = 80;
+  const nodeSpacingY = 100; // Espaçamento vertical entre níveis
 
   // Encontrar dimensões do mapa
   let maxX = 0, maxY = 0;
@@ -2544,15 +2556,28 @@ function renderMapNodes(mapData) {
     maxY = Math.max(maxY, node.y);
   });
 
+  const usableWidth = containerWidth - (paddingX * 2);
   const spacingX = usableWidth / (maxX || 1);
-  const spacingY = usableHeight / (maxY || 1);
+
+  // Altura total do mapa (dinâmica baseada nos níveis)
+  const totalHeight = paddingY * 2 + (maxY * nodeSpacingY);
+
+  // Definir altura do canvas para permitir scroll
+  canvas.style.height = totalHeight + 'px';
+  svgContainer.style.height = totalHeight + 'px';
 
   const nodePositions = {};
+  const nodesByCoord = {};
+
+  // Mapear nós por coordenada para conexões
+  mapData.nodes.forEach(node => {
+    nodesByCoord[`${node.x},${node.y}`] = node;
+  });
 
   // Criar nós
   mapData.nodes.forEach(node => {
     const posX = paddingX + (node.x * spacingX);
-    const posY = paddingY + (node.y * spacingY);
+    const posY = paddingY + (node.y * nodeSpacingY);
 
     nodePositions[node.id] = { x: posX, y: posY };
 
@@ -2610,18 +2635,22 @@ function renderMapNodes(mapData) {
     container.appendChild(nodeEl);
   });
 
-  // Desenhar conexões
+  // Desenhar conexões (connections_up contém coordenadas [x,y], não IDs)
   mapData.nodes.forEach(node => {
     if (node.connections_up && nodePositions[node.id]) {
-      node.connections_up.forEach(targetId => {
-        if (nodePositions[targetId]) {
+      node.connections_up.forEach(targetCoord => {
+        // targetCoord é [x, y]
+        const targetKey = `${targetCoord[0]},${targetCoord[1]}`;
+        const targetNode = nodesByCoord[targetKey];
+
+        if (targetNode && nodePositions[targetNode.id]) {
           const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
           line.setAttribute('x1', nodePositions[node.id].x);
           line.setAttribute('y1', nodePositions[node.id].y);
-          line.setAttribute('x2', nodePositions[targetId].x);
-          line.setAttribute('y2', nodePositions[targetId].y);
-          line.setAttribute('stroke', 'rgba(255, 215, 0, 0.3)');
-          line.setAttribute('stroke-width', '2');
+          line.setAttribute('x2', nodePositions[targetNode.id].x);
+          line.setAttribute('y2', nodePositions[targetNode.id].y);
+          line.setAttribute('stroke', 'rgba(255, 215, 0, 0.4)');
+          line.setAttribute('stroke-width', '3');
           svgContainer.appendChild(line);
         }
       });
@@ -2633,7 +2662,7 @@ function renderMapNodes(mapData) {
 async function handleMapNodeClick(node) {
   console.log('🎯 Nó clicado:', node);
 
-  // Selecionar nó no backend
+  // Selecionar nó no backend (apenas marca progresso)
   try {
     const response = await fetch(`/map/api/select-node/${node.id}`, { method: 'POST' });
     const data = await response.json();
@@ -2651,19 +2680,14 @@ async function handleMapNodeClick(node) {
   // Fechar mapa
   closeMapPopup();
 
-  // Ação baseada no tipo
+  // Ação baseada no tipo - NÃO interfere na geração de inimigos!
   switch (node.node_type) {
     case 'battle':
-      // Abrir seleção de inimigo
-      openBossSelection();
-      break;
     case 'elite':
-      // Iniciar batalha contra elite
-      window.location.href = `/map/battle/elite/${node.boss_id || 2}`;
-      break;
     case 'boss':
-      // Iniciar batalha contra boss final
-      window.location.href = `/map/battle/boss/${node.boss_id || 1}`;
+      // Todos os tipos de batalha abrem o mesmo pop-up de seleção de inimigo
+      // O sistema de geração de inimigos existente cuidará de tudo
+      openBossSelection();
       break;
     case 'shop':
       openDialog('#shop-popup');
