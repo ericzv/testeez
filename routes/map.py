@@ -169,16 +169,24 @@ def generate_new_map():
     # Montar resposta
     nodes_response = []
     for (x, y), node_data in map_data['nodes'].items():
+        # Buscar o nó do banco para obter boss_id
+        db_node = MapNode.query.filter_by(
+            map_id=new_map.id,
+            x=x,
+            y=y
+        ).first()
+
         nodes_response.append({
             'id': node_id_map[(x, y)],
             'x': x,
             'y': y,
-            'type': node_data['type'],
+            'node_type': node_data['type'],  # Padronizado como 'node_type'
             'connections_up': node_data['connections_up'],
             'connections_down': node_data['connections_down'],
             'is_available': node_data['is_available'],
             'is_visited': False,
-            'is_current': False
+            'is_current': False,
+            'boss_id': db_node.boss_id if db_node else None
         })
 
     return jsonify({

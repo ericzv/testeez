@@ -1433,7 +1433,15 @@
               alert('Erro ao aplicar recompensas: ' + result.message);
               return;
           }
-          
+
+          // 1.5) Marcar nó do mapa como completado (se estiver em uma run)
+          try {
+              await fetch('/map/api/complete-node', { method: 'POST' });
+              console.log("✅ Nó do mapa marcado como completado");
+          } catch (mapError) {
+              console.log("⚠️ Sem progresso de mapa ativo (normal se não estiver em run)");
+          }
+
           // 2) Fechar pop-up de vitória
           const rewardPopup = document.querySelector('.victory-rewards-popup');
           if (rewardPopup) {
@@ -2678,9 +2686,44 @@ function renderMapNodes(mapData) {
   }, 100);
 }
 
+// Mapeamento de boss_id para nome (usado em elite/boss)
+const bossNames = {
+  1: 'Purassombra',
+  2: 'Heresiarca',
+  3: 'Alma Negra',
+  4: 'Formofagus',
+  5: 'Nefasto'
+};
+
+// Verificar se jogador pode avançar no mapa (nó atual deve estar completo)
+function canAdvanceInMap() {
+  if (!currentMapData || !currentMapData.progress) return true;
+
+  const currentNodeId = currentMapData.progress.current_node_id;
+  if (!currentNodeId) return true;
+
+  // Buscar nó atual nos dados
+  const currentNode = currentMapData.nodes.find(n => n.id === currentNodeId);
+  if (!currentNode) return true;
+
+  // Se o nó atual não está completado, não pode avançar
+  if (!currentNode.is_completed) {
+    const typeInfo = nodeTypeInfo[currentNode.node_type] || {};
+    alert(`Você precisa completar o local atual (${typeInfo.name || currentNode.node_type}) antes de avançar!`);
+    return false;
+  }
+
+  return true;
+}
+
 // Handler de clique no nó
 async function handleMapNodeClick(node) {
   console.log('🎯 Nó clicado:', node);
+
+  // Verificar se pode avançar
+  if (!canAdvanceInMap()) {
+    return;
+  }
 
   // Selecionar nó no backend (apenas marca progresso)
   try {
@@ -2691,6 +2734,21 @@ async function handleMapNodeClick(node) {
       alert(data.error || 'Erro ao selecionar nó');
       return;
     }
+
+    // Atualizar dados locais do mapa
+    if (currentMapData) {
+      currentMapData.progress = currentMapData.progress || {};
+      currentMapData.progress.current_node_id = node.id;
+      // Marcar nó como atual nos dados locais
+      currentMapData.nodes.forEach(n => {
+        n.is_current = (n.id === node.id);
+        if (n.id === node.id) {
+          n.is_visited = true;
+          n.is_available = false;
+          n.is_completed = false; // Ainda não completado
+        }
+      });
+    }
   } catch (error) {
     console.error('Erro:', error);
     alert('Erro de conexão');
@@ -2700,13 +2758,23 @@ async function handleMapNodeClick(node) {
   // Fechar mapa
   closeMapPopup();
 
-  // Ação baseada no tipo - NÃO interfere na geração de inimigos!
+  // Ação baseada no tipo
   switch (node.node_type) {
     case 'battle':
+      // Batalha genérica: abre seleção de inimigos
+      showBossSelection();
+      break;
     case 'elite':
     case 'boss':
-      // Todos os tipos de batalha abrem o mesmo pop-up de seleção de inimigo
-      showBossSelection();
+      // Elite e Boss: inicia batalha diretamente com boss específico
+      if (node.boss_id) {
+        const bossName = bossNames[node.boss_id] || `Boss #${node.boss_id}`;
+        console.log(`⚔️ Iniciando batalha com ${bossName} (ID: ${node.boss_id})`);
+        selectBoss(node.boss_id, bossName);
+      } else {
+        console.error('Nó elite/boss sem boss_id definido!');
+        showBossSelection();
+      }
       break;
     case 'shop':
       openDialog('#shop-popup');
