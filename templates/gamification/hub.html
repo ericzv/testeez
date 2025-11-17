@@ -2401,7 +2401,7 @@
 <div id="shop-popup" class="ui-dialog" style="display:none">
   <div class="ui-panel">
     <h2 class="title">Loja</h2>
-    <button class="close-popup-btn" onclick="closeDialog('#shop-popup')">✕</button>
+    <button class="close-popup-btn" onclick="closeShopPopup()">✕</button>
     <div style="color: #aaa; font-size: 18px; text-align: center; padding: 40px;">
       <span style="font-size: 60px; display: block; margin-bottom: 20px;">🛒</span>
       <p>A loja ainda está em construção!</p>
@@ -2414,7 +2414,7 @@
 <div id="event-popup" class="ui-dialog" style="display:none">
   <div class="ui-panel">
     <h2 class="title">Evento Aleatório</h2>
-    <button class="close-popup-btn" onclick="closeDialog('#event-popup')">✕</button>
+    <button class="close-popup-btn" onclick="closeEventPopup()">✕</button>
     <div style="color: #aaa; font-size: 18px; text-align: center; padding: 40px;">
       <span style="font-size: 60px; display: block; margin-bottom: 20px;">❓</span>
       <p>Um evento misterioso ocorreu!</p>
@@ -2554,8 +2554,8 @@ function renderMapNodes(mapData) {
   const containerWidth = scrollContainer.clientWidth;
 
   const paddingX = 100;
-  const paddingY = 60;
-  const nodeSpacingY = 50; // Espaçamento vertical reduzido pela metade
+  const paddingY = 120;
+  const nodeSpacingY = 120; // Espaçamento vertical aumentado
 
   // Encontrar dimensões do mapa
   let maxX = 0, maxY = 0;
@@ -2688,9 +2688,19 @@ function renderMapNodes(mapData) {
     }
   });
 
-  // Scroll para o início (onde o jogador está - embaixo)
+  // Scroll para o nó atual (se existir) ou para o início
   setTimeout(() => {
-    scrollContainer.scrollTop = scrollContainer.scrollHeight;
+    const currentNode = mapData.nodes.find(n => n.is_current);
+    if (currentNode && nodePositions[currentNode.id]) {
+      const nodeY = nodePositions[currentNode.id].y;
+      // Centralizar verticalmente o nó atual na viewport
+      const containerHeight = scrollContainer.clientHeight;
+      const scrollTarget = nodeY - (containerHeight / 2);
+      scrollContainer.scrollTop = Math.max(0, scrollTarget);
+    } else {
+      // Se não há nó atual, scroll para o início (embaixo do mapa)
+      scrollContainer.scrollTop = scrollContainer.scrollHeight;
+    }
   }, 100);
 }
 
@@ -2795,6 +2805,38 @@ function canAdvanceInMap() {
   }
 
   return true;
+}
+
+// Fechar loja e marcar como completado
+async function closeShopPopup() {
+  closeDialog('#shop-popup');
+  try {
+    await fetch('/map/api/complete-node', { method: 'POST' });
+    console.log("✅ Loja visitada, nó completado");
+    // Atualizar dados locais
+    if (currentMapData && currentMapData.progress) {
+      const currentNode = currentMapData.nodes.find(n => n.id === currentMapData.progress.current_node_id);
+      if (currentNode) currentNode.is_completed = true;
+    }
+  } catch (error) {
+    console.log("⚠️ Erro ao marcar loja como completada");
+  }
+}
+
+// Fechar evento e marcar como completado
+async function closeEventPopup() {
+  closeDialog('#event-popup');
+  try {
+    await fetch('/map/api/complete-node', { method: 'POST' });
+    console.log("✅ Evento concluído, nó completado");
+    // Atualizar dados locais
+    if (currentMapData && currentMapData.progress) {
+      const currentNode = currentMapData.nodes.find(n => n.id === currentMapData.progress.current_node_id);
+      if (currentNode) currentNode.is_completed = true;
+    }
+  } catch (error) {
+    console.log("⚠️ Erro ao marcar evento como completado");
+  }
 }
 
 // Handler de clique no nó
@@ -2959,6 +3001,31 @@ function hideMapTooltip() {
 
 .map-popup-panel {
   background: linear-gradient(135deg, #1a1a3e 0%, #0f0f23 100%) !important;
+}
+
+/* Scrollbar estilizado para o mapa */
+#map-scroll-container::-webkit-scrollbar {
+  width: 12px;
+}
+
+#map-scroll-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+}
+
+#map-scroll-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  border-radius: 6px;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+}
+
+#map-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #ffed4a, #ffa726);
+}
+
+#map-scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: #ffd700 rgba(0, 0, 0, 0.3);
 }
 </style>
 
