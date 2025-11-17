@@ -2043,8 +2043,30 @@ def reset_player_run(player_id):
             player_progress.current_boss_phase = 1
             player_progress.available_enemies = '[]'  # Reset enemies disponíveis
             player_progress.selected_enemy_id = None
+            player_progress.selected_boss_id = None  # Limpar boss selecionado também
             player_progress.last_theme_used = None
-        
+
+        # ===== RESETAR PROGRESSO DO MAPA =====
+        from models_map import PlayerMapProgress, MapNode, ProceduralMap
+        map_progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+        if map_progress:
+            # Deletar nós do mapa antigo
+            if map_progress.map_id:
+                MapNode.query.filter_by(map_id=map_progress.map_id).delete()
+                # Deletar o mapa em si
+                ProceduralMap.query.filter_by(id=map_progress.map_id).delete()
+            # Resetar progresso do mapa
+            map_progress.map_id = None
+            map_progress.current_node_id = None
+            map_progress.current_act = 1
+            map_progress.nodes_visited = 0
+            map_progress.battles_won = 0
+            map_progress.elites_defeated = 0
+            map_progress.events_completed = 0
+            map_progress.shops_visited = 0
+            map_progress.rests_taken = 0
+            print(f"🗺️ Progresso do mapa resetado")
+
         # ===== DESATIVAR RELÍQUIAS PRIMEIRO (ANTES DE RECALCULAR) =====
         from models import PlayerRelic, EnemySkillDebuff
         PlayerRelic.query.filter_by(player_id=player_id).update({'is_active': False})
