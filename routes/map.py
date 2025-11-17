@@ -30,11 +30,11 @@ def map_view():
     """Página principal do mapa"""
     player_id = session.get('player_id')
     if not player_id:
-        return redirect(url_for('login_route'))
+        return redirect(url_for('battle.gamification'))
 
     player = Player.query.get(player_id)
     if not player:
-        return redirect(url_for('login_route'))
+        return redirect(url_for('battle.gamification'))
 
     # Obter progresso do jogador no mapa
     progress = PlayerMapProgress.query.filter_by(player_id=player_id).first()
@@ -58,7 +58,7 @@ def shop_view():
     """Página da loja (placeholder)"""
     player_id = session.get('player_id')
     if not player_id:
-        return redirect(url_for('login_route'))
+        return redirect(url_for('battle.gamification'))
 
     player = Player.query.get(player_id)
     return render_template('gamification/map_shop.html', player=player)
@@ -69,7 +69,7 @@ def event_view():
     """Página de evento aleatório (placeholder)"""
     player_id = session.get('player_id')
     if not player_id:
-        return redirect(url_for('login_route'))
+        return redirect(url_for('battle.gamification'))
 
     player = Player.query.get(player_id)
     return render_template('gamification/map_event.html', player=player)
@@ -80,7 +80,7 @@ def rest_view():
     """Página de descanso"""
     player_id = session.get('player_id')
     if not player_id:
-        return redirect(url_for('login_route'))
+        return redirect(url_for('battle.gamification'))
 
     player = Player.query.get(player_id)
     return render_template('gamification/map_rest.html', player=player)

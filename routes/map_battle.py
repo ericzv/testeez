@@ -24,12 +24,12 @@ def start_battle():
     player_id = session.get('player_id')
     if not player_id:
         flash('Sessão expirada. Faça login novamente.', 'error')
-        return redirect(url_for('login_route'))
+        return redirect(url_for('battle.gamification'))
 
     player = Player.query.get(player_id)
     if not player:
         flash('Jogador não encontrado.', 'error')
-        return redirect(url_for('login_route'))
+        return redirect(url_for('battle.gamification'))
 
     # Verificar progresso no mapa
     map_progress = PlayerMapProgress.query.filter_by(player_id=player_id).first()
@@ -100,12 +100,12 @@ def start_elite_battle(boss_id):
     player_id = session.get('player_id')
     if not player_id:
         flash('Sessão expirada. Faça login novamente.', 'error')
-        return redirect(url_for('login_route'))
+        return redirect(url_for('battle.gamification'))
 
     player = Player.query.get(player_id)
     if not player:
         flash('Jogador não encontrado.', 'error')
-        return redirect(url_for('login_route'))
+        return redirect(url_for('battle.gamification'))
 
     # Verificar se o boss_id é válido para elite
     valid_elite_ids = [boss['id'] for boss in ELITE_BOSSES]
@@ -153,12 +153,12 @@ def start_boss_battle(boss_id):
     player_id = session.get('player_id')
     if not player_id:
         flash('Sessão expirada. Faça login novamente.', 'error')
-        return redirect(url_for('login_route'))
+        return redirect(url_for('battle.gamification'))
 
     player = Player.query.get(player_id)
     if not player:
         flash('Jogador não encontrado.', 'error')
-        return redirect(url_for('login_route'))
+        return redirect(url_for('battle.gamification'))
 
     # Verificar progresso no mapa
     map_progress = PlayerMapProgress.query.filter_by(player_id=player_id).first()
