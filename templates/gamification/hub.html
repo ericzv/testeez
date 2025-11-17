@@ -2546,8 +2546,8 @@ function renderMapNodes(mapData) {
   const containerWidth = scrollContainer.clientWidth;
 
   const paddingX = 100;
-  const paddingY = 80;
-  const nodeSpacingY = 100; // Espaçamento vertical entre níveis
+  const paddingY = 60;
+  const nodeSpacingY = 50; // Espaçamento vertical reduzido pela metade
 
   // Encontrar dimensões do mapa
   let maxX = 0, maxY = 0;
@@ -2574,10 +2574,23 @@ function renderMapNodes(mapData) {
     nodesByCoord[`${node.x},${node.y}`] = node;
   });
 
+  // Função para variação aleatória baseada no ID do nó
+  const getVariation = (id, multiplier = 1) => {
+    const hash = ((id * 2654435761) % 21) - 10; // -10 a +10
+    return hash * multiplier;
+  };
+
   // Criar nós
   mapData.nodes.forEach(node => {
-    const posX = paddingX + (node.x * spacingX);
-    const posY = paddingY + (node.y * nodeSpacingY);
+    // INVERTIDO: maxY - y para ir de baixo para cima (boss no topo, início embaixo)
+    const baseX = paddingX + (node.x * spacingX);
+    const baseY = paddingY + ((maxY - node.y) * nodeSpacingY);
+
+    // Adicionar variação aleatória (-10 a +10px)
+    const varX = getVariation(node.id, 1);
+    const varY = getVariation(node.id * 7, 1);
+    const posX = baseX + varX;
+    const posY = baseY + varY;
 
     nodePositions[node.id] = { x: posX, y: posY };
 
@@ -2607,10 +2620,12 @@ function renderMapNodes(mapData) {
       nodeEl.style.filter = 'grayscale(100%)';
     }
 
-    // Imagem
+    // Imagem com lazy loading
     const img = document.createElement('img');
     const typeInfo = nodeTypeInfo[node.node_type] || nodeTypeInfo['battle'];
     img.src = typeInfo.image;
+    img.loading = 'lazy';
+    img.decoding = 'async';
     img.style.cssText = 'width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.8));';
     nodeEl.appendChild(img);
 
@@ -2656,6 +2671,11 @@ function renderMapNodes(mapData) {
       });
     }
   });
+
+  // Scroll para o início (onde o jogador está - embaixo)
+  setTimeout(() => {
+    scrollContainer.scrollTop = scrollContainer.scrollHeight;
+  }, 100);
 }
 
 // Handler de clique no nó
@@ -2686,8 +2706,7 @@ async function handleMapNodeClick(node) {
     case 'elite':
     case 'boss':
       // Todos os tipos de batalha abrem o mesmo pop-up de seleção de inimigo
-      // O sistema de geração de inimigos existente cuidará de tudo
-      openBossSelection();
+      showBossSelection();
       break;
     case 'shop':
       openDialog('#shop-popup');
@@ -2696,8 +2715,55 @@ async function handleMapNodeClick(node) {
       openDialog('#event-popup');
       break;
     case 'rest':
-      openDialog('#rest-popup');
+      openRestArea();
       break;
+  }
+}
+
+// Função de descanso
+function openRestArea() {
+  const restPopup = document.getElementById('rest-popup');
+  const panel = restPopup.querySelector('.ui-panel');
+
+  panel.innerHTML = `
+    <h2 class="title">Área de Descanso</h2>
+    <button class="close-popup-btn" onclick="closeDialog('#rest-popup')">✕</button>
+    <div style="color: #e0e0e0; text-align: center; padding: 20px;">
+      <span style="font-size: 60px; display: block; margin-bottom: 20px;">🏕️</span>
+      <p style="font-size: 18px; margin-bottom: 30px;">Você encontrou um local seguro para descansar.</p>
+      <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+        <button onclick="restAndHeal()" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-size: 16px; transition: transform 0.2s;">
+          <div style="font-size: 30px; margin-bottom: 5px;">❤️</div>
+          <div style="font-weight: bold;">Descansar</div>
+          <div style="font-size: 12px; opacity: 0.8;">Recupera 30% do HP</div>
+        </button>
+        <button disabled style="background: rgba(100, 100, 100, 0.5); color: #888; border: none; padding: 15px 30px; border-radius: 10px; cursor: not-allowed; font-size: 16px;">
+          <div style="font-size: 30px; margin-bottom: 5px;">🔨</div>
+          <div style="font-weight: bold;">Melhorar</div>
+          <div style="font-size: 12px; opacity: 0.8;">Em breve...</div>
+        </button>
+      </div>
+    </div>
+  `;
+
+  openDialog('#rest-popup');
+}
+
+// Descansar e curar
+async function restAndHeal() {
+  try {
+    const response = await fetch('/map/api/rest/heal', { method: 'POST' });
+    const data = await response.json();
+
+    if (data.success) {
+      alert(`Você descansou e recuperou ${data.healed} HP! (${data.new_hp}/${data.max_hp})`);
+      closeDialog('#rest-popup');
+    } else {
+      alert(data.error || 'Erro ao descansar');
+    }
+  } catch (error) {
+    console.error('Erro:', error);
+    alert('Erro de conexão');
   }
 }
 
