@@ -559,20 +559,21 @@ def get_battle_data():
         
         # Recalcular cache (sempre que entrar na batalha)
         calculate_attack_cache(player.id)
-        
+
         # Buscar cache de defesa
         defense_cache = get_cached_defense(player.id)
-        
+
         if defense_cache:
-            # Atualizar HP/MP máximos do player baseado no cache
-            player.max_hp = defense_cache.max_hp
-            
+            # NÃO sobrescrever max_hp do player - ele já foi modificado por eventos
+            # O cache é apenas para bônus de equipamentos/talentos
+            # player.max_hp = defense_cache.max_hp  # REMOVIDO - causava bug com eventos
+
             # Garantir que HP/MP atuais não excedam os máximos
             if player.hp > player.max_hp:
                 player.hp = player.max_hp
-            
+
             db.session.commit()
-            
+
             print(f"Cache aplicado: HP={player.max_hp}")
 
         # Calcular atributos derivados com bônus de buffs
@@ -675,17 +676,18 @@ def get_battle_data():
         
         # Buscar cache de defesa para incluir na resposta
         defense_cache = get_cached_defense(player.id)
-        
+
         if defense_cache:
-            # Atualizar HP/MP máximos do player baseado no cache
-            player.max_hp = defense_cache.max_hp
-            
+            # NÃO sobrescrever max_hp do player - ele já foi modificado por eventos
+            # O cache é apenas para bônus de equipamentos/talentos
+            # player.max_hp = defense_cache.max_hp  # REMOVIDO - causava bug com eventos
+
             # Garantir que HP/MP atuais não excedam os máximos
             if player.hp > player.max_hp:
                 player.hp = player.max_hp
-            
+
             db.session.commit()
-            
+
             print(f"🎯 Cache aplicado: HP={player.max_hp}")
 
         return jsonify({
