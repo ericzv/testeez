@@ -631,6 +631,9 @@ def choose_event_option():
     event_id = data.get('event_id')
     choice_id = data.get('choice_id')
 
+    print(f"🎭 EVENT CHOOSE: event_id={event_id}, choice_id={choice_id}")
+    print(f"🎭 ANTES: HP={player.hp}/{player.max_hp}, Gold={player.run_gold}")
+
     if not event_id or not choice_id:
         return jsonify({'success': False, 'error': 'Dados incompletos'}), 400
 
@@ -649,6 +652,9 @@ def choose_event_option():
     if not choice:
         return jsonify({'success': False, 'error': 'Escolha não encontrada'}), 404
 
+    print(f"🎭 Escolha encontrada: {choice.get('text', 'N/A')}")
+    print(f"🎭 Efeitos a aplicar: {choice.get('effects', [])}")
+
     # Verificar requisitos
     if not check_choice_requirements(choice, player):
         return jsonify({'success': False, 'error': 'Você não atende aos requisitos'}), 400
@@ -656,8 +662,13 @@ def choose_event_option():
     # Aplicar efeitos
     results = apply_event_effects(player, choice.get('effects', []))
 
+    print(f"🎭 DEPOIS de apply_event_effects: HP={player.hp}/{player.max_hp}, Gold={player.run_gold}")
+    print(f"🎭 Resultados: {results}")
+
     # SEMPRE commit para persistir mudanças no player (HP, gold, max_hp, etc)
     db.session.commit()
+
+    print(f"🎭 DEPOIS do commit: HP={player.hp}/{player.max_hp}, Gold={player.run_gold}")
 
     # Marcar nó como completo
     progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()

@@ -437,7 +437,7 @@
                     <div class="status-item">
                         <span class="status-icon">❤️</span>
                         <span class="status-value" id="player-hp">{{ player.hp }}</span>
-                        <span class="status-label">/ {{ player.max_hp }} HP</span>
+                        <span class="status-label">/ <span id="player-max-hp">{{ player.max_hp }}</span> HP</span>
                     </div>
                     <div class="status-item">
                         <span class="status-icon">💰</span>
@@ -553,7 +553,11 @@
             if (data.success) {
                 // Atualizar status do jogador
                 document.getElementById('player-hp').textContent = data.player_hp;
+                document.getElementById('player-max-hp').textContent = data.player_max_hp;
                 document.getElementById('player-gold').textContent = data.player_gold;
+
+                console.log('🎭 Dados recebidos:', data);
+                console.log('🎭 Max HP atualizado para:', data.player_max_hp);
 
                 // Mostrar resultados
                 showResults(data.results);
