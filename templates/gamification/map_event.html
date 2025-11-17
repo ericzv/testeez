@@ -562,10 +562,12 @@
                 // Mostrar resultados
                 showResults(data.results);
 
-                // Se precisar de combate, redirecionar
+                // Se precisar de combate, redirecionar automaticamente após mostrar resultados
                 if (data.requires_combat) {
-                    // TODO: Redirecionar para combate
-                    console.log('Combate necessário!');
+                    console.log('⚔️ Combate necessário! Redirecionando em 2 segundos...');
+                    setTimeout(() => {
+                        window.location.href = '/gamification/battle';
+                    }, 2000);  // 2 segundos para ver os resultados
                 }
             } else {
                 alert('Erro: ' + (data.error || 'Erro desconhecido'));

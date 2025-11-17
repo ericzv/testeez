@@ -415,16 +415,28 @@ def complete_current_node():
 
     db.session.commit()
 
-    # Verificar se deve avançar para próximo ato
+    # Verificar se deve avançar para próximo ato AUTOMATICAMENTE
     next_act = None
     if node.node_type == 'boss' and progress.current_act < 3:
-        next_act = progress.current_act + 1
+        # Avançar automaticamente para o próximo ato
+        new_act = progress.current_act + 1
+        progress.current_act = new_act
+        # Limpar mapa atual para forçar geração de novo mapa
+        if progress.map_id:
+            MapNode.query.filter_by(map_id=progress.map_id).delete()
+            ProceduralMap.query.filter_by(id=progress.map_id).delete()
+        progress.map_id = None
+        progress.current_node_id = None
+        db.session.commit()
+        next_act = new_act
+        print(f"🎯 Avançou automaticamente para o Ato {new_act}!")
 
     return jsonify({
         'success': True,
         'node_completed': node.id,
         'map_completed': node.node_type == 'boss',
         'next_act': next_act,
+        'act_advanced': next_act is not None,
         'stats': {
             'battles_won': progress.battles_won,
             'elites_defeated': progress.elites_defeated,

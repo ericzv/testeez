@@ -484,18 +484,26 @@ def apply_single_effect(player, effect: dict) -> dict:
     elif effect_type == 'start_combat':
         difficulty = effect.get('difficulty', 'normal')
 
-        session['pending_combat'] = {
-            'type': 'normal',
-            'difficulty': difficulty
-        }
-        session.modified = True
+        # Selecionar um inimigo disponível automaticamente
+        from models import GenericEnemy, PlayerProgress
+        available_enemy = GenericEnemy.query.filter_by(is_available=True).first()
+
+        if available_enemy:
+            progress = PlayerProgress.query.filter_by(player_id=player.id).first()
+            if progress:
+                progress.selected_enemy_id = available_enemy.id
+                progress.selected_boss_id = None  # Limpar boss
+                # Resetar contador de turnos
+                available_enemy.battle_turn_counter = 0
+                db.session.commit()
+                print(f"⚔️ Inimigo {available_enemy.name} selecionado automaticamente para combate do evento")
 
         return {
             'type': 'combat_start',
             'message': 'Um inimigo aparece!',
             'icon': '⚔️',
             'positive': False,
-            'requires_combat': True
+            'requires_combat': True  # Frontend vai redirecionar para /gamification/battle
         }
 
     # ===== EFEITOS DE HP GAMBLING =====
