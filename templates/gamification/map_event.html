@@ -1001,7 +1001,7 @@
                     // Renderizar ícone como imagem se for um path .png, senão como emoji
                     let iconHtml;
                     if (result.icon && result.icon.endsWith('.png')) {
-                        iconHtml = `<img src="/static/game.data/events/${result.icon}" alt="Icon">`;
+                        iconHtml = `<img src="/static/game.data/${result.icon}" alt="Icon">`;
                     } else {
                         iconHtml = result.icon || '❓';
                     }

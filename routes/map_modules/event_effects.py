@@ -83,7 +83,7 @@ def apply_single_effect(player, effect: dict) -> dict:
                 'type': 'gamble_win',
                 'value': current_gold,
                 'message': f'DOBROU! +{current_gold} ouro (total: {player.run_gold})',
-                'icon': 'choices/choice-accept.png',
+                'icon': 'events/choices/choice-accept.png',
                 'positive': True
             }
         else:
@@ -94,7 +94,7 @@ def apply_single_effect(player, effect: dict) -> dict:
                 'type': 'gamble_loss',
                 'value': current_gold,
                 'message': f'PERDEU TUDO! -{current_gold} ouro',
-                'icon': 'choices/choice-curse.png',
+                'icon': 'events/choices/choice-curse.png',
                 'positive': False
             }
 
@@ -135,7 +135,7 @@ def apply_single_effect(player, effect: dict) -> dict:
             'type': 'heal',
             'value': healed,
             'message': f'+{healed} HP',
-            'icon': 'choices/choice-heal.png',
+            'icon': 'events/choices/choice-heal.png',
             'positive': True
         }
 
@@ -150,7 +150,7 @@ def apply_single_effect(player, effect: dict) -> dict:
             'type': 'heal',
             'value': healed,
             'message': f'+{healed} HP ({int(percent*100)}% do máximo)',
-            'icon': 'choices/choice-heal.png',
+            'icon': 'events/choices/choice-heal.png',
             'positive': True
         }
 
@@ -163,7 +163,7 @@ def apply_single_effect(player, effect: dict) -> dict:
             'type': 'full_heal',
             'value': healed,
             'message': f'HP totalmente restaurado (+{healed})',
-            'icon': 'choices/choice-heal.png',
+            'icon': 'events/choices/choice-heal.png',
             'positive': True
         }
 
@@ -198,7 +198,7 @@ def apply_single_effect(player, effect: dict) -> dict:
             'type': 'max_hp_loss',
             'value': amount,
             'message': f'-{amount} HP Máximo permanente',
-            'icon': 'choices/choice-curse.png',
+            'icon': 'events/choices/choice-curse.png',
             'positive': False
         }
 
@@ -218,7 +218,7 @@ def apply_single_effect(player, effect: dict) -> dict:
             'type': 'max_hp_loss',
             'value': amount,
             'message': f'-{amount} HP Máximo ({int(percent*100)}%)',
-            'icon': 'choices/choice-curse.png',
+            'icon': 'events/choices/choice-curse.png',
             'positive': False
         }
 
@@ -302,7 +302,7 @@ def apply_single_effect(player, effect: dict) -> dict:
             'type': 'damage_bonus',
             'value': value,
             'message': f'+{value} dano em TODAS as habilidades',
-            'icon': 'choices/choice-power.png',
+            'icon': 'events/choices/choice-power.png',
             'positive': True
         }
 
@@ -315,7 +315,7 @@ def apply_single_effect(player, effect: dict) -> dict:
             'type': 'barrier_bonus',
             'value': value,
             'message': f'+{value} bônus na geração de barreira',
-            'icon': 'choices/choice-shield.png',
+            'icon': 'events/choices/choice-shield.png',
             'positive': True
         }
 
@@ -354,7 +354,7 @@ def apply_single_effect(player, effect: dict) -> dict:
                     'type': 'random_outcome',
                     'results': sub_results,
                     'message': ' | '.join([r.get('message', '') for r in sub_results]),
-                    'icon': 'choices/choice-inspect.png',
+                    'icon': 'events/choices/choice-inspect.png',
                     'positive': any(r.get('positive', False) for r in sub_results)
                 }
 
@@ -362,7 +362,7 @@ def apply_single_effect(player, effect: dict) -> dict:
             'type': 'random_outcome',
             'results': [],
             'message': 'Nada aconteceu...',
-            'icon': 'choices/choice-inspect.png',
+            'icon': 'events/choices/choice-inspect.png',
             'positive': False
         }
 
@@ -388,7 +388,7 @@ def apply_single_effect(player, effect: dict) -> dict:
             'type': 'debuff',
             'value': value,
             'message': f'{value} dano nos próximos {duration} combate(s)',
-            'icon': 'choices/choice-curse.png',
+            'icon': 'events/choices/choice-curse.png',
             'positive': False
         }
 
@@ -437,7 +437,7 @@ def apply_single_effect(player, effect: dict) -> dict:
         return {
             'type': 'elite_bonus',
             'message': f'Próximo Elite: {", ".join(msg_parts)}',
-            'icon': 'choices/choice-power.png',
+            'icon': 'events/choices/choice-power.png',
             'positive': True
         }
 
@@ -450,7 +450,7 @@ def apply_single_effect(player, effect: dict) -> dict:
             'type': 'shop_discount',
             'value': discount,
             'message': f'{int(discount*100)}% desconto no próximo shop',
-            'icon': 'choices/choice-gold.png',
+            'icon': 'events/choices/choice-gold.png',
             'positive': True
         }
 
@@ -463,7 +463,7 @@ def apply_single_effect(player, effect: dict) -> dict:
             'type': 'rest_bonus',
             'value': bonus,
             'message': f'+{int(bonus*100)}% cura no próximo descanso',
-            'icon': 'choices/choice-rest.png',
+            'icon': 'events/choices/choice-rest.png',
             'positive': True
         }
 
@@ -479,7 +479,7 @@ def apply_single_effect(player, effect: dict) -> dict:
         return {
             'type': 'mission',
             'message': f'Missão: vença sem tomar dano para +{bonus_gold} ouro',
-            'icon': 'choices/choice-study.png',
+            'icon': 'events/choices/choice-study.png',
             'positive': True
         }
 
@@ -500,7 +500,7 @@ def apply_single_effect(player, effect: dict) -> dict:
         return {
             'type': 'combat_start',
             'message': f'Prepare-se para enfrentar um Elite {rarity.upper()}!',
-            'icon': 'choices/choice-attack.png',
+            'icon': 'events/choices/choice-attack.png',
             'positive': False,
             'requires_combat': True
         }
@@ -525,7 +525,7 @@ def apply_single_effect(player, effect: dict) -> dict:
         return {
             'type': 'combat_start',
             'message': 'Um inimigo aparece!',
-            'icon': 'choices/choice-attack.png',
+            'icon': 'events/choices/choice-attack.png',
             'positive': False,
             'requires_combat': True  # Frontend vai redirecionar para /gamification/battle
         }
@@ -549,7 +549,7 @@ def apply_single_effect(player, effect: dict) -> dict:
                 'type': 'gamble_win',
                 'value': healed,
                 'message': f'GANHOU! +{healed} HP',
-                'icon': 'choices/choice-accept.png',
+                'icon': 'events/choices/choice-accept.png',
                 'positive': True
             }
         else:
@@ -560,7 +560,7 @@ def apply_single_effect(player, effect: dict) -> dict:
                 'type': 'gamble_loss',
                 'value': bet_hp,
                 'message': f'PERDEU! -{bet_hp} HP',
-                'icon': 'choices/choice-curse.png',
+                'icon': 'events/choices/choice-curse.png',
                 'positive': False
             }
 
@@ -591,7 +591,7 @@ def _award_random_relic(player, rarity: str) -> dict:
         return {
             'type': 'relic_fail',
             'message': 'Você já possui todas as relíquias disponíveis!',
-            'icon': 'choices/choice-refuse.png',
+            'icon': 'events/choices/choice-refuse.png',
             'positive': False
         }
 
@@ -647,7 +647,7 @@ def _award_specific_relic(player, relic_id: str) -> dict:
         return {
             'type': 'relic_duplicate',
             'message': f'Você já possui {relic_def["name"]}',
-            'icon': 'choices/choice-refuse.png',
+            'icon': 'events/choices/choice-refuse.png',
             'positive': False
         }
 
@@ -671,7 +671,7 @@ def _remove_random_relic(player) -> dict:
         return {
             'type': 'relic_remove_fail',
             'message': 'Você não possui relíquias para perder',
-            'icon': 'choices/choice-refuse.png',
+            'icon': 'events/choices/choice-refuse.png',
             'positive': False
         }
 
@@ -755,7 +755,7 @@ def _duplicate_random_relic(player) -> dict:
         return {
             'type': 'relic_fail',
             'message': 'Você não possui relíquias para duplicar',
-            'icon': 'choices/choice-refuse.png',
+            'icon': 'events/choices/choice-refuse.png',
             'positive': False
         }
 
@@ -825,7 +825,7 @@ def _add_memory_buff(player, memory_id: str) -> dict:
         return {
             'type': 'memory_fail',
             'message': 'Memória desconhecida',
-            'icon': 'choices/choice-refuse.png',
+            'icon': 'events/choices/choice-refuse.png',
             'positive': False
         }
 
