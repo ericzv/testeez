@@ -157,11 +157,21 @@ class PlayerMapProgress(db.Model):
         return json.loads(self.events_seen or '[]')
 
     def add_event_seen(self, event_id):
-        """Adiciona evento à lista de eventos vistos"""
+        """Adiciona evento à lista de eventos vistos (mais recente primeiro)"""
         seen = self.get_events_seen()
-        if event_id not in seen:
-            seen.append(event_id)
-            self.events_seen = json.dumps(seen)
+
+        # Se evento já está na lista, remove para reposicionar
+        if event_id in seen:
+            seen.remove(event_id)
+
+        # Adiciona no INÍCIO da lista (mais recente)
+        seen.insert(0, event_id)
+
+        # Limita lista a 10 eventos mais recentes (evita crescimento infinito)
+        if len(seen) > 10:
+            seen = seen[:10]
+
+        self.events_seen = json.dumps(seen)
 
     def reset_for_new_map(self):
         """Reseta progresso para novo mapa"""

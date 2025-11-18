@@ -930,6 +930,9 @@ def _select_event_for_node(node: MapNode, player, progress: PlayerMapProgress) -
         filtered_events = available_events
 
     # Calcular peso por raridade (70% common, 25% uncommon, 5% rare)
+    # Sistema de anti-repetição: eventos recentes têm peso muito reduzido
+    events_seen = progress.get_events_seen() if hasattr(progress, 'get_events_seen') else []
+
     weights = []
     for event in filtered_events:
         rarity = event.get('rarity', 'common')
@@ -937,7 +940,33 @@ def _select_event_for_node(node: MapNode, player, progress: PlayerMapProgress) -
 
         # Boost weight se condições especiais forem atendidas
         boost = _get_event_weight_boost(event, player)
-        final_weight = base_weight * boost
+
+        # ANTI-REPETIÇÃO: Penalizar eventos vistos recentemente
+        # Lista events_seen é ordenada: [mais recente, ..., mais antigo]
+        anti_repeat_penalty = 1.0
+        event_id = event['id']
+
+        if event_id in events_seen:
+            # Encontrar posição do evento (0 = mais recente)
+            position = events_seen.index(event_id)
+
+            if position == 0:
+                # Último evento visto: reduz peso em 95% (quase impossível repetir)
+                anti_repeat_penalty = 0.05
+            elif position == 1:
+                # Penúltimo evento: reduz peso em 80%
+                anti_repeat_penalty = 0.2
+            elif position == 2:
+                # Antepenúltimo: reduz peso em 60%
+                anti_repeat_penalty = 0.4
+            elif position <= 4:
+                # Eventos 3-4 atrás: reduz peso em 40%
+                anti_repeat_penalty = 0.6
+            else:
+                # Eventos mais antigos (5+): penalidade leve de 20%
+                anti_repeat_penalty = 0.8
+
+        final_weight = base_weight * boost * anti_repeat_penalty
 
         weights.append(final_weight)
 
