@@ -71,3 +71,10 @@
 ### ✅ AttributeError ao avançar de ato
 **Corrigido em**: 2025-11-18
 **Solução**: Corrigido `progress.map_id` para `progress.current_map_id` em complete_current_node()
+
+### ✅ Elite/Boss battles não abriam (302 redirect loop)
+**Corrigido em**: 2025-11-18
+**Solução**:
+- Frontend (hub.html) estava chamando selectBoss() diretamente ao invés de usar routes corretos
+- Criado route /map/battle/boss/<boss_id> para bosses finais
+- Ambos elite e boss agora redirecionam para routes que criam/ativam/selecionam o boss corretamente
