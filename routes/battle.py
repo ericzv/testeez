@@ -2033,6 +2033,11 @@ def reset_player_run(player_id):
         player.run_bosses_defeated = 0
         player.run_start_timestamp = datetime.utcnow()
 
+        # Resetar contadores de reroll
+        player.enemy_reroll_count = 0
+        player.memory_reroll_count = 0
+        player.relic_reroll_count = 0
+
         # ===== RESETAR RECURSOS DE RUN =====
         player.run_gold = 0
         
@@ -2051,15 +2056,15 @@ def reset_player_run(player_id):
         map_progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
         if map_progress:
             # Deletar nós do mapa antigo
-            if map_progress.map_id:
-                MapNode.query.filter_by(map_id=map_progress.map_id).delete()
+            if map_progress.current_map_id:
+                MapNode.query.filter_by(map_id=map_progress.current_map_id).delete()
                 # Deletar o mapa em si
-                ProceduralMap.query.filter_by(id=map_progress.map_id).delete()
+                ProceduralMap.query.filter_by(id=map_progress.current_map_id).delete()
             # Resetar progresso do mapa
-            map_progress.map_id = None
+            map_progress.current_map_id = None
             map_progress.current_node_id = None
             map_progress.current_act = 1
-            map_progress.nodes_visited = 0
+            map_progress.nodes_visited = '[]'  # JSON array, não integer
             map_progress.battles_won = 0
             map_progress.elites_defeated = 0
             map_progress.events_completed = 0
@@ -2067,10 +2072,10 @@ def reset_player_run(player_id):
             map_progress.rests_taken = 0
             print(f"🗺️ Progresso do mapa resetado")
 
-        # ===== DESATIVAR RELÍQUIAS PRIMEIRO (ANTES DE RECALCULAR) =====
+        # ===== DELETAR RELÍQUIAS E LEMBRANÇAS =====
         from models import PlayerRelic, EnemySkillDebuff
-        PlayerRelic.query.filter_by(player_id=player_id).update({'is_active': False})
-        print(f"🗡️ Relíquias desativadas (não deletadas)")
+        relics_deleted = PlayerRelic.query.filter_by(player_id=player_id).delete()
+        print(f"🗡️ {relics_deleted} relíquias deletadas")
         
         # ===== LIMPAR BUFFS TEMPORÁRIOS =====
         PlayerRunBuff.query.filter_by(player_id=player.id).delete()
