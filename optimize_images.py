@@ -34,11 +34,14 @@ PATHS_TO_PROCESS = [
     'static/game.data/relics',
     'static/game.data/skills',
     'static/game.data/icons',  # ícones de UI (atk1-4, damage, etc)
+    'static/game.data/events/icons',  # ícones dos eventos (shrine, chest, etc)
+    'static/game.data/events/choices',  # ícones de escolhas (choice-accept, etc)
+    'static/game.data/resources',  # ícones de recursos (hp-icon, gold-icon, etc)
     'static/game.data',  # backgrounds e outros
 ]
 
 # Pastas que contêm ícones (usar ICON_MAX_SIZE)
-ICON_PATHS = ['buffs', 'relics', 'skills', 'items', 'icons']
+ICON_PATHS = ['buffs', 'relics', 'skills', 'items', 'icons', 'events/icons', 'events/choices', 'resources']
 
 # Pastas que contêm backgrounds (usar BACKGROUND_MAX_SIZE)
 BACKGROUND_KEYWORDS = ['background', 'bg']
