@@ -13,7 +13,7 @@ EVENT_DEFINITIONS = {
     'tumulo_profanado': {
         'id': 'tumulo_profanado',
         'name': 'Túmulo Profanado',
-        'description': 'Um túmulo antigo coberto de marcas de sangue seco. Algo brilha entre os ossos, mas o ar está carregado de maldição.',
+        'description': 'Um túmulo antigo coberto de marcas de <span class="txt-red">sangue seco</span>. Algo <span class="txt-glow">brilha</span> entre os ossos, mas o ar está carregado de <span class="txt-dark">maldição</span>.',
         'image': 'shire.png',
         'sound': None,  # Campo para som do evento
         'rarity': 'common',
@@ -23,7 +23,7 @@ EVENT_DEFINITIONS = {
             {
                 'id': 'profanar',
                 'text': 'Profanar o túmulo',
-                'description': 'Perca 20% do HP atual para ganhar uma Relíquia Rara',
+                'description': '<span class="txt-danger">Perca 20% do HP atual</span> para ganhar uma <span class="txt-green">Relíquia Rara</span>',
                 'icon': 'choice-attack.png',
                 'sound': None,  # Som da escolha
                 'requirements': {'min_hp_percent': 0.25},
@@ -35,7 +35,7 @@ EVENT_DEFINITIONS = {
             {
                 'id': 'saquear',
                 'text': 'Saquear os tesouros',
-                'description': 'Perca 5 HP mas colete 50-70 de ouro dos pertences',
+                'description': '<span class="txt-danger">Perca 5 HP</span> mas colete <span class="txt-green">50-70 de ouro</span> dos pertences',
                 'icon': 'choice-trade.png',
                 'sound': None,
                 'requirements': {'min_hp': 6},
@@ -200,13 +200,13 @@ EVENT_DEFINITIONS = {
             {
                 'id': 'quebrar_vidro',
                 'text': 'Quebrar o vidro',
-                'description': 'Perca 10 HP pelos estilhaços, mas escolha entre as 3 relíquias',
+                'description': 'Perca 10 HP pelos estilhaços, mas escolha 1 entre as 3 relíquias',
                 'icon': 'choice-destroy.png',
                 'sound': None,
                 'requirements': {'min_hp': 15},
                 'effects': [
                     {'type': 'lose_hp', 'value': 10},
-                    {'type': 'choose_relic', 'count': 3}
+                    {'type': 'choose_relic', 'count': 1}
                 ]
             },
             {
@@ -228,7 +228,7 @@ EVENT_DEFINITIONS = {
     'fonte_de_sangue': {
         'id': 'fonte_de_sangue',
         'name': 'Fonte de Sangue',
-        'description': 'Uma fonte antiga jorra um líquido carmesim brilhante. O aroma é intoxicante e promete cura.',
+        'description': 'Uma fonte antiga jorra um <span class="txt-red">líquido carmesim</span> brilhante. O aroma é intoxicante e promete <span class="txt-green">cura</span>.',
         'image': 'fountain.png',
         'sound': None,
         'rarity': 'common',
@@ -242,18 +242,19 @@ EVENT_DEFINITIONS = {
             {
                 'id': 'beber',
                 'text': 'Beber da fonte',
-                'description': 'Cure 30% do seu HP Máximo',
+                'description': '<span class="txt-danger">Pague 20 ouro</span> para curar <span class="txt-green">30% do seu HP Máximo</span>',
                 'icon': 'choice-rest.png',
                 'sound': None,
-                'requirements': {},
+                'requirements': {'min_gold': 20},
                 'effects': [
+                    {'type': 'lose_gold', 'value': 20},
                     {'type': 'heal_percent_max', 'value': 0.30}
                 ]
             },
             {
                 'id': 'banhar',
                 'text': 'Banhar-se na fonte',
-                'description': 'Cure 15% do HP Máximo E ganhe +5 HP Máximo permanente, mas pague 30 ouro',
+                'description': '<span class="txt-green">Cure 15% do HP Máximo</span> E ganhe <span class="txt-green">+5 HP Máximo permanente</span>, mas <span class="txt-danger">pague 30 ouro</span>',
                 'icon': 'choice-rest.png',
                 'sound': None,
                 'requirements': {'min_gold': 30},

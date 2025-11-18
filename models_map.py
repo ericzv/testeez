@@ -68,6 +68,9 @@ class MapNode(db.Model):
     boss_id = db.Column(db.Integer, nullable=True)   # Para Desafiante Infernal (sub-boss)
     difficulty_modifier = db.Column(db.Float, default=1.0)
 
+    # Dados específicos para eventos (CRÍTICO: persistir evento associado ao nó)
+    event_id = db.Column(db.String(100), nullable=True)  # ID do evento atribuído a este nó
+
     # Metadados
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     visited_at = db.Column(db.DateTime, nullable=True)
@@ -106,7 +109,8 @@ class MapNode(db.Model):
             'connections_down': self.get_connections_down(),
             'enemy_id': self.enemy_id,
             'boss_id': self.boss_id,
-            'difficulty_modifier': self.difficulty_modifier
+            'difficulty_modifier': self.difficulty_modifier,
+            'event_id': self.event_id
         }
 
 

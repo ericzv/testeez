@@ -118,6 +118,56 @@
         border-left: 4px solid rgba(120, 120, 120, 0.5);
     }
 
+    /* Formatação rica de texto nos eventos e nas descrições de escolhas */
+    .event-description .txt-red,
+    .choice-description .txt-red {
+        color: #ef4444;
+        font-weight: bold;
+        text-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+    }
+
+    .event-description .txt-glow,
+    .choice-description .txt-glow {
+        color: #fbbf24;
+        font-weight: bold;
+        text-shadow:
+            0 0 10px rgba(251, 191, 36, 0.8),
+            0 0 20px rgba(251, 191, 36, 0.4);
+        animation: textGlow 2s ease-in-out infinite;
+    }
+
+    .event-description .txt-dark,
+    .choice-description .txt-dark {
+        color: #8b5cf6;
+        font-weight: bold;
+        text-shadow: 0 0 10px rgba(139, 92, 246, 0.8);
+    }
+
+    .event-description .txt-green,
+    .choice-description .txt-green {
+        color: #10b981;
+        font-weight: bold;
+    }
+
+    .event-description .txt-danger,
+    .choice-description .txt-danger {
+        color: #dc2626;
+        font-weight: bold;
+    }
+
+    @keyframes textGlow {
+        0%, 100% {
+            text-shadow:
+                0 0 10px rgba(251, 191, 36, 0.6),
+                0 0 20px rgba(251, 191, 36, 0.3);
+        }
+        50% {
+            text-shadow:
+                0 0 15px rgba(251, 191, 36, 1),
+                0 0 30px rgba(251, 191, 36, 0.6);
+        }
+    }
+
     .player-status {
         display: flex;
         gap: 20px;
@@ -301,6 +351,74 @@
         justify-content: center;
         align-items: center;
         z-index: 2000;
+        overflow: hidden;
+    }
+
+    /* Fundo radial de raios de luz giratórios - FULLSCREEN */
+    .results-overlay::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 150vw;
+        height: 150vw;
+        transform: translate(-50%, -50%);
+        background: conic-gradient(
+            from 0deg,
+            transparent 0deg,
+            rgba(255, 255, 255, 0.25) 10deg,
+            transparent 20deg,
+            transparent 40deg,
+            rgba(200, 200, 255, 0.2) 50deg,
+            transparent 60deg,
+            transparent 80deg,
+            rgba(255, 255, 255, 0.25) 90deg,
+            transparent 100deg,
+            transparent 120deg,
+            rgba(200, 200, 255, 0.2) 130deg,
+            transparent 140deg,
+            transparent 160deg,
+            rgba(255, 255, 255, 0.25) 170deg,
+            transparent 180deg,
+            transparent 200deg,
+            rgba(200, 200, 255, 0.2) 210deg,
+            transparent 220deg,
+            transparent 240deg,
+            rgba(255, 255, 255, 0.25) 250deg,
+            transparent 260deg,
+            transparent 280deg,
+            rgba(200, 200, 255, 0.2) 290deg,
+            transparent 300deg,
+            transparent 320deg,
+            rgba(255, 255, 255, 0.25) 330deg,
+            transparent 340deg,
+            transparent 360deg
+        );
+        animation: rotateRays 20s linear infinite;
+        z-index: 1;
+        filter: blur(3px);
+        opacity: 1;
+        pointer-events: none;
+    }
+
+    /* Camada extra de brilho central - FULLSCREEN */
+    .results-overlay::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 600px;
+        height: 600px;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(
+            circle,
+            rgba(255, 255, 255, 0.15) 0%,
+            rgba(200, 200, 255, 0.1) 30%,
+            transparent 70%
+        );
+        animation: pulse 3s ease-in-out infinite;
+        z-index: 1;
+        pointer-events: none;
     }
 
     .results-popup {
@@ -315,74 +433,7 @@
             0 0 30px rgba(255, 255, 255, 0.2);
         animation: resultAppear 0.6s ease-out;
         position: relative;
-        overflow: hidden;
-        z-index: 1;
-    }
-
-    /* Fundo radial de raios de luz giratórios */
-    .results-popup::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 200%;
-        height: 200%;
-        transform: translate(-50%, -50%);
-        background: conic-gradient(
-            from 0deg,
-            transparent 0deg,
-            rgba(255, 255, 255, 0.15) 10deg,
-            transparent 20deg,
-            transparent 40deg,
-            rgba(200, 200, 255, 0.1) 50deg,
-            transparent 60deg,
-            transparent 80deg,
-            rgba(255, 255, 255, 0.15) 90deg,
-            transparent 100deg,
-            transparent 120deg,
-            rgba(200, 200, 255, 0.1) 130deg,
-            transparent 140deg,
-            transparent 160deg,
-            rgba(255, 255, 255, 0.15) 170deg,
-            transparent 180deg,
-            transparent 200deg,
-            rgba(200, 200, 255, 0.1) 210deg,
-            transparent 220deg,
-            transparent 240deg,
-            rgba(255, 255, 255, 0.15) 250deg,
-            transparent 260deg,
-            transparent 280deg,
-            rgba(200, 200, 255, 0.1) 290deg,
-            transparent 300deg,
-            transparent 320deg,
-            rgba(255, 255, 255, 0.15) 330deg,
-            transparent 340deg,
-            transparent 360deg
-        );
-        animation: rotateRays 20s linear infinite;
-        z-index: -1;
-        filter: blur(2px);
-        opacity: 0.8;
-    }
-
-    /* Camada extra de brilho central */
-    .results-popup::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 300px;
-        height: 300px;
-        transform: translate(-50%, -50%);
-        background: radial-gradient(
-            circle,
-            rgba(255, 255, 255, 0.1) 0%,
-            rgba(200, 200, 255, 0.05) 30%,
-            transparent 70%
-        );
-        animation: pulse 3s ease-in-out infinite;
-        z-index: -1;
-        pointer-events: none;
+        z-index: 2;
     }
 
     @keyframes resultAppear {
@@ -545,7 +596,7 @@
 
             <div class="event-details">
                 <div class="event-description">
-                    {{ event.description }}
+                    {{ event.description|safe }}
                 </div>
 
                 <div class="player-status">
@@ -583,7 +634,7 @@
                         <div class="choice-info">
                             <div class="choice-text">{{ choice.text }}</div>
                             <div class="choice-description">
-                                {{ choice.description }}
+                                {{ choice.description|safe }}
                                 {% if not choice.can_select %}
                                     <br><span style="color: #ef4444; font-size: 12px;">❌ Requisitos não atendidos</span>
                                 {% endif %}

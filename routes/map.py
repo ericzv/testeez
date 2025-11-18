@@ -79,10 +79,24 @@ def event_view():
     if not current_node or current_node.node_type != 'event':
         return redirect(url_for('map.map_view'))
 
-    # Selecionar evento baseado no nó
-    event = _select_event_for_node(current_node, player, progress)
+    # CRÍTICO: Verificar se o nó já tem um evento persistido
+    if current_node.event_id:
+        # Usar o evento já atribuído a este nó
+        event = get_event_by_id(current_node.event_id)
+        if not event:
+            # Evento não encontrado (pode ter sido removido), gerar novo
+            print(f"⚠️  Evento {current_node.event_id} não encontrado, gerando novo")
+            event = _select_event_for_node(current_node, player, progress)
+            current_node.event_id = event['id']
+            db.session.commit()
+    else:
+        # Primeira vez que o nó é acessado, selecionar e persistir evento
+        event = _select_event_for_node(current_node, player, progress)
+        current_node.event_id = event['id']
+        db.session.commit()
+        print(f"🎭 Evento '{event['id']}' atribuído ao nó {current_node.id}")
 
-    # Registrar evento como visto (para eventos one-time)
+    # Registrar evento como visto (para anti-repetição)
     progress.add_event_seen(event['id'])
     db.session.commit()
 

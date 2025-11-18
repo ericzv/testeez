@@ -247,7 +247,8 @@ def apply_single_effect(player, effect: dict) -> dict:
 
     elif effect_type == 'choose_relic':
         # Abre UI de seleção de relíquias (mesma que aparece ao derrotar boss)
-        count = effect.get('count', 3)
+        # count = quantas vezes o jogador vai escolher (não quantas opções ele vê)
+        count = effect.get('count', 1)
         rarity = effect.get('rarity', 'random')
 
         # Salva na session para que a UI de seleção apareça
@@ -261,9 +262,15 @@ def apply_single_effect(player, effect: dict) -> dict:
         }
         session.modified = True
 
+        # Mensagem mais clara
+        if count == 1:
+            message = 'Escolha 1 relíquia!'
+        else:
+            message = f'Escolha {count} relíquias!'
+
         return {
             'type': 'relic_selection_pending',
-            'message': f'Escolha {count} relíquia(s)!',
+            'message': message,
             'icon': '🏆',
             'positive': True,
             'requires_redirect': True,
