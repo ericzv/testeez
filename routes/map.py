@@ -82,6 +82,10 @@ def event_view():
     # Selecionar evento baseado no nó
     event = _select_event_for_node(current_node, player, progress)
 
+    # Registrar evento como visto (para eventos one-time)
+    progress.add_event_seen(event['id'])
+    db.session.commit()
+
     # Verificar requisitos de cada escolha
     choices_with_status = []
     for choice in event['choices']:
@@ -915,24 +919,123 @@ def _select_event_for_node(node: MapNode, player, progress: PlayerMapProgress) -
     if not available_events:
         available_events = list(EVENT_DEFINITIONS.values())
 
-    # Peso por raridade
-    weights = []
+    # Filtrar eventos baseado em condições (HP, gold, relíquias, etc)
+    filtered_events = []
     for event in available_events:
+        if _check_event_conditions(event, player, progress):
+            filtered_events.append(event)
+
+    # Se nenhum evento passou nas condições, usar todos disponíveis
+    if not filtered_events:
+        filtered_events = available_events
+
+    # Calcular peso por raridade (70% common, 25% uncommon, 5% rare)
+    weights = []
+    for event in filtered_events:
         rarity = event.get('rarity', 'common')
-        if rarity == 'common':
-            weights.append(60)
-        elif rarity == 'uncommon':
-            weights.append(30)
-        else:  # rare
-            weights.append(10)
+        base_weight = 70 if rarity == 'common' else (25 if rarity == 'uncommon' else 5)
+
+        # Boost weight se condições especiais forem atendidas
+        boost = _get_event_weight_boost(event, player)
+        final_weight = base_weight * boost
+
+        weights.append(final_weight)
 
     # Selecionar evento
-    selected = random.choices(available_events, weights=weights, k=1)[0]
+    selected = random.choices(filtered_events, weights=weights, k=1)[0]
 
     # Resetar seed para não afetar outros sistemas
     random.seed()
 
     return selected
+
+
+def _check_event_conditions(event: dict, player, progress) -> bool:
+    """
+    Verifica se as condições de um evento são atendidas.
+
+    Args:
+        event: Dicionário do evento
+        player: Jogador
+        progress: Progresso do jogador
+
+    Returns:
+        True se todas as condições forem atendidas
+    """
+    conditions = event.get('conditions', {})
+
+    # Sem condições = sempre disponível
+    if not conditions:
+        return True
+
+    # Verificar HP mínimo (percentual)
+    if 'min_hp_percent' in conditions:
+        hp_percent = player.hp / player.max_hp if player.max_hp > 0 else 0
+        if hp_percent < conditions['min_hp_percent']:
+            return False
+
+    # Verificar HP máximo (percentual)
+    if 'max_hp_percent' in conditions:
+        hp_percent = player.hp / player.max_hp if player.max_hp > 0 else 0
+        if hp_percent > conditions['max_hp_percent']:
+            return False
+
+    # Verificar gold mínimo
+    if 'min_gold' in conditions:
+        if player.run_gold < conditions['min_gold']:
+            return False
+
+    # Verificar número mínimo de relíquias
+    if 'min_relics' in conditions:
+        from models import PlayerRelic
+        relic_count = PlayerRelic.query.filter_by(
+            player_id=player.id,
+            is_active=True
+        ).count()
+        if relic_count < conditions['min_relics']:
+            return False
+
+    # Verificar eventos one-time (só pode acontecer 1x por run)
+    if conditions.get('one_time', False):
+        # Verificar se já aconteceu nesta run
+        events_seen = progress.get_events_seen() if hasattr(progress, 'get_events_seen') else []
+        if event['id'] in events_seen:
+            return False
+
+    return True
+
+
+def _get_event_weight_boost(event: dict, player) -> float:
+    """
+    Calcula boost de peso baseado em condições especiais.
+
+    Args:
+        event: Dicionário do evento
+        player: Jogador
+
+    Returns:
+        Multiplicador de peso (1.0 = sem boost, 2.0 = dobro, etc)
+    """
+    conditions = event.get('conditions', {})
+    boost_rules = conditions.get('boost_weight_if', {})
+
+    if not boost_rules:
+        return 1.0
+
+    boost = 1.0
+
+    # Boost se HP estiver abaixo de um threshold
+    if 'hp_below' in boost_rules:
+        hp_percent = player.hp / player.max_hp if player.max_hp > 0 else 0
+        if hp_percent < boost_rules['hp_below']:
+            boost *= 2.0
+
+    # Boost se gold estiver acima de um threshold
+    if 'gold_above' in boost_rules:
+        if player.run_gold > boost_rules['gold_above']:
+            boost *= 1.5
+
+    return boost
 
 
 def _get_event_image_path(event: dict) -> str:

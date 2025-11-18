@@ -2065,6 +2065,7 @@ def reset_player_run(player_id):
             map_progress.current_node_id = None
             map_progress.current_act = 1
             map_progress.nodes_visited = '[]'  # JSON array, não integer
+            map_progress.events_seen = '[]'  # Reset eventos vistos
             map_progress.battles_won = 0
             map_progress.elites_defeated = 0
             map_progress.events_completed = 0

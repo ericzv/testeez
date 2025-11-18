@@ -123,6 +123,7 @@ class PlayerMapProgress(db.Model):
 
     # Progresso
     nodes_visited = db.Column(db.Text, default='[]')  # JSON array de node_ids
+    events_seen = db.Column(db.Text, default='[]')  # JSON array de event_ids vistos (para eventos únicos)
     current_act = db.Column(db.Integer, default=1)  # Ato atual (1, 2, 3)
     total_acts_completed = db.Column(db.Integer, default=0)
 
@@ -151,10 +152,22 @@ class PlayerMapProgress(db.Model):
             visited.append(node_id)
             self.nodes_visited = json.dumps(visited)
 
+    def get_events_seen(self):
+        """Retorna lista de IDs dos eventos já vistos nesta run"""
+        return json.loads(self.events_seen or '[]')
+
+    def add_event_seen(self, event_id):
+        """Adiciona evento à lista de eventos vistos"""
+        seen = self.get_events_seen()
+        if event_id not in seen:
+            seen.append(event_id)
+            self.events_seen = json.dumps(seen)
+
     def reset_for_new_map(self):
         """Reseta progresso para novo mapa"""
         self.current_node_id = None
         self.nodes_visited = '[]'
+        self.events_seen = '[]'  # Reset eventos vistos ao trocar de mapa
         self.battles_won = 0
         self.elites_defeated = 0
         self.shops_visited = 0
