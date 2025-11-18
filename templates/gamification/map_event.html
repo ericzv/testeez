@@ -222,6 +222,157 @@
         }
     }
 
+    /* Estilização: sangue (vermelho intenso pulsante) */
+    .event-description .txt-blood,
+    .choice-description .txt-blood {
+        color: #dc143c;
+        font-weight: bold;
+        text-shadow:
+            0 0 8px rgba(220, 20, 60, 0.8),
+            0 0 15px rgba(220, 20, 60, 0.5);
+        animation: bloodPulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes bloodPulse {
+        0%, 100% {
+            text-shadow:
+                0 0 8px rgba(220, 20, 60, 0.8),
+                0 0 15px rgba(220, 20, 60, 0.5);
+        }
+        50% {
+            text-shadow:
+                0 0 12px rgba(220, 20, 60, 1),
+                0 0 25px rgba(220, 20, 60, 0.8),
+                0 0 35px rgba(255, 0, 0, 0.5);
+        }
+    }
+
+    /* Estilização: dourado (brilho dourado) */
+    .event-description .txt-gold,
+    .choice-description .txt-gold {
+        color: #ffd700;
+        font-weight: bold;
+        text-shadow:
+            0 0 10px rgba(255, 215, 0, 0.8),
+            0 0 20px rgba(255, 215, 0, 0.4);
+    }
+
+    /* Estilização: amaldiçoado (roxo escuro pulsante) */
+    .event-description .txt-cursed,
+    .choice-description .txt-cursed {
+        color: #9370db;
+        font-weight: bold;
+        text-shadow:
+            0 0 10px rgba(147, 112, 219, 0.8),
+            0 0 20px rgba(138, 43, 226, 0.5);
+        animation: cursedPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes cursedPulse {
+        0%, 100% {
+            text-shadow:
+                0 0 10px rgba(147, 112, 219, 0.8),
+                0 0 20px rgba(138, 43, 226, 0.5);
+        }
+        50% {
+            text-shadow:
+                0 0 15px rgba(147, 112, 219, 1),
+                0 0 30px rgba(138, 43, 226, 0.8),
+                0 0 40px rgba(75, 0, 130, 0.5);
+        }
+    }
+
+    /* Estilização: etéreo (azul claro translúcido) */
+    .event-description .txt-ethereal,
+    .choice-description .txt-ethereal {
+        color: #87ceeb;
+        font-weight: bold;
+        text-shadow:
+            0 0 8px rgba(135, 206, 235, 0.8),
+            0 0 15px rgba(135, 206, 235, 0.4);
+        animation: etherealFloat 3.5s ease-in-out infinite;
+    }
+
+    @keyframes etherealFloat {
+        0%, 100% {
+            text-shadow:
+                0 0 8px rgba(135, 206, 235, 0.8),
+                0 0 15px rgba(135, 206, 235, 0.4);
+            opacity: 0.95;
+        }
+        50% {
+            text-shadow:
+                0 0 12px rgba(135, 206, 235, 1),
+                0 0 25px rgba(135, 206, 235, 0.6),
+                0 0 35px rgba(100, 149, 237, 0.4);
+            opacity: 1;
+        }
+    }
+
+    /* Estilização: fogo (laranja-vermelho cintilante) */
+    .event-description .txt-fire,
+    .choice-description .txt-fire {
+        color: #ff4500;
+        font-weight: bold;
+        text-shadow:
+            0 0 10px rgba(255, 69, 0, 1),
+            0 0 20px rgba(255, 140, 0, 0.7);
+        animation: fireDance 1.5s ease-in-out infinite;
+    }
+
+    @keyframes fireDance {
+        0%, 100% {
+            text-shadow:
+                0 0 10px rgba(255, 69, 0, 1),
+                0 0 20px rgba(255, 140, 0, 0.7);
+        }
+        50% {
+            text-shadow:
+                0 0 15px rgba(255, 69, 0, 1),
+                0 0 30px rgba(255, 140, 0, 1),
+                0 0 45px rgba(255, 215, 0, 0.6);
+        }
+    }
+
+    /* Estilização: morte (cinza escuro sombrio) */
+    .event-description .txt-death,
+    .choice-description .txt-death {
+        color: #696969;
+        font-weight: bold;
+        text-shadow:
+            0 0 8px rgba(0, 0, 0, 0.9),
+            0 0 15px rgba(105, 105, 105, 0.5);
+    }
+
+    /* Estilização: caos (multicolorido cintilante) */
+    .event-description .txt-chaos,
+    .choice-description .txt-chaos {
+        font-weight: bold;
+        animation: chaosShift 2s linear infinite;
+    }
+
+    @keyframes chaosShift {
+        0% { color: #ff00ff; text-shadow: 0 0 10px rgba(255, 0, 255, 0.8); }
+        25% { color: #00ffff; text-shadow: 0 0 10px rgba(0, 255, 255, 0.8); }
+        50% { color: #ffff00; text-shadow: 0 0 10px rgba(255, 255, 0, 0.8); }
+        75% { color: #ff00ff; text-shadow: 0 0 10px rgba(255, 0, 255, 0.8); }
+        100% { color: #00ffff; text-shadow: 0 0 10px rgba(0, 255, 255, 0.8); }
+    }
+
+    /* Estilização: sussurro (cinza claro oscilante) */
+    .event-description .txt-whisper,
+    .choice-description .txt-whisper {
+        color: #c0c0c0;
+        font-style: italic;
+        opacity: 0.85;
+        animation: whisperFade 4s ease-in-out infinite;
+    }
+
+    @keyframes whisperFade {
+        0%, 100% { opacity: 0.85; }
+        50% { opacity: 0.65; }
+    }
+
     @keyframes textGlow {
         0%, 100% {
             text-shadow:

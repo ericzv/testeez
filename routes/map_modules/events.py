@@ -122,7 +122,7 @@ EVENT_DEFINITIONS = {
     'altar_sangue_antigo': {
         'id': 'altar_sangue_antigo',
         'name': 'Altar do Sangue Antigo',
-        'description': 'Um altar cerimonial coberto de sangue seco pulsa com energia carmesim. Runas ancestrais brilham fracamente.',
+        'description': 'Um altar cerimonial coberto de <span class="txt-blood">sangue seco pulsa</span> com <span class="txt-blood">energia carmesim</span>. <span class="txt-glow">Runas ancestrais brilham</span> fracamente.',
         'image': 'offering.png',
         'sound': None,
         'rarity': 'uncommon',
@@ -179,7 +179,7 @@ EVENT_DEFINITIONS = {
     'relicario_abandonado': {
         'id': 'relicario_abandonado',
         'name': 'Relicário Abandonado',
-        'description': 'Uma caixa de vidro empoeirada contém três relíquias antigas. O vidro parece frágil, mas cortante.',
+        'description': 'Uma <span class="txt-glow">caixa de vidro empoeirada</span> contém três relíquias antigas. O vidro parece frágil, mas <span class="txt-danger">cortante</span>.',
         'image': 'chest.png',
         'sound': None,
         'rarity': 'common',
@@ -279,7 +279,7 @@ EVENT_DEFINITIONS = {
     'vampiro_anciao': {
         'id': 'vampiro_anciao',
         'name': 'Vampiro Ancião',
-        'description': 'Um vampiro milenar descansa em seu trono de ossos. Seus olhos carmesim te avaliam com curiosidade.',
+        'description': 'Um <span class="txt-dark">vampiro milenar</span> descansa em seu <span class="txt-death">trono de ossos</span>. <span class="txt-blood">Seus olhos carmesim</span> te avaliam com curiosidade.',
         'image': 'statue.png',
         'sound': None,
         'rarity': 'uncommon',
@@ -339,7 +339,7 @@ EVENT_DEFINITIONS = {
     'camara_regeneracao': {
         'id': 'camara_regeneracao',
         'name': 'Câmara de Regeneração',
-        'description': 'Cápsulas misteriosas emitem uma luz avermelhada pulsante. A tecnologia parece antiga, mas funcional.',
+        'description': 'Cápsulas misteriosas emitem uma <span class="txt-fire">luz avermelhada pulsante</span>. A tecnologia parece <span class="txt-dark">antiga</span>, mas funcional.',
         'image': 'campfire.png',
         'sound': None,
         'rarity': 'common',
@@ -393,7 +393,7 @@ EVENT_DEFINITIONS = {
     'tesouro_amaldicoado': {
         'id': 'tesouro_amaldicoado',
         'name': 'Tesouro Amaldiçoado',
-        'description': 'Um baú transbordando ouro emana uma aura sinistra. O brilho é hipnotizante, mas algo está errado.',
+        'description': 'Um baú transbordando <span class="txt-gold">ouro</span> emana uma <span class="txt-cursed">aura sinistra</span>. O <span class="txt-glow">brilho</span> é <span class="txt-cursed">hipnotizante</span>, mas algo está errado.',
         'image': 'treasure.png',
         'sound': None,
         'rarity': 'common',
@@ -442,7 +442,7 @@ EVENT_DEFINITIONS = {
     'cacador_recompensas': {
         'id': 'cacador_recompensas',
         'name': 'Caçador de Recompensas',
-        'description': 'Um caçador experiente oferece informações valiosas sobre seu próximo alvo. O preço? Depende de você.',
+        'description': 'Um <span class="txt-danger">caçador experiente</span> oferece <span class="txt-glow">informações valiosas</span> sobre seu próximo alvo. O preço? <span class="txt-gold">Depende de você.</span>',
         'image': 'trap.png',
         'sound': None,
         'rarity': 'common',
@@ -490,7 +490,7 @@ EVENT_DEFINITIONS = {
     'roda_fortuna': {
         'id': 'roda_fortuna',
         'name': 'Roda da Fortuna',
-        'description': 'Uma roda mística gira sozinha, emanando energia caótica. Os símbolos mudam a cada rotação.',
+        'description': 'Uma <span class="txt-glow">roda mística</span> gira sozinha, emanando <span class="txt-chaos">energia caótica</span>. Os símbolos <span class="txt-chaos">mudam</span> a cada rotação.',
         'image': 'cards.png',
         'sound': None,
         'rarity': 'uncommon',
@@ -606,7 +606,7 @@ EVENT_DEFINITIONS = {
     'biblioteca_proibida': {
         'id': 'biblioteca_proibida',
         'name': 'Biblioteca Proibida',
-        'description': 'Tomos antigos sussurram segredos proibidos. O conhecimento aqui é perigoso, mas poderoso.',
+        'description': 'Tomos antigos <span class="txt-whisper">sussurram segredos proibidos</span>. O conhecimento aqui é <span class="txt-cursed">perigoso</span>, mas <span class="txt-glow">poderoso</span>.',
         'image': 'library.png',
         'sound': None,
         'rarity': 'common',
@@ -665,7 +665,7 @@ EVENT_DEFINITIONS = {
     'mestre_armas': {
         'id': 'mestre_armas',
         'name': 'Mestre de Armas Aposentado',
-        'description': 'Um guerreiro lendário medita em silêncio. Cicatrizes cobrem seu corpo, testemunhas de mil batalhas.',
+        'description': 'Um <span class="txt-glow">guerreiro lendário</span> medita em silêncio. <span class="txt-red">Cicatrizes</span> cobrem seu corpo, <span class="txt-death">testemunhas de mil batalhas</span>.',
         'image': 'shrine-mysterious.png',
         'sound': None,
         'rarity': 'common',
@@ -718,7 +718,7 @@ EVENT_DEFINITIONS = {
     'espelho_verdade': {
         'id': 'espelho_verdade',
         'name': 'Espelho da Verdade',
-        'description': 'Um espelho ornamentado mostra seu reflexo... mas algo está diferente. Ele se move quando você fica parado.',
+        'description': 'Um <span class="txt-glow">espelho ornamentado</span> mostra seu reflexo... mas algo está <span class="txt-cursed">diferente</span>. <span class="txt-ethereal">Ele se move</span> quando você fica parado.',
         'image': 'mirror.png',
         'sound': None,
         'rarity': 'rare',
@@ -769,7 +769,7 @@ EVENT_DEFINITIONS = {
     'demonio_tentador': {
         'id': 'demonio_tentador',
         'name': 'Demônio Tentador',
-        'description': 'Uma entidade de puro caos materializa-se diante de você. Seu sorriso promete poder... por um preço.',
+        'description': 'Uma entidade de <span class="txt-chaos">puro caos</span> materializa-se diante de você. <span class="txt-cursed">Seu sorriso</span> promete <span class="txt-glow">poder</span>... por um preço.',
         'image': 'portal.png',
         'sound': None,
         'rarity': 'uncommon',
@@ -816,7 +816,7 @@ EVENT_DEFINITIONS = {
     'poco_desejos': {
         'id': 'poco_desejos',
         'name': 'Poço dos Desejos',
-        'description': 'Moedas brilham no fundo de um poço escuro e profundo. A água está turva, impossível ver o fundo.',
+        'description': '<span class="txt-gold">Moedas brilham</span> no fundo de um <span class="txt-shadow">poço escuro e profundo</span>. A água está <span class="txt-cursed">turva</span>, impossível ver o fundo.',
         'image': 'well.png',
         'sound': None,
         'rarity': 'common',
@@ -875,7 +875,7 @@ EVENT_DEFINITIONS = {
     'fantasma_heroi': {
         'id': 'fantasma_heroi',
         'name': 'Fantasma do Herói Caído',
-        'description': 'O espírito translúcido de um aventureiro falecido aparece. Seus olhos carregam sabedoria e arrependimento.',
+        'description': 'O <span class="txt-ethereal">espírito translúcido</span> de um <span class="txt-death">aventureiro falecido</span> aparece. Seus olhos carregam <span class="txt-glow">sabedoria</span> e <span class="txt-death">arrependimento</span>.',
         'image': 'tree.png',
         'sound': None,
         'rarity': 'common',
@@ -934,7 +934,7 @@ EVENT_DEFINITIONS = {
     'encruzilhada_mistica': {
         'id': 'encruzilhada_mistica',
         'name': 'Encruzilhada Mística',
-        'description': 'Três caminhos se abrem à sua frente. Cada um emana uma aura diferente, prometendo bênçãos distintas.',
+        'description': '<span class="txt-glow">Três caminhos</span> se abrem à sua frente. Cada um emana uma <span class="txt-ethereal">aura diferente</span>, prometendo <span class="txt-glow">bênçãos distintas</span>.',
         'image': 'crossroads.png',
         'sound': None,
         'rarity': 'common',
@@ -982,7 +982,7 @@ EVENT_DEFINITIONS = {
     'goblin_vendedor': {
         'id': 'goblin_vendedor',
         'name': 'Goblin Vendedor',
-        'description': '"OFERTAS! OFERTAS! TUDO BARATO, CHEFE!" Um goblin hiperativo balança bugigangas duvidosas.',
+        'description': '"<span class="txt-gold">OFERTAS! OFERTAS! TUDO BARATO, CHEFE!</span>" Um goblin <span class="txt-chaos">hiperativo</span> balança <span class="txt-cursed">bugigangas duvidosas</span>.',
         'image': 'goblin.png',
         'sound': None,
         'rarity': 'common',
@@ -1050,7 +1050,7 @@ EVENT_DEFINITIONS = {
     'aposta_morte': {
         'id': 'aposta_morte',
         'name': 'Aposta com a Morte',
-        'description': 'A própria Morte aparece com um baralho de cartas gastas. "Uma partida?", ela sussurra.',
+        'description': 'A própria <span class="txt-death">Morte</span> aparece com um <span class="txt-shadow">baralho de cartas gastas</span>. <span class="txt-whisper">"Uma partida?"</span>, ela sussurra.',
         'image': 'cage.png',
         'sound': None,
         'rarity': 'uncommon',
@@ -1096,7 +1096,7 @@ EVENT_DEFINITIONS = {
     'espelho_dimensional': {
         'id': 'espelho_dimensional',
         'name': 'Espelho Dimensional',
-        'description': 'Seu reflexo acena para você... e então sai do espelho. É você, mas não é você.',
+        'description': 'Seu <span class="txt-ethereal">reflexo acena</span> para você... e então <span class="txt-glow">sai do espelho</span>. É você, mas <span class="txt-chaos">não é você</span>.',
         'image': 'garden.png',
         'sound': None,
         'rarity': 'common',
