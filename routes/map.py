@@ -848,6 +848,21 @@ def choose_event_option():
     # Verificar se precisa redirecionar para combate
     requires_combat = any(r.get('requires_combat', False) for r in results)
 
+    # Verificar se precisa redirecionar para outra tela (ex: seleção de relíquias)
+    requires_redirect = any(r.get('requires_redirect', False) for r in results)
+    redirect_url = None
+
+    if requires_redirect:
+        # Pegar URL de redirecionamento do primeiro resultado que tem
+        for r in results:
+            if r.get('requires_redirect'):
+                redirect_url = r.get('redirect_url', '/gamification')
+                break
+    elif requires_combat:
+        redirect_url = None  # Combate usa lógica específica do frontend
+    else:
+        redirect_url = '/map'
+
     return jsonify({
         'success': True,
         'results': results,
@@ -855,7 +870,8 @@ def choose_event_option():
         'player_max_hp': player.max_hp,
         'player_gold': player.run_gold,
         'requires_combat': requires_combat,
-        'redirect_url': '/map' if not requires_combat else None
+        'requires_redirect': requires_redirect,
+        'redirect_url': redirect_url
     })
 
 

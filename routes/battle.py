@@ -51,7 +51,7 @@ from .enemy_attacks import get_enemy_attack_status
 from .battle_modules import (
     generate_enemy_by_theme, ensure_minimum_enemies, get_minimum_enemy_count, initialize_enemy_themes,
     calculate_enemy_base_stats, calculate_rarity_chances, apply_rarity_modifiers,
-    check_and_create_boss_milestone, clean_expired_enemies, calculate_equipment_rank,
+    clean_expired_enemies, calculate_equipment_rank,
     load_enemy_themes_config, update_theme_proportions,
     determine_enemy_reward_type, calculate_gold_reward, calculate_hourglass_reward,
     get_player_run_buffs, get_run_buff_total, add_run_buff,
@@ -1934,46 +1934,37 @@ def boss_defeated():
         # Incrementar contador de inimigos genéricos derrotados
         progress.generic_enemies_defeated += 1
         progress.current_boss_phase += 1
-        
-        # NOVO: Verificar se chegou ao boss milestone (múltiplos de 20)
-        is_boss_milestone = progress.generic_enemies_defeated % 20 == 0
-        
+
         # Verificar se chegou ao boss fixo (múltiplos de 20)
         if progress.current_boss_phase > 20:
             progress.current_boss_phase = 1  # Reiniciar fase
-        
+
         # Atualizar rodadas de todos os inimigos disponíveis
         expired_count = update_rounds_for_all_enemies()
-        
-        # NOVO: Garantir que sempre hajam pelo menos N inimigos disponíveis (exceto em boss milestone)
-        if not is_boss_milestone:
-            available_count = GenericEnemy.query.filter_by(is_available=True).count()
-            minimum_required = get_minimum_enemy_count(player.id)
-            
-            if available_count < minimum_required:
-                generated_count = ensure_minimum_enemies(progress)
-                print(f"📊 Gerados {generated_count} novos inimigos (total disponível: {available_count + generated_count})")
-        
+
+        # Garantir que sempre hajam pelo menos N inimigos disponíveis
+        available_count = GenericEnemy.query.filter_by(is_available=True).count()
+        minimum_required = get_minimum_enemy_count(player.id)
+
+        if available_count < minimum_required:
+            generated_count = ensure_minimum_enemies(progress)
+            print(f"📊 Gerados {generated_count} novos inimigos (total disponível: {available_count + generated_count})")
+
         # Se o inimigo selecionado expirou ou foi derrotado, limpar seleção
         if progress.selected_enemy_id:
             selected = GenericEnemy.query.get(progress.selected_enemy_id)
             if not selected or not selected.is_available:
                 progress.selected_enemy_id = None
-        
-        # NOVO: Limpar seleção em boss milestone
-        if is_boss_milestone:
-            progress.selected_enemy_id = None
-        
+
         db.session.commit()
-        
+
         return jsonify({
             'success': True,
             'enemies_defeated': progress.generic_enemies_defeated,
             'current_phase': progress.current_boss_phase,
             'expired_enemies': expired_count,
-            'is_boss_milestone': is_boss_milestone,
             'available_enemies': GenericEnemy.query.filter_by(is_available=True).count(),
-            'message': 'Boss milestone atingido!' if is_boss_milestone else 'Inimigo derrotado!',
+            'message': 'Inimigo derrotado!',
             'next_is_boss_fight': progress.current_boss_phase == 20
         })
     except Exception as e:
@@ -2275,73 +2266,8 @@ def get_available_enemies():
             progress = PlayerProgress(player_id=player.id)
             db.session.add(progress)
             db.session.commit()
-        
-        # VERIFICAR SE É MILESTONE DE BOSS (próximo seria o 20º inimigo)
-        next_enemy_number = progress.generic_enemies_defeated + 1
-        if next_enemy_number % 20 == 0:
-            print(f"👑 MILESTONE DE BOSS DETECTADO: Próximo seria #{next_enemy_number}")
-            
-            from models import LastBoss
-            active_boss = LastBoss.query.filter_by(is_active=True).first()
-            
-            if active_boss:
-                print(f"👑 Boss ativo encontrado: {active_boss.name}")
-                return jsonify({
-                    'success': True,
-                    'enemies': [],
-                    'boss': {
-                        'id': active_boss.id,
-                        'name': active_boss.name,
-                        'hp': active_boss.current_hp,
-                        'max_hp': active_boss.max_hp,
-                        'damage': active_boss.damage,
-                        'posture': active_boss.posture,
-                        'block_percentage': active_boss.block_percentage,
-                        'sprite_idle': active_boss.sprite_idle,
-                        'sprite_frames': active_boss.sprite_frames,
-                        'sprite_size': active_boss.sprite_size,
-                        'reward_crystals': active_boss.reward_crystals,
-                        'is_boss': True,
-                        'rarity': 'boss'
-                    },
-                    'is_boss_fight': True,
-                    'selected_enemy_id': None
-                })
-            else:
-                print(f"👑 Boss não encontrado! Tentando criar...")
-                # Tentar criar boss baseado no milestone atual
-                from .battle_modules.enemy_generation import create_boss_by_name, get_boss_for_milestone
-                boss_number = next_enemy_number // 20
-                boss_name = get_boss_for_milestone(boss_number)
-                print(f"👑 Criando boss para milestone {boss_number}: {boss_name}")
-                boss = create_boss_by_name(boss_name)
-                if boss:
-                    print(f"👑 Boss {boss.name} criado!")
-                    return jsonify({
-                        'success': True,
-                        'enemies': [],
-                        'boss': {
-                            'id': boss.id,
-                            'name': boss.name,
-                            'hp': boss.current_hp,
-                            'max_hp': boss.max_hp,
-                            'damage': boss.damage,
-                            'posture': boss.posture,
-                            'block_percentage': boss.block_percentage,
-                            'sprite_idle': boss.sprite_idle,
-                            'sprite_frames': boss.sprite_frames,
-                            'sprite_size': boss.sprite_size,
-                            'reward_crystals': boss.reward_crystals,
-                            'is_boss': True,
-                            'rarity': 'boss'
-                        },
-                        'is_boss_fight': True,
-                        'selected_enemy_id': None
-                    })
-                else:
-                    print(f"❌ Falha ao criar boss!")
-        
-        # LÓGICA NORMAL: Inimigos genéricos (resto da função permanece igual)
+
+        # Buscar inimigos genéricos disponíveis
         available = GenericEnemy.query.filter_by(is_available=True).all()
 
         # Calcular mínimo dinâmico baseado em relíquias
