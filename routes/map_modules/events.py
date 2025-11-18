@@ -302,7 +302,7 @@ EVENT_DEFINITIONS = {
             {
                 'id': 'ritual_fortalecimento',
                 'text': 'Ritual de fortalecimento',
-                'description': '<span class="txt-danger">Perca 15 HP</span> para ganhar +10 HP Máximo permanente',
+                'description': '<span class="txt-danger">Perca 15 HP</span> para ganhar <span class="txt-green">+10 HP Máximo permanente</span>',
                 'icon': 'choice-rest.png',
                 'sound': None,
                 'requirements': {'min_hp': 20},
@@ -543,7 +543,7 @@ EVENT_DEFINITIONS = {
     'forja_sombria': {
         'id': 'forja_sombria',
         'name': 'Forja Sombria',
-        'description': 'Uma forja consome almas ao invés de carvão. As chamas negras dançam com fome insaciável.',
+        'description': 'Uma <span class="txt-red">forja</span> consome almas ao invés de carvão. As <span class="txt-dark-pulse">chamas negras dançam</span> com fome insaciável.',
         'image': 'forge.png',
         'sound': None,
         'rarity': 'common',
@@ -591,7 +591,7 @@ EVENT_DEFINITIONS = {
             {
                 'id': 'reforcar_barreira',
                 'text': 'Aumentar vitalidade',
-                'description': '<span class="txt-danger">Pague 12 HP</span> para ganhar +10 HP Máximo permanente',
+                'description': '<span class="txt-danger">Pague 12 HP</span> para ganhar <span class="txt-green">+10 HP Máximo permanente</span>',
                 'icon': 'choice-vitality.png',
                 'sound': None,
                 'requirements': {'min_hp': 17},
@@ -919,7 +919,7 @@ EVENT_DEFINITIONS = {
             {
                 'id': 'absorver_essencia',
                 'text': 'Absorver sua essência',
-                'description': '<span class="txt-danger">Perca 10 HP</span> para ganhar +15 HP Máximo permanente',
+                'description': '<span class="txt-danger">Perca 10 HP</span> para ganhar <span class="txt-green">+15 HP Máximo permanente</span>',
                 'icon': 'choice-attack.png',
                 'sound': None,
                 'requirements': {'min_hp': 15},
@@ -966,7 +966,7 @@ EVENT_DEFINITIONS = {
             {
                 'id': 'caminho_azul',
                 'text': 'Caminho Azul (Vitalidade)',
-                'description': '<span class="txt-green">Ganhe +8 HP</span> Máximo permanente',
+                'description': '<span class="txt-green">Ganhe +8 HP Máximo permanente</span>',
                 'icon': 'choice-rest.png',
                 'sound': None,
                 'requirements': {},

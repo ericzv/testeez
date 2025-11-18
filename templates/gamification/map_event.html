@@ -155,6 +155,34 @@
         font-weight: bold;
     }
 
+    /* Estilização especial: texto vermelho escuro com brilho pulsátil intenso */
+    .event-description .txt-dark-pulse,
+    .choice-description .txt-dark-pulse {
+        color: #8b0000;
+        font-weight: bold;
+        text-shadow:
+            0 0 15px rgba(139, 0, 0, 1),
+            0 0 30px rgba(255, 0, 0, 0.8),
+            0 0 45px rgba(255, 69, 0, 0.6);
+        animation: darkPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes darkPulse {
+        0%, 100% {
+            text-shadow:
+                0 0 15px rgba(139, 0, 0, 1),
+                0 0 30px rgba(255, 0, 0, 0.8),
+                0 0 45px rgba(255, 69, 0, 0.6);
+        }
+        50% {
+            text-shadow:
+                0 0 25px rgba(139, 0, 0, 1),
+                0 0 50px rgba(255, 0, 0, 1),
+                0 0 75px rgba(255, 69, 0, 0.9),
+                0 0 100px rgba(255, 140, 0, 0.6);
+        }
+    }
+
     @keyframes textGlow {
         0%, 100% {
             text-shadow:
