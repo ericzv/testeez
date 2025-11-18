@@ -63,3 +63,11 @@
 ### ✅ Batalha contra elite retornava 302 redirect
 **Corrigido em**: 2025-11-17
 **Solução**: Criado route handler `/map/battle/elite/<boss_id>` que estava faltando
+
+### ✅ AttributeError ao resetar run após morte
+**Corrigido em**: 2025-11-18
+**Solução**: Corrigido `map_id` para `current_map_id` em reset_player_run(), relíquias agora são deletadas (não apenas desativadas), nodes_visited corrigido para '[]' (JSON array)
+
+### ✅ AttributeError ao avançar de ato
+**Corrigido em**: 2025-11-18
+**Solução**: Corrigido `progress.map_id` para `progress.current_map_id` em complete_current_node()
