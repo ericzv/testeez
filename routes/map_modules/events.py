@@ -282,6 +282,9 @@ EVENT_DEFINITIONS = {
         'sound': None,
         'rarity': 'uncommon',
         'min_act': 2,
+        'conditions': {
+            'min_hp_percent': 0.4  # Só aparece se HP >= 40%
+        },
         'choices': [
             {
                 'id': 'aprender_tecnica',
@@ -393,6 +396,7 @@ EVENT_DEFINITIONS = {
         'sound': None,
         'rarity': 'common',
         'min_act': 1,
+        'conditions': {},  # Sem condições especiais
         'choices': [
             {
                 'id': 'pegar_tudo',
@@ -439,8 +443,9 @@ EVENT_DEFINITIONS = {
         'description': 'Um caçador experiente oferece informações valiosas sobre seu próximo alvo. O preço? Depende de você.',
         'image': 'bounty_hunter.png',
         'sound': None,
-        'rarity': 'uncommon',
+        'rarity': 'common',
         'min_act': 1,
+        'conditions': {},  # Sem condições especiais
         'choices': [
             {
                 'id': 'pagar_informacao',
@@ -486,8 +491,9 @@ EVENT_DEFINITIONS = {
         'description': 'Uma roda mística gira sozinha, emanando energia caótica. Os símbolos mudam a cada rotação.',
         'image': 'fortune_wheel.png',
         'sound': None,
-        'rarity': 'rare',
+        'rarity': 'uncommon',
         'min_act': 1,
+        'conditions': {},  # Sem condições especiais
         'choices': [
             {
                 'id': 'girar_roda',
@@ -538,8 +544,11 @@ EVENT_DEFINITIONS = {
         'description': 'Uma forja consome almas ao invés de carvão. As chamas negras dançam com fome insaciável.',
         'image': 'shadow_forge.png',
         'sound': None,
-        'rarity': 'uncommon',
+        'rarity': 'common',
         'min_act': 1,
+        'conditions': {
+            'min_gold': 30  # Só aparece se gold >= 30
+        },
         'choices': [
             {
                 'id': 'fortalecer_ataque',
@@ -598,8 +607,9 @@ EVENT_DEFINITIONS = {
         'description': 'Tomos antigos sussurram segredos proibidos. O conhecimento aqui é perigoso, mas poderoso.',
         'image': 'forbidden_library.png',
         'sound': None,
-        'rarity': 'uncommon',
-        'min_act': 2,
+        'rarity': 'common',
+        'min_act': 1,
+        'conditions': {},  # Sem condições especiais
         'choices': [
             {
                 'id': 'estudar_ofensiva',
@@ -645,8 +655,11 @@ EVENT_DEFINITIONS = {
         'description': 'Um guerreiro lendário medita em silêncio. Cicatrizes cobrem seu corpo, testemunhas de mil batalhas.',
         'image': 'weapon_master.png',
         'sound': None,
-        'rarity': 'rare',
-        'min_act': 1,
+        'rarity': 'common',
+        'min_act': 2,
+        'conditions': {
+            'min_gold': 50  # Só aparece se gold >= 50
+        },
         'choices': [
             {
                 'id': 'treinar_poder',
@@ -695,8 +708,12 @@ EVENT_DEFINITIONS = {
         'description': 'Um espelho ornamentado mostra seu reflexo... mas algo está diferente. Ele se move quando você fica parado.',
         'image': 'truth_mirror.png',
         'sound': None,
-        'rarity': 'uncommon',
-        'min_act': 1,
+        'rarity': 'rare',
+        'min_act': 2,
+        'conditions': {
+            'one_time': True,  # Só pode acontecer 1x por run
+            'min_relics': 1  # Precisa ter pelo menos 1 relíquia
+        },
         'choices': [
             {
                 'id': 'olhar_profundamente',
@@ -742,8 +759,9 @@ EVENT_DEFINITIONS = {
         'description': 'Uma entidade de puro caos materializa-se diante de você. Seu sorriso promete poder... por um preço.',
         'image': 'tempter_demon.png',
         'sound': None,
-        'rarity': 'rare',
+        'rarity': 'uncommon',
         'min_act': 2,
+        'conditions': {},  # Sem condições especiais
         'choices': [
             {
                 'id': 'aceitar_pacto',
@@ -790,6 +808,9 @@ EVENT_DEFINITIONS = {
         'sound': None,
         'rarity': 'common',
         'min_act': 1,
+        'conditions': {
+            'min_gold': 15  # Só aparece se gold >= 15
+        },
         'choices': [
             {
                 'id': 'jogar_moeda',
@@ -844,8 +865,9 @@ EVENT_DEFINITIONS = {
         'description': 'O espírito translúcido de um aventureiro falecido aparece. Seus olhos carregam sabedoria e arrependimento.',
         'image': 'ghost_hero.png',
         'sound': None,
-        'rarity': 'uncommon',
-        'min_act': 1,
+        'rarity': 'common',
+        'min_act': 2,
+        'conditions': {},  # Sem condições especiais
         'choices': [
             {
                 'id': 'ouvir_historia',
@@ -904,6 +926,7 @@ EVENT_DEFINITIONS = {
         'sound': None,
         'rarity': 'common',
         'min_act': 1,
+        'conditions': {},  # Sem condições especiais
         'choices': [
             {
                 'id': 'caminho_vermelho',
@@ -951,6 +974,7 @@ EVENT_DEFINITIONS = {
         'sound': None,
         'rarity': 'common',
         'min_act': 1,
+        'conditions': {},  # Sem condições especiais
         'choices': [
             {
                 'id': 'caixa_misteriosa',
@@ -1016,8 +1040,11 @@ EVENT_DEFINITIONS = {
         'description': 'A própria Morte aparece com um baralho de cartas gastas. "Uma partida?", ela sussurra.',
         'image': 'death_gamble.png',
         'sound': None,
-        'rarity': 'rare',
-        'min_act': 2,
+        'rarity': 'uncommon',
+        'min_act': 3,
+        'conditions': {
+            'min_gold': 50  # Só aparece se gold >= 50
+        },
         'choices': [
             {
                 'id': 'jogar_cartas',
@@ -1059,8 +1086,9 @@ EVENT_DEFINITIONS = {
         'description': 'Seu reflexo acena para você... e então sai do espelho. É você, mas não é você.',
         'image': 'dimensional_mirror.png',
         'sound': None,
-        'rarity': 'rare',
-        'min_act': 1,
+        'rarity': 'common',
+        'min_act': 2,
+        'conditions': {},  # Sem condições especiais
         'choices': [
             {
                 'id': 'cumprimentar',
