@@ -18,6 +18,7 @@ EVENT_DEFINITIONS = {
         'sound': None,  # Campo para som do evento
         'rarity': 'common',
         'min_act': 1,
+        'conditions': {},  # Sem condições especiais
         'choices': [
             {
                 'id': 'profanar',
@@ -62,6 +63,11 @@ EVENT_DEFINITIONS = {
         'sound': None,
         'rarity': 'uncommon',
         'min_act': 1,
+        'conditions': {
+            'boost_weight_if': {
+                'gold_above': 50  # Aumenta 50% chance se gold > 50
+            }
+        },
         'choices': [
             {
                 'id': 'trocar_reliquia',
@@ -119,7 +125,12 @@ EVENT_DEFINITIONS = {
         'image': 'blood_altar.png',
         'sound': None,
         'rarity': 'uncommon',
-        'min_act': 1,
+        'min_act': 2,
+        'conditions': {
+            'boost_weight_if': {
+                'hp_below': 0.5  # Dobra chance se HP < 50%
+            }
+        },
         'choices': [
             {
                 'id': 'oferecer_sangue',
@@ -170,8 +181,9 @@ EVENT_DEFINITIONS = {
         'description': 'Uma caixa de vidro empoeirada contém três relíquias antigas. O vidro parece frágil, mas cortante.',
         'image': 'reliquary.png',
         'sound': None,
-        'rarity': 'rare',
+        'rarity': 'common',
         'min_act': 1,
+        'conditions': {},  # Sem condições especiais
         'choices': [
             {
                 'id': 'escolher_cegas',
@@ -220,6 +232,11 @@ EVENT_DEFINITIONS = {
         'sound': None,
         'rarity': 'common',
         'min_act': 1,
+        'conditions': {
+            'boost_weight_if': {
+                'hp_below': 0.7  # Aumenta chance se HP < 70%
+            }
+        },
         'choices': [
             {
                 'id': 'beber',
@@ -320,8 +337,14 @@ EVENT_DEFINITIONS = {
         'description': 'Cápsulas misteriosas emitem uma luz avermelhada pulsante. A tecnologia parece antiga, mas funcional.',
         'image': 'regen_chamber.png',
         'sound': None,
-        'rarity': 'uncommon',
+        'rarity': 'common',
         'min_act': 1,
+        'conditions': {
+            'max_hp_percent': 0.6,  # Só aparece se HP <= 60%
+            'boost_weight_if': {
+                'hp_below': 0.4  # Dobra chance se HP < 40%
+            }
+        },
         'choices': [
             {
                 'id': 'entrar_capsula',
