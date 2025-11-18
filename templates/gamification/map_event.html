@@ -183,6 +183,45 @@
         }
     }
 
+    /* Estilização: sombras (texto escuro com brilho preto estático) */
+    .event-description .txt-shadow,
+    .choice-description .txt-shadow {
+        color: #2a2a2a;
+        font-weight: bold;
+        text-shadow:
+            0 0 8px rgba(0, 0, 0, 1),
+            0 0 15px rgba(0, 0, 0, 0.8),
+            0 0 20px rgba(50, 50, 50, 0.5);
+    }
+
+    /* Estilização: olhos brilham (branco-amarelado com brilho pulsátil lento) */
+    .event-description .txt-eyes-glow,
+    .choice-description .txt-eyes-glow {
+        color: #fff8dc;
+        font-weight: bold;
+        text-shadow:
+            0 0 10px rgba(255, 248, 220, 1),
+            0 0 20px rgba(255, 223, 0, 0.8),
+            0 0 30px rgba(255, 215, 0, 0.6);
+        animation: eyesGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes eyesGlow {
+        0%, 100% {
+            text-shadow:
+                0 0 10px rgba(255, 248, 220, 1),
+                0 0 20px rgba(255, 223, 0, 0.8),
+                0 0 30px rgba(255, 215, 0, 0.6);
+        }
+        50% {
+            text-shadow:
+                0 0 15px rgba(255, 248, 220, 1),
+                0 0 30px rgba(255, 223, 0, 1),
+                0 0 45px rgba(255, 215, 0, 0.9),
+                0 0 60px rgba(255, 200, 0, 0.6);
+        }
+    }
+
     @keyframes textGlow {
         0%, 100% {
             text-shadow:
@@ -551,6 +590,16 @@
     .result-icon {
         font-size: 24px;
         margin-right: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+    }
+
+    .result-icon img {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
     }
 
     .result-message {
@@ -797,9 +846,18 @@
             results.forEach((result, index) => {
                 setTimeout(() => {
                     const itemClass = result.positive ? 'positive' : (result.positive === false ? 'negative' : 'neutral');
+
+                    // Renderizar ícone como imagem se for um path .png, senão como emoji
+                    let iconHtml;
+                    if (result.icon && result.icon.endsWith('.png')) {
+                        iconHtml = `<img src="/static/game.data/events/${result.icon}" alt="Icon">`;
+                    } else {
+                        iconHtml = result.icon || '❓';
+                    }
+
                     const resultHtml = `
                         <div class="result-item ${itemClass}">
-                            <div class="result-icon">${result.icon || '❓'}</div>
+                            <div class="result-icon">${iconHtml}</div>
                             <div class="result-message">${result.message || 'Efeito aplicado'}</div>
                         </div>
                     `;

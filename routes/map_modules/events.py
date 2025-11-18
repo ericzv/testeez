@@ -59,7 +59,7 @@ EVENT_DEFINITIONS = {
     'comerciante_sombrio': {
         'id': 'comerciante_sombrio',
         'name': 'Comerciante Sombrio',
-        'description': 'Uma figura encapuzada emerge das sombras. Seus olhos brilham com ganância sobrenatural enquanto oferece uma troca.',
+        'description': 'Uma figura encapuzada emerge das <span class="txt-shadow">sombras</span>. <span class="txt-eyes-glow">Seus olhos brilham</span> com ganância sobrenatural enquanto oferece uma troca.',
         'image': 'merchant.png',
         'sound': None,
         'rarity': 'uncommon',
