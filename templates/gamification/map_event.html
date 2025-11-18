@@ -418,7 +418,7 @@
         <div class="event-content">
             <div class="event-image-container">
                 {% if event.image %}
-                    <img src="/static/game_data/events/{{ event.image }}"
+                    <img src="/static/game.data/events/icons/{{ event.image }}"
                          alt="{{ event.name }}"
                          class="event-image"
                          onerror="this.style.display='none'; this.parentElement.querySelector('.event-image-placeholder').style.display='block';">
@@ -435,17 +435,17 @@
 
                 <div class="player-status">
                     <div class="status-item">
-                        <span class="status-icon">❤️</span>
+                        <img src="/static/game.data/resources/hp-icon.png" class="status-icon" alt="HP" style="width: 24px; height: 24px;">
                         <span class="status-value" id="player-hp">{{ player.hp }}</span>
                         <span class="status-label">/ <span id="player-max-hp">{{ player.max_hp }}</span> HP</span>
                     </div>
                     <div class="status-item">
-                        <span class="status-icon">💰</span>
+                        <img src="/static/game.data/resources/gold-icon.png" class="status-icon" alt="Gold" style="width: 24px; height: 24px;">
                         <span class="status-value" id="player-gold">{{ player.run_gold }}</span>
                         <span class="status-label">Ouro</span>
                     </div>
                     <div class="status-item">
-                        <span class="status-icon">🏆</span>
+                        <img src="/static/game.data/resources/relic-icon-rare.png" class="status-icon" alt="Relics" style="width: 24px; height: 24px;">
                         <span class="status-value">{{ player.relics|length }}</span>
                         <span class="status-label">Relíquias</span>
                     </div>
