@@ -303,7 +303,18 @@ def generate_new_map():
         data = request.get_json() or {}
     else:
         data = {}
-    act_number = data.get('act_number', 1)
+
+    # Buscar progresso para determinar ato atual
+    progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+
+    # Usar ato do progresso se não for especificado
+    if 'act_number' in data:
+        act_number = data.get('act_number')
+    elif progress and progress.current_act:
+        act_number = progress.current_act
+    else:
+        act_number = 1
+
     seed = data.get('seed', None)
 
     # Validar ato
@@ -352,7 +363,6 @@ def generate_new_map():
         node_id_map[(x, y)] = db_node.id
 
     # Atualizar progresso do jogador
-    progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
     if not progress:
         progress = PlayerMapProgress(player_id=player.id)
         db.session.add(progress)
