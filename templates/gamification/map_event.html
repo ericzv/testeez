@@ -192,6 +192,15 @@
         margin-right: 15px;
         min-width: 40px;
         text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .choice-icon img {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
     }
 
     .choice-info {
@@ -458,7 +467,13 @@
                     <div class="choice-button {% if not choice.can_select %}disabled{% endif %}"
                          data-choice-id="{{ choice.id }}"
                          {% if choice.can_select %}onclick="selectChoice('{{ choice.id }}')"{% endif %}>
-                        <div class="choice-icon">{{ choice.icon }}</div>
+                        <div class="choice-icon">
+                            {% if choice.icon.endswith('.png') %}
+                                <img src="/static/game.data/events/choices/{{ choice.icon }}" alt="{{ choice.text }}">
+                            {% else %}
+                                {{ choice.icon }}
+                            {% endif %}
+                        </div>
                         <div class="choice-info">
                             <div class="choice-text">{{ choice.text }}</div>
                             <div class="choice-description">

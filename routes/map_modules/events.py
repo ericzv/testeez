@@ -24,7 +24,7 @@ EVENT_DEFINITIONS = {
                 'id': 'profanar',
                 'text': 'Profanar o túmulo',
                 'description': 'Perca 20% do HP atual para ganhar uma Relíquia Rara',
-                'icon': '🗡️',
+                'icon': 'choice-attack.png',
                 'sound': None,  # Som da escolha
                 'requirements': {'min_hp_percent': 0.25},
                 'effects': [
@@ -36,7 +36,7 @@ EVENT_DEFINITIONS = {
                 'id': 'saquear',
                 'text': 'Saquear os tesouros',
                 'description': 'Colete 50-70 de ouro dos pertences',
-                'icon': '💰',
+                'icon': 'choice-trade.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -47,7 +47,7 @@ EVENT_DEFINITIONS = {
                 'id': 'deixar',
                 'text': 'Deixar em paz',
                 'description': 'Respeitar os mortos e seguir em frente',
-                'icon': '🚶',
+                'icon': 'choice-refuse.png',
                 'sound': None,
                 'requirements': {},
                 'effects': []
@@ -73,7 +73,7 @@ EVENT_DEFINITIONS = {
                 'id': 'trocar_reliquia',
                 'text': 'Trocar Relíquia',
                 'description': 'Entregue 1 relíquia sua e receba 2 relíquias comuns aleatórias',
-                'icon': '🔄',
+                'icon': 'choice-trade.png',
                 'sound': None,
                 'requirements': {'min_relics': 1},
                 'effects': [
@@ -86,7 +86,7 @@ EVENT_DEFINITIONS = {
                 'id': 'pacto_sangue',
                 'text': 'Pacto de Sangue',
                 'description': 'Perca 10 HP Máximo permanentemente para ganhar uma Relíquia Épica',
-                'icon': '🩸',
+                'icon': 'choice-rest.png',
                 'sound': None,
                 'requirements': {'min_max_hp': 20},
                 'effects': [
@@ -98,7 +98,7 @@ EVENT_DEFINITIONS = {
                 'id': 'comprar_segredo',
                 'text': 'Comprar o segredo',
                 'description': 'Pague 100 ouro para receber uma Relíquia Rara garantida',
-                'icon': '💎',
+                'icon': 'choice-trade.png',
                 'sound': None,
                 'requirements': {'min_gold': 100},
                 'effects': [
@@ -110,7 +110,7 @@ EVENT_DEFINITIONS = {
                 'id': 'recusar',
                 'text': 'Recusar a oferta',
                 'description': 'Melhor não confiar nesse tipo',
-                'icon': '🚶',
+                'icon': 'choice-refuse.png',
                 'sound': None,
                 'requirements': {},
                 'effects': []
@@ -136,7 +136,7 @@ EVENT_DEFINITIONS = {
                 'id': 'oferecer_sangue',
                 'text': 'Oferecer sangue',
                 'description': 'Perca 25 HP para ganhar +3 de dano base no Ataque Básico',
-                'icon': '🩸',
+                'icon': 'choice-rest.png',
                 'sound': None,
                 'requirements': {'min_hp': 30},
                 'effects': [
@@ -148,7 +148,7 @@ EVENT_DEFINITIONS = {
                 'id': 'sacrificar_vitalidade',
                 'text': 'Sacrificar vitalidade',
                 'description': 'Perca 8 HP Máximo permanentemente para ganhar uma Relíquia Lendária',
-                'icon': '💀',
+                'icon': 'choice-attack.png',
                 'sound': None,
                 'requirements': {'min_max_hp': 15},
                 'effects': [
@@ -160,7 +160,7 @@ EVENT_DEFINITIONS = {
                 'id': 'destruir_altar',
                 'text': 'Destruir o altar',
                 'description': '50% de chance de nada acontecer, 50% de receber -2 de dano no próximo combate',
-                'icon': '🔥',
+                'icon': 'choice-attack.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -189,7 +189,7 @@ EVENT_DEFINITIONS = {
                 'id': 'escolher_cegas',
                 'text': 'Escolher às cegas',
                 'description': 'Ganhe 1 relíquia aleatória das três disponíveis',
-                'icon': '🎲',
+                'icon': 'choice-trade.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -200,7 +200,7 @@ EVENT_DEFINITIONS = {
                 'id': 'quebrar_vidro',
                 'text': 'Quebrar o vidro',
                 'description': 'Perca 10 HP pelos estilhaços, mas escolha entre as 3 relíquias',
-                'icon': '🔨',
+                'icon': 'choice-destroy.png',
                 'sound': None,
                 'requirements': {'min_hp': 15},
                 'effects': [
@@ -212,7 +212,7 @@ EVENT_DEFINITIONS = {
                 'id': 'deixar_relicario',
                 'text': 'Deixar o relicário',
                 'description': 'Alguém pagará por isso - ganhe 20 ouro',
-                'icon': '❌',
+                'icon': 'choice-refuse.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -242,7 +242,7 @@ EVENT_DEFINITIONS = {
                 'id': 'beber',
                 'text': 'Beber da fonte',
                 'description': 'Cure 30% do seu HP Máximo',
-                'icon': '🩹',
+                'icon': 'choice-rest.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -253,7 +253,7 @@ EVENT_DEFINITIONS = {
                 'id': 'banhar',
                 'text': 'Banhar-se na fonte',
                 'description': 'Cure 15% do HP Máximo E ganhe +5 HP Máximo permanente, mas pague 30 ouro',
-                'icon': '❤️',
+                'icon': 'choice-rest.png',
                 'sound': None,
                 'requirements': {'min_gold': 30},
                 'effects': [
@@ -266,7 +266,7 @@ EVENT_DEFINITIONS = {
                 'id': 'ignorar',
                 'text': 'Ignorar a fonte',
                 'description': 'Melhor não arriscar',
-                'icon': '🚶',
+                'icon': 'choice-refuse.png',
                 'sound': None,
                 'requirements': {},
                 'effects': []
@@ -290,7 +290,7 @@ EVENT_DEFINITIONS = {
                 'id': 'aprender_tecnica',
                 'text': 'Aprender técnica',
                 'description': 'Ganhe a Memória "Sede de Sangue" (+5% lifesteal)',
-                'icon': '📚',
+                'icon': 'choice-inspect.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -301,7 +301,7 @@ EVENT_DEFINITIONS = {
                 'id': 'ritual_fortalecimento',
                 'text': 'Ritual de fortalecimento',
                 'description': 'Perca 15 HP para ganhar +10 HP Máximo permanente',
-                'icon': '🩸',
+                'icon': 'choice-rest.png',
                 'sound': None,
                 'requirements': {'min_hp': 20},
                 'effects': [
@@ -313,7 +313,7 @@ EVENT_DEFINITIONS = {
                 'id': 'pedir_ouro',
                 'text': 'Pedir ouro',
                 'description': 'O ancião te dá 50 ouro por respeito',
-                'icon': '💰',
+                'icon': 'choice-trade.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -324,7 +324,7 @@ EVENT_DEFINITIONS = {
                 'id': 'desafiar',
                 'text': 'Desafiá-lo para combate',
                 'description': 'Enfrente um Elite Lendário com recompensa dobrada',
-                'icon': '⚔️',
+                'icon': 'choice-attack.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -353,7 +353,7 @@ EVENT_DEFINITIONS = {
                 'id': 'entrar_capsula',
                 'text': 'Entrar na cápsula',
                 'description': 'Cure TODO o seu HP, mas perca 1 Relíquia aleatória',
-                'icon': '💉',
+                'icon': 'choice-rest.png',
                 'sound': None,
                 'requirements': {'min_relics': 1},
                 'effects': [
@@ -365,7 +365,7 @@ EVENT_DEFINITIONS = {
                 'id': 'estudar_tecnologia',
                 'text': 'Estudar a tecnologia',
                 'description': 'Ganhe +3 HP Máximo permanente',
-                'icon': '🔬',
+                'icon': 'choice-inspect.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -376,7 +376,7 @@ EVENT_DEFINITIONS = {
                 'id': 'sair_correndo',
                 'text': 'Sair correndo',
                 'description': 'Pegue algumas peças soltas - ganhe 15 ouro',
-                'icon': '🏃',
+                'icon': 'choice-run.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -402,7 +402,7 @@ EVENT_DEFINITIONS = {
                 'id': 'pegar_tudo',
                 'text': 'Pegar tudo',
                 'description': 'Ganhe 100-120 ouro, mas perca 10% do HP Máximo permanentemente',
-                'icon': '💰',
+                'icon': 'choice-trade.png',
                 'sound': None,
                 'requirements': {'min_max_hp': 15},
                 'effects': [
@@ -414,7 +414,7 @@ EVENT_DEFINITIONS = {
                 'id': 'pegar_pouco',
                 'text': 'Pegar um pouco',
                 'description': 'Ganhe 40-60 ouro com segurança',
-                'icon': '🪙',
+                'icon': 'choice-trade.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -425,7 +425,7 @@ EVENT_DEFINITIONS = {
                 'id': 'purificar',
                 'text': 'Purificar o tesouro',
                 'description': 'Pague 30 HP para ganhar 70 ouro limpo + Memória: Pureza',
-                'icon': '🧹',
+                'icon': 'choice-destroy.png',
                 'sound': None,
                 'requirements': {'min_hp': 35},
                 'effects': [
@@ -451,7 +451,7 @@ EVENT_DEFINITIONS = {
                 'id': 'pagar_informacao',
                 'text': 'Comprar técnicas de combate',
                 'description': 'Pague 80 ouro para ganhar +4 dano no Ataque de Poder',
-                'icon': '💎',
+                'icon': 'choice-trade.png',
                 'sound': None,
                 'requirements': {'min_gold': 80},
                 'effects': [
@@ -463,7 +463,7 @@ EVENT_DEFINITIONS = {
                 'id': 'aceitar_missao',
                 'text': 'Treinar com ele',
                 'description': 'Perca 20 HP no treino, ganhe +3 dano geral (Memória)',
-                'icon': '⚔️',
+                'icon': 'choice-attack.png',
                 'sound': None,
                 'requirements': {'min_hp': 25},
                 'effects': [
@@ -475,7 +475,7 @@ EVENT_DEFINITIONS = {
                 'id': 'negociar',
                 'text': 'Pedir ouro emprestado',
                 'description': 'Receba 25 ouro agora',
-                'icon': '🤝',
+                'icon': 'choice-trade.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -499,7 +499,7 @@ EVENT_DEFINITIONS = {
                 'id': 'girar_roda',
                 'text': 'Girar a roda (50 ouro)',
                 'description': '25%: 150 ouro / 50%: 60 ouro / 25%: perde tudo apostado',
-                'icon': '🎰',
+                'icon': 'choice-trade.png',
                 'sound': None,
                 'requirements': {'min_gold': 50},
                 'effects': [
@@ -515,7 +515,7 @@ EVENT_DEFINITIONS = {
                 'id': 'apostar_tudo',
                 'text': 'Apostar TUDO',
                 'description': '50% chance de dobrar todo seu ouro, 50% de perder tudo',
-                'icon': '🎯',
+                'icon': 'choice-accept.png',
                 'sound': None,
                 'requirements': {'min_gold': 10},
                 'effects': [
@@ -526,7 +526,7 @@ EVENT_DEFINITIONS = {
                 'id': 'observar',
                 'text': 'Apenas observar',
                 'description': 'Ganhe a Memória "Sorte" (+3% chance crítica)',
-                'icon': '👀',
+                'icon': 'choice-inspect.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -554,7 +554,7 @@ EVENT_DEFINITIONS = {
                 'id': 'fortalecer_ataque',
                 'text': 'Fortalecer ataque básico',
                 'description': 'Pague 10 HP para ganhar +2 de dano base no Ataque Básico',
-                'icon': '⚔️',
+                'icon': 'choice-attack.png',
                 'sound': None,
                 'requirements': {'min_hp': 15},
                 'effects': [
@@ -566,7 +566,7 @@ EVENT_DEFINITIONS = {
                 'id': 'fortalecer_poder',
                 'text': 'Fortalecer ataque de poder',
                 'description': 'Pague 10 HP para ganhar +3 de dano base no Poder',
-                'icon': '💪',
+                'icon': 'choice-rest.png',
                 'sound': None,
                 'requirements': {'min_hp': 15},
                 'effects': [
@@ -578,7 +578,7 @@ EVENT_DEFINITIONS = {
                 'id': 'fortalecer_especial',
                 'text': 'Fortalecer ataque especial',
                 'description': 'Pague 15 HP para ganhar +4 de dano base no Especial',
-                'icon': '✨',
+                'icon': 'choice-accept.png',
                 'sound': None,
                 'requirements': {'min_hp': 20},
                 'effects': [
@@ -590,7 +590,7 @@ EVENT_DEFINITIONS = {
                 'id': 'reforcar_barreira',
                 'text': 'Aumentar vitalidade',
                 'description': 'Pague 12 HP para ganhar +10 HP Máximo permanente',
-                'icon': '🛡️',
+                'icon': 'choice-rest.png',
                 'sound': None,
                 'requirements': {'min_hp': 17},
                 'effects': [
@@ -615,7 +615,7 @@ EVENT_DEFINITIONS = {
                 'id': 'estudar_ofensiva',
                 'text': 'Estudar magia ofensiva',
                 'description': 'Ganhe +5 de dano em TODAS as habilidades de ataque',
-                'icon': '📖',
+                'icon': 'choice-inspect.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -626,7 +626,7 @@ EVENT_DEFINITIONS = {
                 'id': 'estudar_vitalidade',
                 'text': 'Estudar vitalidade',
                 'description': 'Ganhe +8 HP Máximo permanente',
-                'icon': '📕',
+                'icon': 'choice-inspect.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -637,7 +637,7 @@ EVENT_DEFINITIONS = {
                 'id': 'ler_tudo',
                 'text': 'Ler tudo (perigoso)',
                 'description': 'Perca 20 HP (dano mental), mas ganhe AMBOS os bônus',
-                'icon': '📚',
+                'icon': 'choice-inspect.png',
                 'sound': None,
                 'requirements': {'min_hp': 25},
                 'effects': [
@@ -665,7 +665,7 @@ EVENT_DEFINITIONS = {
                 'id': 'treinar_poder',
                 'text': 'Treinar técnica de poder',
                 'description': 'Perca 25 HP (treino intenso), ganhe +6 dano no Ataque de Poder',
-                'icon': '🎓',
+                'icon': 'choice-inspect.png',
                 'sound': None,
                 'requirements': {'min_hp': 30},
                 'effects': [
@@ -677,7 +677,7 @@ EVENT_DEFINITIONS = {
                 'id': 'pedir_bencao',
                 'text': 'Pedir benção',
                 'description': 'Ganhe a Memória "Disciplina" (+3 dano geral)',
-                'icon': '🙏',
+                'icon': 'choice-pray.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -688,7 +688,7 @@ EVENT_DEFINITIONS = {
                 'id': 'pagar_treinamento',
                 'text': 'Pagar pelo treinamento completo',
                 'description': 'Pague 70 ouro para ganhar +6 dano no Poder E a Memória Disciplina',
-                'icon': '💰',
+                'icon': 'choice-trade.png',
                 'sound': None,
                 'requirements': {'min_gold': 70},
                 'effects': [
@@ -719,7 +719,7 @@ EVENT_DEFINITIONS = {
                 'id': 'olhar_profundamente',
                 'text': 'Olhar profundamente',
                 'description': '50% chance: +20 HP Máximo / 50% chance: -10 HP Máximo',
-                'icon': '👁️',
+                'icon': 'choice-inspect.png',
                 'sound': None,
                 'requirements': {'min_max_hp': 15},
                 'effects': [
@@ -733,7 +733,7 @@ EVENT_DEFINITIONS = {
                 'id': 'quebrar_espelho',
                 'text': 'Quebrar o espelho',
                 'description': 'Perca 15 HP (estilhaços) e receba -3 dano nos próximos 3 combates',
-                'icon': '🔨',
+                'icon': 'choice-destroy.png',
                 'sound': None,
                 'requirements': {'min_hp': 20},
                 'effects': [
@@ -745,7 +745,7 @@ EVENT_DEFINITIONS = {
                 'id': 'ignorar_espelho',
                 'text': 'Ignorar e seguir em frente',
                 'description': 'Melhor não arriscar',
-                'icon': '🚶',
+                'icon': 'choice-refuse.png',
                 'sound': None,
                 'requirements': {},
                 'effects': []
@@ -767,7 +767,7 @@ EVENT_DEFINITIONS = {
                 'id': 'aceitar_pacto',
                 'text': 'Aceitar o pacto',
                 'description': 'Cada ataque causa +3 de dano, mas perde 1 HP ao final de cada turno seu',
-                'icon': '😈',
+                'icon': 'choice-attack.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -778,7 +778,7 @@ EVENT_DEFINITIONS = {
                 'id': 'exigir_ouro',
                 'text': 'Exigir ouro',
                 'description': 'Ganhe 120 ouro, mas perca 1 Relíquia',
-                'icon': '💰',
+                'icon': 'choice-trade.png',
                 'sound': None,
                 'requirements': {'min_relics': 1},
                 'effects': [
@@ -790,7 +790,7 @@ EVENT_DEFINITIONS = {
                 'id': 'banir_demonio',
                 'text': 'Banir o demônio',
                 'description': 'Enfrente um combate Lendário difícil',
-                'icon': '⚔️',
+                'icon': 'choice-attack.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -816,7 +816,7 @@ EVENT_DEFINITIONS = {
                 'id': 'jogar_moeda',
                 'text': 'Jogar moeda (40 ouro)',
                 'description': '33% cada: +15 HP Máximo / Relíquia Comum / Nada',
-                'icon': '🌟',
+                'icon': 'choice-accept.png',
                 'sound': None,
                 'requirements': {'min_gold': 40},
                 'effects': [
@@ -832,7 +832,7 @@ EVENT_DEFINITIONS = {
                 'id': 'mergulhar',
                 'text': 'Mergulhar no poço',
                 'description': 'Pegue 60-80 ouro, mas 40% de chance de combate',
-                'icon': '🏊',
+                'icon': 'choice-rest.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -847,7 +847,7 @@ EVENT_DEFINITIONS = {
                 'id': 'usar_balde',
                 'text': 'Usar um balde',
                 'description': 'Ganhe 25-35 ouro com segurança',
-                'icon': '🪣',
+                'icon': 'choice-rest.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -873,7 +873,7 @@ EVENT_DEFINITIONS = {
                 'id': 'ouvir_historia',
                 'text': 'Ouvir sua história',
                 'description': 'Ganhe a Memória "Disciplina" (+3 dano geral)',
-                'icon': '👻',
+                'icon': 'choice-accept.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -884,7 +884,7 @@ EVENT_DEFINITIONS = {
                 'id': 'aceitar_heranca',
                 'text': 'Aceitar sua herança',
                 'description': 'Ganhe 1 Relíquia Comum do herói',
-                'icon': '🎁',
+                'icon': 'choice-trade.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -895,7 +895,7 @@ EVENT_DEFINITIONS = {
                 'id': 'ajudar_passar',
                 'text': 'Ajudá-lo a partir',
                 'description': 'Cure 20 HP (gratidão) e ganhe 10 ouro',
-                'icon': '⚰️',
+                'icon': 'choice-accept.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -907,7 +907,7 @@ EVENT_DEFINITIONS = {
                 'id': 'absorver_essencia',
                 'text': 'Absorver sua essência',
                 'description': 'Perca 10 HP para ganhar +15 HP Máximo permanente',
-                'icon': '🤺',
+                'icon': 'choice-attack.png',
                 'sound': None,
                 'requirements': {'min_hp': 15},
                 'effects': [
@@ -932,7 +932,7 @@ EVENT_DEFINITIONS = {
                 'id': 'caminho_vermelho',
                 'text': 'Caminho Vermelho (Sangue)',
                 'description': 'Ganhe +3 dano no Ataque Básico',
-                'icon': '🔴',
+                'icon': 'choice-attack.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -943,7 +943,7 @@ EVENT_DEFINITIONS = {
                 'id': 'caminho_dourado',
                 'text': 'Caminho Dourado (Riqueza)',
                 'description': 'Ganhe 60 ouro imediatamente',
-                'icon': '🟡',
+                'icon': 'choice-trade.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -954,7 +954,7 @@ EVENT_DEFINITIONS = {
                 'id': 'caminho_azul',
                 'text': 'Caminho Azul (Vitalidade)',
                 'description': 'Ganhe +8 HP Máximo permanente',
-                'icon': '🔵',
+                'icon': 'choice-rest.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -980,7 +980,7 @@ EVENT_DEFINITIONS = {
                 'id': 'caixa_misteriosa',
                 'text': 'Caixa misteriosa (25 ouro)',
                 'description': 'Pode ser: Relíquia / 50 ouro / Nada / Debuff temporário',
-                'icon': '🎲',
+                'icon': 'choice-trade.png',
                 'sound': None,
                 'requirements': {'min_gold': 25},
                 'effects': [
@@ -999,7 +999,7 @@ EVENT_DEFINITIONS = {
                 'id': 'osso_sorte',
                 'text': '"Osso da sorte" (10 ouro)',
                 'description': 'Ganhe a Memória "Amuleto" (+2% chance crítica)',
-                'icon': '🦴',
+                'icon': 'choice-accept.png',
                 'sound': None,
                 'requirements': {'min_gold': 10},
                 'effects': [
@@ -1011,7 +1011,7 @@ EVENT_DEFINITIONS = {
                 'id': 'pedra_brilhante',
                 'text': '"Pedra MUITO brilhante" (80 ouro)',
                 'description': '50% chance Relíquia Épica / 50% chance é lixo',
-                'icon': '💎',
+                'icon': 'choice-trade.png',
                 'sound': None,
                 'requirements': {'min_gold': 80},
                 'effects': [
@@ -1026,7 +1026,7 @@ EVENT_DEFINITIONS = {
                 'id': 'ir_embora',
                 'text': 'Ir embora',
                 'description': 'Não confio nesse goblin',
-                'icon': '🚶',
+                'icon': 'choice-refuse.png',
                 'sound': None,
                 'requirements': {},
                 'effects': []
@@ -1050,7 +1050,7 @@ EVENT_DEFINITIONS = {
                 'id': 'jogar_cartas',
                 'text': 'Jogar uma partida',
                 'description': 'Aposte 25% do HP atual. Ganhe: cure 50% do Max HP. Perca: perde os 25% apostados',
-                'icon': '🃏',
+                'icon': 'choice-trade.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -1061,7 +1061,7 @@ EVENT_DEFINITIONS = {
                 'id': 'recusar_respeitosamente',
                 'text': 'Recusar respeitosamente',
                 'description': 'Ganhe a Relíquia "Favor da Morte" (revive com 1 HP uma vez)',
-                'icon': '💀',
+                'icon': 'choice-attack.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -1072,7 +1072,7 @@ EVENT_DEFINITIONS = {
                 'id': 'fugir',
                 'text': 'Fugir rapidamente',
                 'description': 'Escape sem consequências',
-                'icon': '🏃',
+                'icon': 'choice-run.png',
                 'sound': None,
                 'requirements': {},
                 'effects': []
@@ -1094,7 +1094,7 @@ EVENT_DEFINITIONS = {
                 'id': 'cumprimentar',
                 'text': 'Cumprimentar o clone',
                 'description': 'Ele te dá cópia de 1 Relíquia que você já possui',
-                'icon': '🤝',
+                'icon': 'choice-trade.png',
                 'sound': None,
                 'requirements': {'min_relics': 1},
                 'effects': [
@@ -1105,7 +1105,7 @@ EVENT_DEFINITIONS = {
                 'id': 'fazer_sinal',
                 'text': 'Fazer sinal de paz',
                 'description': 'Ganhe 2 Memórias aleatórias',
-                'icon': '✌️',
+                'icon': 'choice-refuse.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -1117,7 +1117,7 @@ EVENT_DEFINITIONS = {
                 'id': 'estender_mao',
                 'text': 'Estender a mão',
                 'description': 'Ele te dá 80 ouro e desaparece',
-                'icon': '🤚',
+                'icon': 'choice-accept.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
