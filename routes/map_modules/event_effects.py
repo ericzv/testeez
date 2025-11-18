@@ -246,12 +246,49 @@ def apply_single_effect(player, effect: dict) -> dict:
         return result
 
     elif effect_type == 'choose_relic':
-        # Isso precisará de UI especial - por enquanto dá uma aleatória
+        # Gera múltiplas opções e escolhe a melhor
         count = effect.get('count', 3)
-        # TODO: Implementar UI de escolha
-        result = _award_random_relic(player, 'random')
-        result['message'] = 'Você escolheu: ' + result.get('message', 'Relíquia')
-        return result
+        rarity = effect.get('rarity', 'random')
+
+        # Gera 'count' relíquias aleatórias e escolhe uma delas
+        # TODO: Implementar UI de escolha real no frontend
+        from routes.relics.registry import RELIC_DEFINITIONS
+
+        # Filtra relíquias disponíveis
+        if rarity == 'random':
+            available = list(RELIC_DEFINITIONS.values())
+        else:
+            available = [r for r in RELIC_DEFINITIONS.values() if r.get('rarity') == rarity]
+
+        # Remove relíquias que o jogador já tem
+        player_relic_ids = {pr.relic_id for pr in player.relics}
+        available = [r for r in available if r['id'] not in player_relic_ids]
+
+        if not available:
+            return {
+                'type': 'relic_fail',
+                'message': 'Nenhuma relíquia disponível para escolher!',
+                'icon': '❓',
+                'positive': False
+            }
+
+        # Escolhe a de maior raridade entre as opções geradas
+        rarity_weights = {'common': 1, 'uncommon': 2, 'rare': 3, 'epic': 4, 'legendary': 5}
+        options = random.sample(available, min(count, len(available)))
+        chosen = max(options, key=lambda r: rarity_weights.get(r.get('rarity', 'common'), 1))
+
+        # Adiciona ao jogador
+        from routes.relics.selection import award_relic_to_player
+        award_relic_to_player(player.id, chosen['id'])
+
+        return {
+            'type': 'relic_gain',
+            'relic_id': chosen['id'],
+            'relic_name': chosen['name'],
+            'message': f'Você escolheu: {chosen["name"]}',
+            'icon': '🏆',
+            'positive': True
+        }
 
     # ===== EFEITOS DE MEMÓRIAS (BUFFS) =====
 

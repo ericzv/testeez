@@ -304,14 +304,18 @@
     }
 
     .results-popup {
-        background: linear-gradient(135deg, #1a1a3e 0%, #2a2a5e 100%);
+        background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
         border-radius: 20px;
         padding: 30px;
         max-width: 500px;
         width: 90%;
-        border: 3px solid rgba(255, 215, 0, 0.4);
-        box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
-        animation: resultAppear 0.6s ease-out;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        box-shadow:
+            0 0 50px rgba(0, 0, 0, 0.5),
+            0 0 30px rgba(255, 255, 255, 0.2),
+            0 0 60px rgba(255, 255, 255, 0.1);
+        animation: resultAppear 0.6s ease-out, rotatingGlow 4s linear infinite;
+        position: relative;
     }
 
     @keyframes resultAppear {
@@ -325,13 +329,56 @@
         }
     }
 
+    @keyframes rotatingGlow {
+        0% {
+            box-shadow:
+                0 0 50px rgba(0, 0, 0, 0.5),
+                0 0 30px rgba(255, 255, 255, 0.3),
+                20px 0 40px rgba(255, 255, 255, 0.2),
+                0 0 60px rgba(255, 255, 255, 0.1);
+        }
+        25% {
+            box-shadow:
+                0 0 50px rgba(0, 0, 0, 0.5),
+                0 0 30px rgba(255, 255, 255, 0.3),
+                0 20px 40px rgba(255, 255, 255, 0.2),
+                0 0 60px rgba(255, 255, 255, 0.1);
+        }
+        50% {
+            box-shadow:
+                0 0 50px rgba(0, 0, 0, 0.5),
+                0 0 30px rgba(255, 255, 255, 0.3),
+                -20px 0 40px rgba(255, 255, 255, 0.2),
+                0 0 60px rgba(255, 255, 255, 0.1);
+        }
+        75% {
+            box-shadow:
+                0 0 50px rgba(0, 0, 0, 0.5),
+                0 0 30px rgba(255, 255, 255, 0.3),
+                0 -20px 40px rgba(255, 255, 255, 0.2),
+                0 0 60px rgba(255, 255, 255, 0.1);
+        }
+        100% {
+            box-shadow:
+                0 0 50px rgba(0, 0, 0, 0.5),
+                0 0 30px rgba(255, 255, 255, 0.3),
+                20px 0 40px rgba(255, 255, 255, 0.2),
+                0 0 60px rgba(255, 255, 255, 0.1);
+        }
+    }
+
     .results-title {
-        color: #ffd700;
+        color: #ffffff;
         font-family: 'Cinzel', serif;
         font-size: 24px;
         text-align: center;
         margin-bottom: 20px;
-        text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        text-shadow:
+            -1px -1px 0 #000,
+            1px -1px 0 #000,
+            -1px 1px 0 #000,
+            1px 1px 0 #000,
+            0 0 10px rgba(255, 255, 255, 0.5);
     }
 
     .results-list {

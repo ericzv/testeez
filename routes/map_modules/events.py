@@ -35,11 +35,12 @@ EVENT_DEFINITIONS = {
             {
                 'id': 'saquear',
                 'text': 'Saquear os tesouros',
-                'description': 'Colete 50-70 de ouro dos pertences',
+                'description': 'Perca 5 HP mas colete 50-70 de ouro dos pertences',
                 'icon': 'choice-trade.png',
                 'sound': None,
-                'requirements': {},
+                'requirements': {'min_hp': 6},
                 'effects': [
+                    {'type': 'lose_hp', 'value': 5},
                     {'type': 'gain_gold', 'min': 50, 'max': 70}
                 ]
             },

@@ -2131,7 +2131,13 @@ def reset_player_run(player_id):
             },
             synchronize_session=False
         )
-        
+
+        # ===== DELETAR TODOS OS BOSSES (LastBoss) =====
+        # CRÍTICO: Bosses devem ser deletados, não apenas desativados
+        # Caso contrário, persisti entre runs com HP antigo
+        bosses_deleted = LastBoss.query.delete()
+        print(f"👹 {bosses_deleted} bosses deletados")
+
         db.session.commit()
         print(f"✅ Run resetada com sucesso para player {player_id}")
         return True, "Run resetada com sucesso"
