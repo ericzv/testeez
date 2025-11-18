@@ -497,10 +497,10 @@ def complete_current_node():
         new_act = progress.current_act + 1
         progress.current_act = new_act
         # Limpar mapa atual para forçar geração de novo mapa
-        if progress.map_id:
-            MapNode.query.filter_by(map_id=progress.map_id).delete()
-            ProceduralMap.query.filter_by(id=progress.map_id).delete()
-        progress.map_id = None
+        if progress.current_map_id:
+            MapNode.query.filter_by(map_id=progress.current_map_id).delete()
+            ProceduralMap.query.filter_by(id=progress.current_map_id).delete()
+        progress.current_map_id = None
         progress.current_node_id = None
         db.session.commit()
         next_act = new_act
