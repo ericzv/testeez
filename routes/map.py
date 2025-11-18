@@ -185,6 +185,81 @@ def elite_battle(boss_id):
     return redirect(url_for('battle.battle'))
 
 
+@map_bp.route('/battle/boss/<int:boss_id>')
+def boss_battle(boss_id):
+    """
+    Inicia batalha contra um boss final de ato.
+    Seleciona o boss e redireciona para a página de batalha.
+    """
+    from models import PlayerProgress, GenericEnemy
+    from routes.battle_modules.enemy_generation import create_boss_by_name
+    import json
+
+    player = Player.query.first()
+    if not player:
+        return redirect(url_for('battle.gamification'))
+
+    # Mapeamento de ID para nome do boss
+    BOSS_ID_TO_NAME = {
+        1: 'purassombra',
+        2: 'heresiarca',
+        3: 'alma_negra',
+        4: 'formofagus',
+        5: 'nefasto'
+    }
+
+    # Verificar se o boss existe
+    boss = LastBoss.query.get(boss_id)
+
+    if not boss:
+        # Boss não existe, criar usando as definições existentes
+        if boss_id in BOSS_ID_TO_NAME:
+            boss_name = BOSS_ID_TO_NAME[boss_id]
+            print(f"🎭 Criando boss final {boss_name}...")
+            boss = create_boss_by_name(boss_name)
+            if boss:
+                db.session.add(boss)
+                db.session.commit()
+                print(f"✅ Boss final {boss.name} criado com sucesso!")
+
+        if not boss:
+            print(f"❌ Não foi possível criar boss ID {boss_id}")
+            return redirect(url_for('battle.gamification'))
+
+    # Ativar o boss se não estiver ativo
+    if not boss.is_active:
+        boss.is_active = True
+        boss.current_hp = boss.max_hp
+        print(f"🔓 Boss {boss.name} ativado para boss final battle")
+
+    # Obter progresso do jogador
+    progress = PlayerProgress.query.filter_by(player_id=player.id).first()
+    if not progress:
+        progress = PlayerProgress(player_id=player.id)
+        db.session.add(progress)
+
+    # Limpar seleção de inimigo genérico e selecionar o boss
+    progress.selected_enemy_id = None
+    progress.selected_boss_id = boss.id
+
+    # Resetar contador de turnos e calcular intenções
+    boss.battle_turn_counter = 0
+
+    # Pré-calcular intenções do Turno 1
+    from routes.battle import get_next_actions
+    next_turn_data = get_next_actions(boss)
+    next_intentions = next_turn_data['actions']
+    boss.next_intentions_cached = json.dumps(next_intentions)
+
+    print(f"⚔️ Boss Final Battle iniciando: {boss.name} (ID: {boss.id})")
+    print(f"🔮 Intenções do Turno 1 calculadas: {[a.get('type') for a in next_intentions]}")
+
+    db.session.commit()
+
+    # Redirecionar para a página de batalha
+    return redirect(url_for('battle.battle'))
+
+
 # ============================================================================
 # API - Geração e Gerenciamento do Mapa
 # ============================================================================

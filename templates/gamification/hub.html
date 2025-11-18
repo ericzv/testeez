@@ -2754,31 +2754,12 @@ async function handleCurrentNodeClick(node) {
       }
       break;
     case 'elite':
+      // Redirecionar para o route que cria e seleciona o boss elite
+      window.location.href = `/map/battle/elite/${node.boss_id || 2}`;
+      break;
     case 'boss':
-      if (hasBattleActive) {
-        window.location.href = '/gamification/battle';
-      } else if (node.boss_id) {
-        const bossName = bossNames[node.boss_id] || `Boss #${node.boss_id}`;
-        selectBoss(node.boss_id, bossName);
-      } else if (node.node_type === 'elite') {
-        // Fallback para elite sem boss_id: escolhe aleatório entre 2 e 3
-        const eliteBossId = Math.random() < 0.5 ? 2 : 3;
-        const eliteBossName = bossNames[eliteBossId];
-        selectBoss(eliteBossId, eliteBossName);
-      } else if (node.node_type === 'boss') {
-        // Fallback para boss final baseado no ato atual
-        const actNumber = currentMapData?.act_number || 1;
-        const actBossMap = {
-          1: { id: 1, name: 'Purassombra' },
-          2: { id: 4, name: 'Formofagus' },
-          3: { id: 5, name: 'Nefasto' }
-        };
-        const bossForAct = actBossMap[actNumber] || actBossMap[1];
-        console.log(`⚔️ Boss final do Ato ${actNumber}: ${bossForAct.name} (ID: ${bossForAct.id})`);
-        selectBoss(bossForAct.id, bossForAct.name);
-      } else {
-        showBossSelection();
-      }
+      // Redirecionar para o route que cria e seleciona o boss final
+      window.location.href = `/map/battle/boss/${node.boss_id || 1}`;
       break;
     case 'shop':
       openDialog('#shop-popup');
@@ -2905,33 +2886,14 @@ async function handleMapNodeClick(node) {
       showBossSelection();
       break;
     case 'elite':
+      // Redirecionar para o route que cria e seleciona o boss elite
+      console.log(`⚔️ Redirecionando para elite battle: boss_id=${node.boss_id || 2}`);
+      window.location.href = `/map/battle/elite/${node.boss_id || 2}`;
+      break;
     case 'boss':
-      // Elite e Boss: inicia batalha diretamente com boss específico
-      if (node.boss_id) {
-        const bossName = bossNames[node.boss_id] || `Boss #${node.boss_id}`;
-        console.log(`⚔️ Iniciando batalha com ${bossName} (ID: ${node.boss_id})`);
-        selectBoss(node.boss_id, bossName);
-      } else if (node.node_type === 'elite') {
-        // Fallback para elite sem boss_id: escolhe aleatório entre 2 e 3
-        const eliteBossId = Math.random() < 0.5 ? 2 : 3;
-        const eliteBossName = bossNames[eliteBossId];
-        console.log(`⚔️ Elite sem boss_id, escolhendo ${eliteBossName} (ID: ${eliteBossId})`);
-        selectBoss(eliteBossId, eliteBossName);
-      } else if (node.node_type === 'boss') {
-        // Fallback para boss final baseado no ato atual
-        const actNumber = currentMapData?.act_number || 1;
-        const actBossMap = {
-          1: { id: 1, name: 'Purassombra' },
-          2: { id: 4, name: 'Formofagus' },
-          3: { id: 5, name: 'Nefasto' }
-        };
-        const bossForAct = actBossMap[actNumber] || actBossMap[1];
-        console.log(`⚔️ Boss final do Ato ${actNumber}: ${bossForAct.name} (ID: ${bossForAct.id})`);
-        selectBoss(bossForAct.id, bossForAct.name);
-      } else {
-        console.error('Nó boss sem boss_id definido!');
-        showBossSelection();
-      }
+      // Redirecionar para o route que cria e seleciona o boss final
+      console.log(`⚔️ Redirecionando para boss battle: boss_id=${node.boss_id || 1}`);
+      window.location.href = `/map/battle/boss/${node.boss_id || 1}`;
       break;
     case 'shop':
       openDialog('#shop-popup');
