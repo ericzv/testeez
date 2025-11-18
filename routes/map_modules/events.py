@@ -137,7 +137,7 @@ EVENT_DEFINITIONS = {
                 'id': 'oferecer_sangue',
                 'text': 'Oferecer sangue',
                 'description': '<span class="txt-danger">Perca 25 HP</span> para ganhar <span class="txt-green">+3 de dano</span> base no Ataque Básico',
-                'icon': 'choice-rest.png',
+                'icon': 'choice-power.png',
                 'sound': None,
                 'requirements': {'min_hp': 30},
                 'effects': [
@@ -161,7 +161,7 @@ EVENT_DEFINITIONS = {
                 'id': 'destruir_altar',
                 'text': 'Destruir o altar',
                 'description': '50% de chance de nada acontecer, 50% de receber -2 de dano no próximo combate',
-                'icon': 'choice-attack.png',
+                'icon': 'choice-curse.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -243,7 +243,7 @@ EVENT_DEFINITIONS = {
                 'id': 'beber',
                 'text': 'Beber da fonte',
                 'description': '<span class="txt-danger">Pague 20 ouro</span> para curar <span class="txt-green">30% do seu HP Máximo</span>',
-                'icon': 'choice-rest.png',
+                'icon': 'choice-heal.png',
                 'sound': None,
                 'requirements': {'min_gold': 20},
                 'effects': [
@@ -255,7 +255,7 @@ EVENT_DEFINITIONS = {
                 'id': 'banhar',
                 'text': 'Banhar-se na fonte',
                 'description': '<span class="txt-green">Cure 15% do HP Máximo</span> E ganhe <span class="txt-green">+5 HP Máximo permanente</span>, mas <span class="txt-danger">pague 30 ouro</span>',
-                'icon': 'choice-rest.png',
+                'icon': 'choice-heal.png',
                 'sound': None,
                 'requirements': {'min_gold': 30},
                 'effects': [
@@ -292,7 +292,7 @@ EVENT_DEFINITIONS = {
                 'id': 'aprender_tecnica',
                 'text': 'Aprender técnica',
                 'description': '<span class="txt-green">Ganhe a Memória</span> "Sede de Sangue" (<span class="txt-green">+5% lifesteal</span>)',
-                'icon': 'choice-inspect.png',
+                'icon': 'choice-study.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
@@ -404,7 +404,7 @@ EVENT_DEFINITIONS = {
                 'id': 'pegar_tudo',
                 'text': 'Pegar tudo',
                 'description': 'Ganhe 100-120 ouro, mas <span class="txt-danger">perca 10% do HP </span>Máximo permanentemente',
-                'icon': 'choice-trade.png',
+                'icon': 'choice-curse.png',
                 'sound': None,
                 'requirements': {'min_max_hp': 15},
                 'effects': [
@@ -568,7 +568,7 @@ EVENT_DEFINITIONS = {
                 'id': 'fortalecer_poder',
                 'text': 'Fortalecer ataque de poder',
                 'description': 'Pague 10 HP para ganhar +3 de dano base no Poder',
-                'icon': 'choice-rest.png',
+                'icon': 'choice-power.png',
                 'sound': None,
                 'requirements': {'min_hp': 15},
                 'effects': [
@@ -592,7 +592,7 @@ EVENT_DEFINITIONS = {
                 'id': 'reforcar_barreira',
                 'text': 'Aumentar vitalidade',
                 'description': 'Pague 12 HP para ganhar +10 HP Máximo permanente',
-                'icon': 'choice-rest.png',
+                'icon': 'choice-vitality.png',
                 'sound': None,
                 'requirements': {'min_hp': 17},
                 'effects': [
@@ -617,7 +617,7 @@ EVENT_DEFINITIONS = {
                 'id': 'estudar_ofensiva',
                 'text': 'Estudar magia ofensiva',
                 'description': 'Ganhe <span class="txt-green">+5 de dano</span> em TODAS as habilidades de ataque',
-                'icon': 'choice-inspect.png',
+                'icon': 'choice-power.png',
                 'sound': None,
                 'requirements': {},
                 'effects': [
