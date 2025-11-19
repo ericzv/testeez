@@ -92,6 +92,13 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///flashcards.db'
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.permanent_session_lifetime = timedelta(days=7)
 
+# DESABILITAR CACHE DE TEMPLATES E ARQUIVOS ESTÁTICOS (para debug)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+app.jinja_env.auto_reload = True
+app.jinja_env.cache = {}
+print("⚠️ CACHE DE TEMPLATES DESABILITADO - modo debug ativo")
+
 # Registrar filtros e inicializar o banco de dados
 register_filters(app)
 db.init_app(app)
