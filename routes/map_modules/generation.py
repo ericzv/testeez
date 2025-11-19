@@ -25,11 +25,11 @@ class MapGenerator:
     # Probabilidades de tipos de nó (%)
     # Ajustadas para serem similares ao Slay the Spire
     NODE_PROBABILITIES = {
-        'battle': 53,    # Batalha comum
+        'battle': 48,    # Batalha comum
         'elite': 8,      # Desafiante Infernal
-        'shop': 5,       # Loja
-        'event': 22,     # Evento Aleatório (?)
-        'rest': 12       # Descanso/Tesouro
+        'shop': 15,      # Loja (aumentado para testar sistema)
+        'event': 19,     # Evento Aleatório (?)
+        'rest': 10       # Descanso/Tesouro
     }
 
     # Restrições de posicionamento
