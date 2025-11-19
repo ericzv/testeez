@@ -2398,12 +2398,23 @@
 </div>
 
 <!-- Pop-up da Loja - IFRAME CARREGA /map/shop -->
+<!-- DEBUG: VERSÃO 2025-01-19 00:20 UTC - SE VÊ "EM CONSTRUÇÃO" = CACHE/FLASK NÃO REINICIOU -->
 <div id="shop-popup" class="ui-dialog" style="display:none">
-  <div class="ui-panel" style="width: 90vw; height: 85vh; max-width: 1400px; padding: 0; overflow: hidden;">
+  <div class="ui-panel" style="width: 90vw; height: 85vh; max-width: 1400px; padding: 0; overflow: hidden; position: relative;">
     <button class="close-popup-btn" onclick="closeShopPopup()" style="position: absolute; top: 10px; right: 10px; z-index: 10;">✕</button>
+
+    <!-- INDICADOR VISUAL IMPOSSÍVEL DE NÃO VER -->
+    <div style="position: absolute; top: 50px; left: 0; right: 0; background: #ff0000; color: #ffffff;
+                padding: 20px; z-index: 9999; font-size: 18px; font-weight: bold; text-align: center;
+                border: 5px solid #ffff00;">
+      🔴 DEBUG: IFRAME DO SHOP CARREGANDO (/map/shop)
+      <br>SE VÊ ESTA MENSAGEM = ARQUIVO NOVO CORRETO
+      <br>AGUARDE O IFRAME CARREGAR ABAIXO...
+    </div>
+
     <iframe id="shop-iframe"
             src="/map/shop"
-            style="width: 100%; height: 100%; border: none; border-radius: 8px;"
+            style="width: 100%; height: 100%; border: none; border-radius: 8px; margin-top: 120px;"
             frameborder="0">
     </iframe>
   </div>
