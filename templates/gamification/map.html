@@ -738,51 +738,17 @@
     </div>
 </div>
 
-<!-- Pop-up da Loja -->
-<!-- SHOP POPUP - VERSÃO ATUALIZADA 2025-01-19 -->
+<!-- Pop-up da Loja - IFRAME SOLUTION -->
+<!-- VERSÃO 2025-01-19 23:55 - CARREGA /map/shop EM IFRAME -->
 <div id="shop-popup" class="ui-dialog">
-    <div class="ui-panel shop-panel">
-        <h2 class="title">🛒 LOJA DO MERCADOR (DEBUG MODE)</h2>
-        <button class="close-popup-btn" onclick="closeShopPopup()">×</button>
-
-        <div class="shop-gold-display">
-            <img src="/static/game.data/resources/gold-icon.png" class="shop-gold-icon" alt="Ouro">
-            <span class="shop-gold-amount" id="shop-player-gold">0</span>
-        </div>
-
-        <div class="shop-loading" id="shop-loading">
-            <div class="shop-loading-spinner"></div>
-            <div>Preparando mercadorias...</div>
-        </div>
-
-        <div class="shop-content" id="shop-content" style="display: none;">
-            <!-- Poções -->
-            <div class="shop-section">
-                <div class="shop-items-row" id="shop-potions-row"></div>
-            </div>
-
-            <div class="shop-divider"></div>
-
-            <!-- Lembranças -->
-            <div class="shop-section">
-                <div class="shop-items-row" id="shop-memories-row"></div>
-            </div>
-
-            <div class="shop-divider"></div>
-
-            <!-- Relíquias -->
-            <div class="shop-section">
-                <div class="shop-items-row" id="shop-relics-row"></div>
-            </div>
-        </div>
+    <div class="ui-panel" style="width: 90vw; height: 85vh; max-width: 1400px; padding: 0; overflow: hidden;">
+        <button class="close-popup-btn" onclick="closeShopPopup()" style="position: absolute; top: 10px; right: 10px; z-index: 10;">×</button>
+        <iframe id="shop-iframe"
+                src="/map/shop"
+                style="width: 100%; height: 100%; border: none; border-radius: 8px;"
+                frameborder="0">
+        </iframe>
     </div>
-</div>
-
-<!-- Tooltip do Shop -->
-<div class="shop-tooltip" id="shop-tooltip">
-    <div class="shop-tooltip-name" id="shop-tooltip-name"></div>
-    <div class="shop-tooltip-description" id="shop-tooltip-description"></div>
-    <div class="shop-tooltip-rarity" id="shop-tooltip-rarity"></div>
 </div>
 
 <!-- Pop-up de Evento (Placeholder) -->
@@ -1214,197 +1180,19 @@ async function selectEnemy(enemyId, enemyName) {
     }
 }
 
-// Shop
-let shopInventory = [];
-let shopTooltip = null;
-
-async function openShopPopup() {
-    console.log('🛒 [DEBUG] openShopPopup CHAMADA!');
-    console.log('🛒 [DEBUG] Verificando se #shop-popup existe:', document.getElementById('shop-popup'));
-    console.log('🛒 [DEBUG] Verificando se #shop-loading existe:', document.getElementById('shop-loading'));
-    console.log('🛒 [DEBUG] Verificando se #shop-content existe:', document.getElementById('shop-content'));
-
+// Shop - IFRAME SOLUTION (simples e efetivo)
+function openShopPopup() {
+    console.log('🛒 Abrindo shop via iframe...');
     openDialog('#shop-popup');
-    console.log('🛒 [DEBUG] openDialog executado');
-
-    loadShopInventory();
-    console.log('🛒 [DEBUG] loadShopInventory chamado');
+    // Forçar reload do iframe para garantir dados atualizados
+    const iframe = document.getElementById('shop-iframe');
+    if (iframe) {
+        iframe.src = iframe.src; // Force reload
+    }
 }
 
 function closeShopPopup() {
     closeDialog('#shop-popup');
-    // Resetar shop para próxima abertura
-    document.getElementById('shop-loading').style.display = 'block';
-    document.getElementById('shop-content').style.display = 'none';
-    document.getElementById('shop-potions-row').innerHTML = '';
-    document.getElementById('shop-memories-row').innerHTML = '';
-    document.getElementById('shop-relics-row').innerHTML = '';
-}
-
-async function loadShopInventory() {
-    console.log('🛒 [DEBUG] loadShopInventory INICIADO');
-    const loading = document.getElementById('shop-loading');
-    const content = document.getElementById('shop-content');
-
-    console.log('🛒 [DEBUG] loading element:', loading);
-    console.log('🛒 [DEBUG] content element:', content);
-
-    if (!loading || !content) {
-        console.error('❌ [DEBUG] ERRO: Elementos do shop não encontrados!');
-        alert('ERRO DE DEBUG: Elementos do shop não existem no DOM!');
-        return;
-    }
-
-    loading.style.display = 'block';
-    content.style.display = 'none';
-    console.log('🛒 [DEBUG] Loading mostrado, content escondido');
-
-    try {
-        console.log('🛒 [DEBUG] Fazendo fetch para /map/api/shop/get-inventory');
-        let response = await fetch('/map/api/shop/get-inventory');
-        let data = await response.json();
-        console.log('🛒 [DEBUG] Resposta recebida:', data);
-
-        if (!data.success && data.should_generate) {
-            response = await fetch('/map/api/shop/generate', { method: 'POST' });
-            data = await response.json();
-            if (!data.success) throw new Error(data.error || 'Erro ao gerar loja');
-
-            response = await fetch('/map/api/shop/get-inventory');
-            data = await response.json();
-        }
-
-        if (data.success) {
-            shopInventory = data.items;
-            document.getElementById('shop-player-gold').textContent = data.player_gold;
-            renderShopItems(data.items);
-            loading.style.display = 'none';
-            content.style.display = 'block';
-        } else {
-            throw new Error(data.error || 'Erro desconhecido');
-        }
-    } catch (error) {
-        loading.innerHTML = '<p style="color: #ff6b6b;">Erro ao carregar loja</p>';
-        console.error('Erro ao carregar shop:', error);
-    }
-}
-
-function renderShopItems(items) {
-    const potionsRow = document.getElementById('shop-potions-row');
-    const memoriesRow = document.getElementById('shop-memories-row');
-    const relicsRow = document.getElementById('shop-relics-row');
-
-    potionsRow.innerHTML = '';
-    memoriesRow.innerHTML = '';
-    relicsRow.innerHTML = '';
-
-    items.forEach(item => {
-        const itemHtml = createShopItemElement(item);
-        if (item.type === 'potion') {
-            potionsRow.insertAdjacentHTML('beforeend', itemHtml);
-        } else if (item.type === 'memory') {
-            memoriesRow.insertAdjacentHTML('beforeend', itemHtml);
-        } else if (item.type === 'relic') {
-            relicsRow.insertAdjacentHTML('beforeend', itemHtml);
-        }
-    });
-
-    // Adicionar eventos
-    document.querySelectorAll('.shop-item').forEach(el => {
-        el.addEventListener('mouseenter', showShopTooltip);
-        el.addEventListener('mouseleave', hideShopTooltip);
-        el.addEventListener('mousemove', moveShopTooltip);
-    });
-
-    // Inicializar tooltip
-    shopTooltip = document.getElementById('shop-tooltip');
-}
-
-function createShopItemElement(item) {
-    const rarityAttr = item.rarity ? `data-rarity="${item.rarity}"` : '';
-
-    // Corrigir caminho do ícone
-    let iconPath = item.icon;
-    if (item.type === 'relic' && !iconPath.includes('/')) {
-        iconPath = 'relics/' + iconPath;
-    } else if (item.type === 'memory') {
-        iconPath = 'memory.png';
-    }
-
-    return `
-        <div class="shop-item" ${rarityAttr} data-item-id="${item.id}"
-             data-name="${item.name}"
-             data-description="${item.description}"
-             data-rarity-text="${item.rarity || 'comum'}"
-             onclick="buyShopItem(${item.id})">
-            <img src="/static/game.data/${iconPath}" class="shop-item-icon" alt="${item.name}"
-                 onerror="this.src='/static/game.data/resources/placeholder.png'">
-            <div class="shop-item-price">
-                <img src="/static/game.data/resources/gold-icon.png" class="shop-price-icon">
-                <span class="shop-price-value">${item.price}</span>
-            </div>
-        </div>
-    `;
-}
-
-function showShopTooltip(e) {
-    const item = e.currentTarget;
-    const name = item.dataset.name;
-    const description = item.dataset.description;
-    const rarity = item.dataset.rarityText;
-
-    document.getElementById('shop-tooltip-name').textContent = name;
-    document.getElementById('shop-tooltip-description').textContent = description;
-    document.getElementById('shop-tooltip-rarity').textContent = rarity;
-
-    shopTooltip.classList.add('show');
-    moveShopTooltip(e);
-}
-
-function hideShopTooltip() {
-    shopTooltip.classList.remove('show');
-}
-
-function moveShopTooltip(e) {
-    const offset = 15;
-    shopTooltip.style.left = (e.clientX + offset) + 'px';
-    shopTooltip.style.top = (e.clientY + offset) + 'px';
-}
-
-async function buyShopItem(shopItemId) {
-    const itemElement = document.querySelector(`[data-item-id="${shopItemId}"]`);
-    if (itemElement.classList.contains('sold')) return;
-
-    itemElement.classList.add('buying');
-
-    try {
-        const response = await fetch(`/map/api/shop/buy-item/${shopItemId}`, { method: 'POST' });
-        const data = await response.json();
-
-        if (data.success) {
-            document.getElementById('shop-player-gold').textContent = data.player_gold;
-
-            if (data.requires_redirect) {
-                // Fechar shop e redirecionar para seleção de memória
-                closeShopPopup();
-                window.location.href = data.redirect_url;
-                return;
-            }
-
-            // Marcar como vendido
-            itemElement.classList.remove('buying');
-            itemElement.classList.add('sold');
-            itemElement.insertAdjacentHTML('beforeend', '<div class="shop-sold-label">VENDIDO</div>');
-
-            showNotification(data.message || 'Item comprado!', 'success');
-        } else {
-            itemElement.classList.remove('buying');
-            showNotification(data.error || 'Erro ao comprar', 'error');
-        }
-    } catch (error) {
-        itemElement.classList.remove('buying');
-        showNotification('Erro de conexão', 'error');
-    }
 }
 
 // Evento
