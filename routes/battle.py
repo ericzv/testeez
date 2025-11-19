@@ -2030,8 +2030,8 @@ def reset_player_run(player_id):
         player.relic_reroll_count = 0
 
         # ===== RESETAR RECURSOS DE RUN =====
-        player.run_gold = 0
-        
+        player.run_gold = 50  # Começa com 50 de ouro a cada run
+
         # ===== RESETAR PROGRESSO =====
         player_progress = PlayerProgress.query.filter_by(player_id=player.id).first()
         if player_progress:

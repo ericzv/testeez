@@ -363,6 +363,7 @@ def choose_character_route():
                 run_crystals_gained=0,
                 run_hourglasses_gained=0,
                 run_gold_gained=0,
+                run_gold=50,  # Começa com 50 de ouro
                 run_bosses_defeated=0,
                 run_start_timestamp=datetime.utcnow()
             )
