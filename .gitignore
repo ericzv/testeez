@@ -1,7 +1,5 @@
-static/game.data/_originals/
-static/game.data/buffs/_originals/
-static/game.data/icons/_originals/
-static/game.data/relics/_originals/
+# Backups de imagens originais (antes da otimização)
+**/_originals/
 
 # Python
 __pycache__/

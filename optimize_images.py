@@ -13,8 +13,9 @@ O script:
 - Cria backup das imagens originais (pasta '_originals')
 - Redimensiona imagens muito grandes
 - Otimiza a compressão PNG
+- Gera versões WebP (70-80% menor que PNG)
 - Para ícones pequenos: max 512x512px
-- Para backgrounds: max 1920x1080px
+- Para backgrounds: max 1920x1080px (compressão agressiva)
 - Para portraits/sprites: mantém proporção original se < 2048px
 """
 
@@ -28,15 +29,15 @@ ICON_MAX_SIZE = (512, 512)  # Tamanho máximo para ícones (buffs, relics, skill
 BACKGROUND_MAX_SIZE = (1920, 1080)  # Tamanho máximo para backgrounds
 PORTRAIT_MAX_SIZE = (2048, 2048)  # Tamanho máximo para portraits/sprites
 
-# Pastas para processar
+# Pastas para processar (recursivamente)
 PATHS_TO_PROCESS = [
     'static/game.data/buffs',
     'static/game.data/relics',
     'static/game.data/skills',
     'static/game.data/icons',  # ícones de UI (atk1-4, damage, etc)
-    'static/game.data/events/icons',  # ícones dos eventos (shrine, chest, etc)
-    'static/game.data/events/choices',  # ícones de escolhas (choice-accept, etc)
+    'static/game.data/events',  # eventos e ícones (recursivo)
     'static/game.data/resources',  # ícones de recursos (hp-icon, gold-icon, etc)
+    'static/game.data/npcs',  # NPCs (recursivo)
     'static/game.data',  # backgrounds e outros
 ]
 
@@ -70,7 +71,7 @@ def get_max_size(filepath):
 
 
 def optimize_image(filepath, backup_dir):
-    """Otimiza uma imagem PNG"""
+    """Otimiza uma imagem PNG e gera versão WebP"""
     try:
         # Criar backup
         backup_path = backup_dir / filepath.name
@@ -85,6 +86,7 @@ def optimize_image(filepath, backup_dir):
 
         # Determinar tamanho máximo
         max_size = get_max_size(filepath)
+        is_background = should_be_background(filepath)
 
         # Redimensionar se necessário
         if img.size[0] > max_size[0] or img.size[1] > max_size[1]:
@@ -92,6 +94,7 @@ def optimize_image(filepath, backup_dir):
             print(f"  📐 Redimensionado: {original_dimensions} → {img.size}")
 
         # Converter para RGB se não tiver transparência (menor tamanho)
+        img_for_webp = img
         if img.mode == 'RGBA':
             # Verificar se tem transparência real
             alpha = img.split()[3]
@@ -100,17 +103,34 @@ def optimize_image(filepath, backup_dir):
                 rgb_img = Image.new('RGB', img.size, (255, 255, 255))
                 rgb_img.paste(img, mask=img.split()[3])
                 img = rgb_img
+                img_for_webp = rgb_img
                 print(f"  🎨 Convertido para RGB (sem transparência)")
 
-        # Salvar otimizado
-        img.save(filepath, 'PNG', optimize=True, quality=85)
+        # Salvar PNG otimizado (mais agressivo para backgrounds)
+        if is_background:
+            # Backgrounds: compressão mais agressiva
+            img.save(filepath, 'PNG', optimize=True, compress_level=9)
+        else:
+            img.save(filepath, 'PNG', optimize=True, quality=85)
 
         new_size = os.path.getsize(filepath)
         reduction = ((original_size - new_size) / original_size) * 100
 
-        print(f"  ✅ {filepath.name}")
+        print(f"  ✅ PNG: {filepath.name}")
         print(f"     {original_size/1024/1024:.2f}MB → {new_size/1024/1024:.2f}MB "
               f"({reduction:.1f}% redução)")
+
+        # Gerar versão WebP (muito menor)
+        webp_path = filepath.with_suffix('.webp')
+        webp_quality = 75 if is_background else 85
+        img_for_webp.save(webp_path, 'WebP', quality=webp_quality, method=6)
+
+        webp_size = os.path.getsize(webp_path)
+        webp_reduction = ((original_size - webp_size) / original_size) * 100
+
+        print(f"  🌐 WebP: {webp_path.name}")
+        print(f"     {original_size/1024/1024:.2f}MB → {webp_size/1024/1024:.2f}MB "
+              f"({webp_reduction:.1f}% redução)")
 
         return original_size, new_size
 
@@ -120,7 +140,7 @@ def optimize_image(filepath, backup_dir):
 
 
 def main():
-    print("🖼️  Otimizador de Imagens PNG\n")
+    print("🖼️  Otimizador de Imagens PNG + WebP\n")
 
     total_original = 0
     total_optimized = 0
@@ -139,8 +159,11 @@ def main():
         backup_dir = path / '_originals'
         backup_dir.mkdir(exist_ok=True)
 
-        # Processar arquivos PNG
-        png_files = list(path.glob('*.png'))
+        # Processar arquivos PNG (recursivamente para eventos e npcs)
+        if 'events' in str(path) or 'npcs' in str(path):
+            png_files = list(path.rglob('*.png'))
+        else:
+            png_files = list(path.glob('*.png'))
 
         if not png_files:
             print(f"  ℹ️  Nenhum arquivo PNG encontrado")
@@ -151,7 +174,14 @@ def main():
             if '_originals' in str(png_file):
                 continue
 
-            original, optimized = optimize_image(png_file, backup_dir)
+            # Para arquivos em subpastas, criar backup na subpasta correspondente
+            if png_file.parent != path:
+                backup_dir_for_file = png_file.parent / '_originals'
+                backup_dir_for_file.mkdir(exist_ok=True)
+            else:
+                backup_dir_for_file = backup_dir
+
+            original, optimized = optimize_image(png_file, backup_dir_for_file)
 
             if original > 0:
                 total_original += original
@@ -164,7 +194,7 @@ def main():
     print("="*60)
     print(f"Arquivos processados: {processed_count}")
     print(f"Tamanho original: {total_original/1024/1024:.2f}MB")
-    print(f"Tamanho otimizado: {total_optimized/1024/1024:.2f}MB")
+    print(f"Tamanho otimizado PNG: {total_optimized/1024/1024:.2f}MB")
 
     if total_original > 0:
         total_reduction = ((total_original - total_optimized) / total_original) * 100
@@ -172,7 +202,8 @@ def main():
               f"({total_reduction:.1f}%)")
 
     print("\n💡 Os arquivos originais foram salvos nas pastas '_originals'")
-    print("   Se algo der errado, você pode restaurá-los de lá.")
+    print("   Versões WebP foram geradas para todos os arquivos.")
+    print("   Se algo der errado, você pode restaurar os originais.")
 
 
 if __name__ == '__main__':

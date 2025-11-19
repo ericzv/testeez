@@ -9,6 +9,7 @@
       will-change: transform;
       transform: translateZ(0); /* Force GPU acceleration */
       backface-visibility: hidden;
+      contain: layout style paint;
   }
 
   .tree-paralax {
@@ -16,12 +17,27 @@
       backface-visibility: hidden;
       transform: translateZ(0);
       /* Otimização: usar transform3d para ativar GPU */
+      contain: layout style paint;
   }
 
   .character-container, .boss-container {
       will-change: transform, opacity;
       transform: translateZ(0);
       backface-visibility: hidden;
+      contain: layout style;
+  }
+
+  /* Otimizar renderização de menus off-screen */
+  .submenu:not(.active) {
+      content-visibility: auto;
+      contain-intrinsic-size: 0 500px;
+  }
+
+  /* Reduzir repaint de particles */
+  .particles-container {
+      will-change: transform;
+      transform: translateZ(0);
+      contain: layout style paint;
   }
 
   /* Desabilitar animações em dispositivos lentos */

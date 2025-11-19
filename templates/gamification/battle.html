@@ -4,9 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Arena de Batalha Imersiva</title>
+
+<!-- Preconnect para resources externos -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="/static/css/enemy-skills.css">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<!-- Preload crítico -->
+<link rel="preload" href="/static/css/battle.css" as="style">
+<link rel="preload" href="/static/js/lib/pixi.min.js" as="script">
+<link rel="preload" href="/static/js/performance-manager.js" as="script">
+
+<!-- Stylesheets -->
+<link rel="stylesheet" href="/static/css/enemy-skills.css">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/css/battle.css">
 <link rel="stylesheet" href="/static/css/battle-turns.css">
@@ -242,29 +251,17 @@
 <!-- Main Battle Arena -->
 <div class="battle-arena battle-area-dynamic battle-dynamic" id="battle-arena">
 <div class="tree-paralax-container" id="tree-paralax-container">
-  <!-- Árvores do lado esquerdo -->
+  <!-- Árvores do lado esquerdo (reduzido de 10 para 4) -->
   <div class="tree-paralax left-side" id="tree-left-1"></div>
   <div class="tree-paralax left-side" id="tree-left-2"></div>
   <div class="tree-paralax left-side" id="tree-left-3"></div>
   <div class="tree-paralax left-side" id="tree-left-4"></div>
-  <div class="tree-paralax left-side" id="tree-left-5"></div>
-  <div class="tree-paralax left-side" id="tree-left-6"></div>
-  <div class="tree-paralax left-side" id="tree-left-7"></div>
-  <div class="tree-paralax left-side" id="tree-left-8"></div>
-  <div class="tree-paralax left-side" id="tree-left-9"></div>
-  <div class="tree-paralax left-side" id="tree-left-10"></div>
-  
-  <!-- Árvores do lado direito -->
+
+  <!-- Árvores do lado direito (reduzido de 10 para 4) -->
   <div class="tree-paralax right-side" id="tree-right-1"></div>
   <div class="tree-paralax right-side" id="tree-right-2"></div>
   <div class="tree-paralax right-side" id="tree-right-3"></div>
   <div class="tree-paralax right-side" id="tree-right-4"></div>
-  <div class="tree-paralax right-side" id="tree-right-5"></div>
-  <div class="tree-paralax right-side" id="tree-right-6"></div>
-  <div class="tree-paralax right-side" id="tree-right-7"></div>
-  <div class="tree-paralax right-side" id="tree-right-8"></div>
-  <div class="tree-paralax right-side" id="tree-right-9"></div>
-  <div class="tree-paralax right-side" id="tree-right-10"></div>
 </div>
 
 <!-- Marcador de Energia -->
@@ -842,24 +839,27 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Performance Manager (INSERIR ANTES do pixi.min.js) -->
 <script src="/static/js/performance-manager.js"></script>
 
+<!-- Image Optimizer - WebP support + lazy loading -->
+<script src="/static/js/image-optimizer.js"></script>
+
 <!-- PixiJS Libraries -->
 <script src="/static/js/lib/pixi.min.js"></script>
 
 <!-- Bibliotecas de efeitos antigas (manter compatibilidade) -->
-<script src="/static/js/fx-attacks.js"></script>
-<script src="/static/js/fx-specials.js"></script>
+<script defer src="/static/js/fx-attacks.js"></script>
+<script defer src="/static/js/fx-specials.js"></script>
 
-<!-- Novas vinhetas avançadas -->
-<script src="/static/js/battle-vignette-part1.js"></script>
-<script src="/static/js/battle-vignette-part2.js"></script>
-<script src="/static/js/battle-vignette-part3.js"></script>
-<script src="/static/js/battle-vignette-part4.js"></script>
+<!-- Novas vinhetas avançadas (defer para não bloquear inicialização) -->
+<script defer src="/static/js/battle-vignette-part1.js"></script>
+<script defer src="/static/js/battle-vignette-part2.js"></script>
+<script defer src="/static/js/battle-vignette-part3.js"></script>
+<script defer src="/static/js/battle-vignette-part4.js"></script>
 
 <!-- Sistema PixiJS principal (DEVE vir ANTES da integração) -->
 <script src="/static/js/battle-pixie.js"></script>
 
 <!-- Integração das vinhetas (DEVE vir DEPOIS do battle-pixie.js) -->
-<script src="/static/js/vignette-integration.js"></script>
+<script defer src="/static/js/vignette-integration.js"></script>
 
 <!-- Resto dos arquivos -->
 <script async src="/static/js/shaders-attacks1.js"></script>
@@ -868,18 +868,18 @@ document.addEventListener('DOMContentLoaded', function() {
 <script async src="/static/js/shaders-attacks4.js"></script>
 <script async src="/static/js/shaders-attacks5.js"></script>
 <script async src="/static/js/shaders-attacks-distant.js"></script>
-<script src="/static/js/shaders-attacks.js"></script> <!-- Principal por último -->
+<script defer src="/static/js/shaders-attacks.js"></script> <!-- Principal por último -->
 
 <!-- Sistema de Pré-carregamento de Assets -->
 <script src="/static/js/battle-preloader.js"></script>
 
 <script src="/static/js/battle-class-animations.js"></script>
-<script src="/static/js/battle-blood-stacks.js"></script>
+<script defer src="/static/js/battle-blood-stacks.js"></script>
 <script src="/static/js/battle-base.js"></script>
 <script src="/static/js/battle-combat-system.js"></script>
 <script src="/static/js/battle-skills-system.js"></script>
 <script src="/static/js/battle-animation.js"></script>
-<script src="/static/js/battle-sakura.js"></script>
+<script defer src="/static/js/battle-sakura.js"></script>
 <script src="/static/js/battle-turns.js"></script>
 <script src="/static/js/battle-memory-system.js"></script>
 
