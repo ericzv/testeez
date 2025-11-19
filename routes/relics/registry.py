@@ -777,20 +777,29 @@ def get_all_relic_ids():
     """Retorna lista de IDs de todas as relíquias"""
     return list(RELIC_DEFINITIONS.keys())
 
+def get_all_relics():
+    """Retorna lista de todas as relíquias como dicionários"""
+    return list(RELIC_DEFINITIONS.values())
+
 RARITY_WEIGHTS = {
     'first_relic': {
         'common': 50,
         'rare': 35,
-        'rare': 10,
-        'epic': 5,
-        'legendary': 0
+        'epic': 10,
+        'legendary': 5
     },
     'last_boss': {
         'common': 20,
         'rare': 35,
-        'rare': 25,
-        'epic': 15,
-        'legendary': 5
+        'epic': 25,
+        'legendary': 15
+    },
+    'shop': {
+        'common': 40,
+        'uncommon': 30,
+        'rare': 20,
+        'epic': 8,
+        'legendary': 2
     }
 }
 
