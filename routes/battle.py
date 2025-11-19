@@ -2479,11 +2479,36 @@ def apply_victory_rewards():
             level_up = True
         
         db.session.commit()
-        
+
         # Limpar recompensas do banco
         db.session.delete(pending_reward)
         db.session.commit()
-        
+
+        # MARCAR NÓ DO MAPA COMO COMPLETADO (fix: nó sendo liberado 2x)
+        try:
+            from models import PlayerMapProgress, MapNode
+            progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+            if progress and progress.current_node_id:
+                node = MapNode.query.get(progress.current_node_id)
+                if node and not node.is_completed:
+                    node.is_completed = True
+                    # Atualizar estatísticas do progresso
+                    if node.node_type == 'battle':
+                        progress.battles_won += 1
+                    elif node.node_type == 'elite':
+                        progress.elites_defeated += 1
+                    elif node.node_type == 'boss':
+                        from models import ProceduralMap
+                        current_map = ProceduralMap.query.get(progress.current_map_id)
+                        if current_map:
+                            current_map.is_completed = True
+                            current_map.boss_defeated = True
+                        progress.total_acts_completed += 1
+                    db.session.commit()
+                    print(f"✅ Nó {node.id} ({node.node_type}) marcado como completado")
+        except Exception as e:
+            print(f"⚠️ Erro ao marcar nó como completado: {e}")
+
         print(f"🎉 RECOMPENSAS APLICADAS:")
         print(f"   EXP: {exp_reward}")
         if crystals_gained > 0:
@@ -2494,7 +2519,7 @@ def apply_victory_rewards():
             print(f"   Ampulhetas: {hourglasses_gained}")
         if level_up:
             print(f"   Level up: {old_level} → {player.level}")
-        
+
         return jsonify({
             'success': True,
             'message': 'Recompensas recebidas!',
