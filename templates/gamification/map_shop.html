@@ -124,100 +124,58 @@ body {
     transform: translateY(-8px) scale(1.05);
 }
 
-.item-icon-wrapper {
-    width: 60px;
-    height: 60px;
-    background: transparent;
-    border: 2px solid rgba(100, 100, 100, 0.2);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-}
-
-.shop-item:hover .item-icon-wrapper {
-    border-color: rgba(255, 215, 0, 0.6);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
-    background: transparent;
-}
-
-/* Brilho animado no hover */
-.item-icon-wrapper::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-        45deg,
-        transparent 30%,
-        rgba(255, 255, 255, 0.2) 50%,
-        transparent 70%
-    );
-    transform: translateX(-100%) rotate(45deg);
-    transition: transform 0.6s;
-}
-
-.shop-item:hover .item-icon-wrapper::before {
-    transform: translateX(100%) rotate(45deg);
-}
-
 .item-icon {
     width: 48px;
     height: 48px;
     object-fit: contain;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    padding: 2px;
+    background: rgba(0, 0, 0, 0.3);
     filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
     transition: all 0.3s ease;
 }
 
 .shop-item:hover .item-icon {
+    border-color: rgba(255, 255, 255, 0.6);
     filter: drop-shadow(0 4px 12px rgba(255, 215, 0, 0.4));
     transform: scale(1.08);
 }
 
-/* Outline de raridade */
-.shop-item[data-rarity="common"] .item-icon-wrapper {
-    border-color: rgba(150, 150, 150, 0.4);
+/* Glow de raridade (para lembranças) */
+.shop-item[data-rarity="common"] .item-icon {
+    box-shadow: 0 0 8px rgba(150, 150, 150, 0.4);
 }
-.shop-item[data-rarity="common"]:hover .item-icon-wrapper {
-    border-color: rgba(150, 150, 150, 0.9);
-    box-shadow: 0 0 20px rgba(150, 150, 150, 0.4);
-}
-
-.shop-item[data-rarity="rare"] .item-icon-wrapper {
-    border-color: rgba(59, 130, 246, 0.4);
-}
-.shop-item[data-rarity="rare"]:hover .item-icon-wrapper {
-    border-color: rgba(59, 130, 246, 0.9);
-    box-shadow: 0 0 25px rgba(59, 130, 246, 0.5);
+.shop-item[data-rarity="common"]:hover .item-icon {
+    box-shadow: 0 0 15px rgba(150, 150, 150, 0.6);
 }
 
-.shop-item[data-rarity="epic"] .item-icon-wrapper {
-    border-color: rgba(168, 85, 247, 0.4);
+.shop-item[data-rarity="uncommon"] .item-icon {
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
 }
-.shop-item[data-rarity="epic"]:hover .item-icon-wrapper {
-    border-color: rgba(168, 85, 247, 0.9);
-    box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
-}
-
-.shop-item[data-rarity="legendary"] .item-icon-wrapper {
-    border-color: rgba(251, 191, 36, 0.4);
-}
-.shop-item[data-rarity="legendary"]:hover .item-icon-wrapper {
-    border-color: rgba(251, 191, 36, 0.9);
-    box-shadow: 0 0 30px rgba(251, 191, 36, 0.6);
+.shop-item[data-rarity="uncommon"]:hover .item-icon {
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
 }
 
-.shop-item[data-rarity="uncommon"] .item-icon-wrapper {
-    border-color: rgba(34, 197, 94, 0.4);
+.shop-item[data-rarity="rare"] .item-icon {
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
 }
-.shop-item[data-rarity="uncommon"]:hover .item-icon-wrapper {
-    border-color: rgba(34, 197, 94, 0.9);
-    box-shadow: 0 0 25px rgba(34, 197, 94, 0.5);
+.shop-item[data-rarity="rare"]:hover .item-icon {
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+}
+
+.shop-item[data-rarity="epic"] .item-icon {
+    box-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
+}
+.shop-item[data-rarity="epic"]:hover .item-icon {
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.6);
+}
+
+.shop-item[data-rarity="legendary"] .item-icon {
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+}
+.shop-item[data-rarity="legendary"]:hover .item-icon {
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.6);
 }
 
 /* Preço */
@@ -522,10 +480,12 @@ function renderShopItems(items) {
 function createItemElement(item) {
     const rarityAttr = item.rarity ? `data-rarity="${item.rarity}"` : '';
 
-    // Corrigir caminho do ícone para relíquias
+    // Corrigir caminho do ícone
     let iconPath = item.icon;
     if (item.type === 'relic' && !iconPath.includes('/')) {
         iconPath = 'relics/' + iconPath;
+    } else if (item.type === 'memory') {
+        iconPath = 'memory.png';
     }
 
     return `
@@ -534,10 +494,8 @@ function createItemElement(item) {
              data-description="${item.description}"
              data-rarity-text="${item.rarity || 'comum'}"
              onclick="buyItem(${item.id})">
-            <div class="item-icon-wrapper">
-                <img src="/static/game.data/${iconPath}" class="item-icon" alt="${item.name}"
-                     onerror="this.src='/static/game.data/resources/placeholder.png'">
-            </div>
+            <img src="/static/game.data/${iconPath}" class="item-icon" alt="${item.name}"
+                 onerror="this.src='/static/game.data/resources/placeholder.png'">
             <div class="item-price">
                 <img src="/static/game.data/resources/gold-icon.png" class="price-icon">
                 <span class="price-value">${item.price}</span>
