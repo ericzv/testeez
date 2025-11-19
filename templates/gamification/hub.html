@@ -2397,17 +2397,7 @@
   </div>
 </div>
 
-<!-- Pop-up da Loja - IFRAME CARREGA /map/shop -->
-<div id="shop-popup" class="ui-dialog" style="display:none">
-  <div class="ui-panel" style="width: 90vw; height: 90vh; max-width: 1400px; padding: 0; overflow: hidden; position: relative;">
-    <button class="close-popup-btn" onclick="closeShopPopup()" style="position: absolute; top: 10px; right: 10px; z-index: 10;">✕</button>
-    <iframe id="shop-iframe"
-            src="/map/shop"
-            style="width: 100%; height: 100%; border: none;"
-            frameborder="0">
-    </iframe>
-  </div>
-</div>
+<!-- Shop redireciona para /map/shop - não precisa mais de popup aqui -->
 
 <!-- Pop-up de Evento (Placeholder) -->
 <div id="event-popup" class="ui-dialog" style="display:none">
@@ -2761,7 +2751,8 @@ async function handleCurrentNodeClick(node) {
       window.location.href = `/map/battle/boss/${node.boss_id || 1}`;
       break;
     case 'shop':
-      openDialog('#shop-popup');
+      // Redirecionar para a página da loja
+      window.location.href = '/map/shop';
       break;
     case 'event':
       // Redirecionar para página de evento
@@ -2802,12 +2793,6 @@ function canAdvanceInMap() {
   }
 
   return true;
-}
-
-// Fechar loja (permite reabrir enquanto estiver no mesmo nó)
-function closeShopPopup() {
-  closeDialog('#shop-popup');
-  console.log("🛒 Shop fechado (pode reabrir enquanto estiver no nó)");
 }
 
 // Fechar evento e marcar como completado
@@ -2899,7 +2884,9 @@ async function handleMapNodeClick(node) {
       window.location.href = `/map/battle/boss/${node.boss_id || 1}`;
       break;
     case 'shop':
-      openDialog('#shop-popup');
+      // Redirecionar para a página da loja
+      console.log('🛒 Redirecionando para shop');
+      window.location.href = '/map/shop';
       break;
     case 'event':
       // Redirecionar para página de evento
