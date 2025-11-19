@@ -1674,7 +1674,7 @@
 
       // Chamar função de mostrar popup de memória
       if (typeof showMemorySelectionPopup === 'function') {
-        showMemorySelectionPopup(rarity);
+        showMemorySelectionPopup(numericRarity);  // Passar número, não string
       } else {
         console.error('❌ Função showMemorySelectionPopup não encontrada');
       }
