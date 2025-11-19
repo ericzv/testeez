@@ -1659,10 +1659,9 @@
       // Converter raridade de string para número (shop usa strings, backend usa números)
       const rarityMap = {
         'common': 1,
-        'uncommon': 2,
-        'rare': 3,
-        'epic': 4,
-        'legendary': 4  // Legendary é tratado como epic (máximo suportado)
+        'rare': 2,
+        'epic': 3,
+        'legendary': 4
       };
 
       const numericRarity = rarityMap[rarity] || 1;
