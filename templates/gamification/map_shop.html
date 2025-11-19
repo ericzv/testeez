@@ -115,6 +115,7 @@ body {
 .shop-item {
     position: relative;
     width: 60px;
+    padding: 0;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -520,6 +521,13 @@ function renderShopItems(items) {
 // Criar elemento de item
 function createItemElement(item) {
     const rarityAttr = item.rarity ? `data-rarity="${item.rarity}"` : '';
+
+    // Corrigir caminho do ícone para relíquias
+    let iconPath = item.icon;
+    if (item.type === 'relic' && !iconPath.includes('/')) {
+        iconPath = 'relics/' + iconPath;
+    }
+
     return `
         <div class="shop-item" ${rarityAttr} data-item-id="${item.id}"
              data-name="${item.name}"
@@ -527,7 +535,7 @@ function createItemElement(item) {
              data-rarity-text="${item.rarity || 'comum'}"
              onclick="buyItem(${item.id})">
             <div class="item-icon-wrapper">
-                <img src="/static/game.data/${item.icon}" class="item-icon" alt="${item.name}"
+                <img src="/static/game.data/${iconPath}" class="item-icon" alt="${item.name}"
                      onerror="this.src='/static/game.data/resources/placeholder.png'">
             </div>
             <div class="item-price">
