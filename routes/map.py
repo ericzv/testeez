@@ -1195,7 +1195,6 @@ def buy_shop_item(shop_item_id):
     """
     from models import ShopInventory, PlayerPotionSlot
     from routes.relics.selection import award_relic_to_player
-    from routes.battle_modules.reward_system import select_memory_rewards
 
     player = Player.query.first()
     if not player:

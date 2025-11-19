@@ -88,10 +88,12 @@ body {
 
 .shop-body {
     padding: 20px;
+    background: transparent;
 }
 
 .shop-section {
     margin-bottom: 20px;
+    background: transparent;
 }
 
 .shop-section:last-child {
@@ -109,6 +111,7 @@ body {
     justify-content: center;
     gap: 20px;
     flex-wrap: wrap;
+    background: transparent;
 }
 
 /* ITEM MINIMALISTA - SÓ ÍCONE + PREÇO */
@@ -118,6 +121,7 @@ body {
     padding: 0;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background: transparent;
 }
 
 .shop-item:hover {
@@ -595,7 +599,7 @@ function showNotification(message, type) {
 // Fechar loja
 async function closeShop() {
     // Não marca como completado, apenas fecha e volta ao hub
-    window.location.href = '/gamification/';
+    window.location.href = '/gamification';
 }
 </script>
 {% endblock %}
