@@ -983,6 +983,35 @@ function drawConnections(nodes, positions) {
 async function handleNodeClick(node) {
     console.log('🎯 Nó clicado:', node);
 
+    // Se já é o nó atual, apenas abrir o popup/ação correspondente (permite re-clicar)
+    if (node.is_current) {
+        console.log('✅ [DEBUG] Node já é atual, pulando select-node');
+        console.log('🎯 [DEBUG] Tipo do nó:', node.node_type);
+        console.log('🎯 [DEBUG] Entrando no switch...');
+
+        switch (node.node_type) {
+            case 'battle':
+                console.log('⚔️ [DEBUG] Case battle');
+                openEnemySelection();
+                break;
+            case 'shop':
+                console.log('🛒 [DEBUG] Case shop detectado!');
+                console.log('🛒 [DEBUG] Chamando openShopPopup()...');
+                openShopPopup();
+                console.log('🛒 [DEBUG] openShopPopup() executado');
+                break;
+            case 'event':
+                console.log('❓ [DEBUG] Case event');
+                window.location.href = '/map/event';
+                break;
+            case 'rest':
+                console.log('🏕️ [DEBUG] Case rest');
+                openRestPopup();
+                break;
+        }
+        return; // Não continua para select-node
+    }
+
     // Primeiro, selecionar o nó no backend
     try {
         const response = await fetch(`/map/api/select-node/${node.id}`, { method: 'POST' });
