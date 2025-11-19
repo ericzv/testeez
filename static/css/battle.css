@@ -203,6 +203,8 @@
     opacity: 0.8;
     transition: transform 1.8s linear, filter 1s ease-in-out;
     transform-origin: bottom center;
+    /* Animação de balanço suave - GPU acelerada */
+    animation: tree-gentle-sway 6s infinite alternate ease-in-out;
   }
 
   /* Usar WebP quando suportado (74.6% menor que PNG!) */
