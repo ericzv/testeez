@@ -1655,6 +1655,24 @@
 
     if (showMemorySelection === 'true' && rarity) {
       console.log('🎁 Abrindo seleção de memória:', rarity);
+
+      // Converter raridade de string para número (shop usa strings, backend usa números)
+      const rarityMap = {
+        'common': 1,
+        'uncommon': 2,
+        'rare': 3,
+        'epic': 4,
+        'legendary': 4  // Legendary é tratado como epic (máximo suportado)
+      };
+
+      const numericRarity = rarityMap[rarity] || 1;
+      console.log('🎁 Raridade convertida:', rarity, '->', numericRarity);
+
+      // Configurar dados pendentes de memória (necessário para confirmação)
+      window.__pendingMemoryData = {
+        enemy_rarity: numericRarity
+      };
+
       // Chamar função de mostrar popup de memória
       if (typeof showMemorySelectionPopup === 'function') {
         showMemorySelectionPopup(rarity);
