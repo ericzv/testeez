@@ -2398,23 +2398,12 @@
 </div>
 
 <!-- Pop-up da Loja - IFRAME CARREGA /map/shop -->
-<!-- DEBUG: VERSÃO 2025-01-19 00:20 UTC - SE VÊ "EM CONSTRUÇÃO" = CACHE/FLASK NÃO REINICIOU -->
 <div id="shop-popup" class="ui-dialog" style="display:none">
-  <div class="ui-panel" style="width: 90vw; height: 85vh; max-width: 1400px; padding: 0; overflow: hidden; position: relative;">
+  <div class="ui-panel" style="width: 90vw; height: 90vh; max-width: 1400px; padding: 0; overflow: hidden; position: relative;">
     <button class="close-popup-btn" onclick="closeShopPopup()" style="position: absolute; top: 10px; right: 10px; z-index: 10;">✕</button>
-
-    <!-- INDICADOR VISUAL IMPOSSÍVEL DE NÃO VER -->
-    <div style="position: absolute; top: 50px; left: 0; right: 0; background: #ff0000; color: #ffffff;
-                padding: 20px; z-index: 9999; font-size: 18px; font-weight: bold; text-align: center;
-                border: 5px solid #ffff00;">
-      🔴 DEBUG: IFRAME DO SHOP CARREGANDO (/map/shop)
-      <br>SE VÊ ESTA MENSAGEM = ARQUIVO NOVO CORRETO
-      <br>AGUARDE O IFRAME CARREGAR ABAIXO...
-    </div>
-
     <iframe id="shop-iframe"
             src="/map/shop"
-            style="width: 100%; height: 100%; border: none; border-radius: 8px; margin-top: 120px;"
+            style="width: 100%; height: 100%; border: none;"
             frameborder="0">
     </iframe>
   </div>
@@ -2815,20 +2804,10 @@ function canAdvanceInMap() {
   return true;
 }
 
-// Fechar loja e marcar como completado
-async function closeShopPopup() {
+// Fechar loja (permite reabrir enquanto estiver no mesmo nó)
+function closeShopPopup() {
   closeDialog('#shop-popup');
-  try {
-    await fetch('/map/api/complete-node', { method: 'POST' });
-    console.log("✅ Loja visitada, nó completado");
-    // Atualizar dados locais
-    if (currentMapData && currentMapData.progress) {
-      const currentNode = currentMapData.nodes.find(n => n.id === currentMapData.progress.current_node_id);
-      if (currentNode) currentNode.is_completed = true;
-    }
-  } catch (error) {
-    console.log("⚠️ Erro ao marcar loja como completada");
-  }
+  console.log("🛒 Shop fechado (pode reabrir enquanto estiver no nó)");
 }
 
 // Fechar evento e marcar como completado
@@ -2850,6 +2829,20 @@ async function closeEventPopup() {
 // Handler de clique no nó
 async function handleMapNodeClick(node) {
   console.log('🎯 Nó clicado:', node);
+
+  // MARCAR NÓ ATUAL COMO COMPLETADO antes de avançar (shop/event/rest)
+  if (currentMapData && currentMapData.progress && currentMapData.progress.current_node_id) {
+    const currentNode = currentMapData.nodes.find(n => n.id === currentMapData.progress.current_node_id);
+    if (currentNode && ['shop', 'event', 'rest'].includes(currentNode.node_type)) {
+      try {
+        await fetch('/map/api/complete-node', { method: 'POST' });
+        currentNode.is_completed = true;
+        console.log(`✅ Nó ${currentNode.node_type} marcado como completado ao avançar`);
+      } catch (error) {
+        console.log("⚠️ Erro ao marcar nó como completado");
+      }
+    }
+  }
 
   // Verificar se pode avançar
   if (!canAdvanceInMap()) {
