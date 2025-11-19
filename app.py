@@ -99,6 +99,15 @@ app.jinja_env.auto_reload = True
 app.jinja_env.cache = {}
 print("⚠️ CACHE DE TEMPLATES DESABILITADO - modo debug ativo")
 
+# Adicionar headers para forçar navegador a não cachear
+@app.after_request
+def add_no_cache_headers(response):
+    """Força navegador a não cachear nenhum arquivo"""
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '-1'
+    return response
+
 # Registrar filtros e inicializar o banco de dados
 register_filters(app)
 db.init_app(app)
