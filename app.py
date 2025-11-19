@@ -108,6 +108,16 @@ def add_no_cache_headers(response):
     response.headers['Expires'] = '-1'
     return response
 
+# CACHE BUSTING - Timestamp único para forçar reload de recursos
+import time
+CACHE_BUST_VERSION = str(int(time.time()))
+print(f"🔄 CACHE BUST VERSION: {CACHE_BUST_VERSION}")
+
+@app.context_processor
+def inject_cache_bust():
+    """Injeta versão de cache busting em todos os templates"""
+    return {'cache_v': CACHE_BUST_VERSION}
+
 # Registrar filtros e inicializar o banco de dados
 register_filters(app)
 db.init_app(app)

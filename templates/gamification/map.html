@@ -646,6 +646,13 @@
 {% endblock %}
 
 {% block game_content %}
+<!-- ===== INDICADOR DE VERSÃO - CACHE BUSTER ===== -->
+<div style="position: fixed; top: 0; left: 0; right: 0; background: #ff0000; color: #ffffff;
+            text-align: center; padding: 10px; z-index: 999999; font-size: 16px; font-weight: bold;
+            border-bottom: 3px solid #ffff00; box-shadow: 0 4px 8px rgba(0,0,0,0.8);">
+    🔴 VERSÃO DO ARQUIVO: 2025-01-19 23:45 | LINHAS: 1438 | SHOP COMPLETO ATIVO 🔴
+</div>
+
 <div class="map-container">
     <div class="map-overlay"></div>
 
@@ -809,6 +816,33 @@
 <div class="map-error" id="map-error"></div>
 
 <script>
+// ============================================================
+// VERSÃO DO ARQUIVO: 2025-01-19 23:45 UTC
+// TOTAL DE LINHAS: 1438
+// STATUS: SHOP SYSTEM COMPLETO IMPLEMENTADO
+// ============================================================
+console.log('%c════════════════════════════════════════════', 'color: #ff0000; font-size: 16px; font-weight: bold');
+console.log('%c🔴 MAP.HTML VERSÃO: 2025-01-19 23:45', 'color: #ff0000; font-size: 18px; font-weight: bold');
+console.log('%c🔴 TOTAL DE LINHAS: 1438', 'color: #ff0000; font-size: 18px; font-weight: bold');
+console.log('%c🔴 SHOP COMPLETO ATIVO', 'color: #00ff00; font-size: 18px; font-weight: bold');
+console.log('%c════════════════════════════════════════════', 'color: #ff0000; font-size: 16px; font-weight: bold');
+
+// LIMPAR SERVICE WORKERS (podem causar cache agressivo)
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        if (registrations.length > 0) {
+            console.log('%c⚠️ SERVICE WORKERS ENCONTRADOS! Removendo...', 'color: #ff6600; font-size: 14px; font-weight: bold');
+            registrations.forEach(function(registration) {
+                registration.unregister().then(function() {
+                    console.log('%c✅ Service worker removido:', 'color: #00ff00', registration);
+                });
+            });
+        } else {
+            console.log('%c✅ Nenhum service worker encontrado', 'color: #00ff00');
+        }
+    });
+}
+
 // Dados do mapa
 let currentMapData = null;
 let nodeTypes = {{ node_type_info | tojson }};
