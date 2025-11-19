@@ -836,7 +836,24 @@ document.addEventListener('DOMContentLoaded', function() {
     <span class="turn-text">Terminar Turno</span>
 </button>
 
-<!-- Performance Manager (INSERIR ANTES do pixi.min.js) -->
+<!-- ============================================
+     OTIMIZAÇÕES DE PERFORMANCE
+     - Service Worker: cache offline
+     - Lazy Loading: carregamento sob demanda
+     - Code Splitting: módulos progressivos
+     ============================================ -->
+
+<!-- Service Worker Registration (cache offline) -->
+<script src="/static/js/register-sw.js"></script>
+
+<!-- Lazy Loader (code splitting) -->
+<script src="/static/js/lazy-loader.js"></script>
+
+<!-- ============================================
+     MÓDULOS CRÍTICOS (carregam imediatamente)
+     ============================================ -->
+
+<!-- Performance Manager -->
 <script src="/static/js/performance-manager.js"></script>
 
 <!-- Image Optimizer - WebP support + lazy loading -->
@@ -845,43 +862,39 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- PixiJS Libraries -->
 <script src="/static/js/lib/pixi.min.js"></script>
 
-<!-- Bibliotecas de efeitos antigas (manter compatibilidade) -->
-<script defer src="/static/js/fx-attacks.js"></script>
-<script defer src="/static/js/fx-specials.js"></script>
-
-<!-- Novas vinhetas avançadas (defer para não bloquear inicialização) -->
-<script defer src="/static/js/battle-vignette-part1.js"></script>
-<script defer src="/static/js/battle-vignette-part2.js"></script>
-<script defer src="/static/js/battle-vignette-part3.js"></script>
-<script defer src="/static/js/battle-vignette-part4.js"></script>
-
-<!-- Sistema PixiJS principal (DEVE vir ANTES da integração) -->
+<!-- Sistema PixiJS principal -->
 <script src="/static/js/battle-pixie.js"></script>
-
-<!-- Integração das vinhetas (DEVE vir DEPOIS do battle-pixie.js) -->
-<script defer src="/static/js/vignette-integration.js"></script>
-
-<!-- Resto dos arquivos -->
-<script async src="/static/js/shaders-attacks1.js"></script>
-<script async src="/static/js/shaders-attacks2.js"></script>
-<script async src="/static/js/shaders-attacks3.js"></script>
-<script async src="/static/js/shaders-attacks4.js"></script>
-<script async src="/static/js/shaders-attacks5.js"></script>
-<script async src="/static/js/shaders-attacks-distant.js"></script>
-<script defer src="/static/js/shaders-attacks.js"></script> <!-- Principal por último -->
 
 <!-- Sistema de Pré-carregamento de Assets -->
 <script src="/static/js/battle-preloader.js"></script>
 
-<script src="/static/js/battle-class-animations.js"></script>
-<script defer src="/static/js/battle-blood-stacks.js"></script>
+<!-- Core Battle Systems -->
 <script src="/static/js/battle-base.js"></script>
 <script src="/static/js/battle-combat-system.js"></script>
-<script src="/static/js/battle-skills-system.js"></script>
-<script src="/static/js/battle-animation.js"></script>
-<script defer src="/static/js/battle-sakura.js"></script>
-<script src="/static/js/battle-turns.js"></script>
-<script src="/static/js/battle-memory-system.js"></script>
+
+<!-- ============================================
+     MÓDULOS IMPORTANTES (carregam após críticos)
+     Gerenciado pelo LazyLoader automaticamente
+     ============================================ -->
+<!-- battle-animation.js -->
+<!-- battle-turns.js -->
+<!-- battle-skills-system.js -->
+
+<!-- ============================================
+     MÓDULOS SECUNDÁRIOS (carregam quando idle)
+     Gerenciado pelo LazyLoader automaticamente
+     ============================================ -->
+<!-- battle-class-animations.js -->
+<!-- battle-blood-stacks.js -->
+<!-- battle-memory-system.js -->
+
+<!-- ============================================
+     MÓDULOS LAZY (carregam sob demanda)
+     Gerenciado pelo LazyLoader quando necessário
+     ============================================ -->
+<!-- Vignettes: battle-vignette-part1-4.js, vignette-integration.js -->
+<!-- Shaders: shaders-attacks1-5.js, shaders-attacks-distant.js, shaders-attacks.js -->
+<!-- Effects: fx-attacks.js, fx-specials.js, battle-sakura.js -->
 
 <!-- ============================================
      SISTEMA DE POÇÕES - BATTLE INVENTORY
