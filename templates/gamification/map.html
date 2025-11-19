@@ -999,29 +999,41 @@ async function handleNodeClick(node) {
     }
 
     // Abrir pop-up ou redirecionar baseado no tipo
+    console.log('🎯 [DEBUG] Tipo do nó:', node.node_type);
+    console.log('🎯 [DEBUG] Entrando no switch...');
+
     switch (node.node_type) {
         case 'battle':
+            console.log('⚔️ [DEBUG] Case battle');
             openEnemySelection();
             break;
         case 'elite':
+            console.log('👹 [DEBUG] Case elite');
             // Iniciar batalha contra elite automaticamente
             window.location.href = `/map/battle/elite/${node.boss_id || 2}`;
             break;
         case 'boss':
+            console.log('💀 [DEBUG] Case boss');
             // Iniciar batalha contra boss final
             window.location.href = `/map/battle/boss/${node.boss_id || 1}`;
             break;
         case 'shop':
+            console.log('🛒 [DEBUG] Case shop detectado!');
+            console.log('🛒 [DEBUG] Chamando openShopPopup()...');
             openShopPopup();
+            console.log('🛒 [DEBUG] openShopPopup() executado');
             break;
         case 'event':
+            console.log('❓ [DEBUG] Case event');
             // Redirecionar para página de evento
             window.location.href = '/map/event';
             break;
         case 'rest':
+            console.log('🏕️ [DEBUG] Case rest');
             openRestPopup();
             break;
         default:
+            console.log('❌ [DEBUG] Case default - tipo desconhecido:', node.node_type);
             showError('Tipo de nó desconhecido');
     }
 }
