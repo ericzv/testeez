@@ -203,8 +203,11 @@
     opacity: 0.8;
     transition: transform 1.8s linear, filter 1s ease-in-out;
     transform-origin: bottom center;
-    animation: tree-gentle-sway 3s infinite alternate ease-in-out;
-    filter: brightness(0.8);
+  }
+
+  /* Usar WebP quando suportado (74.6% menor que PNG!) */
+  .webp .tree-paralax {
+    background-image: url('/static/game.data/tree-paralax.webp');
   }
   
   /* Animação de balanço suave */

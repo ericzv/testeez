@@ -26,9 +26,12 @@
         webpSupport = supported;
         console.log(`WebP support: ${supported ? 'YES' : 'NO'}`);
 
-        // Se WebP é suportado, substituir imagens PNG por WebP
+        // Adicionar classe no HTML para uso no CSS
         if (webpSupport) {
+            document.documentElement.classList.add('webp');
             replaceWithWebP();
+        } else {
+            document.documentElement.classList.add('no-webp');
         }
     });
 
