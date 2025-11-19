@@ -107,14 +107,14 @@ body {
 .items-row {
     display: flex;
     justify-content: center;
-    gap: 15px;
+    gap: 20px;
     flex-wrap: wrap;
 }
 
-/* ITEM MINIMALISTA */
+/* ITEM MINIMALISTA - SÓ ÍCONE + PREÇO */
 .shop-item {
     position: relative;
-    width: 60px;
+    width: 110px;
     padding: 0;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -125,13 +125,13 @@ body {
 }
 
 .item-icon {
-    width: 48px;
-    height: 48px;
+    width: 96px;
+    height: 96px;
     object-fit: contain;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 6px;
-    padding: 2px;
-    background: rgba(0, 0, 0, 0.3);
+    padding: 4px;
+    background: transparent;
     filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
     transition: all 0.3s ease;
 }
@@ -139,7 +139,7 @@ body {
 .shop-item:hover .item-icon {
     border-color: rgba(255, 255, 255, 0.6);
     filter: drop-shadow(0 4px 12px rgba(255, 215, 0, 0.4));
-    transform: scale(1.08);
+    transform: scale(1.05);
 }
 
 /* Glow de raridade (para lembranças) */
@@ -178,24 +178,21 @@ body {
     box-shadow: 0 0 15px rgba(251, 191, 36, 0.6);
 }
 
-/* Preço */
+/* Preço - Sem container, apenas ícone e valor */
 .item-price {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 4px;
     margin-top: 8px;
-    padding: 4px 8px;
-    background: rgba(0, 0, 0, 0.6);
-    border-radius: 8px;
-    border: 1px solid rgba(255, 215, 0, 0.2);
+    padding: 0;
+    background: transparent;
+    border: none;
     transition: all 0.3s ease;
 }
 
 .shop-item:hover .item-price {
-    background: rgba(255, 215, 0, 0.15);
-    border-color: rgba(255, 215, 0, 0.5);
-    transform: scale(1.05);
+    transform: scale(1.1);
 }
 
 .price-icon {
@@ -597,12 +594,8 @@ function showNotification(message, type) {
 
 // Fechar loja
 async function closeShop() {
-    try {
-        await fetch('/map/api/shop/close', { method: 'POST' });
-        window.location.href = '/map';
-    } catch (error) {
-        window.location.href = '/map';
-    }
+    // Não marca como completado, apenas fecha e volta ao hub
+    window.location.href = '/gamification/';
 }
 </script>
 {% endblock %}
