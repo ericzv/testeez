@@ -6,21 +6,21 @@
 Localização: `/static/game.data/resources/`
 
 #### 1. potion-vital.png
-- **Dimensões:** 100x100 pixels (ideal) ou maior (será redimensionado)
+- **Dimensões:** 48x48 pixels (ideal) ou maior (será redimensionado)
 - **Formato:** PNG com transparência
 - **Tema:** Vermelho/Rosa - representa cura de HP
 - **Sugestão:** Frasco vermelho com líquido brilhante, cruz de cura ou coração
 - **Efeito:** Cura 20 HP
 
 #### 2. potion-protective.png
-- **Dimensões:** 100x100 pixels (ideal) ou maior
+- **Dimensões:** 48x48 pixels (ideal) ou maior
 - **Formato:** PNG com transparência
 - **Tema:** Azul/Ciano - representa barreira/proteção
 - **Sugestão:** Frasco azul com escudo, aura protetora ou cristais
 - **Efeito:** Concede 16 de Barreira
 
 #### 3. potion-energetic.png
-- **Dimensões:** 100x100 pixels (ideal) ou maior
+- **Dimensões:** 48x48 pixels (ideal) ou maior
 - **Formato:** PNG com transparência
 - **Tema:** Amarelo/Dourado - representa energia/mana
 - **Sugestão:** Frasco amarelo com raios, estrelas ou partículas douradas
@@ -31,7 +31,7 @@ Localização: `/static/game.data/resources/`
 ### Vouchers e Especiais
 
 #### 4. memory-icon.png
-- **Dimensões:** 100x100 pixels (ideal) ou maior
+- **Dimensões:** 48x48 pixels (ideal) ou maior
 - **Formato:** PNG com transparência
 - **Tema:** Roxo/Místico - representa lembrança/memória
 - **Sugestão:** Pergaminho enrolado, livro mágico ou cristal de memória
@@ -47,7 +47,7 @@ Localização: `/static/game.data/resources/`
 - **Uso:** Exibir preço ao lado dos itens
 
 #### 6. placeholder-item.png (Opcional mas Recomendado)
-- **Dimensões:** 100x100 pixels
+- **Dimensões:** 48x48 pixels
 - **Formato:** PNG com transparência
 - **Tema:** Cinza neutro - ícone genérico
 - **Sugestão:** Caixa com interrogação ou silhueta de item
@@ -62,7 +62,7 @@ Localização esperada: `/static/game.data/relics/{relic_id}.png`
 
 Se alguma relíquia não tiver ícone:
 - **Criar ícones específicos** para cada relíquia disponível na loja
-- **Dimensões:** 100x100 pixels (ideal)
+- **Dimensões:** 48x48 pixels (ideal) ou maior (será redimensionado)
 - **Formato:** PNG com transparência
 - **Estilo:** Consistente com o tema da relíquia (mágico, guerreiro, etc)
 
@@ -155,8 +155,8 @@ Localização: `/static/game.data/sounds/battle/`
 
 ### Formato de Imagens
 - **Formato recomendado:** PNG-24 com canal alpha (transparência)
-- **Resolução:** 100x100 pixels (ideal), aceita maior
-- **Tamanho de arquivo:** < 100KB por ícone
+- **Resolução:** 48x48 pixels (ideal), aceita maior (será redimensionado)
+- **Tamanho de arquivo:** < 50KB por ícone
 - **Background:** Transparente
 - **Estilo:** Consistente com arte do jogo (pixel art, cartoon, realista, etc)
 
@@ -227,7 +227,7 @@ Localização: `/static/game.data/sounds/battle/`
 ## NOTAS IMPORTANTES
 
 - **Consistência visual**: Todos os ícones devem ter estilo similar
-- **Tamanho uniforme**: Use sempre 100x100px ou múltiplos (200x200, 400x400)
+- **Tamanho uniforme**: Use sempre 48x48px (ideal) ou múltiplos (96x96, 192x192)
 - **Transparência**: Sempre use PNG com fundo transparente
 - **Nomenclatura**: Use exatamente os nomes listados acima (case-sensitive)
 - **Otimização**: Comprima imagens para web (TinyPNG, ImageOptim)
