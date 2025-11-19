@@ -3656,3 +3656,148 @@ def rewrite_relics():
         db.session.rollback()
         print(f"Erro ao reescrever relíquias: {str(e)}")
         return jsonify({'success': False, 'message': str(e)})
+
+
+# ============================================================================
+# API - Sistema de Poções Consumíveis
+# ============================================================================
+
+@battle_bp.route('/get_potion_slots', methods=['GET'])
+def get_potion_slots():
+    """
+    Retorna os slots de poções do jogador.
+
+    Returns:
+        JSON com slots de poções
+    """
+    try:
+        from models import PlayerPotionSlot
+
+        player = Player.query.first()
+        if not player:
+            return jsonify({'success': False, 'error': 'Jogador não encontrado'}), 404
+
+        # Buscar slots de poções
+        slots = PlayerPotionSlot.query.filter_by(player_id=player.id).order_by(PlayerPotionSlot.slot_number).all()
+
+        # Se não tem slots, criar os 3 slots vazios
+        if not slots:
+            for i in range(1, 4):
+                slot = PlayerPotionSlot(
+                    player_id=player.id,
+                    slot_number=i,
+                    potion_type=None,
+                    quantity=0
+                )
+                db.session.add(slot)
+            db.session.commit()
+
+            # Recarregar slots
+            slots = PlayerPotionSlot.query.filter_by(player_id=player.id).order_by(PlayerPotionSlot.slot_number).all()
+
+        # Converter para dict
+        slots_data = [slot.to_dict() for slot in slots]
+
+        return jsonify({
+            'success': True,
+            'slots': slots_data
+        })
+
+    except Exception as e:
+        print(f"Erro ao buscar slots de poções: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@battle_bp.route('/use_potion/<int:slot_number>', methods=['POST'])
+def use_potion(slot_number):
+    """
+    Usa uma poção do inventário do jogador.
+
+    Args:
+        slot_number: Número do slot (1, 2 ou 3)
+
+    Returns:
+        JSON com resultado
+    """
+    try:
+        from models import PlayerPotionSlot
+
+        player = Player.query.first()
+        if not player:
+            return jsonify({'success': False, 'error': 'Jogador não encontrado'}), 404
+
+        # Buscar slot
+        slot = PlayerPotionSlot.query.filter_by(
+            player_id=player.id,
+            slot_number=slot_number
+        ).first()
+
+        if not slot or not slot.potion_type or slot.quantity <= 0:
+            return jsonify({'success': False, 'error': 'Slot vazio ou poção indisponível'}), 400
+
+        # Aplicar efeito da poção
+        effect_applied = False
+        effect_message = ''
+
+        if slot.potion_type == 'vital':
+            # Cura 20 HP
+            heal_amount = 20
+            hp_before = player.hp
+            player.hp = min(player.hp + heal_amount, player.max_hp)
+            actual_heal = player.hp - hp_before
+
+            effect_message = f'+{actual_heal} HP'
+            effect_applied = True
+
+        elif slot.potion_type == 'protective':
+            # Adiciona 16 de barreira
+            barrier_amount = 16
+            player.barrier = (player.barrier or 0) + barrier_amount
+
+            effect_message = f'+{barrier_amount} Barreira'
+            effect_applied = True
+
+        elif slot.potion_type == 'energetic':
+            # Adiciona 5 de energia
+            energy_amount = 5
+            energy_before = player.energy
+            player.energy = min(player.energy + energy_amount, player.max_energy)
+            actual_energy = player.energy - energy_before
+
+            effect_message = f'+{actual_energy} Energia'
+            effect_applied = True
+
+        if not effect_applied:
+            return jsonify({'success': False, 'error': 'Tipo de poção desconhecido'}), 400
+
+        # Diminuir quantidade
+        slot.quantity -= 1
+
+        # Se zerou, limpar slot
+        if slot.quantity <= 0:
+            slot.potion_type = None
+            slot.quantity = 0
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': effect_message,
+            'player': {
+                'hp': player.hp,
+                'max_hp': player.max_hp,
+                'barrier': player.barrier,
+                'energy': player.energy,
+                'max_energy': player.max_energy
+            },
+            'slot': slot.to_dict()
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Erro ao usar poção: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500

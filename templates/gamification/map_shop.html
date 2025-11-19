@@ -1,6 +1,6 @@
 {% extends 'gamification/base.html' %}
 
-{% block title %}Loja do Mapa{% endblock %}
+{% block title %}Loja{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -8,56 +8,64 @@
         background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     }
 
-    .shop-container {
-        max-width: 800px;
-        margin: 50px auto;
-        padding: 30px;
-        background: rgba(0, 0, 0, 0.7);
-        border-radius: 15px;
-        border: 2px solid rgba(255, 215, 0, 0.3);
-        backdrop-filter: blur(10px);
+    .shop-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+    }
+
+    .shop-popup {
+        background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+        border-radius: 20px;
+        padding: 0;
+        max-width: 1100px;
+        width: 95%;
+        max-height: 90vh;
+        border: 3px solid rgba(255, 215, 0, 0.4);
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+        animation: shopAppear 0.5s ease-out;
+        display: flex;
+        flex-direction: column;
+    }
+
+    @keyframes shopAppear {
+        from {
+            opacity: 0;
+            transform: scale(0.9) translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
     }
 
     .shop-header {
-        text-align: center;
-        margin-bottom: 30px;
-    }
-
-    .shop-icon {
-        font-size: 60px;
-        margin-bottom: 15px;
+        background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, transparent 100%);
+        padding: 20px 30px;
+        border-bottom: 2px solid rgba(255, 215, 0, 0.3);
     }
 
     .shop-title {
         font-family: 'Cinzel', serif;
         color: #ffd700;
-        font-size: 32px;
+        font-size: 28px;
         margin: 0;
-        text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-    }
-
-    .shop-subtitle {
-        color: #aaa;
-        font-size: 16px;
-        margin-top: 10px;
-    }
-
-    .placeholder-message {
         text-align: center;
-        padding: 40px;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 10px;
-        margin: 20px 0;
-    }
-
-    .placeholder-message h3 {
-        color: #fbbf24;
-        margin-bottom: 15px;
-    }
-
-    .placeholder-message p {
-        color: #888;
-        line-height: 1.6;
+        text-shadow:
+            -1px -1px 0 #000,
+            1px -1px 0 #000,
+            -1px 1px 0 #000,
+            1px 1px 0 #000,
+            0 0 10px rgba(255, 215, 0, 0.8);
     }
 
     .gold-display {
@@ -65,72 +73,502 @@
         justify-content: center;
         align-items: center;
         gap: 10px;
-        font-size: 24px;
+        margin-top: 10px;
+        font-size: 18px;
         color: #ffd700;
-        margin: 20px 0;
     }
 
-    .back-btn {
-        display: block;
-        width: 200px;
-        margin: 30px auto 0;
-        padding: 12px 20px;
-        background: linear-gradient(135deg, #4a5568, #2d3748);
-        color: #fff;
-        text-decoration: none;
-        text-align: center;
-        border-radius: 8px;
+    .gold-icon {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
+    }
+
+    .shop-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 25px;
+    }
+
+    .shop-section {
+        margin-bottom: 30px;
+    }
+
+    .section-title {
         font-family: 'Cinzel', serif;
-        transition: all 0.3s ease;
+        color: #ccc;
+        font-size: 20px;
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .back-btn:hover {
+    .items-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+    }
+
+    .shop-item {
+        background: rgba(40, 40, 40, 0.6);
+        border: 2px solid rgba(100, 100, 100, 0.4);
+        border-radius: 12px;
+        padding: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .shop-item:hover:not(.purchased) {
+        transform: translateY(-5px);
+        border-color: rgba(255, 215, 0, 0.6);
+        box-shadow: 0 5px 20px rgba(255, 215, 0, 0.2);
+    }
+
+    .shop-item.purchased {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    /* Rarities */
+    .shop-item[data-rarity="common"] {
+        border-color: rgba(150, 150, 150, 0.5);
+    }
+
+    .shop-item[data-rarity="common"]:hover:not(.purchased) {
+        border-color: rgba(150, 150, 150, 0.8);
+        box-shadow: 0 0 15px rgba(150, 150, 150, 0.3);
+    }
+
+    .shop-item[data-rarity="rare"] {
+        border-color: rgba(59, 130, 246, 0.5);
+    }
+
+    .shop-item[data-rarity="rare"]:hover:not(.purchased) {
+        border-color: rgba(59, 130, 246, 0.8);
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    }
+
+    .shop-item[data-rarity="epic"] {
+        border-color: rgba(168, 85, 247, 0.5);
+    }
+
+    .shop-item[data-rarity="epic"]:hover:not(.purchased) {
+        border-color: rgba(168, 85, 247, 0.8);
+        box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+    }
+
+    .shop-item[data-rarity="legendary"] {
+        border-color: rgba(251, 191, 36, 0.5);
+    }
+
+    .shop-item[data-rarity="legendary"]:hover:not(.purchased) {
+        border-color: rgba(251, 191, 36, 0.8);
+        box-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
+    }
+
+    .shop-item[data-rarity="uncommon"] {
+        border-color: rgba(34, 197, 94, 0.5);
+    }
+
+    .shop-item[data-rarity="uncommon"]:hover:not(.purchased) {
+        border-color: rgba(34, 197, 94, 0.8);
+        box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+    }
+
+    .item-icon-container {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        position: relative;
+    }
+
+    .item-icon {
+        width: 64px;
+        height: 64px;
+        object-fit: contain;
+    }
+
+    .item-name {
+        color: #fff;
+        font-size: 14px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 5px;
+        min-height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .item-description {
+        color: #aaa;
+        font-size: 12px;
+        text-align: center;
+        margin-bottom: 10px;
+        min-height: 36px;
+    }
+
+    .item-price {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 8px;
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 8px;
+        font-weight: bold;
+        color: #ffd700;
+    }
+
+    .price-icon {
+        width: 16px;
+        height: 16px;
+    }
+
+    .purchased-label {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(239, 68, 68, 0.8);
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 10px;
+        font-weight: bold;
+    }
+
+    .shop-footer {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 20px 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-top: 2px solid rgba(100, 100, 100, 0.3);
+    }
+
+    .close-button {
+        padding: 12px 40px;
+        background: linear-gradient(135deg, #ffd700, #f59e0b);
+        color: #000;
+        border: none;
+        border-radius: 10px;
+        font-family: 'Cinzel', serif;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+    }
+
+    .close-button:hover {
         transform: translateY(-3px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6);
+    }
+
+    .loading {
+        display: none;
+        text-align: center;
+        padding: 40px;
+    }
+
+    .loading-spinner {
+        border: 4px solid rgba(255, 215, 0, 0.3);
+        border-top: 4px solid #ffd700;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 10px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Empty state */
+    .empty-message {
+        text-align: center;
+        padding: 40px;
+        color: #888;
+        font-style: italic;
     }
 </style>
 {% endblock %}
 
 {% block game_content %}
-<a href="{{ url_for('map.map_view') }}" class="nav-button">
-    ← Voltar ao Mapa
-</a>
+<div class="shop-overlay">
+    <div class="shop-popup">
+        <div class="shop-header">
+            <h1 class="shop-title">Loja do Mercador</h1>
+            <div class="gold-display">
+                <img src="/static/game.data/resources/gold-icon.png" class="gold-icon" alt="Gold">
+                <span id="player-gold">{{ player.run_gold }}</span>
+                <span style="color: #aaa;">Ouro</span>
+            </div>
+        </div>
 
-<div class="shop-container">
-    <div class="shop-header">
-        <div class="shop-icon">🛒</div>
-        <h1 class="shop-title">Loja do Mercador</h1>
-        <p class="shop-subtitle">Compre itens e melhorias para sua jornada</p>
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <div style="color: #ffd700;">Carregando loja...</div>
+        </div>
+
+        <div class="shop-content" id="shop-content" style="display: none;">
+            <!-- Seção de Poções -->
+            <div class="shop-section">
+                <h2 class="section-title">Poções</h2>
+                <div class="items-grid" id="potions-grid">
+                    <!-- Poções serão inseridas aqui -->
+                </div>
+            </div>
+
+            <!-- Seção de Lembranças -->
+            <div class="shop-section">
+                <h2 class="section-title">Lembranças</h2>
+                <div class="items-grid" id="memories-grid">
+                    <!-- Lembranças serão inseridas aqui -->
+                </div>
+            </div>
+
+            <!-- Seção de Relíquias -->
+            <div class="shop-section">
+                <h2 class="section-title">Relíquias</h2>
+                <div class="items-grid" id="relics-grid">
+                    <!-- Relíquias serão inseridas aqui -->
+                </div>
+            </div>
+        </div>
+
+        <div class="shop-footer">
+            <button class="close-button" onclick="closeShop()">
+                Fechar Loja
+            </button>
+        </div>
     </div>
-
-    <div class="gold-display">
-        <span>💰</span>
-        <span>Ouro: {{ player.run_gold }}</span>
-    </div>
-
-    <div class="placeholder-message">
-        <h3>🚧 Em Construção 🚧</h3>
-        <p>
-            A loja ainda está sendo preparada pelo mercador.<br>
-            Em breve você poderá comprar itens, poções e equipamentos aqui!
-        </p>
-        <p style="color: #666; font-size: 14px; margin-top: 15px;">
-            Por enquanto, clique em "Continuar" para marcar este nó como visitado e retornar ao mapa.
-        </p>
-    </div>
-
-    <a href="{{ url_for('map.map_view') }}" class="back-btn" onclick="completeNode()">
-        Continuar Jornada
-    </a>
 </div>
 
 <script>
-    async function completeNode() {
+    let shopInventory = [];
+
+    // Carregar inventário da loja ao iniciar
+    async function loadShopInventory() {
+        const loading = document.getElementById('loading');
+        const content = document.getElementById('shop-content');
+
+        loading.style.display = 'block';
+        content.style.display = 'none';
+
         try {
-            await fetch('/map/api/complete-node', { method: 'POST' });
+            // Tentar obter inventário existente
+            let response = await fetch('/map/api/shop/get-inventory');
+            let data = await response.json();
+
+            // Se não tem inventário, gerar
+            if (!data.success && data.should_generate) {
+                response = await fetch('/map/api/shop/generate', { method: 'POST' });
+                data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Erro ao gerar loja');
+                }
+
+                // Recarregar inventário
+                response = await fetch('/map/api/shop/get-inventory');
+                data = await response.json();
+            }
+
+            if (data.success) {
+                shopInventory = data.items;
+                renderShopItems(data.items);
+                updateGoldDisplay(data.player_gold);
+            } else {
+                throw new Error(data.error || 'Erro ao carregar loja');
+            }
+
+            loading.style.display = 'none';
+            content.style.display = 'block';
         } catch (error) {
-            console.error('Erro ao completar nó:', error);
+            console.error('Erro:', error);
+            loading.innerHTML = `
+                <div style="color: #ef4444;">
+                    Erro ao carregar loja: ${error.message}<br>
+                    <button onclick="loadShopInventory()" style="margin-top: 15px; padding: 10px 20px; background: #ffd700; border: none; border-radius: 5px; cursor: pointer;">
+                        Tentar Novamente
+                    </button>
+                </div>
+            `;
         }
     }
+
+    // Renderizar itens da loja
+    function renderShopItems(items) {
+        const potionsGrid = document.getElementById('potions-grid');
+        const memoriesGrid = document.getElementById('memories-grid');
+        const relicsGrid = document.getElementById('relics-grid');
+
+        potionsGrid.innerHTML = '';
+        memoriesGrid.innerHTML = '';
+        relicsGrid.innerHTML = '';
+
+        if (!items || items.length === 0) {
+            const emptyMsg = '<div class="empty-message">Nenhum item disponível</div>';
+            potionsGrid.innerHTML = emptyMsg;
+            memoriesGrid.innerHTML = emptyMsg;
+            relicsGrid.innerHTML = emptyMsg;
+            return;
+        }
+
+        items.forEach(item => {
+            const itemHtml = createShopItemElement(item);
+
+            if (item.type === 'potion') {
+                potionsGrid.insertAdjacentHTML('beforeend', itemHtml);
+            } else if (item.type === 'memory') {
+                memoriesGrid.insertAdjacentHTML('beforeend', itemHtml);
+            } else if (item.type === 'relic') {
+                relicsGrid.insertAdjacentHTML('beforeend', itemHtml);
+            }
+        });
+    }
+
+    // Criar elemento de item da loja
+    function createShopItemElement(item) {
+        const rarityAttr = item.rarity ? `data-rarity="${item.rarity}"` : '';
+
+        return `
+            <div class="shop-item" ${rarityAttr} data-item-id="${item.id}" onclick="buyItem(${item.id}, '${item.type}')">
+                <div class="item-icon-container">
+                    <img src="/static/game.data/${item.icon}" class="item-icon" alt="${item.name}"
+                         onerror="this.src='/static/game.data/resources/placeholder.png'">
+                </div>
+                <div class="item-name">${item.name}</div>
+                <div class="item-description">${item.description}</div>
+                <div class="item-price">
+                    <img src="/static/game.data/resources/gold-icon.png" class="price-icon">
+                    <span>${item.price}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    // Comprar item
+    async function buyItem(shopItemId, itemType) {
+        const itemElement = document.querySelector(`[data-item-id="${shopItemId}"]`);
+
+        if (itemElement.classList.contains('purchased')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/map/api/shop/buy-item/${shopItemId}`, {
+                method: 'POST'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Atualizar ouro
+                updateGoldDisplay(data.player_gold);
+
+                // Se precisa redirecionar (lembranças)
+                if (data.requires_redirect) {
+                    window.location.href = data.redirect_url;
+                    return;
+                }
+
+                // Marcar item como comprado
+                itemElement.classList.add('purchased');
+                itemElement.insertAdjacentHTML('afterbegin', '<div class="purchased-label">VENDIDO</div>');
+
+                // Mostrar mensagem de sucesso
+                showNotification(data.message || 'Item comprado!', 'success');
+            } else {
+                showNotification(data.error || 'Erro ao comprar item', 'error');
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            showNotification('Erro de conexão', 'error');
+        }
+    }
+
+    // Atualizar display de ouro
+    function updateGoldDisplay(gold) {
+        document.getElementById('player-gold').textContent = gold;
+    }
+
+    // Mostrar notificação
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: ${type === 'success' ? 'rgba(16, 185, 129, 0.9)' : 'rgba(239, 68, 68, 0.9)'};
+            color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    // Fechar loja
+    async function closeShop() {
+        try {
+            const response = await fetch('/map/api/shop/close', { method: 'POST' });
+            const data = await response.json();
+
+            if (data.success) {
+                window.location.href = data.redirect_url;
+            } else {
+                window.location.href = '/map';
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            window.location.href = '/map';
+        }
+    }
+
+    // Carregar ao iniciar
+    loadShopInventory();
 </script>
+
+<style>
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(100px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes slideOut {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateX(100px);
+        }
+    }
+</style>
 {% endblock %}

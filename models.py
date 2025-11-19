@@ -889,25 +889,25 @@ class PlayerRelic(db.Model):
 class BattleLog(db.Model):
     """Log de turnos de batalha"""
     __tablename__ = 'battle_logs'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
     enemy_id = db.Column(db.Integer, nullable=True)
     enemy_name = db.Column(db.String(100))
     is_boss = db.Column(db.Boolean, default=False)
-    
+
     turn_number = db.Column(db.Integer, default=1)
     turn_type = db.Column(db.String(20))  # 'player' ou 'enemy'
-    
+
     actions = db.Column(db.Text)  # JSON
     damage_dealt = db.Column(db.Integer, default=0)
     damage_received = db.Column(db.Integer, default=0)
     healing = db.Column(db.Integer, default=0)
     energy_consumed = db.Column(db.Integer, default=0)
     next_intentions = db.Column(db.Text)  # JSON
-    
+
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     def to_dict(self):
         return {
             'turn_number': self.turn_number,
@@ -920,3 +920,89 @@ class BattleLog(db.Model):
             'next_intentions': json.loads(self.next_intentions) if self.next_intentions else [],
             'timestamp': self.timestamp.isoformat()
         }
+
+# ============================================
+# SISTEMA DE SHOP
+# ============================================
+
+class ShopInventory(db.Model):
+    """Inventário da loja atual de cada jogador (regenerado ao entrar no nó shop)"""
+    __tablename__ = 'shop_inventory'
+
+    id = db.Column(db.Integer, primary_key=True)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    item_type = db.Column(db.String(20), nullable=False)  # 'potion', 'memory', 'relic'
+    item_id = db.Column(db.String(50), nullable=False)  # ID do item (potion_vital, relic_5, etc)
+    price = db.Column(db.Integer, nullable=False)
+    rarity = db.Column(db.String(20), nullable=True)  # Para lembranças e relíquias
+    is_purchased = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relacionamento
+    player = db.relationship('Player', backref='shop_inventory')
+
+    def __repr__(self):
+        return f'<ShopInventory player={self.player_id} type={self.item_type} item={self.item_id} price={self.price}>'
+
+class PlayerPotionSlot(db.Model):
+    """Slots de poções consumíveis do jogador (máximo 3)"""
+    __tablename__ = 'player_potion_slot'
+
+    id = db.Column(db.Integer, primary_key=True)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    slot_number = db.Column(db.Integer, nullable=False)  # 1, 2 ou 3
+    potion_type = db.Column(db.String(20), nullable=True)  # 'vital', 'protective', 'energetic'
+    quantity = db.Column(db.Integer, default=0)
+
+    # Relacionamento
+    player = db.relationship('Player', backref='potion_slots')
+
+    __table_args__ = (
+        db.UniqueConstraint('player_id', 'slot_number', name='unique_player_slot'),
+    )
+
+    def __repr__(self):
+        return f'<PlayerPotionSlot player={self.player_id} slot={self.slot_number} type={self.potion_type} qty={self.quantity}>'
+
+    def to_dict(self):
+        return {
+            'slot_number': self.slot_number,
+            'potion_type': self.potion_type,
+            'quantity': self.quantity,
+            'icon': self.get_icon(),
+            'name': self.get_name(),
+            'description': self.get_description()
+        }
+
+    def get_icon(self):
+        """Retorna o caminho do ícone da poção"""
+        if not self.potion_type:
+            return None
+        icons = {
+            'vital': 'resources/potion-vital.png',
+            'protective': 'resources/potion-protective.png',
+            'energetic': 'resources/potion-energetic.png'
+        }
+        return icons.get(self.potion_type)
+
+    def get_name(self):
+        """Retorna o nome da poção"""
+        if not self.potion_type:
+            return 'Vazio'
+        names = {
+            'vital': 'Poção Vital',
+            'protective': 'Poção Protetora',
+            'energetic': 'Poção Energética'
+        }
+        return names.get(self.potion_type, 'Desconhecido')
+
+    def get_description(self):
+        """Retorna a descrição da poção"""
+        if not self.potion_type:
+            return ''
+        descriptions = {
+            'vital': 'Cura 20 HP',
+            'protective': 'Concede 16 de Barreira',
+            'energetic': 'Concede 5 de Energia'
+        }
+        return descriptions.get(self.potion_type, '')
