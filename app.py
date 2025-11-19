@@ -92,6 +92,32 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///flashcards.db'
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.permanent_session_lifetime = timedelta(days=7)
 
+# DESABILITAR CACHE DE TEMPLATES E ARQUIVOS ESTÁTICOS (para debug)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+app.jinja_env.auto_reload = True
+app.jinja_env.cache = {}
+print("⚠️ CACHE DE TEMPLATES DESABILITADO - modo debug ativo")
+
+# Adicionar headers para forçar navegador a não cachear
+@app.after_request
+def add_no_cache_headers(response):
+    """Força navegador a não cachear nenhum arquivo"""
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '-1'
+    return response
+
+# CACHE BUSTING - Timestamp único para forçar reload de recursos
+import time
+CACHE_BUST_VERSION = str(int(time.time()))
+print(f"🔄 CACHE BUST VERSION: {CACHE_BUST_VERSION}")
+
+@app.context_processor
+def inject_cache_bust():
+    """Injeta versão de cache busting em todos os templates"""
+    return {'cache_v': CACHE_BUST_VERSION}
+
 # Registrar filtros e inicializar o banco de dados
 register_filters(app)
 db.init_app(app)
@@ -337,6 +363,7 @@ def choose_character_route():
                 run_crystals_gained=0,
                 run_hourglasses_gained=0,
                 run_gold_gained=0,
+                run_gold=50,  # Começa com 50 de ouro
                 run_bosses_defeated=0,
                 run_start_timestamp=datetime.utcnow()
             )

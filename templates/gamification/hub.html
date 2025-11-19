@@ -1646,6 +1646,40 @@
       button.style.display = 'none';
     });
   });
+
+  // Verificar se deve mostrar seleção de memória (vindo do shop)
+  document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const showMemorySelection = urlParams.get('show_memory_selection');
+    const rarity = urlParams.get('rarity');
+
+    if (showMemorySelection === 'true' && rarity) {
+      console.log('🎁 Abrindo seleção de memória:', rarity);
+
+      // Converter raridade de string para número (shop usa strings, backend usa números)
+      const rarityMap = {
+        'common': 1,
+        'rare': 2,
+        'epic': 3,
+        'legendary': 4
+      };
+
+      const numericRarity = rarityMap[rarity] || 1;
+      console.log('🎁 Raridade convertida:', rarity, '->', numericRarity);
+
+      // Configurar dados pendentes de memória (necessário para confirmação)
+      window.__pendingMemoryData = {
+        enemy_rarity: numericRarity
+      };
+
+      // Chamar função de mostrar popup de memória
+      if (typeof showMemorySelectionPopup === 'function') {
+        showMemorySelectionPopup(numericRarity);  // Passar número, não string
+      } else {
+        console.error('❌ Função showMemorySelectionPopup não encontrada');
+      }
+    }
+  });
 </script>
 
 <!-- Script de partículas -->
@@ -2397,18 +2431,7 @@
   </div>
 </div>
 
-<!-- Pop-up da Loja (Placeholder) -->
-<div id="shop-popup" class="ui-dialog" style="display:none">
-  <div class="ui-panel">
-    <h2 class="title">Loja</h2>
-    <button class="close-popup-btn" onclick="closeShopPopup()">✕</button>
-    <div style="color: #aaa; font-size: 18px; text-align: center; padding: 40px;">
-      <span style="font-size: 60px; display: block; margin-bottom: 20px;">🛒</span>
-      <p>A loja ainda está em construção!</p>
-      <p style="font-size: 14px; color: #888;">Em breve você poderá comprar itens e melhorias aqui.</p>
-    </div>
-  </div>
-</div>
+<!-- Shop redireciona para /map/shop - não precisa mais de popup aqui -->
 
 <!-- Pop-up de Evento (Placeholder) -->
 <div id="event-popup" class="ui-dialog" style="display:none">
@@ -2762,7 +2785,8 @@ async function handleCurrentNodeClick(node) {
       window.location.href = `/map/battle/boss/${node.boss_id || 1}`;
       break;
     case 'shop':
-      openDialog('#shop-popup');
+      // Redirecionar para a página da loja
+      window.location.href = '/map/shop';
       break;
     case 'event':
       // Redirecionar para página de evento
@@ -2805,22 +2829,6 @@ function canAdvanceInMap() {
   return true;
 }
 
-// Fechar loja e marcar como completado
-async function closeShopPopup() {
-  closeDialog('#shop-popup');
-  try {
-    await fetch('/map/api/complete-node', { method: 'POST' });
-    console.log("✅ Loja visitada, nó completado");
-    // Atualizar dados locais
-    if (currentMapData && currentMapData.progress) {
-      const currentNode = currentMapData.nodes.find(n => n.id === currentMapData.progress.current_node_id);
-      if (currentNode) currentNode.is_completed = true;
-    }
-  } catch (error) {
-    console.log("⚠️ Erro ao marcar loja como completada");
-  }
-}
-
 // Fechar evento e marcar como completado
 async function closeEventPopup() {
   closeDialog('#event-popup');
@@ -2840,6 +2848,20 @@ async function closeEventPopup() {
 // Handler de clique no nó
 async function handleMapNodeClick(node) {
   console.log('🎯 Nó clicado:', node);
+
+  // MARCAR NÓ ATUAL COMO COMPLETADO antes de avançar (shop/event/rest)
+  if (currentMapData && currentMapData.progress && currentMapData.progress.current_node_id) {
+    const currentNode = currentMapData.nodes.find(n => n.id === currentMapData.progress.current_node_id);
+    if (currentNode && ['shop', 'event', 'rest'].includes(currentNode.node_type)) {
+      try {
+        await fetch('/map/api/complete-node', { method: 'POST' });
+        currentNode.is_completed = true;
+        console.log(`✅ Nó ${currentNode.node_type} marcado como completado ao avançar`);
+      } catch (error) {
+        console.log("⚠️ Erro ao marcar nó como completado");
+      }
+    }
+  }
 
   // Verificar se pode avançar
   if (!canAdvanceInMap()) {
@@ -2896,7 +2918,9 @@ async function handleMapNodeClick(node) {
       window.location.href = `/map/battle/boss/${node.boss_id || 1}`;
       break;
     case 'shop':
-      openDialog('#shop-popup');
+      // Redirecionar para a página da loja
+      console.log('🛒 Redirecionando para shop');
+      window.location.href = '/map/shop';
       break;
     case 'event':
       // Redirecionar para página de evento

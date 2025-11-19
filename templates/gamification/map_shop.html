@@ -1,136 +1,635 @@
 {% extends 'gamification/base.html' %}
 
-{% block title %}Loja do Mapa{% endblock %}
+{% block title %}Loja{% endblock %}
 
 {% block extra_css %}
 <style>
-    body {
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    }
+body {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
 
-    .shop-container {
-        max-width: 800px;
-        margin: 50px auto;
-        padding: 30px;
-        background: rgba(0, 0, 0, 0.7);
-        border-radius: 15px;
-        border: 2px solid rgba(255, 215, 0, 0.3);
-        backdrop-filter: blur(10px);
-    }
+.shop-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(8px);
+}
 
-    .shop-header {
-        text-align: center;
-        margin-bottom: 30px;
-    }
+.shop-container {
+    background: linear-gradient(135deg, #1e1e1e 0%, #0a0a0a 100%);
+    border-radius: 16px;
+    padding: 0;
+    max-width: 600px;
+    width: 90%;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    box-shadow: 0 0 60px rgba(255, 215, 0, 0.2), 0 0 100px rgba(0, 0, 0, 0.8);
+    animation: shopAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+}
 
-    .shop-icon {
-        font-size: 60px;
-        margin-bottom: 15px;
+@keyframes shopAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.85) translateY(-30px);
     }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
 
-    .shop-title {
-        font-family: 'Cinzel', serif;
-        color: #ffd700;
-        font-size: 32px;
-        margin: 0;
-        text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-    }
+.shop-header {
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.12) 0%, transparent 100%);
+    padding: 20px 30px;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-    .shop-subtitle {
-        color: #aaa;
-        font-size: 16px;
-        margin-top: 10px;
-    }
+.shop-title {
+    font-family: 'Cinzel', serif;
+    color: #ffd700;
+    font-size: 26px;
+    margin: 0;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    letter-spacing: 2px;
+}
 
-    .placeholder-message {
-        text-align: center;
-        padding: 40px;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 10px;
-        margin: 20px 0;
-    }
+.gold-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 20px;
+}
 
-    .placeholder-message h3 {
-        color: #fbbf24;
-        margin-bottom: 15px;
-    }
+.gold-icon {
+    width: 20px;
+    height: 20px;
+    filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.8));
+}
 
-    .placeholder-message p {
-        color: #888;
-        line-height: 1.6;
-    }
+.gold-amount {
+    color: #ffd700;
+    font-size: 18px;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
 
-    .gold-display {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-        font-size: 24px;
-        color: #ffd700;
-        margin: 20px 0;
-    }
+.shop-body {
+    padding: 20px;
+    background: transparent;
+}
 
-    .back-btn {
-        display: block;
-        width: 200px;
-        margin: 30px auto 0;
-        padding: 12px 20px;
-        background: linear-gradient(135deg, #4a5568, #2d3748);
-        color: #fff;
-        text-decoration: none;
-        text-align: center;
-        border-radius: 8px;
-        font-family: 'Cinzel', serif;
-        transition: all 0.3s ease;
-    }
+.shop-section {
+    margin-bottom: 20px;
+    background: transparent;
+}
 
-    .back-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+.shop-section:last-child {
+    margin-bottom: 0;
+}
+
+.section-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 215, 0, 0.3) 50%, transparent 100%);
+    margin: 15px 0;
+}
+
+.items-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    background: transparent;
+}
+
+/* ITEM MINIMALISTA - SÓ ÍCONE + PREÇO */
+.shop-item {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background: none;
+    border: none;
+    outline: none;
+    padding: 0;
+    margin: 0;
+}
+
+.shop-item:hover {
+    transform: translateY(-8px) scale(1.05);
+}
+
+.item-icon {
+    width: 96px;
+    height: 96px;
+    object-fit: contain;
+    background: transparent;
+    /* Outline branco ao redor do conteúdo não-transparente */
+    filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.6))
+            drop-shadow(0 0 2px rgba(255, 255, 255, 0.4))
+            drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+    transition: all 0.3s ease;
+}
+
+.shop-item:hover .item-icon {
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8))
+            drop-shadow(0 0 4px rgba(255, 255, 255, 0.6))
+            drop-shadow(0 4px 12px rgba(255, 215, 0, 0.6));
+    transform: scale(1.05);
+}
+
+/* Glow de raridade (para lembranças) - usa drop-shadow para seguir contorno */
+.shop-item[data-rarity="common"] .item-icon {
+    filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.6))
+            drop-shadow(0 0 2px rgba(255, 255, 255, 0.4))
+            drop-shadow(0 0 8px rgba(150, 150, 150, 0.6))
+            drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+.shop-item[data-rarity="common"]:hover .item-icon {
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8))
+            drop-shadow(0 0 4px rgba(255, 255, 255, 0.6))
+            drop-shadow(0 0 15px rgba(150, 150, 150, 0.8));
+}
+
+.shop-item[data-rarity="uncommon"] .item-icon {
+    filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.6))
+            drop-shadow(0 0 2px rgba(255, 255, 255, 0.4))
+            drop-shadow(0 0 8px rgba(34, 197, 94, 0.6))
+            drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+.shop-item[data-rarity="uncommon"]:hover .item-icon {
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8))
+            drop-shadow(0 0 4px rgba(255, 255, 255, 0.6))
+            drop-shadow(0 0 15px rgba(34, 197, 94, 0.8));
+}
+
+.shop-item[data-rarity="rare"] .item-icon {
+    filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.6))
+            drop-shadow(0 0 2px rgba(255, 255, 255, 0.4))
+            drop-shadow(0 0 8px rgba(59, 130, 246, 0.6))
+            drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+.shop-item[data-rarity="rare"]:hover .item-icon {
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8))
+            drop-shadow(0 0 4px rgba(255, 255, 255, 0.6))
+            drop-shadow(0 0 15px rgba(59, 130, 246, 0.8));
+}
+
+.shop-item[data-rarity="epic"] .item-icon {
+    filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.6))
+            drop-shadow(0 0 2px rgba(255, 255, 255, 0.4))
+            drop-shadow(0 0 8px rgba(168, 85, 247, 0.6))
+            drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+.shop-item[data-rarity="epic"]:hover .item-icon {
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8))
+            drop-shadow(0 0 4px rgba(255, 255, 255, 0.6))
+            drop-shadow(0 0 15px rgba(168, 85, 247, 0.8));
+}
+
+.shop-item[data-rarity="legendary"] .item-icon {
+    filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.6))
+            drop-shadow(0 0 2px rgba(255, 255, 255, 0.4))
+            drop-shadow(0 0 8px rgba(251, 191, 36, 0.6))
+            drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+.shop-item[data-rarity="legendary"]:hover .item-icon {
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8))
+            drop-shadow(0 0 4px rgba(255, 255, 255, 0.6))
+            drop-shadow(0 0 15px rgba(251, 191, 36, 0.8));
+}
+
+/* Preço - Sem container, apenas ícone e valor */
+.item-price {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 8px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.shop-item:hover .item-price {
+    transform: scale(1.1);
+}
+
+.price-icon {
+    width: 12px;
+    height: 12px;
+    filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.6));
+}
+
+.price-value {
+    color: #ffd700;
+    font-size: 13px;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+}
+
+/* Item vendido */
+.shop-item.sold {
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+.shop-item.sold .item-icon-wrapper {
+    border-color: rgba(100, 100, 100, 0.2);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.sold-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(239, 68, 68, 0.9);
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: bold;
+    z-index: 10;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* TOOLTIP ESTILIZADO */
+.item-tooltip {
+    position: fixed;
+    background: linear-gradient(135deg, rgba(20, 20, 20, 0.98) 0%, rgba(10, 10, 10, 0.98) 100%);
+    border: 2px solid rgba(255, 215, 0, 0.5);
+    border-radius: 10px;
+    padding: 12px 16px;
+    pointer-events: none;
+    z-index: 10000;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.2s, transform 0.2s;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.8),
+        0 0 20px rgba(255, 215, 0, 0.2);
+    max-width: 250px;
+}
+
+.item-tooltip.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.tooltip-name {
+    color: #ffd700;
+    font-size: 15px;
+    font-weight: bold;
+    margin-bottom: 6px;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+}
+
+.tooltip-description {
+    color: #ccc;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.tooltip-rarity {
+    color: #888;
+    font-size: 11px;
+    margin-top: 6px;
+    font-style: italic;
+    text-transform: capitalize;
+}
+
+/* Footer */
+.shop-footer {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 20px;
+    border-top: 1px solid rgba(255, 215, 0, 0.2);
+    text-align: center;
+}
+
+.close-button {
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #ffd700 0%, #f59e0b 100%);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Cinzel', serif;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.close-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(255, 215, 0, 0.5);
+    background: linear-gradient(135deg, #ffed4e 0%, #fbbf24 100%);
+}
+
+.close-button:active {
+    transform: translateY(-1px);
+}
+
+/* Loading */
+.loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: #ffd700;
+}
+
+.loading-spinner {
+    border: 3px solid rgba(255, 215, 0, 0.2);
+    border-top: 3px solid #ffd700;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Animação de compra */
+@keyframes buyPulse {
+    0%, 100% {
+        transform: scale(1);
     }
+    50% {
+        transform: scale(1.15);
+    }
+}
+
+.shop-item.buying {
+    animation: buyPulse 0.5s ease-out;
+}
 </style>
 {% endblock %}
 
 {% block game_content %}
-<a href="{{ url_for('map.map_view') }}" class="nav-button">
-    ← Voltar ao Mapa
-</a>
+<div class="shop-overlay">
+    <div class="shop-container">
+        <div class="shop-header">
+            <h1 class="shop-title">LOJA DO MERCADOR</h1>
+            <div class="gold-display">
+                <img src="/static/game.data/resources/gold-icon.png" class="gold-icon" alt="Ouro">
+                <span class="gold-amount" id="player-gold">{{ player.run_gold }}</span>
+            </div>
+        </div>
 
-<div class="shop-container">
-    <div class="shop-header">
-        <div class="shop-icon">🛒</div>
-        <h1 class="shop-title">Loja do Mercador</h1>
-        <p class="shop-subtitle">Compre itens e melhorias para sua jornada</p>
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <div>Preparando mercadorias...</div>
+        </div>
+
+        <div class="shop-body" id="shop-body" style="display: none;">
+            <!-- Poções -->
+            <div class="shop-section">
+                <div class="items-row" id="potions-row"></div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- Lembranças -->
+            <div class="shop-section">
+                <div class="items-row" id="memories-row"></div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- Relíquias -->
+            <div class="shop-section">
+                <div class="items-row" id="relics-row"></div>
+            </div>
+        </div>
+
+        <div class="shop-footer">
+            <button class="close-button" onclick="closeShop()">Sair da Loja</button>
+        </div>
     </div>
+</div>
 
-    <div class="gold-display">
-        <span>💰</span>
-        <span>Ouro: {{ player.run_gold }}</span>
-    </div>
-
-    <div class="placeholder-message">
-        <h3>🚧 Em Construção 🚧</h3>
-        <p>
-            A loja ainda está sendo preparada pelo mercador.<br>
-            Em breve você poderá comprar itens, poções e equipamentos aqui!
-        </p>
-        <p style="color: #666; font-size: 14px; margin-top: 15px;">
-            Por enquanto, clique em "Continuar" para marcar este nó como visitado e retornar ao mapa.
-        </p>
-    </div>
-
-    <a href="{{ url_for('map.map_view') }}" class="back-btn" onclick="completeNode()">
-        Continuar Jornada
-    </a>
+<!-- Tooltip -->
+<div class="item-tooltip" id="item-tooltip">
+    <div class="tooltip-name" id="tooltip-name"></div>
+    <div class="tooltip-description" id="tooltip-description"></div>
+    <div class="tooltip-rarity" id="tooltip-rarity"></div>
 </div>
 
 <script>
-    async function completeNode() {
-        try {
-            await fetch('/map/api/complete-node', { method: 'POST' });
-        } catch (error) {
-            console.error('Erro ao completar nó:', error);
+let shopInventory = [];
+let tooltip = null;
+
+// Inicializar
+document.addEventListener('DOMContentLoaded', () => {
+    tooltip = document.getElementById('item-tooltip');
+    loadShopInventory();
+});
+
+// Carregar inventário
+async function loadShopInventory() {
+    const loading = document.getElementById('loading');
+    const body = document.getElementById('shop-body');
+
+    try {
+        let response = await fetch('/map/api/shop/get-inventory');
+        let data = await response.json();
+
+        if (!data.success && data.should_generate) {
+            response = await fetch('/map/api/shop/generate', { method: 'POST' });
+            data = await response.json();
+            if (!data.success) throw new Error(data.error || 'Erro ao gerar loja');
+
+            response = await fetch('/map/api/shop/get-inventory');
+            data = await response.json();
         }
+
+        if (data.success) {
+            shopInventory = data.items;
+            renderShopItems(data.items);
+            updateGoldDisplay(data.player_gold);
+        }
+
+        loading.style.display = 'none';
+        body.style.display = 'block';
+    } catch (error) {
+        console.error('Erro:', error);
+        loading.innerHTML = `<div style="color: #ef4444;">Erro ao carregar loja</div>`;
     }
+}
+
+// Renderizar itens
+function renderShopItems(items) {
+    const potionsRow = document.getElementById('potions-row');
+    const memoriesRow = document.getElementById('memories-row');
+    const relicsRow = document.getElementById('relics-row');
+
+    potionsRow.innerHTML = '';
+    memoriesRow.innerHTML = '';
+    relicsRow.innerHTML = '';
+
+    items.forEach(item => {
+        const itemHtml = createItemElement(item);
+        if (item.type === 'potion') {
+            potionsRow.insertAdjacentHTML('beforeend', itemHtml);
+        } else if (item.type === 'memory') {
+            memoriesRow.insertAdjacentHTML('beforeend', itemHtml);
+        } else if (item.type === 'relic') {
+            relicsRow.insertAdjacentHTML('beforeend', itemHtml);
+        }
+    });
+
+    // Adicionar eventos
+    document.querySelectorAll('.shop-item').forEach(el => {
+        el.addEventListener('mouseenter', showTooltip);
+        el.addEventListener('mouseleave', hideTooltip);
+        el.addEventListener('mousemove', moveTooltip);
+    });
+}
+
+// Criar elemento de item
+function createItemElement(item) {
+    const rarityAttr = item.rarity ? `data-rarity="${item.rarity}"` : '';
+
+    // Corrigir caminho do ícone
+    let iconPath = item.icon;
+    if (item.type === 'relic' && !iconPath.includes('/')) {
+        iconPath = 'relics/' + iconPath;
+    } else if (item.type === 'memory') {
+        iconPath = 'memory.png';
+    }
+
+    return `
+        <div class="shop-item" ${rarityAttr} data-item-id="${item.id}"
+             data-name="${item.name}"
+             data-description="${item.description}"
+             data-rarity-text="${item.rarity || 'comum'}"
+             onclick="buyItem(${item.id})">
+            <img src="/static/game.data/${iconPath}" class="item-icon" alt="${item.name}"
+                 onerror="this.src='/static/game.data/resources/placeholder.png'">
+            <div class="item-price">
+                <img src="/static/game.data/resources/gold-icon.png" class="price-icon">
+                <span class="price-value">${item.price}</span>
+            </div>
+        </div>
+    `;
+}
+
+// Tooltip
+function showTooltip(e) {
+    const item = e.currentTarget;
+    const name = item.dataset.name;
+    const description = item.dataset.description;
+    const rarity = item.dataset.rarityText;
+
+    document.getElementById('tooltip-name').textContent = name;
+    document.getElementById('tooltip-description').textContent = description;
+    document.getElementById('tooltip-rarity').textContent = rarity;
+
+    tooltip.classList.add('show');
+    moveTooltip(e);
+}
+
+function hideTooltip() {
+    tooltip.classList.remove('show');
+}
+
+function moveTooltip(e) {
+    const offset = 15;
+    tooltip.style.left = (e.clientX + offset) + 'px';
+    tooltip.style.top = (e.clientY + offset) + 'px';
+}
+
+// Comprar item
+async function buyItem(shopItemId) {
+    const itemElement = document.querySelector(`[data-item-id="${shopItemId}"]`);
+    if (itemElement.classList.contains('sold')) return;
+
+    itemElement.classList.add('buying');
+
+    try {
+        const response = await fetch(`/map/api/shop/buy-item/${shopItemId}`, { method: 'POST' });
+        const data = await response.json();
+
+        if (data.success) {
+            updateGoldDisplay(data.player_gold);
+
+            if (data.requires_redirect) {
+                window.location.href = data.redirect_url;
+                return;
+            }
+
+            // Marcar como vendido
+            itemElement.classList.remove('buying');
+            itemElement.classList.add('sold');
+            itemElement.insertAdjacentHTML('beforeend', '<div class="sold-label">VENDIDO</div>');
+
+            showNotification(data.message || 'Item comprado!', 'success');
+        } else {
+            itemElement.classList.remove('buying');
+            showNotification(data.error || 'Erro ao comprar', 'error');
+        }
+    } catch (error) {
+        itemElement.classList.remove('buying');
+        showNotification('Erro de conexão', 'error');
+    }
+}
+
+// Atualizar ouro
+function updateGoldDisplay(gold) {
+    document.getElementById('player-gold').textContent = gold;
+}
+
+// Notificação
+function showNotification(message, type) {
+    const notif = document.createElement('div');
+    notif.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        background: ${type === 'success' ? 'rgba(16, 185, 129, 0.95)' : 'rgba(239, 68, 68, 0.95)'};
+        color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        z-index: 20000;
+        font-weight: bold;
+        animation: slideIn 0.3s ease-out;
+    `;
+    notif.textContent = message;
+    document.body.appendChild(notif);
+
+    setTimeout(() => {
+        notif.style.animation = 'fadeOut 0.3s ease-out';
+        notif.style.opacity = '0';
+        setTimeout(() => notif.remove(), 300);
+    }, 3000);
+}
+
+// Fechar loja
+async function closeShop() {
+    // Não marca como completado, apenas fecha e volta ao hub
+    window.location.href = '/gamification';
+}
 </script>
 {% endblock %}

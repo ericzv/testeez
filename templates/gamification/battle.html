@@ -11,6 +11,215 @@
 <link rel="stylesheet" href="/static/css/battle.css">
 <link rel="stylesheet" href="/static/css/battle-turns.css">
 
+<style>
+/* ============================================
+   SISTEMA DE POÇÕES - INVENTORY UI
+   ============================================ */
+
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    padding: 10px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.potion-slot {
+    background: linear-gradient(135deg, rgba(40, 40, 40, 0.95), rgba(20, 20, 20, 0.95));
+    border: 2px solid rgba(100, 100, 100, 0.5);
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.potion-slot:not(.empty):hover {
+    transform: translateY(-5px) scale(1.05);
+    border-color: rgba(16, 185, 129, 0.8);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, rgba(50, 50, 50, 0.95), rgba(30, 30, 30, 0.95));
+}
+
+.potion-slot.empty {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: rgba(100, 100, 100, 0.3);
+}
+
+.potion-slot.empty:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.potion-slot.using {
+    animation: potionUse 0.6s ease-out;
+    pointer-events: none;
+}
+
+@keyframes potionUse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.7;
+        box-shadow: 0 0 30px rgba(16, 185, 129, 1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.slot-icon-container {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    position: relative;
+}
+
+.slot-icon-container img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
+}
+
+.empty-slot-icon {
+    font-size: 48px;
+    color: rgba(150, 150, 150, 0.3);
+    font-weight: bold;
+}
+
+.slot-info {
+    text-align: center;
+}
+
+.slot-name {
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.slot-quantity {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    border-radius: 12px;
+    color: #10b981;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.potion-slot.empty .slot-quantity {
+    background: rgba(100, 100, 100, 0.2);
+    border-color: rgba(100, 100, 100, 0.3);
+    color: #666;
+}
+
+/* Efeitos visuais específicos por tipo de poção */
+.potion-slot[data-type="vital"] {
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
+.potion-slot[data-type="vital"]:not(.empty):hover {
+    border-color: rgba(239, 68, 68, 0.8);
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+}
+
+.potion-slot[data-type="protective"] {
+    border-color: rgba(59, 130, 246, 0.5);
+}
+
+.potion-slot[data-type="protective"]:not(.empty):hover {
+    border-color: rgba(59, 130, 246, 0.8);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+}
+
+.potion-slot[data-type="energetic"] {
+    border-color: rgba(251, 191, 36, 0.5);
+}
+
+.potion-slot[data-type="energetic"]:not(.empty):hover {
+    border-color: rgba(251, 191, 36, 0.8);
+    box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
+}
+
+/* Partículas de uso */
+.potion-particles {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+.particle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: particleFloat 1s ease-out forwards;
+}
+
+@keyframes particleFloat {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-100px) scale(0);
+    }
+}
+
+/* Efeito de brilho ao passar mouse */
+.potion-slot::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 70%
+    );
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+}
+
+.potion-slot:not(.empty):hover::before {
+    transform: translateX(100%);
+}
+
+/* Contador de quantidade com pulso quando > 0 */
+.slot-quantity:not(.empty) {
+    animation: quantityPulse 2s ease-in-out infinite;
+}
+
+@keyframes quantityPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+</style>
+
 </head>
 <body>
 <!-- Loading Screen -->
@@ -236,11 +445,33 @@
 <!-- Inventory Submenu -->
 <div class="submenu" id="inventory-submenu">
   <div class="submenu-content">
-    <div id="inventory-options">
-      <div class="skill-button" style="background: linear-gradient(to bottom, #206a40, #104a30); border: 2px solid #3a8853;">
-        <div>Inventário</div>
-        <div class="skill-details">
-          <span>Em breve</span>
+    <div id="inventory-options" class="inventory-grid">
+      <!-- Slots de poções serão carregados aqui -->
+      <div class="potion-slot empty" data-slot="1" id="potion-slot-1">
+        <div class="slot-icon-container">
+          <div class="empty-slot-icon">?</div>
+        </div>
+        <div class="slot-info">
+          <div class="slot-name">Vazio</div>
+          <div class="slot-quantity">0</div>
+        </div>
+      </div>
+      <div class="potion-slot empty" data-slot="2" id="potion-slot-2">
+        <div class="slot-icon-container">
+          <div class="empty-slot-icon">?</div>
+        </div>
+        <div class="slot-info">
+          <div class="slot-name">Vazio</div>
+          <div class="slot-quantity">0</div>
+        </div>
+      </div>
+      <div class="potion-slot empty" data-slot="3" id="potion-slot-3">
+        <div class="slot-icon-container">
+          <div class="empty-slot-icon">?</div>
+        </div>
+        <div class="slot-info">
+          <div class="slot-name">Vazio</div>
+          <div class="slot-quantity">0</div>
         </div>
       </div>
     </div>
@@ -651,6 +882,312 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="/static/js/battle-sakura.js"></script>
 <script src="/static/js/battle-turns.js"></script>
 <script src="/static/js/battle-memory-system.js"></script>
+
+<!-- ============================================
+     SISTEMA DE POÇÕES - BATTLE INVENTORY
+     ============================================ -->
+<script>
+// ============================================================================
+// SISTEMA DE POÇÕES CONSUMÍVEIS
+// ============================================================================
+
+let potionSlots = [];
+let isUsingPotion = false;
+
+// Carregar slots de poções ao iniciar batalha
+async function loadPotionSlots() {
+    try {
+        const response = await fetch('/gamification/get_potion_slots');
+        const data = await response.json();
+
+        if (data.success) {
+            potionSlots = data.slots;
+            renderPotionSlots();
+            console.log('✅ Slots de poções carregados:', potionSlots);
+        } else {
+            console.error('❌ Erro ao carregar slots:', data.error);
+        }
+    } catch (error) {
+        console.error('❌ Erro de conexão ao carregar poções:', error);
+    }
+}
+
+// Renderizar slots de poções na UI
+function renderPotionSlots() {
+    potionSlots.forEach((slot, index) => {
+        const slotElement = document.getElementById(`potion-slot-${slot.slot_number}`);
+        if (!slotElement) return;
+
+        const isEmpty = !slot.potion_type || slot.quantity <= 0;
+
+        // Atualizar classe empty
+        if (isEmpty) {
+            slotElement.classList.add('empty');
+            slotElement.removeAttribute('data-type');
+        } else {
+            slotElement.classList.remove('empty');
+            slotElement.setAttribute('data-type', slot.potion_type);
+        }
+
+        // Atualizar ícone
+        const iconContainer = slotElement.querySelector('.slot-icon-container');
+        if (isEmpty) {
+            iconContainer.innerHTML = '<div class="empty-slot-icon">?</div>';
+        } else {
+            iconContainer.innerHTML = `<img src="/static/game.data/${slot.icon}" alt="${slot.name}" onerror="this.src='/static/game.data/resources/placeholder.png'">`;
+        }
+
+        // Atualizar nome
+        const nameElement = slotElement.querySelector('.slot-name');
+        nameElement.textContent = slot.name || 'Vazio';
+
+        // Atualizar quantidade
+        const quantityElement = slotElement.querySelector('.slot-quantity');
+        quantityElement.textContent = isEmpty ? '0' : `x${slot.quantity}`;
+
+        if (isEmpty) {
+            quantityElement.classList.add('empty');
+        } else {
+            quantityElement.classList.remove('empty');
+        }
+
+        // Adicionar evento de clique
+        slotElement.onclick = isEmpty ? null : () => usePotionSlot(slot.slot_number);
+    });
+}
+
+// Usar poção de um slot
+async function usePotionSlot(slotNumber) {
+    if (isUsingPotion) {
+        console.log('⏳ Aguarde o uso anterior terminar');
+        return;
+    }
+
+    const slot = potionSlots.find(s => s.slot_number === slotNumber);
+    if (!slot || !slot.potion_type || slot.quantity <= 0) {
+        console.log('❌ Slot vazio ou inválido');
+        return;
+    }
+
+    isUsingPotion = true;
+    const slotElement = document.getElementById(`potion-slot-${slotNumber}`);
+
+    try {
+        // Animação de uso
+        slotElement.classList.add('using');
+        createPotionParticles(slotElement, slot.potion_type);
+
+        // Chamar API para usar poção
+        const response = await fetch(`/gamification/use_potion/${slotNumber}`, {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            console.log('✅ Poção usada:', data.message);
+
+            // Atualizar UI do jogador
+            updatePlayerStatsAfterPotion(data.player);
+
+            // Mostrar mensagem de feedback
+            showPotionFeedback(data.message, slot.potion_type);
+
+            // Atualizar slot
+            const slotData = data.slot;
+            const slotIndex = potionSlots.findIndex(s => s.slot_number === slotNumber);
+            if (slotIndex !== -1) {
+                potionSlots[slotIndex] = slotData;
+            }
+
+            // Re-renderizar
+            setTimeout(() => {
+                renderPotionSlots();
+                slotElement.classList.remove('using');
+                isUsingPotion = false;
+            }, 600);
+
+        } else {
+            console.error('❌ Erro ao usar poção:', data.error);
+            showPotionFeedback(data.error || 'Erro ao usar poção', 'error');
+            slotElement.classList.remove('using');
+            isUsingPotion = false;
+        }
+    } catch (error) {
+        console.error('❌ Erro de conexão:', error);
+        showPotionFeedback('Erro de conexão', 'error');
+        slotElement.classList.remove('using');
+        isUsingPotion = false;
+    }
+}
+
+// Atualizar stats do jogador após usar poção
+function updatePlayerStatsAfterPotion(playerData) {
+    // Atualizar HP
+    if (playerData.hp !== undefined) {
+        const hpElement = document.getElementById('player-status-hp');
+        if (hpElement) {
+            hpElement.textContent = `${playerData.hp}/${playerData.max_hp}`;
+        }
+
+        // Atualizar barra de HP se existir
+        const hpBar = document.querySelector('.player-hp-fill');
+        if (hpBar) {
+            const hpPercent = (playerData.hp / playerData.max_hp) * 100;
+            hpBar.style.width = `${hpPercent}%`;
+        }
+    }
+
+    // Atualizar Energia
+    if (playerData.energy !== undefined) {
+        const energyText = document.getElementById('energy-text');
+        if (energyText) {
+            energyText.textContent = `${playerData.energy}/${playerData.max_energy}`;
+        }
+
+        // Atualizar indicador de energia
+        const energyIndicator = document.getElementById('energy-indicator');
+        if (energyIndicator) {
+            const energyPercent = (playerData.energy / playerData.max_energy) * 100;
+            if (energyPercent > 66) {
+                energyIndicator.setAttribute('data-energy-percent', 'high');
+            } else if (energyPercent > 33) {
+                energyIndicator.setAttribute('data-energy-percent', 'medium');
+            } else {
+                energyIndicator.setAttribute('data-energy-percent', 'low');
+            }
+        }
+    }
+
+    // Atualizar Barreira (se houver display)
+    if (playerData.barrier !== undefined && playerData.barrier > 0) {
+        console.log(`🛡️ Barreira: ${playerData.barrier}`);
+        // Você pode adicionar UI de barreira aqui se quiser
+    }
+}
+
+// Criar partículas visuais ao usar poção
+function createPotionParticles(slotElement, potionType) {
+    const rect = slotElement.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    // Cores por tipo de poção
+    const colors = {
+        'vital': '#ef4444',        // Vermelho
+        'protective': '#3b82f6',   // Azul
+        'energetic': '#fbbf24'     // Amarelo
+    };
+
+    const color = colors[potionType] || '#10b981';
+
+    // Criar container de partículas
+    const particlesContainer = document.createElement('div');
+    particlesContainer.className = 'potion-particles';
+    document.body.appendChild(particlesContainer);
+
+    // Criar 20 partículas
+    for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.backgroundColor = color;
+        particle.style.left = `${centerX}px`;
+        particle.style.top = `${centerY}px`;
+
+        // Direção aleatória
+        const angle = (Math.PI * 2 * i) / 20;
+        const velocity = 50 + Math.random() * 50;
+        const tx = Math.cos(angle) * velocity;
+        const ty = Math.sin(angle) * velocity - 100;
+
+        particle.style.setProperty('--tx', `${tx}px`);
+        particle.style.setProperty('--ty', `${ty}px`);
+
+        particlesContainer.appendChild(particle);
+
+        // Aplicar animação customizada
+        particle.style.animation = `particleFloat 1s ease-out forwards`;
+        particle.style.transform = `translate(${tx}px, ${ty}px)`;
+    }
+
+    // Remover container após animação
+    setTimeout(() => {
+        particlesContainer.remove();
+    }, 1000);
+}
+
+// Mostrar feedback visual de uso de poção
+function showPotionFeedback(message, type) {
+    const feedback = document.createElement('div');
+    feedback.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 20px 40px;
+        background: ${type === 'error' ? 'rgba(239, 68, 68, 0.95)' : 'rgba(16, 185, 129, 0.95)'};
+        color: #fff;
+        font-size: 20px;
+        font-weight: bold;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        z-index: 10000;
+        animation: feedbackAppear 0.5s ease-out;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    `;
+    feedback.textContent = message;
+
+    // Adicionar animação CSS
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes feedbackAppear {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            100% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
+    document.body.appendChild(feedback);
+
+    // Remover após 2 segundos
+    setTimeout(() => {
+        feedback.style.animation = 'feedbackDisappear 0.5s ease-out';
+        feedback.style.opacity = '0';
+        feedback.style.transform = 'translate(-50%, -50%) scale(0.8)';
+        setTimeout(() => {
+            feedback.remove();
+            style.remove();
+        }, 500);
+    }, 2000);
+}
+
+// Inicializar sistema de poções quando página carregar
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🧪 Inicializando sistema de poções...');
+    loadPotionSlots();
+});
+
+// Recarregar slots quando voltar para o menu de inventário
+const inventoryButton = document.getElementById('inventory-button');
+if (inventoryButton) {
+    inventoryButton.addEventListener('click', () => {
+        setTimeout(() => {
+            loadPotionSlots();
+        }, 100);
+    });
+}
+
+console.log('✅ Sistema de poções carregado!');
+</script>
 
 
                 </body>

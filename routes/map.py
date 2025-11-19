@@ -927,6 +927,444 @@ def skip_event():
 
 
 # ============================================================================
+# API - Sistema de Shop
+# ============================================================================
+
+@map_bp.route('/api/shop/generate', methods=['POST'])
+def generate_shop_inventory():
+    """
+    Gera o inventário da loja para o jogador quando entra no nó shop.
+    Cada nó shop tem seu próprio inventory único.
+
+    Returns:
+        JSON com inventário gerado
+    """
+    from models import ShopInventory, PlayerRelic
+    from routes.relics.registry import get_all_relics, get_rarity_weights
+
+    player = Player.query.first()
+    if not player:
+        return jsonify({'success': False, 'error': 'Jogador não encontrado'}), 404
+
+    # Pegar nó atual
+    progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+    if not progress or not progress.current_node_id:
+        return jsonify({'success': False, 'error': 'Nó atual não encontrado'}), 400
+
+    current_node_id = progress.current_node_id
+
+    # Verificar se já existe inventory para este nó
+    existing_inventory = ShopInventory.query.filter_by(
+        player_id=player.id,
+        node_id=current_node_id
+    ).first()
+
+    if existing_inventory:
+        # Inventory já existe para este nó, retornar existente
+        return jsonify({
+            'success': True,
+            'message': 'Inventory já existe para este shop',
+            'items': [item.to_dict() for item in ShopInventory.query.filter_by(
+                player_id=player.id,
+                node_id=current_node_id
+            ).all()]
+        })
+
+    # Limpar inventory de OUTROS nós (manter apenas do nó atual se houver)
+    # Na prática, como estamos criando novo, não precisa fazer nada aqui
+
+    # Gerar 3 poções
+    potions = [
+        {
+            'type': 'potion',
+            'id': 'potion_vital',
+            'name': 'Poção Vital',
+            'description': 'Cura 20 HP',
+            'icon': 'resources/potion-vital.png',
+            'price': random.randint(20, 30),
+            'rarity': None
+        },
+        {
+            'type': 'potion',
+            'id': 'potion_protective',
+            'name': 'Poção Protetora',
+            'description': 'Concede 16 de Barreira',
+            'icon': 'resources/potion-protective.png',
+            'price': random.randint(18, 28),
+            'rarity': None
+        },
+        {
+            'type': 'potion',
+            'id': 'potion_energetic',
+            'name': 'Poção Energética',
+            'description': 'Concede 5 de Energia',
+            'icon': 'resources/potion-energetic.png',
+            'price': random.randint(24, 34),
+            'rarity': None
+        }
+    ]
+
+    # Gerar 2 lembranças (vales lembrança com raridades)
+    memory_rarities = ['common', 'rare', 'epic', 'legendary']
+    memory_weights = [40, 35, 20, 5]  # Pesos de probabilidade
+    memories = []
+
+    for i in range(2):
+        rarity = random.choices(memory_rarities, weights=memory_weights)[0]
+
+        # Preço baseado na raridade
+        price_ranges = {
+            'common': (24, 36),
+            'rare': (42, 59),
+            'epic': (66, 78),
+            'legendary': (84, 97)
+        }
+
+        price = random.randint(*price_ranges[rarity])
+
+        memories.append({
+            'type': 'memory',
+            'id': f'memory_{i+1}',
+            'name': 'Lembrança',
+            'description': 'Adquira uma nova lembrança',
+            'icon': 'resources/memory-icon.png',
+            'price': price,
+            'rarity': rarity
+        })
+
+    # Gerar 3 relíquias
+    all_relics = get_all_relics()
+
+    # Obter relíquias que o jogador já possui
+    player_relic_ids = [pr.relic_id for pr in PlayerRelic.query.filter_by(player_id=player.id).all()]
+
+    # Filtrar relíquias disponíveis (que o jogador ainda não tem)
+    available_relics = [r for r in all_relics if r['id'] not in player_relic_ids]
+
+    # Se não tem relíquias disponíveis suficientes, permitir repetidas
+    if len(available_relics) < 3:
+        available_relics = all_relics
+
+    # Selecionar 3 relíquias aleatórias baseadas na raridade
+    relic_rarity_weights = get_rarity_weights('shop')
+    selected_relics = []
+
+    for i in range(3):
+        # Escolher raridade baseada nos pesos
+        rarity = random.choices(
+            list(relic_rarity_weights.keys()),
+            weights=list(relic_rarity_weights.values())
+        )[0]
+
+        # Filtrar relíquias da raridade escolhida
+        relics_of_rarity = [r for r in available_relics if r['rarity'] == rarity]
+
+        # Se não tem relíquias dessa raridade, pegar qualquer uma
+        if not relics_of_rarity:
+            relics_of_rarity = available_relics
+
+        # Selecionar relíquia aleatória
+        relic = random.choice(relics_of_rarity)
+
+        # Preço baseado na raridade
+        price_ranges = {
+            'common': (68, 102),
+            'uncommon': (100, 140),
+            'rare': (134, 170),
+            'epic': (160, 210),
+            'legendary': (180, 270)
+        }
+
+        price = random.randint(*price_ranges.get(relic['rarity'], (50, 100)))
+
+        selected_relics.append({
+            'type': 'relic',
+            'id': relic['id'],
+            'name': relic['name'],
+            'description': relic['description'],
+            'icon': relic['icon'],
+            'price': price,
+            'rarity': relic['rarity']
+        })
+
+    # Salvar no banco de dados
+    all_items = potions + memories + selected_relics
+
+    for item in all_items:
+        shop_item = ShopInventory(
+            player_id=player.id,
+            node_id=current_node_id,  # Vincular ao nó atual
+            item_type=item['type'],
+            item_id=item['id'],
+            price=item['price'],
+            rarity=item['rarity']
+        )
+        db.session.add(shop_item)
+
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'items': all_items
+    })
+
+
+@map_bp.route('/api/shop/get-inventory', methods=['GET'])
+def get_shop_inventory():
+    """
+    Retorna o inventário atual da loja do jogador.
+
+    Returns:
+        JSON com inventário
+    """
+    from models import ShopInventory
+    from routes.relics.registry import get_relic_definition
+
+    player = Player.query.first()
+    if not player:
+        return jsonify({'success': False, 'error': 'Jogador não encontrado'}), 404
+
+    # Pegar nó atual
+    progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+    if not progress or not progress.current_node_id:
+        return jsonify({'success': False, 'error': 'Nó atual não encontrado'}), 400
+
+    current_node_id = progress.current_node_id
+
+    # Buscar inventário da loja DESTE NÓ
+    shop_items = ShopInventory.query.filter_by(
+        player_id=player.id,
+        node_id=current_node_id,
+        is_purchased=False
+    ).all()
+
+    # Se não tem inventário, gerar
+    if not shop_items:
+        # Redirecionar para geração
+        return jsonify({
+            'success': False,
+            'error': 'Inventário não gerado',
+            'should_generate': True
+        })
+
+    # Montar resposta
+    items = []
+    for shop_item in shop_items:
+        if shop_item.item_type == 'potion':
+            # Poções
+            potion_data = {
+                'vital': {
+                    'name': 'Poção Vital',
+                    'description': 'Cura 20 HP',
+                    'icon': 'resources/potion-vital.png'
+                },
+                'protective': {
+                    'name': 'Poção Protetora',
+                    'description': 'Concede 16 de Barreira',
+                    'icon': 'resources/potion-protective.png'
+                },
+                'energetic': {
+                    'name': 'Poção Energética',
+                    'description': 'Concede 5 de Energia',
+                    'icon': 'resources/potion-energetic.png'
+                }
+            }
+
+            potion_type = shop_item.item_id.replace('potion_', '')
+            data = potion_data.get(potion_type, {})
+
+            items.append({
+                'id': shop_item.id,
+                'type': 'potion',
+                'item_id': shop_item.item_id,
+                'name': data.get('name', 'Poção'),
+                'description': data.get('description', ''),
+                'icon': data.get('icon', 'resources/potion.png'),
+                'price': shop_item.price,
+                'rarity': None
+            })
+
+        elif shop_item.item_type == 'memory':
+            # Lembranças
+            items.append({
+                'id': shop_item.id,
+                'type': 'memory',
+                'item_id': shop_item.item_id,
+                'name': 'Lembrança',
+                'description': 'Adquira uma nova lembrança',
+                'icon': 'resources/memory-icon.png',
+                'price': shop_item.price,
+                'rarity': shop_item.rarity
+            })
+
+        elif shop_item.item_type == 'relic':
+            # Relíquias
+            relic = get_relic_definition(shop_item.item_id)
+            if relic:
+                items.append({
+                    'id': shop_item.id,
+                    'type': 'relic',
+                    'item_id': shop_item.item_id,
+                    'name': relic['name'],
+                    'description': relic['description'],
+                    'icon': relic['icon'],
+                    'price': shop_item.price,
+                    'rarity': relic['rarity']
+                })
+
+    return jsonify({
+        'success': True,
+        'items': items,
+        'player_gold': player.run_gold
+    })
+
+
+@map_bp.route('/api/shop/buy-item/<int:shop_item_id>', methods=['POST'])
+def buy_shop_item(shop_item_id):
+    """
+    Compra um item da loja.
+
+    Args:
+        shop_item_id: ID do item na tabela ShopInventory
+
+    Returns:
+        JSON com resultado da compra
+    """
+    from models import ShopInventory, PlayerPotionSlot
+    from routes.relics.selection import award_relic_to_player
+
+    player = Player.query.first()
+    if not player:
+        return jsonify({'success': False, 'error': 'Jogador não encontrado'}), 404
+
+    # Buscar item da loja
+    shop_item = ShopInventory.query.get(shop_item_id)
+    if not shop_item or shop_item.player_id != player.id:
+        return jsonify({'success': False, 'error': 'Item não encontrado'}), 404
+
+    if shop_item.is_purchased:
+        return jsonify({'success': False, 'error': 'Item já foi comprado'}), 400
+
+    # Verificar se jogador tem ouro suficiente
+    if player.run_gold < shop_item.price:
+        return jsonify({'success': False, 'error': 'Ouro insuficiente'}), 400
+
+    # Descontar ouro
+    player.run_gold -= shop_item.price
+
+    # Processar compra baseado no tipo
+    if shop_item.item_type == 'potion':
+        # Adicionar poção ao inventário
+        potion_type = shop_item.item_id.replace('potion_', '')
+
+        # Verificar se já tem essa poção em algum slot
+        existing_slot = PlayerPotionSlot.query.filter_by(
+            player_id=player.id,
+            potion_type=potion_type
+        ).first()
+
+        if existing_slot:
+            # Adicionar à quantidade existente
+            existing_slot.quantity += 1
+        else:
+            # Encontrar slot vazio ou criar novo
+            slots = PlayerPotionSlot.query.filter_by(player_id=player.id).order_by(PlayerPotionSlot.slot_number).all()
+
+            # Garantir que existem 3 slots
+            for i in range(1, 4):
+                if not any(s.slot_number == i for s in slots):
+                    new_slot = PlayerPotionSlot(
+                        player_id=player.id,
+                        slot_number=i,
+                        potion_type=None,
+                        quantity=0
+                    )
+                    db.session.add(new_slot)
+
+            db.session.flush()
+
+            # Recarregar slots
+            slots = PlayerPotionSlot.query.filter_by(player_id=player.id).order_by(PlayerPotionSlot.slot_number).all()
+
+            # Encontrar primeiro slot vazio
+            empty_slot = None
+            for slot in slots:
+                if slot.potion_type is None or slot.quantity == 0:
+                    empty_slot = slot
+                    break
+
+            if empty_slot:
+                empty_slot.potion_type = potion_type
+                empty_slot.quantity = 1
+            else:
+                return jsonify({'success': False, 'error': 'Inventário de poções cheio'}), 400
+
+        result_message = f'Poção adicionada ao inventário'
+        redirect_needed = False
+
+    elif shop_item.item_type == 'memory':
+        # Gerar opções de lembranças baseado na raridade
+        shop_item.is_purchased = True
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'requires_redirect': True,
+            'redirect_url': f'/gamification?show_memory_selection=true&rarity={shop_item.rarity}',
+            'player_gold': player.run_gold
+        })
+
+    elif shop_item.item_type == 'relic':
+        # Adicionar relíquia ao jogador
+        success = award_relic_to_player(player.id, shop_item.item_id)
+
+        if not success:
+            # Reverter desconto de ouro
+            player.run_gold += shop_item.price
+            return jsonify({'success': False, 'error': 'Erro ao adicionar relíquia'}), 500
+
+        result_message = f'Relíquia adquirida!'
+        redirect_needed = False
+
+    # Marcar como comprado
+    shop_item.is_purchased = True
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': result_message,
+        'player_gold': player.run_gold
+    })
+
+
+@map_bp.route('/api/shop/close', methods=['POST'])
+def close_shop():
+    """
+    Fecha a loja e marca o nó como completo.
+
+    Returns:
+        JSON com sucesso
+    """
+    player = Player.query.first()
+    if not player:
+        return jsonify({'success': False, 'error': 'Jogador não encontrado'}), 404
+
+    # Marcar nó como completo
+    progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+    if progress and progress.current_node_id:
+        current_node = MapNode.query.get(progress.current_node_id)
+        if current_node and current_node.node_type == 'shop':
+            current_node.is_completed = True
+            progress.shops_visited = (progress.shops_visited or 0) + 1
+            db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'redirect_url': '/map'
+    })
+
+
+# ============================================================================
 # Funções Auxiliares - Eventos
 # ============================================================================
 
