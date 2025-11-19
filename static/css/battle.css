@@ -9,6 +9,7 @@
       will-change: transform;
       transform: translateZ(0); /* Force GPU acceleration */
       backface-visibility: hidden;
+      contain: layout style paint;
   }
 
   .tree-paralax {
@@ -16,12 +17,27 @@
       backface-visibility: hidden;
       transform: translateZ(0);
       /* Otimização: usar transform3d para ativar GPU */
+      contain: layout style paint;
   }
 
   .character-container, .boss-container {
       will-change: transform, opacity;
       transform: translateZ(0);
       backface-visibility: hidden;
+      contain: layout style;
+  }
+
+  /* Otimizar renderização de menus off-screen */
+  .submenu:not(.active) {
+      content-visibility: auto;
+      contain-intrinsic-size: 0 500px;
+  }
+
+  /* Reduzir repaint de particles */
+  .particles-container {
+      will-change: transform;
+      transform: translateZ(0);
+      contain: layout style paint;
   }
 
   /* Desabilitar animações em dispositivos lentos */
@@ -187,8 +203,13 @@
     opacity: 0.8;
     transition: transform 1.8s linear, filter 1s ease-in-out;
     transform-origin: bottom center;
-    animation: tree-gentle-sway 3s infinite alternate ease-in-out;
-    filter: brightness(0.8);
+    /* Animação de balanço suave - GPU acelerada */
+    animation: tree-gentle-sway 6s infinite alternate ease-in-out;
+  }
+
+  /* Usar WebP quando suportado (74.6% menor que PNG!) */
+  .webp .tree-paralax {
+    background-image: url('/static/game.data/tree-paralax.webp');
   }
   
   /* Animação de balanço suave */

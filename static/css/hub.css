@@ -4,6 +4,31 @@
 */
 
 /* ============================================== */
+/* OTIMIZAÇÕES DE PERFORMANCE - GPU ACCELERATION */
+/* ============================================== */
+
+/* Forçar aceleração GPU em elementos animados */
+.menu-btn,
+.currency-item,
+.relic-item,
+.modal,
+.popup,
+[class*="modal-"],
+[class*="popup-"],
+.menu-container,
+.victory-popup,
+.ui-panel,
+.boss-milestone-popup,
+.map-popup-panel,
+.relic-selection-modal,
+.boss-selection-modal {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: layout style;
+}
+
+/* ============================================== */
 /* RESET E CONFIGURAÇÕES GLOBAIS DO HUB */
 /* ============================================== */
 
@@ -66,6 +91,11 @@ body.gamification-page {
   margin: 0 !important;
   top: 0 !important;
   left: 0 !important;
+}
+
+/* Usar WebP quando suportado (98% menor que PNG!) */
+.webp .gamification-page .container {
+  background-image: url('/static/game.data/mementohub.webp');
 }
 
 /* OCULTAR COMPLETAMENTE qualquer herança de navegação */

@@ -4,6 +4,23 @@
  */
 
 /* ============================================
+   OTIMIZAÇÕES DE PERFORMANCE - GPU ACCELERATION
+   ============================================ */
+
+/* Forçar aceleração GPU em elementos animados do mapa */
+.map-node,
+.map-header,
+.node-card,
+.map-path,
+[class*="node-"],
+.modal,
+.popup {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ============================================
    CORES E VARIÁVEIS
    ============================================ */
 :root {
