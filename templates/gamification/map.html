@@ -732,9 +732,10 @@
 </div>
 
 <!-- Pop-up da Loja -->
+<!-- SHOP POPUP - VERSÃO ATUALIZADA 2025-01-19 -->
 <div id="shop-popup" class="ui-dialog">
     <div class="ui-panel shop-panel">
-        <h2 class="title">Loja do Mercador</h2>
+        <h2 class="title">🛒 LOJA DO MERCADOR (DEBUG MODE)</h2>
         <button class="close-popup-btn" onclick="closeShopPopup()">×</button>
 
         <div class="shop-gold-display">
@@ -1143,8 +1144,16 @@ let shopInventory = [];
 let shopTooltip = null;
 
 async function openShopPopup() {
+    console.log('🛒 [DEBUG] openShopPopup CHAMADA!');
+    console.log('🛒 [DEBUG] Verificando se #shop-popup existe:', document.getElementById('shop-popup'));
+    console.log('🛒 [DEBUG] Verificando se #shop-loading existe:', document.getElementById('shop-loading'));
+    console.log('🛒 [DEBUG] Verificando se #shop-content existe:', document.getElementById('shop-content'));
+
     openDialog('#shop-popup');
+    console.log('🛒 [DEBUG] openDialog executado');
+
     loadShopInventory();
+    console.log('🛒 [DEBUG] loadShopInventory chamado');
 }
 
 function closeShopPopup() {
@@ -1158,15 +1167,28 @@ function closeShopPopup() {
 }
 
 async function loadShopInventory() {
+    console.log('🛒 [DEBUG] loadShopInventory INICIADO');
     const loading = document.getElementById('shop-loading');
     const content = document.getElementById('shop-content');
 
+    console.log('🛒 [DEBUG] loading element:', loading);
+    console.log('🛒 [DEBUG] content element:', content);
+
+    if (!loading || !content) {
+        console.error('❌ [DEBUG] ERRO: Elementos do shop não encontrados!');
+        alert('ERRO DE DEBUG: Elementos do shop não existem no DOM!');
+        return;
+    }
+
     loading.style.display = 'block';
     content.style.display = 'none';
+    console.log('🛒 [DEBUG] Loading mostrado, content escondido');
 
     try {
+        console.log('🛒 [DEBUG] Fazendo fetch para /map/api/shop/get-inventory');
         let response = await fetch('/map/api/shop/get-inventory');
         let data = await response.json();
+        console.log('🛒 [DEBUG] Resposta recebida:', data);
 
         if (!data.success && data.should_generate) {
             response = await fetch('/map/api/shop/generate', { method: 'POST' });
