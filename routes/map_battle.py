@@ -217,6 +217,13 @@ def handle_map_victory():
             current_map.boss_defeated = True
         map_progress.total_acts_completed += 1
 
+        # CRÍTICO: Incrementar o ato atual para o próximo mapa
+        if map_progress.current_act < 3:
+            map_progress.current_act += 1
+            print(f"🎉 ATO {map_progress.current_act - 1} COMPLETO! Avançando para Ato {map_progress.current_act}")
+        else:
+            print(f"🏆 TODOS OS ATOS COMPLETADOS! Parabéns!")
+
     db.session.commit()
 
     return jsonify({

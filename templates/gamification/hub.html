@@ -2754,21 +2754,19 @@ async function handleCurrentNodeClick(node) {
       }
       break;
     case 'elite':
+      // Redirecionar para o route que cria e seleciona o boss elite
+      window.location.href = `/map/battle/elite/${node.boss_id || 2}`;
+      break;
     case 'boss':
-      if (hasBattleActive) {
-        window.location.href = '/gamification/battle';
-      } else if (node.boss_id) {
-        const bossName = bossNames[node.boss_id] || `Boss #${node.boss_id}`;
-        selectBoss(node.boss_id, bossName);
-      } else {
-        showBossSelection();
-      }
+      // Redirecionar para o route que cria e seleciona o boss final
+      window.location.href = `/map/battle/boss/${node.boss_id || 1}`;
       break;
     case 'shop':
       openDialog('#shop-popup');
       break;
     case 'event':
-      openDialog('#event-popup');
+      // Redirecionar para página de evento
+      window.location.href = '/map/event';
       break;
     case 'rest':
       openRestArea();
@@ -2888,22 +2886,21 @@ async function handleMapNodeClick(node) {
       showBossSelection();
       break;
     case 'elite':
+      // Redirecionar para o route que cria e seleciona o boss elite
+      console.log(`⚔️ Redirecionando para elite battle: boss_id=${node.boss_id || 2}`);
+      window.location.href = `/map/battle/elite/${node.boss_id || 2}`;
+      break;
     case 'boss':
-      // Elite e Boss: inicia batalha diretamente com boss específico
-      if (node.boss_id) {
-        const bossName = bossNames[node.boss_id] || `Boss #${node.boss_id}`;
-        console.log(`⚔️ Iniciando batalha com ${bossName} (ID: ${node.boss_id})`);
-        selectBoss(node.boss_id, bossName);
-      } else {
-        console.error('Nó elite/boss sem boss_id definido!');
-        showBossSelection();
-      }
+      // Redirecionar para o route que cria e seleciona o boss final
+      console.log(`⚔️ Redirecionando para boss battle: boss_id=${node.boss_id || 1}`);
+      window.location.href = `/map/battle/boss/${node.boss_id || 1}`;
       break;
     case 'shop':
       openDialog('#shop-popup');
       break;
     case 'event':
-      openDialog('#event-popup');
+      // Redirecionar para página de evento
+      window.location.href = '/map/event';
       break;
     case 'rest':
       openRestArea();

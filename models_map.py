@@ -68,6 +68,9 @@ class MapNode(db.Model):
     boss_id = db.Column(db.Integer, nullable=True)   # Para Desafiante Infernal (sub-boss)
     difficulty_modifier = db.Column(db.Float, default=1.0)
 
+    # Dados específicos para eventos (CRÍTICO: persistir evento associado ao nó)
+    event_id = db.Column(db.String(100), nullable=True)  # ID do evento atribuído a este nó
+
     # Metadados
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     visited_at = db.Column(db.DateTime, nullable=True)
@@ -106,7 +109,8 @@ class MapNode(db.Model):
             'connections_down': self.get_connections_down(),
             'enemy_id': self.enemy_id,
             'boss_id': self.boss_id,
-            'difficulty_modifier': self.difficulty_modifier
+            'difficulty_modifier': self.difficulty_modifier,
+            'event_id': self.event_id
         }
 
 
@@ -123,6 +127,7 @@ class PlayerMapProgress(db.Model):
 
     # Progresso
     nodes_visited = db.Column(db.Text, default='[]')  # JSON array de node_ids
+    events_seen = db.Column(db.Text, default='[]')  # JSON array de event_ids vistos (para eventos únicos)
     current_act = db.Column(db.Integer, default=1)  # Ato atual (1, 2, 3)
     total_acts_completed = db.Column(db.Integer, default=0)
 
@@ -151,10 +156,32 @@ class PlayerMapProgress(db.Model):
             visited.append(node_id)
             self.nodes_visited = json.dumps(visited)
 
+    def get_events_seen(self):
+        """Retorna lista de IDs dos eventos já vistos nesta run"""
+        return json.loads(self.events_seen or '[]')
+
+    def add_event_seen(self, event_id):
+        """Adiciona evento à lista de eventos vistos (mais recente primeiro)"""
+        seen = self.get_events_seen()
+
+        # Se evento já está na lista, remove para reposicionar
+        if event_id in seen:
+            seen.remove(event_id)
+
+        # Adiciona no INÍCIO da lista (mais recente)
+        seen.insert(0, event_id)
+
+        # Limita lista a 10 eventos mais recentes (evita crescimento infinito)
+        if len(seen) > 10:
+            seen = seen[:10]
+
+        self.events_seen = json.dumps(seen)
+
     def reset_for_new_map(self):
         """Reseta progresso para novo mapa"""
         self.current_node_id = None
         self.nodes_visited = '[]'
+        self.events_seen = '[]'  # Reset eventos vistos ao trocar de mapa
         self.battles_won = 0
         self.elites_defeated = 0
         self.shops_visited = 0

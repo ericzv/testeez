@@ -51,7 +51,7 @@ from .enemy_attacks import get_enemy_attack_status
 from .battle_modules import (
     generate_enemy_by_theme, ensure_minimum_enemies, get_minimum_enemy_count, initialize_enemy_themes,
     calculate_enemy_base_stats, calculate_rarity_chances, apply_rarity_modifiers,
-    check_and_create_boss_milestone, clean_expired_enemies, calculate_equipment_rank,
+    clean_expired_enemies, calculate_equipment_rank,
     load_enemy_themes_config, update_theme_proportions,
     determine_enemy_reward_type, calculate_gold_reward, calculate_hourglass_reward,
     get_player_run_buffs, get_run_buff_total, add_run_buff,
@@ -230,9 +230,13 @@ def battle():
             )
             db.session.add(progress)
             db.session.commit()
-        
-        # Se não tem inimigo, criar um de teste
-        if not progress.selected_enemy_id:
+
+        # Verificar se tem boss ou inimigo selecionado
+        has_boss_selected = progress.selected_boss_id is not None
+        has_enemy_selected = progress.selected_enemy_id is not None
+
+        # Se não tem inimigo NEM boss, criar um de teste
+        if not has_enemy_selected and not has_boss_selected:
             available_enemy = GenericEnemy.query.filter_by(is_available=True).first()
             
             if not available_enemy:
@@ -559,20 +563,21 @@ def get_battle_data():
         
         # Recalcular cache (sempre que entrar na batalha)
         calculate_attack_cache(player.id)
-        
+
         # Buscar cache de defesa
         defense_cache = get_cached_defense(player.id)
-        
+
         if defense_cache:
-            # Atualizar HP/MP máximos do player baseado no cache
-            player.max_hp = defense_cache.max_hp
-            
+            # NÃO sobrescrever max_hp do player - ele já foi modificado por eventos
+            # O cache é apenas para bônus de equipamentos/talentos
+            # player.max_hp = defense_cache.max_hp  # REMOVIDO - causava bug com eventos
+
             # Garantir que HP/MP atuais não excedam os máximos
             if player.hp > player.max_hp:
                 player.hp = player.max_hp
-            
+
             db.session.commit()
-            
+
             print(f"Cache aplicado: HP={player.max_hp}")
 
         # Calcular atributos derivados com bônus de buffs
@@ -675,17 +680,18 @@ def get_battle_data():
         
         # Buscar cache de defesa para incluir na resposta
         defense_cache = get_cached_defense(player.id)
-        
+
         if defense_cache:
-            # Atualizar HP/MP máximos do player baseado no cache
-            player.max_hp = defense_cache.max_hp
-            
+            # NÃO sobrescrever max_hp do player - ele já foi modificado por eventos
+            # O cache é apenas para bônus de equipamentos/talentos
+            # player.max_hp = defense_cache.max_hp  # REMOVIDO - causava bug com eventos
+
             # Garantir que HP/MP atuais não excedam os máximos
             if player.hp > player.max_hp:
                 player.hp = player.max_hp
-            
+
             db.session.commit()
-            
+
             print(f"🎯 Cache aplicado: HP={player.max_hp}")
 
         return jsonify({
@@ -1928,46 +1934,37 @@ def boss_defeated():
         # Incrementar contador de inimigos genéricos derrotados
         progress.generic_enemies_defeated += 1
         progress.current_boss_phase += 1
-        
-        # NOVO: Verificar se chegou ao boss milestone (múltiplos de 20)
-        is_boss_milestone = progress.generic_enemies_defeated % 20 == 0
-        
+
         # Verificar se chegou ao boss fixo (múltiplos de 20)
         if progress.current_boss_phase > 20:
             progress.current_boss_phase = 1  # Reiniciar fase
-        
+
         # Atualizar rodadas de todos os inimigos disponíveis
         expired_count = update_rounds_for_all_enemies()
-        
-        # NOVO: Garantir que sempre hajam pelo menos N inimigos disponíveis (exceto em boss milestone)
-        if not is_boss_milestone:
-            available_count = GenericEnemy.query.filter_by(is_available=True).count()
-            minimum_required = get_minimum_enemy_count(player.id)
-            
-            if available_count < minimum_required:
-                generated_count = ensure_minimum_enemies(progress)
-                print(f"📊 Gerados {generated_count} novos inimigos (total disponível: {available_count + generated_count})")
-        
+
+        # Garantir que sempre hajam pelo menos N inimigos disponíveis
+        available_count = GenericEnemy.query.filter_by(is_available=True).count()
+        minimum_required = get_minimum_enemy_count(player.id)
+
+        if available_count < minimum_required:
+            generated_count = ensure_minimum_enemies(progress)
+            print(f"📊 Gerados {generated_count} novos inimigos (total disponível: {available_count + generated_count})")
+
         # Se o inimigo selecionado expirou ou foi derrotado, limpar seleção
         if progress.selected_enemy_id:
             selected = GenericEnemy.query.get(progress.selected_enemy_id)
             if not selected or not selected.is_available:
                 progress.selected_enemy_id = None
-        
-        # NOVO: Limpar seleção em boss milestone
-        if is_boss_milestone:
-            progress.selected_enemy_id = None
-        
+
         db.session.commit()
-        
+
         return jsonify({
             'success': True,
             'enemies_defeated': progress.generic_enemies_defeated,
             'current_phase': progress.current_boss_phase,
             'expired_enemies': expired_count,
-            'is_boss_milestone': is_boss_milestone,
             'available_enemies': GenericEnemy.query.filter_by(is_available=True).count(),
-            'message': 'Boss milestone atingido!' if is_boss_milestone else 'Inimigo derrotado!',
+            'message': 'Inimigo derrotado!',
             'next_is_boss_fight': progress.current_boss_phase == 20
         })
     except Exception as e:
@@ -2027,6 +2024,11 @@ def reset_player_run(player_id):
         player.run_bosses_defeated = 0
         player.run_start_timestamp = datetime.utcnow()
 
+        # Resetar contadores de reroll
+        player.enemy_reroll_count = 0
+        player.memory_reroll_count = 0
+        player.relic_reroll_count = 0
+
         # ===== RESETAR RECURSOS DE RUN =====
         player.run_gold = 0
         
@@ -2037,12 +2039,35 @@ def reset_player_run(player_id):
             player_progress.current_boss_phase = 1
             player_progress.available_enemies = '[]'  # Reset enemies disponíveis
             player_progress.selected_enemy_id = None
+            player_progress.selected_boss_id = None  # Limpar boss selecionado também
             player_progress.last_theme_used = None
-        
-        # ===== DESATIVAR RELÍQUIAS PRIMEIRO (ANTES DE RECALCULAR) =====
+
+        # ===== RESETAR PROGRESSO DO MAPA =====
+        from models_map import PlayerMapProgress, MapNode, ProceduralMap
+        map_progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+        if map_progress:
+            # Deletar nós do mapa antigo
+            if map_progress.current_map_id:
+                MapNode.query.filter_by(map_id=map_progress.current_map_id).delete()
+                # Deletar o mapa em si
+                ProceduralMap.query.filter_by(id=map_progress.current_map_id).delete()
+            # Resetar progresso do mapa
+            map_progress.current_map_id = None
+            map_progress.current_node_id = None
+            map_progress.current_act = 1
+            map_progress.nodes_visited = '[]'  # JSON array, não integer
+            map_progress.events_seen = '[]'  # Reset eventos vistos
+            map_progress.battles_won = 0
+            map_progress.elites_defeated = 0
+            map_progress.events_completed = 0
+            map_progress.shops_visited = 0
+            map_progress.rests_taken = 0
+            print(f"🗺️ Progresso do mapa resetado")
+
+        # ===== DELETAR RELÍQUIAS E LEMBRANÇAS =====
         from models import PlayerRelic, EnemySkillDebuff
-        PlayerRelic.query.filter_by(player_id=player_id).update({'is_active': False})
-        print(f"🗡️ Relíquias desativadas (não deletadas)")
+        relics_deleted = PlayerRelic.query.filter_by(player_id=player_id).delete()
+        print(f"🗡️ {relics_deleted} relíquias deletadas")
         
         # ===== LIMPAR BUFFS TEMPORÁRIOS =====
         PlayerRunBuff.query.filter_by(player_id=player.id).delete()
@@ -2097,7 +2122,13 @@ def reset_player_run(player_id):
             },
             synchronize_session=False
         )
-        
+
+        # ===== DELETAR TODOS OS BOSSES (LastBoss) =====
+        # CRÍTICO: Bosses devem ser deletados, não apenas desativados
+        # Caso contrário, persisti entre runs com HP antigo
+        bosses_deleted = LastBoss.query.delete()
+        print(f"👹 {bosses_deleted} bosses deletados")
+
         db.session.commit()
         print(f"✅ Run resetada com sucesso para player {player_id}")
         return True, "Run resetada com sucesso"
@@ -2124,11 +2155,42 @@ def reset_player_energy(player_id):
         
         print(f"⚡ Energia resetada: {player.energy}/{player.max_energy}")
         return True
-        
+
     except Exception as e:
         print(f"Erro ao resetar energia: {e}")
         db.session.rollback()
         return False
+
+def _create_default_boss(boss_id):
+    """
+    Cria um boss padrão baseado no ID se não existir.
+    Usa as definições completas do BOSS_DATA em enemy_generation.py.
+    """
+    from routes.battle_modules.enemy_generation import create_boss_by_name
+
+    # Mapeamento de ID para nome do boss (usado no BOSS_DATA)
+    BOSS_ID_TO_NAME = {
+        1: 'purassombra',
+        2: 'heresiarca',
+        3: 'alma_negra',
+        4: 'formofagus',
+        5: 'nefasto'
+    }
+
+    if boss_id not in BOSS_ID_TO_NAME:
+        print(f"❌ Boss ID {boss_id} não tem mapeamento")
+        return None
+
+    boss_name = BOSS_ID_TO_NAME[boss_id]
+    print(f"🎭 Criando boss {boss_name} (ID: {boss_id}) usando definições completas...")
+
+    # Usar a função existente que já tem todas as configurações corretas
+    boss = create_boss_by_name(boss_name)
+
+    if boss:
+        print(f"✅ Boss {boss.name} pronto para batalha!")
+
+    return boss
 
 @battle_bp.route('/select_boss', methods=['POST'])
 def select_boss():
@@ -2136,17 +2198,26 @@ def select_boss():
     try:
         data = request.get_json()
         boss_id = data.get('boss_id')
-        
+
         player = Player.query.first()
         if not player:
             return jsonify({'success': False, 'message': 'Jogador não encontrado'})
-        
-        # Verificar se o boss existe e está ativo
+
+        # Verificar se o boss existe
         from models import LastBoss
         boss = LastBoss.query.get(boss_id)
-        if not boss or not boss.is_active:
-            return jsonify({'success': False, 'message': 'Boss não disponível'})
-        
+        if not boss:
+            # Criar boss se não existir
+            boss = _create_default_boss(boss_id)
+            if not boss:
+                return jsonify({'success': False, 'message': 'Boss não encontrado e não foi possível criar'})
+
+        # Se o boss não está ativo, ativá-lo automaticamente (para nós de boss final no mapa)
+        if not boss.is_active:
+            boss.is_active = True
+            boss.current_hp = boss.max_hp  # Resetar HP ao ativar
+            print(f"🔓 Boss {boss.name} ativado automaticamente para batalha")
+
         # Atualizar progresso do jogador para apontar para o boss
         progress = PlayerProgress.query.filter_by(player_id=player.id).first()
         if not progress:
@@ -2195,73 +2266,8 @@ def get_available_enemies():
             progress = PlayerProgress(player_id=player.id)
             db.session.add(progress)
             db.session.commit()
-        
-        # VERIFICAR SE É MILESTONE DE BOSS (próximo seria o 20º inimigo)
-        next_enemy_number = progress.generic_enemies_defeated + 1
-        if next_enemy_number % 20 == 0:
-            print(f"👑 MILESTONE DE BOSS DETECTADO: Próximo seria #{next_enemy_number}")
-            
-            from models import LastBoss
-            active_boss = LastBoss.query.filter_by(is_active=True).first()
-            
-            if active_boss:
-                print(f"👑 Boss ativo encontrado: {active_boss.name}")
-                return jsonify({
-                    'success': True,
-                    'enemies': [],
-                    'boss': {
-                        'id': active_boss.id,
-                        'name': active_boss.name,
-                        'hp': active_boss.current_hp,
-                        'max_hp': active_boss.max_hp,
-                        'damage': active_boss.damage,
-                        'posture': active_boss.posture,
-                        'block_percentage': active_boss.block_percentage,
-                        'sprite_idle': active_boss.sprite_idle,
-                        'sprite_frames': active_boss.sprite_frames,
-                        'sprite_size': active_boss.sprite_size,
-                        'reward_crystals': active_boss.reward_crystals,
-                        'is_boss': True,
-                        'rarity': 'boss'
-                    },
-                    'is_boss_fight': True,
-                    'selected_enemy_id': None
-                })
-            else:
-                print(f"👑 Boss não encontrado! Tentando criar...")
-                # Tentar criar boss baseado no milestone atual
-                from .battle_modules.enemy_generation import create_boss_by_name, get_boss_for_milestone
-                boss_number = next_enemy_number // 20
-                boss_name = get_boss_for_milestone(boss_number)
-                print(f"👑 Criando boss para milestone {boss_number}: {boss_name}")
-                boss = create_boss_by_name(boss_name)
-                if boss:
-                    print(f"👑 Boss {boss.name} criado!")
-                    return jsonify({
-                        'success': True,
-                        'enemies': [],
-                        'boss': {
-                            'id': boss.id,
-                            'name': boss.name,
-                            'hp': boss.current_hp,
-                            'max_hp': boss.max_hp,
-                            'damage': boss.damage,
-                            'posture': boss.posture,
-                            'block_percentage': boss.block_percentage,
-                            'sprite_idle': boss.sprite_idle,
-                            'sprite_frames': boss.sprite_frames,
-                            'sprite_size': boss.sprite_size,
-                            'reward_crystals': boss.reward_crystals,
-                            'is_boss': True,
-                            'rarity': 'boss'
-                        },
-                        'is_boss_fight': True,
-                        'selected_enemy_id': None
-                    })
-                else:
-                    print(f"❌ Falha ao criar boss!")
-        
-        # LÓGICA NORMAL: Inimigos genéricos (resto da função permanece igual)
+
+        # Buscar inimigos genéricos disponíveis
         available = GenericEnemy.query.filter_by(is_available=True).all()
 
         # Calcular mínimo dinâmico baseado em relíquias

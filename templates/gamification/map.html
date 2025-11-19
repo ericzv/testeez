@@ -729,7 +729,8 @@ async function handleNodeClick(node) {
             openShopPopup();
             break;
         case 'event':
-            openEventPopup();
+            // Redirecionar para página de evento
+            window.location.href = '/map/event';
             break;
         case 'rest':
             openRestPopup();
