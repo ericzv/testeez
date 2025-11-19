@@ -1,5 +1,7 @@
 # Backups de imagens originais (antes da otimização)
 **/_originals/
+*_original.png
+*_original.webp
 
 # Python
 __pycache__/
