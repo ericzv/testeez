@@ -1646,6 +1646,23 @@
       button.style.display = 'none';
     });
   });
+
+  // Verificar se deve mostrar seleção de memória (vindo do shop)
+  document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const showMemorySelection = urlParams.get('show_memory_selection');
+    const rarity = urlParams.get('rarity');
+
+    if (showMemorySelection === 'true' && rarity) {
+      console.log('🎁 Abrindo seleção de memória:', rarity);
+      // Chamar função de mostrar popup de memória
+      if (typeof showMemorySelectionPopup === 'function') {
+        showMemorySelectionPopup(rarity);
+      } else {
+        console.error('❌ Função showMemorySelectionPopup não encontrada');
+      }
+    }
+  });
 </script>
 
 <!-- Script de partículas -->

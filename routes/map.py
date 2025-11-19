@@ -934,6 +934,7 @@ def skip_event():
 def generate_shop_inventory():
     """
     Gera o inventário da loja para o jogador quando entra no nó shop.
+    Cada nó shop tem seu próprio inventory único.
 
     Returns:
         JSON com inventário gerado
@@ -945,8 +946,32 @@ def generate_shop_inventory():
     if not player:
         return jsonify({'success': False, 'error': 'Jogador não encontrado'}), 404
 
-    # Limpar inventário anterior da loja
-    ShopInventory.query.filter_by(player_id=player.id).delete()
+    # Pegar nó atual
+    progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+    if not progress or not progress.current_node_id:
+        return jsonify({'success': False, 'error': 'Nó atual não encontrado'}), 400
+
+    current_node_id = progress.current_node_id
+
+    # Verificar se já existe inventory para este nó
+    existing_inventory = ShopInventory.query.filter_by(
+        player_id=player.id,
+        node_id=current_node_id
+    ).first()
+
+    if existing_inventory:
+        # Inventory já existe para este nó, retornar existente
+        return jsonify({
+            'success': True,
+            'message': 'Inventory já existe para este shop',
+            'items': [item.to_dict() for item in ShopInventory.query.filter_by(
+                player_id=player.id,
+                node_id=current_node_id
+            ).all()]
+        })
+
+    # Limpar inventory de OUTROS nós (manter apenas do nó atual se houver)
+    # Na prática, como estamos criando novo, não precisa fazer nada aqui
 
     # Gerar 3 poções
     potions = [
@@ -1068,6 +1093,7 @@ def generate_shop_inventory():
     for item in all_items:
         shop_item = ShopInventory(
             player_id=player.id,
+            node_id=current_node_id,  # Vincular ao nó atual
             item_type=item['type'],
             item_id=item['id'],
             price=item['price'],
@@ -1098,8 +1124,19 @@ def get_shop_inventory():
     if not player:
         return jsonify({'success': False, 'error': 'Jogador não encontrado'}), 404
 
-    # Buscar inventário da loja
-    shop_items = ShopInventory.query.filter_by(player_id=player.id, is_purchased=False).all()
+    # Pegar nó atual
+    progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+    if not progress or not progress.current_node_id:
+        return jsonify({'success': False, 'error': 'Nó atual não encontrado'}), 400
+
+    current_node_id = progress.current_node_id
+
+    # Buscar inventário da loja DESTE NÓ
+    shop_items = ShopInventory.query.filter_by(
+        player_id=player.id,
+        node_id=current_node_id,
+        is_purchased=False
+    ).all()
 
     # Se não tem inventário, gerar
     if not shop_items:

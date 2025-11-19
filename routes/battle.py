@@ -3785,13 +3785,11 @@ def use_potion(slot_number):
             effect_applied = True
 
         elif slot.potion_type == 'energetic':
-            # Adiciona 5 de energia
+            # Adiciona 5 de energia (pode ultrapassar máximo)
             energy_amount = 5
-            energy_before = player.energy
-            player.energy = min(player.energy + energy_amount, player.max_energy)
-            actual_energy = player.energy - energy_before
+            player.energy += energy_amount
 
-            effect_message = f'+{actual_energy} Energia'
+            effect_message = f'+{energy_amount} Energia'
             effect_applied = True
 
         if not effect_applied:

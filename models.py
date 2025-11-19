@@ -926,11 +926,13 @@ class BattleLog(db.Model):
 # ============================================
 
 class ShopInventory(db.Model):
-    """Inventário da loja atual de cada jogador (regenerado ao entrar no nó shop)"""
+    """Inventário da loja atual de cada jogador (regenerado ao entrar no nó shop)
+    Cada nó shop tem seu próprio inventory único."""
     __tablename__ = 'shop_inventory'
 
     id = db.Column(db.Integer, primary_key=True)
     player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable=False)
+    node_id = db.Column(db.Integer, nullable=True)  # ID do nó do mapa (cada shop tem inventory único)
     item_type = db.Column(db.String(20), nullable=False)  # 'potion', 'memory', 'relic'
     item_id = db.Column(db.String(50), nullable=False)  # ID do item (potion_vital, relic_5, etc)
     price = db.Column(db.Integer, nullable=False)
@@ -941,8 +943,21 @@ class ShopInventory(db.Model):
     # Relacionamento
     player = db.relationship('Player', backref='shop_inventory')
 
+    def to_dict(self):
+        """Converte para dicionário"""
+        return {
+            'id': self.id,
+            'player_id': self.player_id,
+            'node_id': self.node_id,
+            'item_type': self.item_type,
+            'item_id': self.item_id,
+            'price': self.price,
+            'rarity': self.rarity,
+            'is_purchased': self.is_purchased
+        }
+
     def __repr__(self):
-        return f'<ShopInventory player={self.player_id} type={self.item_type} item={self.item_id} price={self.price}>'
+        return f'<ShopInventory player={self.player_id} node={self.node_id} type={self.item_type} item={self.item_id} price={self.price}>'
 
 class PlayerPotionSlot(db.Model):
     """Slots de poções consumíveis do jogador (máximo 3)"""
