@@ -2,6 +2,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/hub.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/fast-battle-mode.css') }}">
 {% endblock %}
 
 {% block game_content %}
@@ -3049,5 +3050,8 @@ function hideMapTooltip() {
   scrollbar-color: #ffd700 rgba(0, 0, 0, 0.3);
 }
 </style>
+
+<!-- Fast Battle Mode -->
+<script src="{{ url_for('static', filename='js/fast-battle-mode.js') }}"></script>
 
 {% endblock %}

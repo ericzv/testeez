@@ -1,0 +1,382 @@
+/* ================================================================================
+   FAST BATTLE MODE - Modo Rápido de Batalha
+   ================================================================================
+*/
+
+/* Container principal dos botões de atalho */
+.fast-battle-container {
+  position: fixed;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 900;
+  display: flex;
+  gap: 15px;
+  align-items: flex-end;
+}
+
+/* Botões principais circulares */
+.fast-battle-btn {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  border: 3px solid #8B4513;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  position: relative;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.fast-battle-btn:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(139, 69, 19, 0.6);
+  border-color: #CD853F;
+}
+
+.fast-battle-btn.active {
+  background: linear-gradient(135deg, #8B4513, #654321);
+  border-color: #CD853F;
+  box-shadow: 0 0 20px rgba(205, 133, 63, 0.8);
+}
+
+/* Cores específicas para cada tipo */
+.fast-battle-btn.attacks {
+  border-color: #c0392b;
+}
+
+.fast-battle-btn.attacks:hover,
+.fast-battle-btn.attacks.active {
+  border-color: #e74c3c;
+  box-shadow: 0 0 20px rgba(231, 76, 60, 0.6);
+}
+
+.fast-battle-btn.specials {
+  border-color: #8e44ad;
+}
+
+.fast-battle-btn.specials:hover,
+.fast-battle-btn.specials.active {
+  border-color: #9b59b6;
+  box-shadow: 0 0 20px rgba(155, 89, 182, 0.6);
+}
+
+.fast-battle-btn.inventory {
+  border-color: #16a085;
+}
+
+.fast-battle-btn.inventory:hover,
+.fast-battle-btn.inventory.active {
+  border-color: #1abc9c;
+  box-shadow: 0 0 20px rgba(26, 188, 156, 0.6);
+}
+
+/* Submenu de opções */
+.fast-battle-submenu {
+  position: absolute;
+  bottom: 85px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 15px;
+  background: rgba(20, 20, 20, 0.95);
+  border: 2px solid #8B4513;
+  border-radius: 15px;
+  max-width: 500px;
+  justify-content: center;
+  box-shadow: 0 -5px 30px rgba(0, 0, 0, 0.8);
+}
+
+.fast-battle-submenu.active {
+  display: flex;
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Botões de ações no submenu (com ícones) */
+.fast-action-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: rgba(40, 40, 40, 0.8);
+  border: 2px solid #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.fast-action-btn:hover {
+  transform: scale(1.1);
+  border-color: #CD853F;
+  box-shadow: 0 4px 15px rgba(205, 133, 63, 0.6);
+}
+
+.fast-action-btn:active {
+  transform: scale(0.95);
+}
+
+/* Tooltip para mostrar nome da ação */
+.fast-action-btn::before {
+  content: attr(data-name);
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.fast-action-btn:hover::before {
+  opacity: 1;
+}
+
+/* Custo de recursos (energia/mana) */
+.fast-action-cost {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 10px;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.fast-action-cost.mana {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+}
+
+/* Feedback visual de dano/cura */
+.fast-battle-feedback {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 60px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow:
+    2px 2px 0 #000,
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    0 0 20px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+  opacity: 0;
+  animation: damagePop 1s ease forwards;
+  z-index: 9999;
+}
+
+.fast-battle-feedback.damage {
+  color: #e74c3c;
+}
+
+.fast-battle-feedback.heal {
+  color: #2ecc71;
+}
+
+.fast-battle-feedback.critical {
+  color: #f39c12;
+  font-size: 80px;
+  text-shadow:
+    2px 2px 0 #000,
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    0 0 30px rgba(243, 156, 18, 0.8);
+}
+
+.fast-battle-feedback.barrier {
+  color: #3498db;
+}
+
+@keyframes damagePop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -80%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -100%) scale(0.8);
+  }
+}
+
+/* Barra de HP/Energia do inimigo (simplificada) */
+.fast-enemy-status {
+  position: fixed;
+  top: 100px;
+  right: 50px;
+  background: rgba(20, 20, 20, 0.9);
+  padding: 15px 20px;
+  border-radius: 10px;
+  border: 2px solid #8B4513;
+  min-width: 250px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+.fast-enemy-name {
+  color: #CD853F;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.fast-status-bar {
+  background: rgba(40, 40, 40, 0.8);
+  height: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+  border: 1px solid #666;
+}
+
+.fast-status-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.fast-status-fill.hp {
+  background: linear-gradient(90deg, #c0392b, #e74c3c);
+}
+
+.fast-status-fill.energy {
+  background: linear-gradient(90deg, #f39c12, #f1c40f);
+}
+
+/* Barra de HP/Energia do jogador (simplificada) */
+.fast-player-status {
+  position: fixed;
+  top: 100px;
+  left: 50px;
+  background: rgba(20, 20, 20, 0.9);
+  padding: 15px 20px;
+  border-radius: 10px;
+  border: 2px solid #8B4513;
+  min-width: 250px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+.fast-player-name {
+  color: #CD853F;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+/* Loading spinner durante ação */
+.fast-battle-loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #CD853F;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: none;
+  z-index: 9998;
+}
+
+.fast-battle-loading.active {
+  display: block;
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Botão de desabilitar quando sem recursos */
+.fast-action-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.fast-action-btn.disabled:hover {
+  transform: none;
+  border-color: #666;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .fast-battle-container {
+    bottom: 80px;
+  }
+
+  .fast-battle-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 11px;
+  }
+
+  .fast-battle-submenu {
+    max-width: 90vw;
+  }
+
+  .fast-action-btn {
+    width: 50px;
+    height: 50px;
+  }
+
+  .fast-enemy-status,
+  .fast-player-status {
+    top: 60px;
+    min-width: 180px;
+    padding: 10px 15px;
+  }
+}

@@ -3824,3 +3824,127 @@ def use_potion(slot_number):
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# =============================================================================
+# FAST BATTLE MODE ROUTES
+# =============================================================================
+
+@battle_bp.route('/battle_status', methods=['GET'])
+def battle_status():
+    """Retorna status do inimigo atual para o modo rápido"""
+    try:
+        player = Player.query.first()
+        if not player:
+            return jsonify({'success': False, 'message': 'Jogador não encontrado'})
+
+        # Verificar se há inimigo selecionado
+        progress = PlayerProgress.query.filter_by(player_id=player.id).first()
+        if not progress or not progress.selected_enemy_id:
+            # Verificar se há boss ativo
+            last_boss = LastBoss.query.filter_by(is_active=True).first()
+            if last_boss:
+                return jsonify({
+                    'success': True,
+                    'enemy': {
+                        'id': last_boss.id,
+                        'name': last_boss.name,
+                        'hp': last_boss.hp,
+                        'max_hp': last_boss.max_hp,
+                        'energy': last_boss.energy,
+                        'max_energy': last_boss.max_energy,
+                        'type': 'boss'
+                    }
+                })
+            else:
+                return jsonify({'success': False, 'message': 'Nenhum inimigo ativo'})
+
+        # Buscar inimigo genérico
+        enemy = GenericEnemy.query.get(progress.selected_enemy_id)
+        if not enemy or not enemy.is_available:
+            return jsonify({'success': False, 'message': 'Inimigo não disponível'})
+
+        return jsonify({
+            'success': True,
+            'enemy': {
+                'id': enemy.id,
+                'name': enemy.name,
+                'hp': enemy.hp,
+                'max_hp': enemy.max_hp,
+                'energy': enemy.energy if hasattr(enemy, 'energy') else 100,
+                'max_energy': enemy.max_energy if hasattr(enemy, 'max_energy') else 100,
+                'type': 'generic'
+            }
+        })
+
+    except Exception as e:
+        print(f"Erro ao buscar status de batalha: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@battle_bp.route('/player_status', methods=['GET'])
+def player_status():
+    """Retorna status do jogador para o modo rápido"""
+    try:
+        player = Player.query.first()
+        if not player:
+            return jsonify({'success': False, 'message': 'Jogador não encontrado'})
+
+        return jsonify({
+            'success': True,
+            'name': player.nome,
+            'hp': player.hp,
+            'max_hp': player.max_hp,
+            'energy': player.energy if hasattr(player, 'energy') else 100,
+            'max_energy': player.max_energy if hasattr(player, 'max_energy') else 100,
+            'mana': player.mana if hasattr(player, 'mana') else 0,
+            'max_mana': player.max_mana if hasattr(player, 'max_mana') else 100,
+            'barrier': player.barrier if hasattr(player, 'barrier') else 0
+        })
+
+    except Exception as e:
+        print(f"Erro ao buscar status do jogador: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@battle_bp.route('/player/inventory', methods=['GET'])
+def player_inventory():
+    """Retorna inventário do jogador (poções) para o modo rápido"""
+    try:
+        player = Player.query.first()
+        if not player:
+            return jsonify({'success': False, 'message': 'Jogador não encontrado'})
+
+        # Buscar slots de poções
+        from models import PotionSlot
+        slots = PotionSlot.query.filter_by(player_id=player.id).all()
+
+        items = []
+        for slot in slots:
+            if slot.potion_type and slot.quantity > 0:
+                # Mapear tipo de poção para nome e ícone
+                potion_info = {
+                    'health_minor': {'name': 'Poção de Vida Menor', 'icon': '/static/game.data/items/health_potion.png'},
+                    'health_medium': {'name': 'Poção de Vida Média', 'icon': '/static/game.data/items/health_potion.png'},
+                    'health_major': {'name': 'Poção de Vida Maior', 'icon': '/static/game.data/items/health_potion.png'},
+                    'energy_minor': {'name': 'Poção de Energia Menor', 'icon': '/static/game.data/items/energy_potion.png'},
+                    'barrier': {'name': 'Poção de Barreira', 'icon': '/static/game.data/items/barrier_potion.png'}
+                }.get(slot.potion_type, {'name': slot.potion_type, 'icon': '/static/game.data/items/potion.png'})
+
+                items.append({
+                    'id': slot.id,
+                    'slot_number': slot.slot_number,
+                    'name': potion_info['name'],
+                    'icon': potion_info['icon'],
+                    'quantity': slot.quantity,
+                    'potion_type': slot.potion_type
+                })
+
+        return jsonify({
+            'success': True,
+            'items': items
+        })
+
+    except Exception as e:
+        print(f"Erro ao buscar inventário: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
