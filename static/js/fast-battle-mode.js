@@ -13,6 +13,7 @@ class FastBattleMode {
     this.attacks = [];
     this.specials = [];
     this.items = [];
+    this.isProcessing = false; // Flag para prevenir ações simultâneas
 
     // Aguardar carregamento completo da batalha
     this.waitForBattleReady();
@@ -195,10 +196,11 @@ class FastBattleMode {
     document.querySelectorAll('.fast-battle-btn').forEach(btn => {
       btn.classList.remove('active');
     });
-    document.querySelector(`.fast-battle-btn[data-type="${type}"]`).classList.add('active');
+    const activeButton = document.querySelector(`.fast-battle-btn[data-type="${type}"]`);
+    activeButton.classList.add('active');
 
-    // Criar submenu
-    this.createSubmenu(type);
+    // Criar submenu ao lado do botão clicado
+    this.createSubmenu(type, activeButton);
   }
 
   closeSubmenu() {
@@ -214,9 +216,16 @@ class FastBattleMode {
     this.currentSubmenu = null;
   }
 
-  createSubmenu(type) {
+  createSubmenu(type, buttonElement) {
     const submenu = document.createElement('div');
     submenu.className = 'fast-battle-submenu active';
+
+    // Calcular posição do submenu baseado no botão
+    const buttonRect = buttonElement.getBoundingClientRect();
+    const containerRect = buttonElement.parentElement.getBoundingClientRect();
+    const topOffset = buttonRect.top - containerRect.top;
+
+    submenu.style.top = `${topOffset}px`;
 
     let items = [];
     if (type === 'attacks') {
@@ -316,23 +325,39 @@ class FastBattleMode {
     return true;
   }
 
-  executeAction(item, type) {
+  async executeAction(item, type) {
+    // Prevenir execução simultânea
+    if (this.isProcessing) {
+      console.log('⏳ Ação em andamento, aguarde...');
+      return;
+    }
+
+    this.isProcessing = true;
     console.log(`⚡ Executando ação rápida: ${item.name} (${type})`);
 
     // Fechar submenu
     this.closeSubmenu();
 
-    if (type === 'attacks') {
-      // Usar função existente do sistema de batalha
-      if (window.triggerAttack) {
-        window.triggerAttack(item.id);
+    try {
+      if (type === 'attacks') {
+        // Usar função existente do sistema de batalha
+        if (window.triggerAttack) {
+          window.triggerAttack(item.id);
+
+          // Aguardar um pouco e atualizar HUD para refletir gasto de energia
+          await new Promise(resolve => setTimeout(resolve, 500));
+          await this.updateHUDFromServer();
+        }
+      } else if (type === 'specials') {
+        // Executar especial diretamente (COM efeitos visuais)
+        await this.executeSpecialDirect(item.id);
+      } else if (type === 'inventory') {
+        // Usar poção diretamente
+        await this.usePotionDirect(item.slot_number);
       }
-    } else if (type === 'specials') {
-      // Executar especial diretamente (COM efeitos visuais)
-      this.executeSpecialDirect(item.id);
-    } else if (type === 'inventory') {
-      // Usar poção diretamente
-      this.usePotionDirect(item.slot_number);
+    } finally {
+      // Liberar após ação completar
+      this.isProcessing = false;
     }
   }
 
@@ -412,15 +437,13 @@ class FastBattleMode {
       if (data.success) {
         console.log('✅ Poção usada:', data.message);
 
-        // Atualizar HUD do jogador
-        if (window.updatePlayerHUD && data.player) {
-          window.battleState.player.hp = data.player.hp;
-          window.battleState.player.barrier = data.player.barrier || 0;
-          window.battleState.player.energy = data.player.energy;
-          window.updatePlayerHUD();
-        }
+        // Aguardar um pouco para os efeitos serem processados
+        await new Promise(resolve => setTimeout(resolve, 300));
 
-        // Recarregar inventário
+        // Forçar atualização do HUD buscando dados atualizados do servidor
+        await this.updateHUDFromServer();
+
+        // Recarregar inventário para atualizar quantidade
         await this.loadItems();
 
         // Mostrar feedback visual

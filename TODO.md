@@ -30,6 +30,25 @@
 
 ---
 
+### 3. Shop não atualiza itens entre diferentes nodes do mapa
+**Descrição**: Quando o jogador muda de node no mapa procedural, a loja deveria mostrar itens diferentes, mas está mantendo os mesmos itens do shop anterior.
+
+**Status**: Pendente
+**Prioridade**: Alta
+**Localização**: Sistema de shop/loja - routes relacionadas ao mapa e shop
+
+**Notas**:
+- Cada node do tipo "shop" deve ter sua própria seleção de itens aleatórios
+- Ao visitar um novo shop node, os itens devem ser regenerados/diferentes
+- Possível causa: cache dos itens não está sendo limpo entre nodes
+- Possível causa: seed/random dos itens não está sendo recalculado por node
+- Verificar se items estão sendo carregados de forma estática ao invés de dinâmica
+- Arquivos relacionados: routes/map*.py, routes/items.py ou routes/shop.py
+
+**Data de identificação**: 2025-11-22
+
+---
+
 ## Bugs Corrigidos Recentemente
 
 ### ✅ HP máximo não persistia entre eventos e batalhas
