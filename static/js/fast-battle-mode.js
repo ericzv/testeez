@@ -13,7 +13,6 @@ class FastBattleMode {
     this.attacks = [];
     this.specials = [];
     this.items = [];
-    this.isProcessing = false; // Flag para prevenir ações simultâneas
 
     // Aguardar carregamento completo da batalha
     this.waitForBattleReady();
@@ -326,38 +325,49 @@ class FastBattleMode {
   }
 
   async executeAction(item, type) {
-    // Prevenir execução simultânea
-    if (this.isProcessing) {
-      console.log('⏳ Ação em andamento, aguarde...');
-      return;
-    }
-
-    this.isProcessing = true;
     console.log(`⚡ Executando ação rápida: ${item.name} (${type})`);
 
     // Fechar submenu
     this.closeSubmenu();
 
-    try {
-      if (type === 'attacks') {
-        // Usar função existente do sistema de batalha
-        if (window.triggerAttack) {
-          window.triggerAttack(item.id);
+    if (type === 'attacks') {
+      // ATUALIZAÇÃO OTIMISTA: Descontar energia IMEDIATAMENTE do battleState local
+      if (window.battleState && window.battleState.player) {
+        const energyCost = item.points_cost || item.energy_cost || 1;
+        const currentEnergy = window.battleState.player.energy;
 
-          // Aguardar um pouco e atualizar HUD para refletir gasto de energia
-          await new Promise(resolve => setTimeout(resolve, 500));
-          await this.updateHUDFromServer();
+        // Verificar se tem energia suficiente
+        if (currentEnergy < energyCost) {
+          console.log('❌ Energia insuficiente!');
+          showFloatingText('Energia insuficiente!', 'error');
+          return;
         }
-      } else if (type === 'specials') {
-        // Executar especial diretamente (COM efeitos visuais)
-        await this.executeSpecialDirect(item.id);
-      } else if (type === 'inventory') {
-        // Usar poção diretamente
-        await this.usePotionDirect(item.slot_number);
+
+        // Descontar IMEDIATAMENTE (atualização otimista)
+        window.battleState.player.energy -= energyCost;
+        console.log(`⚡ Energia descontada localmente: ${currentEnergy} -> ${window.battleState.player.energy}`);
+
+        // Atualizar HUD imediatamente
+        if (window.updatePlayerHUD) {
+          window.updatePlayerHUD();
+        }
       }
-    } finally {
-      // Liberar após ação completar
-      this.isProcessing = false;
+
+      // Usar função existente do sistema de batalha (sem await)
+      if (window.triggerAttack) {
+        window.triggerAttack(item.id);
+
+        // Aguardar um pouco e sincronizar com servidor para garantir
+        setTimeout(async () => {
+          await this.updateHUDFromServer();
+        }, 800);
+      }
+    } else if (type === 'specials') {
+      // Executar especial diretamente (COM efeitos visuais)
+      await this.executeSpecialDirect(item.id);
+    } else if (type === 'inventory') {
+      // Usar poção diretamente
+      await this.usePotionDirect(item.slot_number);
     }
   }
 
@@ -382,11 +392,16 @@ class FastBattleMode {
           showFloatingText(data.message, 'info');
         }
 
-        // Aguardar um pouco para os efeitos serem processados
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Aguardar um pouco para os efeitos serem processados no servidor
+        await new Promise(resolve => setTimeout(resolve, 600));
 
         // Forçar atualização do HUD buscando dados atualizados do servidor
         await this.updateHUDFromServer();
+
+        // Atualizar novamente após mais um delay (garantir que tudo foi processado)
+        setTimeout(async () => {
+          await this.updateHUDFromServer();
+        }, 400);
 
       } else {
         showFloatingText(data.message || 'Erro ao usar especial', 'error');
@@ -411,12 +426,22 @@ class FastBattleMode {
         window.battleState.player.mana = data.mana;
         window.battleState.player.barrier = data.barrier || 0;
 
-        // Forçar atualização visual do HUD
+        console.log('✅ HUD atualizado do servidor:', data);
+
+        // Forçar atualização visual do HUD múltiplas vezes para garantir
         if (window.updatePlayerHUD) {
           window.updatePlayerHUD();
+
+          // Tentar novamente após um delay curto (fallback)
+          setTimeout(() => {
+            window.updatePlayerHUD();
+          }, 100);
         }
 
-        console.log('✅ HUD atualizado:', data);
+        // Atualizar blood stacks se disponível
+        if (window.updateBloodStacksDisplay && data.blood_stacks !== undefined) {
+          window.updateBloodStacksDisplay(data.blood_stacks);
+        }
       }
     } catch (error) {
       console.error('Erro ao atualizar HUD:', error);
@@ -437,14 +462,19 @@ class FastBattleMode {
       if (data.success) {
         console.log('✅ Poção usada:', data.message);
 
-        // Aguardar um pouco para os efeitos serem processados
-        await new Promise(resolve => setTimeout(resolve, 300));
+        // Aguardar um pouco para os efeitos serem processados no servidor
+        await new Promise(resolve => setTimeout(resolve, 400));
 
         // Forçar atualização do HUD buscando dados atualizados do servidor
         await this.updateHUDFromServer();
 
         // Recarregar inventário para atualizar quantidade
         await this.loadItems();
+
+        // Atualizar novamente após mais um delay (garantir que tudo foi processado)
+        setTimeout(async () => {
+          await this.updateHUDFromServer();
+        }, 300);
 
         // Mostrar feedback visual
         if (data.message.includes('vida')) {

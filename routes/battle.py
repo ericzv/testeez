@@ -3899,7 +3899,8 @@ def player_status():
             'max_energy': player.max_energy if hasattr(player, 'max_energy') else 100,
             'mana': player.mana if hasattr(player, 'mana') else 0,
             'max_mana': player.max_mana if hasattr(player, 'max_mana') else 100,
-            'barrier': player.barrier if hasattr(player, 'barrier') else 0
+            'barrier': player.barrier if hasattr(player, 'barrier') else 0,
+            'blood_stacks': player.blood_stacks if hasattr(player, 'blood_stacks') else 0
         })
 
     except Exception as e:

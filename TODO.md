@@ -49,6 +49,26 @@
 
 ---
 
+### 4. Recompensa não aparece após derrotar inimigo (às vezes)
+**Descrição**: Às vezes, após derrotar um inimigo, o jogador volta para o hub mas a recompensa não aparece. Quando isso acontece, o jogador também não consegue avançar de node e precisa começar outra batalha no mesmo node.
+
+**Status**: Pendente
+**Prioridade**: CRÍTICA
+**Localização**: Sistema de recompensas pós-batalha - routes/battle.py, hub.html
+
+**Notas**:
+- Bug intermitente (nem sempre acontece)
+- Quando ocorre, bloqueia progresso do jogador
+- Possível causa: pending_rewards não está sendo salvo corretamente na session
+- Possível causa: redirecionamento para hub acontece antes de salvar recompensas
+- Possível causa: localStorage de vitória recente não está sendo setado
+- Verificar fluxo: damage_boss() → session['pending_rewards'] → hub checkForRecentVictory()
+- Arquivos relacionados: routes/battle.py (damage_boss), templates/gamification/hub.html
+
+**Data de identificação**: 2025-11-22
+
+---
+
 ## Bugs Corrigidos Recentemente
 
 ### ✅ HP máximo não persistia entre eventos e batalhas
