@@ -195,33 +195,40 @@
 /* Custo de recursos (energia) e quantidade de itens */
 .fast-action-cost {
   position: absolute;
-  bottom: -10px;
-  right: -10px;
-  background: linear-gradient(135deg, #f39c12, #e67e22);
-  color: #fff;
-  font-size: 12px;
+  bottom: -27px;
+  right: 0;
+  /* background: linear-gradient(135deg, #f39c12, #e67e22); */
+  /* color: #fff; */
+  font-size: 14px;
   font-weight: bold;
-  padding: 0px 4px;
+  padding: 0px 6px;
   border-radius: 12px;
   border: 0px solid #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 0px 0px rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   gap: 0px;
   z-index: 10;
+  color: #f1c40f; /* Amarelo dourado */
+  text-shadow:
+    0 0 8px rgba(255, 255, 255, 0.9),
+    0 0 12px rgba(255, 255, 255, 0.6),
+    0 0 16px rgba(255, 255, 255, 0.4);
 }
 
 /* Ícone de energia dentro do marcador de custo de energia */
 .fast-action-cost.energy::before {
   content: '';
   display: inline-block;
-  width: 16px;
-  height: 24px;
+  width: 38px;
+  height: 38px;
   background-image: url('/static/game.data/energy.webp');
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
   margin-right: -2px;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.8))
+          drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
 }
 
 /* Marcador de quantidade de itens (sem ícone, só quantidade) */
