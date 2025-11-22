@@ -199,15 +199,15 @@
   right: -10px;
   background: linear-gradient(135deg, #f39c12, #e67e22);
   color: #fff;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: bold;
-  padding: 3px 7px;
+  padding: 0px 4px;
   border-radius: 12px;
-  border: 2px solid #fff;
+  border: 0px solid #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 0px;
   z-index: 10;
 }
 
@@ -215,13 +215,13 @@
 .fast-action-cost.energy::before {
   content: '';
   display: inline-block;
-  width: 24px;
+  width: 16px;
   height: 24px;
   background-image: url('/static/game.data/energy.webp');
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  margin-right: 2px;
+  margin-right: -2px;
 }
 
 /* Marcador de quantidade de itens (sem ícone, só quantidade) */
