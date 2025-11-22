@@ -252,6 +252,11 @@ class FastBattleMode {
         btn.dataset.name = item.name;
         btn.title = item.name;
 
+        // Adicionar classe attack-icon APENAS para ataques (para ter outline branco)
+        if (type === 'attacks') {
+          btn.classList.add('attack-icon');
+        }
+
         // Definir ícone de fundo via CSS custom property (para o ::before pegar)
         if (item.icon) {
           btn.style.setProperty('--icon-url', `url('${item.icon}')`);
@@ -263,26 +268,19 @@ class FastBattleMode {
           btn.classList.add('disabled');
         }
 
-        // Mostrar custo
+        // Mostrar custo de energia para ataques
         if (type === 'attacks') {
           const energyCost = item.points_cost || item.energy_cost || 1;
           if (energyCost > 0) {
             const cost = document.createElement('div');
-            cost.className = 'fast-action-cost';
+            cost.className = 'fast-action-cost energy';
             cost.textContent = energyCost;
             btn.appendChild(cost);
           }
-        } else if (type === 'specials') {
-          const manaCost = item.mana_cost || 0;
-          if (manaCost > 0) {
-            const cost = document.createElement('div');
-            cost.className = 'fast-action-cost mana';
-            cost.textContent = manaCost;
-            btn.appendChild(cost);
-          }
         } else if (type === 'inventory' && item.quantity) {
+          // Mostrar quantidade para itens
           const cost = document.createElement('div');
-          cost.className = 'fast-action-cost';
+          cost.className = 'fast-action-cost quantity';
           cost.textContent = `x${item.quantity}`;
           btn.appendChild(cost);
         }
@@ -319,10 +317,8 @@ class FastBattleMode {
       console.log(`checkResources (attack): energia=${player.energy}, custo=${cost}, ok=${hasEnough}`);
       return hasEnough;
     } else if (type === 'specials') {
-      const cost = item.mana_cost || 0;
-      const hasEnough = (player.mana || 0) >= cost;
-      console.log(`checkResources (special): mana=${player.mana}, custo=${cost}, ok=${hasEnough}`);
-      return hasEnough;
+      // Especiais sempre permitidos (sem custo de mana)
+      return true;
     } else if (type === 'inventory') {
       return item.quantity > 0;
     }
@@ -338,8 +334,6 @@ class FastBattleMode {
 
       if (type === 'attacks') {
         showFloatingText('Energia insuficiente!', 'error');
-      } else if (type === 'specials') {
-        showFloatingText('Mana insuficiente!', 'error');
       } else if (type === 'inventory') {
         showFloatingText('Slot vazio ou poção indisponível!', 'error');
       }
@@ -377,27 +371,6 @@ class FastBattleMode {
         }, 800);
       }
     } else if (type === 'specials') {
-      // Verificar mana antes de executar especial
-      if (window.battleState && window.battleState.player) {
-        const manaCost = item.mana_cost || 0;
-        const currentMana = window.battleState.player.mana || 0;
-
-        if (currentMana < manaCost) {
-          console.log('❌ Mana insuficiente!');
-          showFloatingText('Mana insuficiente!', 'error');
-          return;
-        }
-
-        // Descontar mana imediatamente (atualização otimista)
-        window.battleState.player.mana -= manaCost;
-        console.log(`✨ Mana descontada localmente: ${currentMana} -> ${window.battleState.player.mana}`);
-
-        // Atualizar HUD imediatamente
-        if (window.updatePlayerHUD) {
-          window.updatePlayerHUD();
-        }
-      }
-
       // Executar especial diretamente (COM efeitos visuais)
       await this.executeSpecialDirect(item.id);
     } else if (type === 'inventory') {
@@ -471,19 +444,23 @@ class FastBattleMode {
         window.battleState.player.hp = data.hp;
         window.battleState.player.max_hp = data.max_hp;
         window.battleState.player.energy = data.energy;
-        window.battleState.player.mana = data.mana;
         window.battleState.player.barrier = data.barrier || 0;
 
         console.log('✅ HUD atualizado do servidor:', data);
+        console.log('🛡️ Barreira atualizada:', data.barrier);
 
         // Forçar atualização visual do HUD múltiplas vezes para garantir
         if (window.updatePlayerHUD) {
           window.updatePlayerHUD();
 
-          // Tentar novamente após um delay curto (fallback)
+          // Tentar novamente após delays variados (fallback)
           setTimeout(() => {
             window.updatePlayerHUD();
           }, 100);
+
+          setTimeout(() => {
+            window.updatePlayerHUD();
+          }, 300);
         }
 
         // Atualizar blood stacks se disponível

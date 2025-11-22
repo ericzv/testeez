@@ -124,11 +124,14 @@
   transition: all 0.2s ease;
   position: relative;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-image: var(--icon-url, none);
 }
 
-/* Imagem do ícone com outline branco */
-.fast-action-btn::before {
+/* Imagem do ícone com outline branco APENAS para ataques */
+.fast-action-btn.attack-icon::before {
   content: '';
   position: absolute;
   top: 0;
@@ -189,23 +192,38 @@
   opacity: 1;
 }
 
-/* Custo de recursos (energia/mana) */
+/* Custo de recursos (energia) e quantidade de itens */
 .fast-action-cost {
   position: absolute;
-  bottom: -8px;
-  right: -8px;
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  bottom: -10px;
+  right: -10px;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
   color: #fff;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: bold;
-  padding: 2px 6px;
-  border-radius: 10px;
+  padding: 3px 7px;
+  border-radius: 12px;
   border: 2px solid #fff;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  z-index: 10;
 }
 
-.fast-action-cost.mana {
-  background: linear-gradient(135deg, #3498db, #2980b9);
+/* Ícone de energia dentro do marcador de custo de energia */
+.fast-action-cost.energy::before {
+  content: '⚡';
+  font-size: 12px;
+}
+
+/* Marcador de quantidade de itens (sem ícone, só quantidade) */
+.fast-action-cost.quantity {
+  background: linear-gradient(135deg, #16a085, #1abc9c);
+}
+
+.fast-action-cost.quantity::before {
+  content: '';
 }
 
 /* Feedback visual de dano/cura */
