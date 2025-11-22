@@ -1657,38 +1657,15 @@ def get_minimum_enemy_count(player_id):
 
 def ensure_minimum_enemies(progress, minimum=None):
     """
-    Garante que sempre haja pelo menos N inimigos disponíveis OU cria boss no milestone.
+    Garante que sempre haja pelo menos N inimigos disponíveis.
     minimum: Se None, calcula automaticamente baseado em relíquias
     """
     from models import Player, PlayerRelic
-    
+
     # Se minimum não foi fornecido, calcular dinamicamente
     if minimum is None:
         minimum = get_minimum_enemy_count(progress.player_id)
-    
-    # VERIFICAR MILESTONE DE BOSS (próximo seria o 20º inimigo)
-    next_enemy_number = progress.generic_enemies_defeated + 1
-    if next_enemy_number % 20 == 0:
-        print(f"👑 MILESTONE DETECTADO: Próximo inimigo seria #{next_enemy_number} (BOSS)!")
-        
-        # Verificar se já há boss ativo
-        from models import LastBoss
-        active_boss = LastBoss.query.filter_by(is_active=True).first()
-        
-        if not active_boss:
-            # Criar boss para este milestone
-            boss_number = next_enemy_number // 20
-            boss_name = get_boss_for_milestone(boss_number)
-            
-            if boss_name:
-                boss = create_boss_by_name(boss_name)
-                if boss:
-                    print(f"👑 Boss {boss.name} ativado para milestone {boss_number}!")
-                    return 1  # 1 boss criado
-        
-        print(f"👑 Boss milestone ativo - não gerando inimigos genéricos")
-        return 0  # No milestone, não gerar inimigos genéricos
-    
+
     # LÓGICA NORMAL: Gerar inimigos genéricos
     available_count = GenericEnemy.query.filter_by(is_available=True).count()
     
