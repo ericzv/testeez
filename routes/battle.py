@@ -3919,8 +3919,12 @@ def player_inventory():
         from models import PotionSlot
         slots = PotionSlot.query.filter_by(player_id=player.id).all()
 
+        print(f"📦 Buscando inventário para player {player.id}")
+        print(f"📦 Slots encontrados: {len(slots)}")
+
         items = []
         for slot in slots:
+            print(f"📦 Slot {slot.slot_number}: type={slot.potion_type}, qty={slot.quantity}")
             if slot.potion_type and slot.quantity > 0:
                 # Mapear tipo de poção para nome e ícone
                 potion_info = {
@@ -3940,11 +3944,15 @@ def player_inventory():
                     'potion_type': slot.potion_type
                 })
 
+        print(f"📦 Items retornados: {len(items)}")
+
         return jsonify({
             'success': True,
             'items': items
         })
 
     except Exception as e:
-        print(f"Erro ao buscar inventário: {str(e)}")
+        print(f"❌ Erro ao buscar inventário: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'message': str(e)}), 500

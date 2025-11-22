@@ -128,13 +128,17 @@ class FastBattleMode {
       const response = await fetch('/gamification/player/inventory');
       const data = await response.json();
 
+      console.log('📦 Inventário recebido:', data);
+
       if (data.success && data.items) {
         this.items = data.items;
+        console.log('📦 Items carregados:', this.items.length);
       } else {
         this.items = [];
+        console.log('⚠️ Nenhum item encontrado no inventário');
       }
     } catch (error) {
-      console.error('Erro ao carregar itens:', error);
+      console.error('❌ Erro ao carregar itens:', error);
       this.items = [];
     }
   }
@@ -324,13 +328,8 @@ class FastBattleMode {
         window.triggerAttack(item.id);
       }
     } else if (type === 'specials') {
-      // Abrir modal de especiais com a skill pré-selecionada
-      if (window.openSpecialModal) {
-        window.openSpecialModal(item.id);
-      } else {
-        // Fallback: executar diretamente
-        this.executeSpecialDirect(item.id);
-      }
+      // Executar especial diretamente (COM efeitos visuais)
+      this.executeSpecialDirect(item.id);
     } else if (type === 'inventory') {
       // Usar poção diretamente
       this.usePotionDirect(item.slot_number);
@@ -351,34 +350,51 @@ class FastBattleMode {
       const data = await response.json();
 
       if (data.success) {
-        // Recarregar página ou atualizar UI
-        if (window.updatePlayerHUD) {
-          window.updatePlayerHUD();
-        }
+        console.log('✅ Especial usado com sucesso:', data);
 
-        // Mostrar mensagem
+        // Mostrar apenas a mensagem principal (menor e legível)
         if (data.message) {
           showFloatingText(data.message, 'info');
         }
 
-        // Se houve dano/cura, mostrar
-        if (data.details) {
-          if (data.details.heal) {
-            showFloatingText(`+${data.details.heal} HP`, 'heal');
-          }
-          if (data.details.barrier) {
-            showFloatingText(`+${data.details.barrier} Barreira`, 'barrier');
-          }
-          if (data.details.damage) {
-            showFloatingText(`-${data.details.damage}`, 'damage');
-          }
-        }
+        // Aguardar um pouco para os efeitos serem processados
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Forçar atualização do HUD buscando dados atualizados do servidor
+        await this.updateHUDFromServer();
+
       } else {
         showFloatingText(data.message || 'Erro ao usar especial', 'error');
       }
     } catch (error) {
       console.error('Erro ao executar especial:', error);
       showFloatingText('Erro ao usar especial', 'error');
+    }
+  }
+
+  async updateHUDFromServer() {
+    try {
+      // Buscar dados atualizados do jogador
+      const response = await fetch('/gamification/player_status');
+      const data = await response.json();
+
+      if (data.success && window.battleState) {
+        // Atualizar battleState
+        window.battleState.player.hp = data.hp;
+        window.battleState.player.max_hp = data.max_hp;
+        window.battleState.player.energy = data.energy;
+        window.battleState.player.mana = data.mana;
+        window.battleState.player.barrier = data.barrier || 0;
+
+        // Forçar atualização visual do HUD
+        if (window.updatePlayerHUD) {
+          window.updatePlayerHUD();
+        }
+
+        console.log('✅ HUD atualizado:', data);
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar HUD:', error);
     }
   }
 
@@ -438,25 +454,30 @@ function showFloatingText(text, type = 'info') {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 48px;
+    font-size: 24px;
     font-weight: bold;
     color: ${type === 'heal' ? '#2ecc71' : type === 'barrier' ? '#3498db' : type === 'energy' ? '#f39c12' : type === 'error' ? '#e74c3c' : '#fff'};
     text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
     pointer-events: none;
     z-index: 99999;
-    animation: floatUp 1.5s ease-out forwards;
+    animation: floatUp 2.5s ease-out forwards;
+    padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 10px;
+    max-width: 80%;
+    text-align: center;
   `;
 
   document.body.appendChild(feedback);
 
   setTimeout(() => {
     feedback.remove();
-  }, 1500);
+  }, 2500);
 }
 
 // Adicionar animação CSS
-const style = document.createElement('style');
-style.textContent = `
+const fastBattleStyle = document.createElement('style');
+fastBattleStyle.textContent = `
   @keyframes floatUp {
     0% {
       opacity: 0;
@@ -476,7 +497,7 @@ style.textContent = `
     }
   }
 `;
-document.head.appendChild(style);
+document.head.appendChild(fastBattleStyle);
 
 // Inicializar quando DOM estiver pronto
 if (document.readyState === 'loading') {

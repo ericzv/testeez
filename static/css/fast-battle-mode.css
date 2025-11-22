@@ -95,8 +95,6 @@
   justify-content: flex-start;
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
   flex-direction: row;
-  overflow-x: auto;
-  max-height: 80px;
 }
 
 .fast-battle-submenu.active {
