@@ -13,6 +13,7 @@ class FastBattleMode {
     this.attacks = [];
     this.specials = [];
     this.items = [];
+    this.isExecuting = false; // Flag para prevenir cliques múltiplos
 
     // Aguardar carregamento completo da batalha
     this.waitForBattleReady();
@@ -198,8 +199,10 @@ class FastBattleMode {
     const activeButton = document.querySelector(`.fast-battle-btn[data-type="${type}"]`);
     activeButton.classList.add('active');
 
-    // Recarregar inventário sempre que abrir submenu de inventory (para pegar quantidades atualizadas)
-    if (type === 'inventory') {
+    // Recarregar dados sempre que abrir submenu (para pegar estado atualizado)
+    if (type === 'attacks') {
+      await this.loadAttacks(); // Recarregar para pegar is_disabled atualizado
+    } else if (type === 'inventory') {
       await this.loadItems();
     }
 
@@ -262,6 +265,14 @@ class FastBattleMode {
           btn.style.setProperty('--icon-url', `url('${item.icon}')`);
         }
 
+        // Verificar se skill foi desabilitada por relíquia (ex: Última Graça)
+        if (type === 'attacks' && item.is_disabled) {
+          btn.classList.add('disabled');
+          btn.classList.add('relic-disabled');
+          btn.title = item.disabled_reason || 'Desabilitada por relíquia';
+          console.log(`🔒 Skill ${item.name} desabilitada no modo rápido: ${item.disabled_reason}`);
+        }
+
         // Verificar se tem recursos suficientes
         const hasEnoughResources = this.checkResources(item, type);
         if (!hasEnoughResources) {
@@ -285,8 +296,9 @@ class FastBattleMode {
           btn.appendChild(cost);
         }
 
-        // Event listener
-        if (hasEnoughResources) {
+        // Event listener APENAS se não está desabilitado e tem recursos
+        const isDisabled = (type === 'attacks' && item.is_disabled) || !hasEnoughResources;
+        if (!isDisabled) {
           btn.addEventListener('click', (e) => {
             e.stopPropagation();
             this.executeAction(item, type);
@@ -303,15 +315,20 @@ class FastBattleMode {
   }
 
   checkResources(item, type) {
-    // Se battleState não existe, permitir a ação (será verificado no servidor)
-    if (!window.battleState || !window.battleState.player) {
-      console.log('checkResources: battleState não disponível, permitindo ação');
-      return true;
-    }
-
-    const player = window.battleState.player;
-
     if (type === 'attacks') {
+      // VERIFICAÇÃO 1: Skill desabilitada por relíquia
+      if (item.is_disabled) {
+        console.log(`❌ checkResources: Skill ${item.name} desabilitada - ${item.disabled_reason}`);
+        return false;
+      }
+
+      // VERIFICAÇÃO 2: Energia suficiente
+      if (!window.battleState || !window.battleState.player) {
+        console.log('⚠️ checkResources: battleState não disponível');
+        return true; // Permitir, será verificado no servidor
+      }
+
+      const player = window.battleState.player;
       const cost = item.points_cost || item.energy_cost || 1;
       const hasEnough = player.energy >= cost;
       console.log(`checkResources (attack): energia=${player.energy}, custo=${cost}, ok=${hasEnough}`);
@@ -326,14 +343,24 @@ class FastBattleMode {
   }
 
   async executeAction(item, type) {
+    // PREVENIR CLIQUES MÚLTIPLOS
+    if (this.isExecuting) {
+      console.log('⏸️ Ação já em execução, ignorando clique');
+      return;
+    }
+
     console.log(`⚡ Executando ação rápida: ${item.name} (${type})`);
 
     // Verificar recursos ANTES de executar qualquer ação
     if (!this.checkResources(item, type)) {
-      console.log('❌ Recursos insuficientes!');
+      console.log('❌ Recursos insuficientes ou skill desabilitada!');
 
       if (type === 'attacks') {
-        showFloatingText('Energia insuficiente!', 'error');
+        if (item.is_disabled) {
+          showFloatingText(item.disabled_reason || 'Skill desabilitada', 'error');
+        } else {
+          showFloatingText('Energia insuficiente!', 'error');
+        }
       } else if (type === 'inventory') {
         showFloatingText('Slot vazio ou poção indisponível!', 'error');
       }
@@ -341,6 +368,9 @@ class FastBattleMode {
       this.closeSubmenu();
       return;
     }
+
+    // BLOQUEAR NOVAS AÇÕES
+    this.isExecuting = true;
 
     // Fechar submenu
     this.closeSubmenu();
@@ -368,14 +398,35 @@ class FastBattleMode {
         // Aguardar um pouco e sincronizar com servidor para garantir
         setTimeout(async () => {
           await this.updateHUDFromServer();
+
+          // DESBLOQUEAR após sincronizar
+          setTimeout(() => {
+            this.isExecuting = false;
+            console.log('✅ Ação de ataque finalizada, desbloqueado');
+          }, 200);
         }, 800);
+      } else {
+        // Se triggerAttack não existe, desbloquear imediatamente
+        this.isExecuting = false;
       }
     } else if (type === 'specials') {
       // Executar especial diretamente (COM efeitos visuais)
       await this.executeSpecialDirect(item.id);
+
+      // DESBLOQUEAR após especial
+      setTimeout(() => {
+        this.isExecuting = false;
+        console.log('✅ Ação de especial finalizada, desbloqueado');
+      }, 1200);
     } else if (type === 'inventory') {
       // Usar poção diretamente
       await this.usePotionDirect(item.slot_number);
+
+      // DESBLOQUEAR após poção
+      setTimeout(() => {
+        this.isExecuting = false;
+        console.log('✅ Ação de poção finalizada, desbloqueado');
+      }, 1200);
     }
   }
 
