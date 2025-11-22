@@ -349,6 +349,12 @@ class FastBattleMode {
       return;
     }
 
+    // PREVENIR AÇÕES DURANTE ANIMAÇÕES (verificar gameState.inAction)
+    if (window.gameState && window.gameState.inAction) {
+      console.log('⏸️ Animação em andamento (gameState.inAction=true), ignorando clique');
+      return;
+    }
+
     console.log(`⚡ Executando ação rápida: ${item.name} (${type})`);
 
     // Verificar recursos ANTES de executar qualquer ação
@@ -395,16 +401,38 @@ class FastBattleMode {
       if (window.triggerAttack) {
         window.triggerAttack(item.id);
 
-        // Aguardar um pouco e sincronizar com servidor para garantir
-        setTimeout(async () => {
-          await this.updateHUDFromServer();
+        // AGUARDAR ANIMAÇÃO COMPLETA verificando gameState.inAction
+        const waitForAnimationEnd = () => {
+          return new Promise((resolve) => {
+            const checkInterval = setInterval(() => {
+              // Verificar se animação terminou (gameState.inAction = false)
+              if (!window.gameState || !window.gameState.inAction) {
+                clearInterval(checkInterval);
+                console.log('✅ Animação concluída (gameState.inAction=false)');
+                resolve();
+              }
+            }, 100); // Verificar a cada 100ms
 
-          // DESBLOQUEAR após sincronizar
-          setTimeout(() => {
-            this.isExecuting = false;
-            console.log('✅ Ação de ataque finalizada, desbloqueado');
-          }, 200);
-        }, 800);
+            // Timeout de segurança (máximo 5 segundos)
+            setTimeout(() => {
+              clearInterval(checkInterval);
+              console.warn('⚠️ Timeout de animação atingido (5s)');
+              resolve();
+            }, 5000);
+          });
+        };
+
+        // Aguardar animação terminar
+        await waitForAnimationEnd();
+
+        // Sincronizar com servidor
+        await this.updateHUDFromServer();
+
+        // Aguardar mais um pouco antes de desbloquear
+        setTimeout(() => {
+          this.isExecuting = false;
+          console.log('✅ Ação de ataque finalizada, desbloqueado');
+        }, 300);
       } else {
         // Se triggerAttack não existe, desbloquear imediatamente
         this.isExecuting = false;
