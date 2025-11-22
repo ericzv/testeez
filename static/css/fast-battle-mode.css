@@ -213,8 +213,15 @@
 
 /* Ícone de energia dentro do marcador de custo de energia */
 .fast-action-cost.energy::before {
-  content: '⚡';
-  font-size: 12px;
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  background-image: url('/static/game.data/energy.webp');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin-right: 2px;
 }
 
 /* Marcador de quantidade de itens (sem ícone, só quantidade) */
