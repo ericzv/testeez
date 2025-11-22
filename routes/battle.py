@@ -3915,9 +3915,9 @@ def player_inventory():
         if not player:
             return jsonify({'success': False, 'message': 'Jogador não encontrado'})
 
-        # Buscar slots de poções
-        from models import PotionSlot
-        slots = PotionSlot.query.filter_by(player_id=player.id).all()
+        # Buscar slots de poções (usar PlayerPotionSlot, não PotionSlot)
+        from models import PlayerPotionSlot
+        slots = PlayerPotionSlot.query.filter_by(player_id=player.id).order_by(PlayerPotionSlot.slot_number).all()
 
         print(f"📦 Buscando inventário para player {player.id}")
         print(f"📦 Slots encontrados: {len(slots)}")
@@ -3926,20 +3926,12 @@ def player_inventory():
         for slot in slots:
             print(f"📦 Slot {slot.slot_number}: type={slot.potion_type}, qty={slot.quantity}")
             if slot.potion_type and slot.quantity > 0:
-                # Mapear tipo de poção para nome e ícone
-                potion_info = {
-                    'health_minor': {'name': 'Poção de Vida Menor', 'icon': '/static/game.data/items/health_potion.png'},
-                    'health_medium': {'name': 'Poção de Vida Média', 'icon': '/static/game.data/items/health_potion.png'},
-                    'health_major': {'name': 'Poção de Vida Maior', 'icon': '/static/game.data/items/health_potion.png'},
-                    'energy_minor': {'name': 'Poção de Energia Menor', 'icon': '/static/game.data/items/energy_potion.png'},
-                    'barrier': {'name': 'Poção de Barreira', 'icon': '/static/game.data/items/barrier_potion.png'}
-                }.get(slot.potion_type, {'name': slot.potion_type, 'icon': '/static/game.data/items/potion.png'})
-
+                # Usar métodos do modelo para obter informações
                 items.append({
                     'id': slot.id,
                     'slot_number': slot.slot_number,
-                    'name': potion_info['name'],
-                    'icon': potion_info['icon'],
+                    'name': slot.get_name(),
+                    'icon': f"/static/game.data/{slot.get_icon()}",
                     'quantity': slot.quantity,
                     'potion_type': slot.potion_type
                 })
