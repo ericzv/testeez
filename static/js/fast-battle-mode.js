@@ -76,10 +76,25 @@ class FastBattleMode {
       const data = await response.json();
 
       if (data.success && data.attacks) {
-        this.attacks = data.attacks.map(attack => ({
-          ...attack,
-          icon: attack.icon || attack.animation_fx_a || '/static/game.data/icons/attack.png'
-        }));
+        this.attacks = data.attacks.map(attack => {
+          // Mapear tipo de skill para ícone correto
+          let icon = '/static/game.data/icons/attack.png';
+
+          if (attack.skill_type === 'attack') {
+            icon = '/static/game.data/icons/atk1.png';
+          } else if (attack.skill_type === 'power') {
+            icon = '/static/game.data/icons/atk2.png';
+          } else if (attack.skill_type === 'special') {
+            icon = '/static/game.data/icons/atk3.png';
+          } else if (attack.skill_type === 'ultimate') {
+            icon = '/static/game.data/icons/atk4.png';
+          }
+
+          return {
+            ...attack,
+            icon: icon
+          };
+        });
       } else {
         this.attacks = [];
       }
@@ -328,6 +343,7 @@ class FastBattleMode {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json'
         },
         body: `skill_id=${skillId}`
       });
@@ -343,6 +359,19 @@ class FastBattleMode {
         // Mostrar mensagem
         if (data.message) {
           showFloatingText(data.message, 'info');
+        }
+
+        // Se houve dano/cura, mostrar
+        if (data.details) {
+          if (data.details.heal) {
+            showFloatingText(`+${data.details.heal} HP`, 'heal');
+          }
+          if (data.details.barrier) {
+            showFloatingText(`+${data.details.barrier} Barreira`, 'barrier');
+          }
+          if (data.details.damage) {
+            showFloatingText(`-${data.details.damage}`, 'damage');
+          }
         }
       } else {
         showFloatingText(data.message || 'Erro ao usar especial', 'error');

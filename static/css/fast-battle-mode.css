@@ -6,13 +6,13 @@
 /* Container principal dos botões de atalho */
 .fast-battle-container {
   position: fixed;
-  bottom: 120px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 120px;
+  left: 20px;
   z-index: 900;
   display: flex;
-  gap: 15px;
-  align-items: flex-end;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
 }
 
 /* Botões principais circulares */
@@ -82,34 +82,36 @@
 /* Submenu de opções */
 .fast-battle-submenu {
   position: absolute;
-  bottom: 85px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 0;
+  left: 85px;
   display: none;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 10px;
-  padding: 15px;
+  padding: 10px;
   background: rgba(20, 20, 20, 0.95);
   border: 2px solid #8B4513;
   border-radius: 15px;
-  max-width: 500px;
-  justify-content: center;
-  box-shadow: 0 -5px 30px rgba(0, 0, 0, 0.8);
+  max-width: none;
+  justify-content: flex-start;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+  flex-direction: row;
+  overflow-x: auto;
+  max-height: 80px;
 }
 
 .fast-battle-submenu.active {
   display: flex;
-  animation: slideUp 0.2s ease;
+  animation: slideRight 0.2s ease;
 }
 
-@keyframes slideUp {
+@keyframes slideRight {
   from {
     opacity: 0;
-    transform: translateX(-50%) translateY(20px);
+    transform: translateX(-20px);
   }
   to {
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    transform: translateX(0);
   }
 }
 
@@ -155,6 +157,7 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s;
+  z-index: 9999;
 }
 
 .fast-action-btn:hover::before {
