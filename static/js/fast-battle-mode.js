@@ -1,9 +1,9 @@
 /* ================================================================================
-   FAST BATTLE MODE - Sistema de Batalha Rápida
+   FAST BATTLE MODE - Sistema de Atalhos Rápidos na Batalha
    ================================================================================
 
-   Sistema que permite combate direto do hub sem entrar na view de batalha,
-   com animações abreviadas e resultados imediatos.
+   Adiciona botões de atalho circulares na tela de batalha para acesso rápido
+   a ataques, especiais e inventário, com animações abreviadas.
 */
 
 class FastBattleMode {
@@ -13,23 +13,36 @@ class FastBattleMode {
     this.attacks = [];
     this.specials = [];
     this.items = [];
-    this.playerStatus = null;
-    this.enemyStatus = null;
-    this.isProcessing = false;
 
-    this.init();
+    // Aguardar carregamento completo da batalha
+    this.waitForBattleReady();
   }
 
-  async init() {
-    // Verificar se há inimigo ativo
-    const hasEnemy = await this.checkActiveEnemy();
-    if (!hasEnemy) {
-      console.log('Nenhum inimigo ativo, modo rápido desabilitado');
+  waitForBattleReady() {
+    // Verificar se estamos na página de batalha
+    if (!window.location.pathname.includes('/battle')) {
+      console.log('Fast Battle Mode: Não estamos na página de batalha');
       return;
     }
 
+    // Aguardar o sistema de batalha estar pronto
+    const checkReady = setInterval(() => {
+      if (window.battleState && document.getElementById('attack-button')) {
+        clearInterval(checkReady);
+        this.init();
+      }
+    }, 100);
+
+    // Timeout de 5 segundos
+    setTimeout(() => {
+      clearInterval(checkReady);
+    }, 5000);
+  }
+
+  async init() {
+    console.log('🚀 Inicializando Modo Rápido de Batalha...');
+
     // Carregar dados
-    await this.loadPlayerData();
     await this.loadAttacks();
     await this.loadSpecials();
     await this.loadItems();
@@ -38,49 +51,7 @@ class FastBattleMode {
     this.createUI();
 
     this.active = true;
-    console.log('Modo Rápido de Batalha ativado!');
-  }
-
-  async checkActiveEnemy() {
-    try {
-      const response = await fetch('/gamification/battle_status');
-      const data = await response.json();
-
-      if (data.enemy) {
-        this.enemyStatus = {
-          id: data.enemy.id,
-          name: data.enemy.name,
-          hp: data.enemy.hp,
-          max_hp: data.enemy.max_hp,
-          energy: data.enemy.energy || 0,
-          max_energy: data.enemy.max_energy || 100
-        };
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('Erro ao verificar inimigo:', error);
-      return false;
-    }
-  }
-
-  async loadPlayerData() {
-    try {
-      const response = await fetch('/gamification/player_status');
-      const data = await response.json();
-
-      this.playerStatus = {
-        name: data.name,
-        hp: data.hp,
-        max_hp: data.max_hp,
-        energy: data.energy || 100,
-        max_energy: data.max_energy || 100,
-        mana: data.mana || 0,
-        max_mana: data.max_mana || 100
-      };
-    } catch (error) {
-      console.error('Erro ao carregar dados do jogador:', error);
-    }
+    console.log('✅ Modo Rápido de Batalha ativado!');
   }
 
   async loadAttacks() {
@@ -138,17 +109,17 @@ class FastBattleMode {
   }
 
   createUI() {
-    // Container principal
+    // Container principal dos botões de atalho
     const container = document.createElement('div');
     container.className = 'fast-battle-container';
     container.innerHTML = `
-      <div class="fast-battle-btn attacks" data-type="attacks">
+      <div class="fast-battle-btn attacks" data-type="attacks" title="Atalho de Ataques">
         Ataques
       </div>
-      <div class="fast-battle-btn specials" data-type="specials">
+      <div class="fast-battle-btn specials" data-type="specials" title="Atalho de Especiais">
         Especiais
       </div>
-      <div class="fast-battle-btn inventory" data-type="inventory">
+      <div class="fast-battle-btn inventory" data-type="inventory" title="Atalho de Inventário">
         Inventário
       </div>
     `;
@@ -158,49 +129,18 @@ class FastBattleMode {
 
     // Event listeners
     container.querySelectorAll('.fast-battle-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => this.toggleSubmenu(e.target.dataset.type));
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.toggleSubmenu(e.target.dataset.type);
+      });
     });
 
-    // Criar status do jogador e inimigo
-    this.createStatusBars();
-
-    // Criar loading spinner
-    const loading = document.createElement('div');
-    loading.className = 'fast-battle-loading';
-    document.body.appendChild(loading);
-  }
-
-  createStatusBars() {
-    // Status do jogador
-    const playerBar = document.createElement('div');
-    playerBar.className = 'fast-player-status';
-    playerBar.innerHTML = `
-      <div class="fast-player-name">${this.playerStatus.name}</div>
-      <div class="fast-status-bar">
-        <div class="fast-status-fill hp" style="width: ${(this.playerStatus.hp / this.playerStatus.max_hp) * 100}%">
-          ${this.playerStatus.hp} / ${this.playerStatus.max_hp}
-        </div>
-      </div>
-      <div class="fast-status-bar">
-        <div class="fast-status-fill energy" style="width: ${(this.playerStatus.energy / this.playerStatus.max_energy) * 100}%">
-          ⚡ ${this.playerStatus.energy}
-        </div>
-      </div>
-    `;
-    document.body.appendChild(playerBar);
-
-    // Status do inimigo
-    const enemyBar = document.createElement('div');
-    enemyBar.className = 'fast-enemy-status';
-    enemyBar.innerHTML = `
-      <div class="fast-enemy-name">${this.enemyStatus.name}</div>
-      <div class="fast-status-bar">
-        <div class="fast-status-fill hp" style="width: ${(this.enemyStatus.hp / this.enemyStatus.max_hp) * 100}%">
-          ${this.enemyStatus.hp} / ${this.enemyStatus.max_hp}
-        </div>
-      </div>
-    `;
-    document.body.appendChild(enemyBar);
+    // Fechar submenu ao clicar fora
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.fast-battle-container')) {
+        this.closeSubmenu();
+      }
+    });
   }
 
   toggleSubmenu(type) {
@@ -252,56 +192,64 @@ class FastBattleMode {
       items = this.items;
     }
 
-    // Criar botões para cada item
-    items.forEach(item => {
-      const btn = document.createElement('div');
-      btn.className = 'fast-action-btn';
-      btn.dataset.id = item.id;
-      btn.dataset.type = type;
-      btn.dataset.name = item.name;
+    if (items.length === 0) {
+      submenu.innerHTML = '<div style="color: #999; padding: 20px; text-align: center;">Nenhum item disponível</div>';
+    } else {
+      // Criar botões para cada item
+      items.forEach(item => {
+        const btn = document.createElement('div');
+        btn.className = 'fast-action-btn';
+        btn.dataset.id = item.id;
+        btn.dataset.type = type;
+        btn.dataset.name = item.name;
+        btn.title = item.name;
 
-      // Definir ícone
-      if (item.icon) {
-        btn.style.backgroundImage = `url('${item.icon}')`;
-      }
+        // Definir ícone de fundo
+        if (item.icon) {
+          btn.style.backgroundImage = `url('${item.icon}')`;
+        }
 
-      // Verificar se tem recursos suficientes
-      const hasEnoughResources = this.checkResources(item, type);
-      if (!hasEnoughResources) {
-        btn.classList.add('disabled');
-      }
+        // Verificar se tem recursos suficientes
+        const hasEnoughResources = this.checkResources(item, type);
+        if (!hasEnoughResources) {
+          btn.classList.add('disabled');
+        }
 
-      // Mostrar custo
-      if (type === 'attacks') {
-        const energyCost = item.points_cost || item.energy_cost || 1;
-        if (energyCost > 0) {
+        // Mostrar custo
+        if (type === 'attacks') {
+          const energyCost = item.points_cost || item.energy_cost || 1;
+          if (energyCost > 0) {
+            const cost = document.createElement('div');
+            cost.className = 'fast-action-cost';
+            cost.textContent = energyCost;
+            btn.appendChild(cost);
+          }
+        } else if (type === 'specials') {
+          const manaCost = item.mana_cost || 0;
+          if (manaCost > 0) {
+            const cost = document.createElement('div');
+            cost.className = 'fast-action-cost mana';
+            cost.textContent = manaCost;
+            btn.appendChild(cost);
+          }
+        } else if (type === 'inventory' && item.quantity) {
           const cost = document.createElement('div');
           cost.className = 'fast-action-cost';
-          cost.textContent = energyCost;
+          cost.textContent = `x${item.quantity}`;
           btn.appendChild(cost);
         }
-      } else if (type === 'specials') {
-        const manaCost = item.mana_cost || 0;
-        if (manaCost > 0) {
-          const cost = document.createElement('div');
-          cost.className = 'fast-action-cost mana';
-          cost.textContent = manaCost;
-          btn.appendChild(cost);
+
+        // Event listener
+        if (hasEnoughResources) {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.executeAction(item, type);
+          });
         }
-      } else if (type === 'inventory' && item.quantity) {
-        const cost = document.createElement('div');
-        cost.className = 'fast-action-cost';
-        cost.textContent = `x${item.quantity}`;
-        btn.appendChild(cost);
-      }
 
-      // Event listener
-      if (hasEnoughResources) {
-        btn.addEventListener('click', () => this.executeAction(item, type));
-      }
-
-      submenu.appendChild(btn);
-    });
+        submenu.appendChild(btn);
+      });
+    }
 
     // Adicionar ao container
     const container = document.querySelector('.fast-battle-container');
@@ -309,99 +257,83 @@ class FastBattleMode {
   }
 
   checkResources(item, type) {
+    if (!window.battleState || !window.battleState.player) {
+      return true; // Permitir se não conseguir verificar
+    }
+
+    const player = window.battleState.player;
+
     if (type === 'attacks') {
       const cost = item.points_cost || item.energy_cost || 1;
-      return this.playerStatus.energy >= cost;
+      return player.energy >= cost;
     } else if (type === 'specials') {
       const cost = item.mana_cost || 0;
-      return this.playerStatus.mana >= cost;
+      return (player.mana || 0) >= cost;
     } else if (type === 'inventory') {
       return item.quantity > 0;
     }
     return true;
   }
 
-  async executeAction(item, type) {
-    if (this.isProcessing) return;
+  executeAction(item, type) {
+    console.log(`⚡ Executando ação rápida: ${item.name} (${type})`);
 
-    this.isProcessing = true;
-    this.showLoading();
+    // Fechar submenu
+    this.closeSubmenu();
 
-    try {
-      let result;
-
-      if (type === 'attacks') {
-        result = await this.executeAttack(item);
-      } else if (type === 'specials') {
-        result = await this.executeSpecial(item);
-      } else if (type === 'inventory') {
-        result = await this.executeItem(item);
+    if (type === 'attacks') {
+      // Usar função existente do sistema de batalha
+      if (window.triggerAttack) {
+        window.triggerAttack(item.id);
       }
-
-      // Processar resultado
-      if (result) {
-        await this.processResult(result, type);
-      }
-
-      // Fechar submenu após ação
-      this.closeSubmenu();
-
-      // Verificar se inimigo foi derrotado
-      if (result && result.enemy_defeated) {
-        this.handleEnemyDefeated();
+    } else if (type === 'specials') {
+      // Abrir modal de especiais com a skill pré-selecionada
+      if (window.openSpecialModal) {
+        window.openSpecialModal(item.id);
       } else {
-        // Executar turno do inimigo
-        await this.executeEnemyTurn();
+        // Fallback: executar diretamente
+        this.executeSpecialDirect(item.id);
       }
-
-    } catch (error) {
-      console.error('Erro ao executar ação:', error);
-      this.showFeedback('Erro!', 'damage');
-    } finally {
-      this.hideLoading();
-      this.isProcessing = false;
+    } else if (type === 'inventory') {
+      // Usar poção diretamente
+      this.usePotionDirect(item.slot_number);
     }
   }
 
-  async executeAttack(attack) {
-    try {
-      const response = await fetch('/gamification/damage_boss', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `skill_id=${attack.id}&fast_mode=true`
-      });
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Erro ao executar ataque:', error);
-      return null;
-    }
-  }
-
-  async executeSpecial(special) {
+  async executeSpecialDirect(skillId) {
     try {
       const response = await fetch('/gamification/use_special', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: `skill_id=${special.id}&fast_mode=true`
+        body: `skill_id=${skillId}`
       });
 
       const data = await response.json();
-      return data;
+
+      if (data.success) {
+        // Recarregar página ou atualizar UI
+        if (window.updatePlayerHUD) {
+          window.updatePlayerHUD();
+        }
+
+        // Mostrar mensagem
+        if (data.message) {
+          showFloatingText(data.message, 'info');
+        }
+      } else {
+        showFloatingText(data.message || 'Erro ao usar especial', 'error');
+      }
     } catch (error) {
       console.error('Erro ao executar especial:', error);
-      return null;
+      showFloatingText('Erro ao usar especial', 'error');
     }
   }
 
-  async executeItem(item) {
+  async usePotionDirect(slotNumber) {
     try {
-      const response = await fetch(`/gamification/use_potion/${item.slot_number}`, {
+      const response = await fetch(`/gamification/use_potion/${slotNumber}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -410,190 +342,96 @@ class FastBattleMode {
 
       const data = await response.json();
 
-      // Adaptar resposta para formato esperado
-      if (data.success && data.player) {
-        return {
-          ...data,
-          heal: data.message.includes('vida') ? parseInt(data.message.match(/\d+/)?.[0] || 0) : 0,
-          barrier: data.message.includes('barreira') ? parseInt(data.message.match(/\d+/)?.[0] || 0) : 0
-        };
-      }
+      if (data.success) {
+        console.log('✅ Poção usada:', data.message);
 
-      return data;
-    } catch (error) {
-      console.error('Erro ao usar item:', error);
-      return null;
-    }
-  }
-
-  async processResult(result, type) {
-    // Atualizar status do jogador
-    if (result.player) {
-      this.playerStatus.hp = result.player.hp;
-      this.playerStatus.energy = result.player.energy;
-      this.playerStatus.mana = result.player.mana;
-      this.updatePlayerBar();
-    }
-
-    // Atualizar status do inimigo
-    if (result.enemy) {
-      this.enemyStatus.hp = result.enemy.hp;
-      this.updateEnemyBar();
-    }
-
-    // Mostrar feedback visual
-    if (type === 'attacks') {
-      const isCritical = result.critical || false;
-      const damage = result.damage || 0;
-      this.showFeedback(`-${damage}`, isCritical ? 'critical' : 'damage');
-    } else if (type === 'specials') {
-      if (result.heal) {
-        this.showFeedback(`+${result.heal}`, 'heal');
-      } else if (result.barrier) {
-        this.showFeedback(`🛡️ +${result.barrier}`, 'barrier');
-      } else if (result.damage) {
-        this.showFeedback(`-${result.damage}`, 'damage');
-      }
-    } else if (type === 'inventory') {
-      if (result.heal) {
-        this.showFeedback(`+${result.heal}`, 'heal');
-      }
-    }
-  }
-
-  async executeEnemyTurn() {
-    try {
-      // Processar turno do inimigo
-      const endTurnResponse = await fetch('/gamification/end_player_turn', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: 'fast_mode=true'
-      });
-
-      const endTurnData = await endTurnResponse.json();
-
-      // Executar ataques do inimigo
-      if (endTurnData.enemy_actions) {
-        for (const action of endTurnData.enemy_actions) {
-          await this.sleep(300); // Pequeno delay entre ações
-
-          const attackResponse = await fetch('/gamification/execute_enemy_attack', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: 'fast_mode=true'
-          });
-
-          const attackData = await attackResponse.json();
-
-          // Atualizar HP do jogador
-          if (attackData.player) {
-            this.playerStatus.hp = attackData.player.hp;
-            this.updatePlayerBar();
-          }
-
-          // Mostrar dano recebido
-          if (attackData.damage > 0) {
-            this.showFeedback(`-${attackData.damage}`, 'damage');
-          } else if (attackData.dodged) {
-            this.showFeedback('ESQUIVA!', 'heal');
-          } else if (attackData.blocked) {
-            this.showFeedback('BLOQUEIO!', 'barrier');
-          }
-
-          // Verificar se jogador morreu
-          if (attackData.player_defeated) {
-            this.handlePlayerDefeated();
-            return;
-          }
+        // Atualizar HUD do jogador
+        if (window.updatePlayerHUD && data.player) {
+          window.battleState.player.hp = data.player.hp;
+          window.battleState.player.barrier = data.player.barrier || 0;
+          window.battleState.player.energy = data.player.energy;
+          window.updatePlayerHUD();
         }
+
+        // Recarregar inventário
+        await this.loadItems();
+
+        // Mostrar feedback visual
+        if (data.message.includes('vida')) {
+          const healAmount = parseInt(data.message.match(/\d+/)?.[0] || 0);
+          showFloatingText(`+${healAmount} HP`, 'heal');
+        } else if (data.message.includes('barreira')) {
+          const barrierAmount = parseInt(data.message.match(/\d+/)?.[0] || 0);
+          showFloatingText(`+${barrierAmount} Barreira`, 'barrier');
+        } else if (data.message.includes('energia')) {
+          const energyAmount = parseInt(data.message.match(/\d+/)?.[0] || 0);
+          showFloatingText(`+${energyAmount} Energia`, 'energy');
+        }
+      } else {
+        showFloatingText(data.error || 'Erro ao usar poção', 'error');
       }
-
     } catch (error) {
-      console.error('Erro ao executar turno do inimigo:', error);
+      console.error('Erro ao usar poção:', error);
+      showFloatingText('Erro ao usar poção', 'error');
     }
-  }
-
-  updatePlayerBar() {
-    const bar = document.querySelector('.fast-player-status');
-    if (bar) {
-      bar.querySelector('.fast-status-fill.hp').style.width =
-        `${(this.playerStatus.hp / this.playerStatus.max_hp) * 100}%`;
-      bar.querySelector('.fast-status-fill.hp').textContent =
-        `${this.playerStatus.hp} / ${this.playerStatus.max_hp}`;
-
-      bar.querySelector('.fast-status-fill.energy').style.width =
-        `${(this.playerStatus.energy / this.playerStatus.max_energy) * 100}%`;
-      bar.querySelector('.fast-status-fill.energy').textContent =
-        `⚡ ${this.playerStatus.energy}`;
-    }
-  }
-
-  updateEnemyBar() {
-    const bar = document.querySelector('.fast-enemy-status');
-    if (bar) {
-      bar.querySelector('.fast-status-fill.hp').style.width =
-        `${(this.enemyStatus.hp / this.enemyStatus.max_hp) * 100}%`;
-      bar.querySelector('.fast-status-fill.hp').textContent =
-        `${this.enemyStatus.hp} / ${this.enemyStatus.max_hp}`;
-    }
-  }
-
-  showFeedback(text, type) {
-    const feedback = document.createElement('div');
-    feedback.className = `fast-battle-feedback ${type}`;
-    feedback.textContent = text;
-    document.body.appendChild(feedback);
-
-    setTimeout(() => {
-      feedback.remove();
-    }, 1000);
-  }
-
-  showLoading() {
-    const loading = document.querySelector('.fast-battle-loading');
-    if (loading) {
-      loading.classList.add('active');
-    }
-  }
-
-  hideLoading() {
-    const loading = document.querySelector('.fast-battle-loading');
-    if (loading) {
-      loading.classList.remove('active');
-    }
-  }
-
-  handleEnemyDefeated() {
-    this.showFeedback('VITÓRIA!', 'critical');
-
-    setTimeout(() => {
-      // Recarregar página para mostrar recompensas
-      window.location.reload();
-    }, 1500);
-  }
-
-  handlePlayerDefeated() {
-    this.showFeedback('DERROTA!', 'damage');
-
-    setTimeout(() => {
-      window.location.href = '/gamification/game_over';
-    }, 1500);
-  }
-
-  sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
 
-// Inicializar quando DOM estiver pronto
-document.addEventListener('DOMContentLoaded', () => {
-  // Só ativar no hub de gamificação
-  if (window.location.pathname === '/gamification/' ||
-      window.location.pathname === '/gamification') {
-    window.fastBattle = new FastBattleMode();
+// Função auxiliar para mostrar texto flutuante
+function showFloatingText(text, type = 'info') {
+  const feedback = document.createElement('div');
+  feedback.className = `fast-battle-feedback ${type}`;
+  feedback.textContent = text;
+  feedback.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    font-weight: bold;
+    color: ${type === 'heal' ? '#2ecc71' : type === 'barrier' ? '#3498db' : type === 'energy' ? '#f39c12' : type === 'error' ? '#e74c3c' : '#fff'};
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    pointer-events: none;
+    z-index: 99999;
+    animation: floatUp 1.5s ease-out forwards;
+  `;
+
+  document.body.appendChild(feedback);
+
+  setTimeout(() => {
+    feedback.remove();
+  }, 1500);
+}
+
+// Adicionar animação CSS
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes floatUp {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.5);
+    }
+    20% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.2);
+    }
+    80% {
+      opacity: 1;
+      transform: translate(-50%, -70%) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -90%) scale(0.8);
+    }
   }
-});
+`;
+document.head.appendChild(style);
+
+// Inicializar quando DOM estiver pronto
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    window.fastBattle = new FastBattleMode();
+  });
+} else {
+  window.fastBattle = new FastBattleMode();
+}
