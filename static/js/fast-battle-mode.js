@@ -25,18 +25,34 @@ class FastBattleMode {
       return;
     }
 
+    console.log('Fast Battle Mode: Aguardando sistema de batalha...');
+
     // Aguardar o sistema de batalha estar pronto
+    let attempts = 0;
+    const maxAttempts = 100; // 10 segundos (100 * 100ms)
+
     const checkReady = setInterval(() => {
-      if (window.battleState && document.getElementById('attack-button')) {
+      attempts++;
+
+      // Verificar se elementos necessários existem
+      const attackButton = document.getElementById('attack-button');
+
+      console.log(`Tentativa ${attempts}: attack-button=${!!attackButton}, battleState=${!!window.battleState}`);
+
+      // Inicializar se o botão de ataque existir (não precisa esperar battleState)
+      if (attackButton) {
+        console.log('✅ Elementos encontrados! Inicializando...');
         clearInterval(checkReady);
         this.init();
+        return;
+      }
+
+      // Timeout
+      if (attempts >= maxAttempts) {
+        console.error('❌ Timeout: Sistema de batalha não carregou a tempo');
+        clearInterval(checkReady);
       }
     }, 100);
-
-    // Timeout de 5 segundos
-    setTimeout(() => {
-      clearInterval(checkReady);
-    }, 5000);
   }
 
   async init() {
@@ -257,18 +273,24 @@ class FastBattleMode {
   }
 
   checkResources(item, type) {
+    // Se battleState não existe, permitir a ação (será verificado no servidor)
     if (!window.battleState || !window.battleState.player) {
-      return true; // Permitir se não conseguir verificar
+      console.log('checkResources: battleState não disponível, permitindo ação');
+      return true;
     }
 
     const player = window.battleState.player;
 
     if (type === 'attacks') {
       const cost = item.points_cost || item.energy_cost || 1;
-      return player.energy >= cost;
+      const hasEnough = player.energy >= cost;
+      console.log(`checkResources (attack): energia=${player.energy}, custo=${cost}, ok=${hasEnough}`);
+      return hasEnough;
     } else if (type === 'specials') {
       const cost = item.mana_cost || 0;
-      return (player.mana || 0) >= cost;
+      const hasEnough = (player.mana || 0) >= cost;
+      console.log(`checkResources (special): mana=${player.mana}, custo=${cost}, ok=${hasEnough}`);
+      return hasEnough;
     } else if (type === 'inventory') {
       return item.quantity > 0;
     }
