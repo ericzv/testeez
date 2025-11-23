@@ -2758,9 +2758,9 @@ function renderMapNodes(mapData) {
     const baseX = paddingX + (node.x * spacingX);
     const baseY = paddingY + ((maxY - node.y) * nodeSpacingY);
 
-    // Adicionar variação aleatória (-10 a +10px)
-    const varX = getVariation(node.id, 1);
-    const varY = getVariation(node.id * 7, 1);
+    // Adicionar variação aleatória AUMENTADA (-25 a +25px) para menos "tabela"
+    const varX = getVariation(node.id, 2.5);
+    const varY = getVariation(node.id * 7, 2.5);
     const posX = baseX + varX;
     const posY = baseY + varY;
 
@@ -2769,10 +2769,10 @@ function renderMapNodes(mapData) {
     const nodeEl = document.createElement('div');
     nodeEl.style.cssText = `
       position: absolute;
-      width: 50px;
-      height: 50px;
-      left: ${posX - 25}px;
-      top: ${posY - 25}px;
+      width: 75px;
+      height: 75px;
+      left: ${posX - 37.5}px;
+      top: ${posY - 37.5}px;
       cursor: pointer;
       pointer-events: auto;
       transition: transform 0.2s ease, filter 0.2s ease;
@@ -2781,22 +2781,25 @@ function renderMapNodes(mapData) {
     // Adicionar dataset para identificação
     nodeEl.dataset.nodeId = node.id;
 
-    // Estado do nó com diferenciação visual aprimorada
+    // Estado do nó com diferenciação visual MUITO mais forte
     if (node.is_current) {
-      nodeEl.style.animation = 'mapNodePulse 1.5s infinite';
-      nodeEl.style.filter = 'drop-shadow(0 0 15px rgba(255, 215, 0, 0.9))';
+      // Animação RÁPIDA (0.8s) e efeito intenso
+      nodeEl.style.animation = 'mapNodePulse 0.8s infinite';
+      nodeEl.style.filter = 'drop-shadow(0 0 20px rgba(255, 215, 0, 1)) brightness(1.3)';
     } else if (node.is_available) {
+      // VERMELHO intenso ao invés de azul
       nodeEl.style.animation = 'mapNodeAvailable 2s infinite';
-      nodeEl.style.filter = 'brightness(1.2) drop-shadow(0 0 8px rgba(100, 200, 255, 0.6))';
+      nodeEl.style.filter = 'brightness(1.3) drop-shadow(0 0 15px rgba(255, 50, 50, 0.9))';
     } else if (node.is_visited) {
-      nodeEl.style.opacity = '0.5';
+      // Nodes POR ONDE PASSEI: opacos (70% visível)
+      nodeEl.style.opacity = '0.7';
       nodeEl.style.cursor = 'default';
-      nodeEl.style.filter = 'brightness(0.4) saturate(0.3)';
+      nodeEl.style.filter = 'brightness(0.5) saturate(0.4)';
     } else {
-      // Locked/unavailable nodes
-      nodeEl.style.opacity = '0.35';
+      // Nodes IGNORADOS/BLOQUEADOS: muito transparentes (15% visível) e acinzentados
+      nodeEl.style.opacity = '0.15';
       nodeEl.style.cursor = 'not-allowed';
-      nodeEl.style.filter = 'grayscale(100%) brightness(0.5)';
+      nodeEl.style.filter = 'grayscale(100%) brightness(0.3)';
     }
 
     // Imagem com lazy loading
@@ -2813,32 +2816,52 @@ function renderMapNodes(mapData) {
 
     if (isClickable) {
       if (node.is_current) {
-        // Nó atual: reabrir ação do nó
+        // Nó atual: reabrir ação do nó com delay e animação
         nodeEl.addEventListener('click', () => {
           playNodeSelectionSound();
-          handleCurrentNodeClick(node);
+
+          // Aplicar animação de seleção
+          nodeEl.style.animation = 'mapNodeSelection 0.5s ease-out';
+
+          // Delay de 500ms antes de processar
+          setTimeout(() => {
+            // Restaurar animação normal
+            nodeEl.style.animation = 'mapNodePulse 0.8s infinite';
+            handleCurrentNodeClick(node);
+          }, 500);
         });
       } else {
-        // Nó disponível: avançar para ele
+        // Nó disponível: avançar para ele com delay e animação
         nodeEl.addEventListener('click', () => {
           playNodeSelectionSound();
-          handleMapNodeClick(node);
+
+          // Aplicar animação de seleção
+          nodeEl.style.animation = 'mapNodeSelection 0.5s ease-out';
+
+          // Delay de 500ms antes de processar
+          setTimeout(() => {
+            // Restaurar animação normal
+            nodeEl.style.animation = 'mapNodeAvailable 2s infinite';
+            handleMapNodeClick(node);
+          }, 500);
         });
       }
       nodeEl.addEventListener('mouseenter', () => {
-        nodeEl.style.transform = 'scale(1.2)';
+        nodeEl.style.transform = 'scale(1.25)';
         if (node.is_available) {
-          nodeEl.style.filter = 'brightness(1.5) drop-shadow(0 0 15px rgba(100, 200, 255, 0.9))';
+          // VERMELHO no hover
+          nodeEl.style.filter = 'brightness(1.6) drop-shadow(0 0 25px rgba(255, 50, 50, 1))';
         } else {
-          nodeEl.style.filter = 'brightness(1.3)';
+          nodeEl.style.filter = 'brightness(1.5)';
         }
       });
       nodeEl.addEventListener('mouseleave', () => {
         nodeEl.style.transform = 'scale(1)';
         if (node.is_available) {
-          nodeEl.style.filter = 'brightness(1.2) drop-shadow(0 0 8px rgba(100, 200, 255, 0.6))';
+          // VERMELHO normal
+          nodeEl.style.filter = 'brightness(1.3) drop-shadow(0 0 15px rgba(255, 50, 50, 0.9))';
         } else {
-          nodeEl.style.filter = '';
+          nodeEl.style.filter = 'drop-shadow(0 0 20px rgba(255, 215, 0, 1)) brightness(1.3)';
         }
       });
     }
@@ -3236,22 +3259,39 @@ function hideMapTooltip() {
 @keyframes mapNodePulse {
   0%, 100% {
     transform: scale(1);
-    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.9));
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1)) brightness(1.3);
   }
   50% {
-    transform: scale(1.2);
-    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 1)) brightness(1.3);
+    transform: scale(1.3);
+    filter: drop-shadow(0 0 40px rgba(255, 215, 0, 1)) brightness(1.6);
   }
 }
 
 @keyframes mapNodeAvailable {
   0%, 100% {
     transform: scale(1);
-    filter: brightness(1.2) drop-shadow(0 0 8px rgba(100, 200, 255, 0.6));
+    filter: brightness(1.3) drop-shadow(0 0 15px rgba(255, 50, 50, 0.9));
   }
   50% {
-    transform: scale(1.1);
-    filter: brightness(1.3) drop-shadow(0 0 12px rgba(100, 200, 255, 0.8));
+    transform: scale(1.15);
+    filter: brightness(1.6) drop-shadow(0 0 30px rgba(255, 50, 50, 1));
+  }
+}
+
+/* Animação de seleção ao clicar */
+@keyframes mapNodeSelection {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.4);
+    filter: brightness(2.5) drop-shadow(0 0 35px rgba(255, 255, 255, 1));
+  }
+  60% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
   }
 }
 
@@ -3263,13 +3303,13 @@ function hideMapTooltip() {
     filter: brightness(2) blur(4px);
   }
   60% {
-    transform: scale(1.15) rotate(10deg);
+    transform: scale(1.2) rotate(10deg);
     opacity: 1;
   }
   100% {
     transform: scale(1) rotate(0deg);
     opacity: 1;
-    filter: brightness(1.2) drop-shadow(0 0 8px rgba(100, 200, 255, 0.6));
+    filter: brightness(1.3) drop-shadow(0 0 15px rgba(255, 50, 50, 0.9));
   }
 }
 
@@ -3286,8 +3326,8 @@ function hideMapTooltip() {
   }
   100% {
     transform: scale(1);
-    opacity: 0.5;
-    filter: brightness(0.4) saturate(0.3);
+    opacity: 0.7;
+    filter: brightness(0.5) saturate(0.4);
   }
 }
 
