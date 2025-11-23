@@ -234,6 +234,11 @@
 /* Marcador de quantidade de itens (sem ícone, só quantidade) */
 .fast-action-cost.quantity {
   background: linear-gradient(135deg, #16a085, #1abc9c);
+  color: #fff; /* Branco ao invés de dourado */
+  text-shadow: none; /* Sem brilho externo */
+  font-size: 11px;
+  padding: 2px 6px;
+  border: 2px solid #fff;
 }
 
 .fast-action-cost.quantity::before {

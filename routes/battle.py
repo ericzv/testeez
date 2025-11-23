@@ -2076,7 +2076,18 @@ def reset_player_run(player_id):
         # ===== LIMPAR DEBUFFS DE INIMIGOS (como Nictalopia) =====
         EnemySkillDebuff.query.filter_by(player_id=player.id).delete()
         print(f"⚔️ Debuffs de inimigos removidos")
-        
+
+        # ===== LIMPAR POÇÕES DO INVENTÁRIO =====
+        from models import PlayerPotionSlot
+        PlayerPotionSlot.query.filter_by(player_id=player.id).update(
+            {
+                'potion_type': None,
+                'quantity': 0
+            },
+            synchronize_session=False
+        )
+        print(f"🧪 Poções do inventário resetadas")
+
         # ===== RESETAR ATRIBUTOS BASE =====
         player.vitality = 0
         player.strength = 0  
