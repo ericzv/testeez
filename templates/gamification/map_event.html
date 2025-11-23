@@ -920,6 +920,9 @@
             choiceBtn.classList.add('selected');
             selectedChoiceId = choiceId;
             document.getElementById('confirm-btn').disabled = false;
+
+            // Tocar som de seleção de escolha
+            playTensionChoiceSound();
         }
     }
 
@@ -1009,6 +1012,28 @@
             results.forEach((result, index) => {
                 setTimeout(() => {
                     const itemClass = result.positive ? 'positive' : (result.positive === false ? 'negative' : 'neutral');
+
+                    // Tocar som apropriado baseado no tipo de resultado
+                    if (result.positive === true) {
+                        // Resultado positivo
+                        if (result.message && result.message.toLowerCase().includes('ouro')) {
+                            playCoinGainSound();  // Som específico para ganhar ouro
+                        } else if (result.message && result.message.toLowerCase().includes('hp') && result.message.includes('+')) {
+                            playChoiceHealSound();  // Som de cura
+                        } else {
+                            playChoicePositiveSound();  // Som genérico positivo
+                        }
+                    } else if (result.positive === false) {
+                        // Resultado negativo
+                        if (result.message && (result.message.toLowerCase().includes('dano') || result.message.includes('perd'))) {
+                            playChoiceDamageSound();  // Som de dano
+                        } else {
+                            playChoiceNegativeSound();  // Som genérico negativo
+                        }
+                    } else {
+                        // Resultado neutro
+                        playEventNeutralSound();
+                    }
 
                     // Renderizar ícone como imagem se for um path .png, senão como emoji
                     let iconHtml;
