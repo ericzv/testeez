@@ -3581,6 +3581,19 @@ function handleBossDeathAnimation(hasMemoryReward, enemyRarity) {
                 showMemorySelectionPopup(enemyRarity);
             } else {
                 console.error("❌ Função showMemorySelectionPopup não encontrada!");
+
+                // SALVAR DADOS DE VITÓRIA NO LOCALSTORAGE ANTES DE REDIRECIONAR
+                const victoryData = {
+                    enemyName: enemyName,
+                    rewardType: window.lastVictoryRewardType || 'crystals',
+                    crystalsGained: window.lastVictoryCrystals || 0,
+                    goldGained: window.lastVictoryGold || 0,
+                    hourglassesGained: window.lastVictoryHourglasses || 0
+                };
+                localStorage.setItem('lastVictoryTime', Date.now().toString());
+                localStorage.setItem('victoryData', JSON.stringify(victoryData));
+                console.log("💾 Dados de vitória salvos no localStorage:", victoryData);
+
                 // Redirecionar para o hub como fallback
                 window.location.href = '/gamification';
             }
@@ -3589,6 +3602,19 @@ function handleBossDeathAnimation(hasMemoryReward, enemyRarity) {
         // Redirecionar após 2 segundos (bosses não têm memória)
         setTimeout(() => {
             console.log("🏠 Boss derrotado - indo para HUB");
+
+            // SALVAR DADOS DE VITÓRIA NO LOCALSTORAGE ANTES DE REDIRECIONAR
+            const victoryData = {
+                enemyName: enemyName,
+                rewardType: window.lastVictoryRewardType || 'crystals',
+                crystalsGained: window.lastVictoryCrystals || 0,
+                goldGained: window.lastVictoryGold || 0,
+                hourglassesGained: window.lastVictoryHourglasses || 0
+            };
+            localStorage.setItem('lastVictoryTime', Date.now().toString());
+            localStorage.setItem('victoryData', JSON.stringify(victoryData));
+            console.log("💾 Dados de vitória salvos no localStorage:", victoryData);
+
             window.location.href = '/gamification';
         }, 2000);
     }
