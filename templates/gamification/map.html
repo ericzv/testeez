@@ -137,41 +137,93 @@
 
     .map-node.available {
         animation: pulse 2s infinite;
+        filter: brightness(1.2) drop-shadow(0 0 8px rgba(100, 200, 255, 0.6));
     }
 
     .map-node.available:hover {
         transform: scale(1.2);
-        filter: brightness(1.3);
+        filter: brightness(1.5) drop-shadow(0 0 15px rgba(100, 200, 255, 0.9));
     }
 
     .map-node.visited {
-        opacity: 0.4;
+        opacity: 0.5;
         cursor: default;
+        filter: brightness(0.4) saturate(0.3);
     }
 
     .map-node.locked {
-        opacity: 0.3;
+        opacity: 0.35;
         cursor: not-allowed;
-        filter: grayscale(100%);
+        filter: grayscale(100%) brightness(0.5);
     }
 
     .map-node.current {
         animation: currentPulse 1.5s infinite;
     }
 
+    /* Animação de abertura para novos nodes */
+    .map-node.opening {
+        animation: nodeOpening 0.8s ease-out forwards;
+    }
+
+    /* Animação de fechamento para nodes completados */
+    .map-node.closing {
+        animation: nodeClosing 0.6s ease-in forwards;
+    }
+
     @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.1); }
+        0%, 100% {
+            transform: scale(1);
+            filter: brightness(1.2) drop-shadow(0 0 8px rgba(100, 200, 255, 0.6));
+        }
+        50% {
+            transform: scale(1.1);
+            filter: brightness(1.3) drop-shadow(0 0 12px rgba(100, 200, 255, 0.8));
+        }
     }
 
     @keyframes currentPulse {
         0%, 100% {
             transform: scale(1);
-            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.9));
         }
         50% {
-            transform: scale(1.15);
-            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1));
+            transform: scale(1.2);
+            filter: drop-shadow(0 0 25px rgba(255, 215, 0, 1)) brightness(1.3);
+        }
+    }
+
+    @keyframes nodeOpening {
+        0% {
+            transform: scale(0.3) rotate(-180deg);
+            opacity: 0;
+            filter: brightness(2) blur(4px);
+        }
+        60% {
+            transform: scale(1.15) rotate(10deg);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+            filter: brightness(1.2) drop-shadow(0 0 8px rgba(100, 200, 255, 0.6));
+        }
+    }
+
+    @keyframes nodeClosing {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+            filter: brightness(1);
+        }
+        50% {
+            transform: scale(0.85);
+            filter: brightness(0.6);
+        }
+        100% {
+            transform: scale(1);
+            opacity: 0.5;
+            filter: brightness(0.4) saturate(0.3);
         }
     }
 
@@ -978,9 +1030,22 @@ async function playMapSoundsSequence(nodes) {
     // 2. Aguardar 250ms
     await new Promise(resolve => setTimeout(resolve, 250));
 
-    // 3. Som de node finalizado (se tiver)
+    // 3. Som de node finalizado (se tiver) + animação de fechamento
     if (completedNodes.length > 0) {
         playNodeCompleteSound();
+
+        // Aplicar animação de fechamento aos nodes completados
+        completedNodes.forEach(node => {
+            const nodeElement = document.querySelector(`[data-node-id="${node.id}"]`);
+            if (nodeElement) {
+                nodeElement.classList.add('closing');
+                // Remover classe após animação terminar
+                setTimeout(() => {
+                    nodeElement.classList.remove('closing');
+                }, 600);
+            }
+        });
+
         // Atualizar último completado
         if (completedNodes.length > 0) {
             lastCompletedNode = completedNodes[completedNodes.length - 1].id;
@@ -990,9 +1055,25 @@ async function playMapSoundsSequence(nodes) {
     // 4. Aguardar 1000ms
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // 5. Som de nodes sendo liberados (se tiver novos)
+    // 5. Som de nodes sendo liberados (se tiver novos) + animação de abertura
     if (newAvailableNodes.length > 0) {
         playNodeAvailableSound();
+
+        // Aplicar animação de abertura aos novos nodes disponíveis
+        newAvailableNodes.forEach((node, index) => {
+            const nodeElement = document.querySelector(`[data-node-id="${node.id}"]`);
+            if (nodeElement) {
+                // Stagger animation: cada node abre com pequeno delay
+                setTimeout(() => {
+                    nodeElement.classList.add('opening');
+                    // Remover classe após animação terminar
+                    setTimeout(() => {
+                        nodeElement.classList.remove('opening');
+                    }, 800);
+                }, index * 100); // 100ms de delay entre cada node
+            }
+        });
+
         // Marcar nodes como apresentados
         newAvailableNodes.forEach(n => presentedNodes.add(n.id));
     }
