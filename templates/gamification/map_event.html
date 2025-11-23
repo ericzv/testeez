@@ -951,10 +951,22 @@
             loading.style.display = 'none';
 
             if (data.success) {
+                // Capturar gold antigo ANTES de atualizar
+                const goldEl = document.getElementById('player-gold');
+                const oldGold = goldEl ? parseInt(goldEl.textContent) || 0 : 0;
+
                 // Atualizar status do jogador
                 document.getElementById('player-hp').textContent = data.player_hp;
                 document.getElementById('player-max-hp').textContent = data.player_max_hp;
-                document.getElementById('player-gold').textContent = data.player_gold;
+                goldEl.textContent = data.player_gold;
+
+                // Tocar som de moedas se gold mudou
+                const newGold = data.player_gold || 0;
+                if (newGold > oldGold) {
+                    playCoinGainSound();  // Ganhou moedas
+                } else if (newGold < oldGold) {
+                    playCoinLossSound();   // Perdeu/gastou moedas
+                }
 
                 console.log('🎭 Dados recebidos:', data);
                 console.log('🎭 Max HP atualizado para:', data.player_max_hp);
@@ -1037,6 +1049,19 @@
         } catch (e) {
             console.error("Erro ao tocar som:", e);
         }
+    }
+
+    // === SISTEMA DE SONS DE MOEDAS ===
+    function playCoinGainSound() {
+        const variations = ['coin-use4.mp3', 'coin-use5.mp3', 'coin-use6.mp3', 'coin-use8.mp3'];
+        const randomSound = variations[Math.floor(Math.random() * variations.length)];
+        playSound(`/static/game.data/sounds/${randomSound}`, 0.6);
+    }
+
+    function playCoinLossSound() {
+        const variations = ['coin-use1.mp3', 'coin-use2.mp3', 'coin-use3.mp3', 'coin-use9.mp3'];
+        const randomSound = variations[Math.floor(Math.random() * variations.length)];
+        playSound(`/static/game.data/sounds/${randomSound}`, 0.6);
     }
 
     // Som de abertura do popup de evento

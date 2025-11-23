@@ -1442,7 +1442,11 @@
                   return data;
               });
       }
-      
+
+      // Guardar gold atual ANTES de atualizar
+      const goldEl = document.getElementById('gold-value');
+      const oldGold = goldEl ? parseInt(goldEl.textContent) || 0 : 0;
+
       // Comportamento normal - atualizar DOM
       return fetch('/gamification/get_player_currencies')
           .then(response => response.json())
@@ -1450,13 +1454,20 @@
               if (data.success) {
                   // Atualizar valores direto (sem animação)
                   const crystalsEl = document.getElementById('crystals-value');
-                  const goldEl = document.getElementById('gold-value');
                   const hourglassesEl = document.getElementById('hourglasses-value');
-                  
+
                   if (crystalsEl) crystalsEl.textContent = data.crystals;
                   if (goldEl) goldEl.textContent = data.gold;
                   if (hourglassesEl) hourglassesEl.textContent = data.hourglasses;
-                  
+
+                  // Tocar som de moedas se gold mudou
+                  const newGold = data.gold || 0;
+                  if (newGold > oldGold) {
+                      playCoinGainSound();  // Ganhou moedas
+                  } else if (newGold < oldGold) {
+                      playCoinLossSound();   // Perdeu/gastou moedas
+                  }
+
                   console.log("💰 Currencies atualizadas no DOM:", data);
               }
               return data;
