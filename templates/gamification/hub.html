@@ -2605,9 +2605,46 @@ const nodeTypeInfo = {
   }
 };
 
+// === SONS DO MAPA ===
+function playMapSheetSound() {
+    const sounds = ['map-sheet1.mp3', 'map-sheet2.mp3', 'map-sheet3.mp3', 'map-sheet4.mp3', 'map-sheet5.mp3', 'map-sheet6.mp3', 'map-sheet7.mp3', 'map-sheet8.mp3', 'map-sheet9.mp3'];
+    const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+    console.log('🔊 Tocando som de mapa abrindo:', randomSound);
+    playSound(`/static/game.data/sounds/${randomSound}`, 0.5);
+}
+
+function playNodeAvailableSound() {
+    const sounds = ['map-node-available1.mp3', 'map-node-available2.mp3'];
+    const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+    console.log('🔊 Tocando som de node disponível:', randomSound);
+    playSound(`/static/game.data/sounds/${randomSound}`, 0.6);
+}
+
+function playNodeCompleteSound() {
+    const sounds = ['map-node-complete1.mp3', 'map-node-complete2.mp3', 'map-node-complete3.mp3'];
+    const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+    console.log('🔊 Tocando som de node completado:', randomSound);
+    playSound(`/static/game.data/sounds/${randomSound}`, 0.6);
+}
+
+function playNodeSelectionSound() {
+    const sounds = ['map-node-selection1.mp3', 'map-node-selection2.mp3', 'map-node-selection3.mp3', 'map-node-selection4.mp3'];
+    const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+    console.log('🔊 Tocando som de seleção de node:', randomSound);
+    playSound(`/static/game.data/sounds/${randomSound}`, 0.6);
+}
+
+// Estado dos nodes apresentados (evita tocar sons repetidos)
+let mapPresentedNodes = new Set();
+let mapLastCompletedNode = null;
+
 // Abrir pop-up do mapa
 function openMapPopup() {
   console.log('🗺️ Abrindo mapa...');
+
+  // Tocar som de mapa abrindo
+  playMapSheetSound();
+
   openDialog('#map-popup');
   loadMap();
 }
@@ -2741,18 +2778,25 @@ function renderMapNodes(mapData) {
       transition: transform 0.2s ease, filter 0.2s ease;
     `;
 
-    // Estado do nó
+    // Adicionar dataset para identificação
+    nodeEl.dataset.nodeId = node.id;
+
+    // Estado do nó com diferenciação visual aprimorada
     if (node.is_current) {
       nodeEl.style.animation = 'mapNodePulse 1.5s infinite';
+      nodeEl.style.filter = 'drop-shadow(0 0 15px rgba(255, 215, 0, 0.9))';
     } else if (node.is_available) {
       nodeEl.style.animation = 'mapNodeAvailable 2s infinite';
+      nodeEl.style.filter = 'brightness(1.2) drop-shadow(0 0 8px rgba(100, 200, 255, 0.6))';
     } else if (node.is_visited) {
-      nodeEl.style.opacity = '0.4';
+      nodeEl.style.opacity = '0.5';
       nodeEl.style.cursor = 'default';
+      nodeEl.style.filter = 'brightness(0.4) saturate(0.3)';
     } else {
-      nodeEl.style.opacity = '0.3';
+      // Locked/unavailable nodes
+      nodeEl.style.opacity = '0.35';
       nodeEl.style.cursor = 'not-allowed';
-      nodeEl.style.filter = 'grayscale(100%)';
+      nodeEl.style.filter = 'grayscale(100%) brightness(0.5)';
     }
 
     // Imagem com lazy loading
@@ -2770,18 +2814,32 @@ function renderMapNodes(mapData) {
     if (isClickable) {
       if (node.is_current) {
         // Nó atual: reabrir ação do nó
-        nodeEl.addEventListener('click', () => handleCurrentNodeClick(node));
+        nodeEl.addEventListener('click', () => {
+          playNodeSelectionSound();
+          handleCurrentNodeClick(node);
+        });
       } else {
         // Nó disponível: avançar para ele
-        nodeEl.addEventListener('click', () => handleMapNodeClick(node));
+        nodeEl.addEventListener('click', () => {
+          playNodeSelectionSound();
+          handleMapNodeClick(node);
+        });
       }
       nodeEl.addEventListener('mouseenter', () => {
         nodeEl.style.transform = 'scale(1.2)';
-        nodeEl.style.filter = 'brightness(1.3)';
+        if (node.is_available) {
+          nodeEl.style.filter = 'brightness(1.5) drop-shadow(0 0 15px rgba(100, 200, 255, 0.9))';
+        } else {
+          nodeEl.style.filter = 'brightness(1.3)';
+        }
       });
       nodeEl.addEventListener('mouseleave', () => {
         nodeEl.style.transform = 'scale(1)';
-        nodeEl.style.filter = '';
+        if (node.is_available) {
+          nodeEl.style.filter = 'brightness(1.2) drop-shadow(0 0 8px rgba(100, 200, 255, 0.6))';
+        } else {
+          nodeEl.style.filter = '';
+        }
       });
     }
 
@@ -2815,6 +2873,9 @@ function renderMapNodes(mapData) {
     }
   });
 
+  // Tocar sons e animar nodes em sequência
+  playMapSoundsSequence(mapData.nodes);
+
   // Scroll para o nó atual (se existir) ou para o início
   setTimeout(() => {
     const currentNode = mapData.nodes.find(n => n.is_current);
@@ -2829,6 +2890,70 @@ function renderMapNodes(mapData) {
       scrollContainer.scrollTop = scrollContainer.scrollHeight;
     }
   }, 100);
+}
+
+// Tocar sons do mapa com prioridade e timing + animações
+async function playMapSoundsSequence(nodes) {
+    // Encontrar nodes recém-completados e recém-disponíveis
+    const completedNodes = nodes.filter(n => n.is_visited && n.id !== mapLastCompletedNode);
+    const newAvailableNodes = nodes.filter(n => n.is_available && !n.is_visited && !mapPresentedNodes.has(n.id));
+
+    console.log('🎬 Sequência de sons - Completados:', completedNodes.length, 'Novos:', newAvailableNodes.length);
+
+    // PRIORIDADE:
+    // 1. Som do mapa abrindo (já tocou no openMapPopup)
+
+    // 2. Aguardar 250ms
+    await new Promise(resolve => setTimeout(resolve, 250));
+
+    // 3. Som de node finalizado (se tiver) + animação de fechamento
+    if (completedNodes.length > 0) {
+        playNodeCompleteSound();
+
+        // Aplicar animação de fechamento aos nodes completados
+        completedNodes.forEach(node => {
+            const nodeElement = document.querySelector(`[data-node-id="${node.id}"]`);
+            if (nodeElement) {
+                nodeElement.style.animation = 'mapNodeClosing 0.6s ease-in forwards';
+                console.log('🎬 Animação de fechamento aplicada ao node:', node.id);
+            }
+        });
+
+        // Atualizar último completado
+        if (completedNodes.length > 0) {
+            mapLastCompletedNode = completedNodes[completedNodes.length - 1].id;
+        }
+    }
+
+    // 4. Aguardar 1000ms
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // 5. Som de nodes sendo liberados (se tiver novos) + animação de abertura
+    if (newAvailableNodes.length > 0) {
+        playNodeAvailableSound();
+
+        // Aplicar animação de abertura aos novos nodes disponíveis
+        newAvailableNodes.forEach((node, index) => {
+            const nodeElement = document.querySelector(`[data-node-id="${node.id}"]`);
+            if (nodeElement) {
+                // Stagger animation: cada node abre com pequeno delay
+                setTimeout(() => {
+                    nodeElement.style.animation = 'mapNodeOpening 0.8s ease-out forwards';
+                    console.log('🎬 Animação de abertura aplicada ao node:', node.id);
+
+                    // Restaurar animação normal após abertura
+                    setTimeout(() => {
+                        nodeElement.style.animation = 'mapNodeAvailable 2s infinite';
+                    }, 800);
+                }, index * 100); // 100ms de delay entre cada node
+            }
+        });
+
+        // Marcar nodes como apresentados
+        newAvailableNodes.forEach(n => mapPresentedNodes.add(n.id));
+    }
+
+    // (Som de seleção de node será tocado quando o usuário clicar)
 }
 
 // Mapeamento de boss_id para nome (usado em elite/boss)
@@ -3111,17 +3236,59 @@ function hideMapTooltip() {
 @keyframes mapNodePulse {
   0%, 100% {
     transform: scale(1);
-    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.9));
   }
   50% {
-    transform: scale(1.15);
-    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1));
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 1)) brightness(1.3);
   }
 }
 
 @keyframes mapNodeAvailable {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1.2) drop-shadow(0 0 8px rgba(100, 200, 255, 0.6));
+  }
+  50% {
+    transform: scale(1.1);
+    filter: brightness(1.3) drop-shadow(0 0 12px rgba(100, 200, 255, 0.8));
+  }
+}
+
+/* Animação de abertura para novos nodes */
+@keyframes mapNodeOpening {
+  0% {
+    transform: scale(0.3) rotate(-180deg);
+    opacity: 0;
+    filter: brightness(2) blur(4px);
+  }
+  60% {
+    transform: scale(1.15) rotate(10deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+    filter: brightness(1.2) drop-shadow(0 0 8px rgba(100, 200, 255, 0.6));
+  }
+}
+
+/* Animação de fechamento para nodes completados */
+@keyframes mapNodeClosing {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(0.85);
+    filter: brightness(0.6);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+    filter: brightness(0.4) saturate(0.3);
+  }
 }
 
 .map-popup-panel {
