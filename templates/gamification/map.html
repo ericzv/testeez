@@ -813,9 +813,58 @@ if ('serviceWorker' in navigator) {
 let currentMapData = null;
 let nodeTypes = {{ node_type_info | tojson }};
 
+// === SISTEMA DE SONS DO MAPA ===
+function playSound(audioPath, volume = 0.6) {
+    try {
+        const audio = new Audio(audioPath);
+        audio.volume = volume;
+        audio.play().catch(err => {
+            console.warn("Som não pôde ser reproduzido:", err);
+        });
+    } catch (e) {
+        console.error("Erro ao tocar som:", e);
+    }
+}
+
+// Sons ao abrir/fechar mapa (9 variações aleatórias)
+function playMapSheetSound() {
+    const sounds = ['map-sheet1.mp3', 'map-sheet2.mp3', 'map-sheet3.mp3', 'map-sheet4.mp3', 'map-sheet5.mp3', 'map-sheet6.mp3', 'map-sheet7.mp3', 'map-sheet8.mp3', 'map-sheet9.mp3'];
+    const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+    playSound(`/static/game.data/sounds/${randomSound}`, 0.5);
+}
+
+// Sons de node liberado (2 variações aleatórias)
+function playNodeAvailableSound() {
+    const sounds = ['map-node-available1.mp3', 'map-node-available2.mp3'];
+    const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+    playSound(`/static/game.data/sounds/${randomSound}`, 0.6);
+}
+
+// Sons de node completado (3 variações aleatórias)
+function playNodeCompleteSound() {
+    const sounds = ['map-node-complete1.mp3', 'map-node-complete2.mp3', 'map-node-complete3.mp3'];
+    const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+    playSound(`/static/game.data/sounds/${randomSound}`, 0.6);
+}
+
+// Sons de seleção de node (4 variações aleatórias)
+function playNodeSelectionSound() {
+    const sounds = ['map-node-selection1.mp3', 'map-node-selection2.mp3', 'map-node-selection3.mp3', 'map-node-selection4.mp3'];
+    const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+    playSound(`/static/game.data/sounds/${randomSound}`, 0.6);
+}
+
+// Estado dos nodes apresentados (evita tocar sons repetidos)
+let presentedNodes = new Set();
+let lastCompletedNode = null;
+
 // Inicialização
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🗺️ Iniciando sistema de mapa...');
+
+    // Tocar som de mapa abrindo
+    playMapSheetSound();
+
     loadCurrentMap();
 
     // Botão de início
@@ -912,6 +961,43 @@ function renderMap(mapData) {
 
     // Desenhar conexões
     drawConnections(mapData.nodes, nodePositions);
+
+    // Tocar sons em sequência com timing
+    playMapSoundsSequence(mapData.nodes);
+}
+
+// Tocar sons do mapa com prioridade e timing
+async function playMapSoundsSequence(nodes) {
+    // Encontrar nodes recém-completados e recém-disponíveis
+    const completedNodes = nodes.filter(n => n.is_visited && n.id !== lastCompletedNode);
+    const newAvailableNodes = nodes.filter(n => n.is_available && !n.is_visited && !presentedNodes.has(n.id));
+
+    // PRIORIDADE:
+    // 1. Som do mapa abrindo (já tocou no DOMContentLoaded)
+
+    // 2. Aguardar 250ms
+    await new Promise(resolve => setTimeout(resolve, 250));
+
+    // 3. Som de node finalizado (se tiver)
+    if (completedNodes.length > 0) {
+        playNodeCompleteSound();
+        // Atualizar último completado
+        if (completedNodes.length > 0) {
+            lastCompletedNode = completedNodes[completedNodes.length - 1].id;
+        }
+    }
+
+    // 4. Aguardar 1000ms
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // 5. Som de nodes sendo liberados (se tiver novos)
+    if (newAvailableNodes.length > 0) {
+        playNodeAvailableSound();
+        // Marcar nodes como apresentados
+        newAvailableNodes.forEach(n => presentedNodes.add(n.id));
+    }
+
+    // (Som de seleção de node será tocado quando o usuário clicar)
 }
 
 // Criar elemento do nó
@@ -945,7 +1031,10 @@ function createNodeElement(node, x, y) {
 
     // Eventos
     if (node.is_available && !node.is_visited) {
-        nodeDiv.addEventListener('click', () => handleNodeClick(node));
+        nodeDiv.addEventListener('click', () => {
+            playNodeSelectionSound();  // Tocar som de seleção
+            handleNodeClick(node);
+        });
     }
 
     // Tooltip
