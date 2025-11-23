@@ -2076,7 +2076,18 @@ def reset_player_run(player_id):
         # ===== LIMPAR DEBUFFS DE INIMIGOS (como Nictalopia) =====
         EnemySkillDebuff.query.filter_by(player_id=player.id).delete()
         print(f"⚔️ Debuffs de inimigos removidos")
-        
+
+        # ===== LIMPAR POÇÕES DO INVENTÁRIO =====
+        from models import PlayerPotionSlot
+        PlayerPotionSlot.query.filter_by(player_id=player.id).update(
+            {
+                'potion_type': None,
+                'quantity': 0
+            },
+            synchronize_session=False
+        )
+        print(f"🧪 Poções do inventário resetadas")
+
         # ===== RESETAR ATRIBUTOS BASE =====
         player.vitality = 0
         player.strength = 0  
@@ -3824,3 +3835,128 @@ def use_potion(slot_number):
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# =============================================================================
+# FAST BATTLE MODE ROUTES
+# =============================================================================
+
+@battle_bp.route('/battle_status', methods=['GET'])
+def battle_status():
+    """Retorna status do inimigo atual para o modo rápido"""
+    try:
+        player = Player.query.first()
+        if not player:
+            return jsonify({'success': False, 'message': 'Jogador não encontrado'})
+
+        # Verificar se há inimigo selecionado
+        progress = PlayerProgress.query.filter_by(player_id=player.id).first()
+        if not progress or not progress.selected_enemy_id:
+            # Verificar se há boss ativo
+            last_boss = LastBoss.query.filter_by(is_active=True).first()
+            if last_boss:
+                return jsonify({
+                    'success': True,
+                    'enemy': {
+                        'id': last_boss.id,
+                        'name': last_boss.name,
+                        'hp': last_boss.hp,
+                        'max_hp': last_boss.max_hp,
+                        'energy': last_boss.energy,
+                        'max_energy': last_boss.max_energy,
+                        'type': 'boss'
+                    }
+                })
+            else:
+                return jsonify({'success': False, 'message': 'Nenhum inimigo ativo'})
+
+        # Buscar inimigo genérico
+        enemy = GenericEnemy.query.get(progress.selected_enemy_id)
+        if not enemy or not enemy.is_available:
+            return jsonify({'success': False, 'message': 'Inimigo não disponível'})
+
+        return jsonify({
+            'success': True,
+            'enemy': {
+                'id': enemy.id,
+                'name': enemy.name,
+                'hp': enemy.hp,
+                'max_hp': enemy.max_hp,
+                'energy': enemy.energy if hasattr(enemy, 'energy') else 100,
+                'max_energy': enemy.max_energy if hasattr(enemy, 'max_energy') else 100,
+                'type': 'generic'
+            }
+        })
+
+    except Exception as e:
+        print(f"Erro ao buscar status de batalha: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@battle_bp.route('/player_status', methods=['GET'])
+def player_status():
+    """Retorna status do jogador para o modo rápido"""
+    try:
+        player = Player.query.first()
+        if not player:
+            return jsonify({'success': False, 'message': 'Jogador não encontrado'})
+
+        return jsonify({
+            'success': True,
+            'name': player.nome,
+            'hp': player.hp,
+            'max_hp': player.max_hp,
+            'energy': player.energy if hasattr(player, 'energy') else 100,
+            'max_energy': player.max_energy if hasattr(player, 'max_energy') else 100,
+            'mana': player.mana if hasattr(player, 'mana') else 0,
+            'max_mana': player.max_mana if hasattr(player, 'max_mana') else 100,
+            'barrier': player.barrier if hasattr(player, 'barrier') else 0,
+            'blood_stacks': player.blood_stacks if hasattr(player, 'blood_stacks') else 0
+        })
+
+    except Exception as e:
+        print(f"Erro ao buscar status do jogador: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@battle_bp.route('/player/inventory', methods=['GET'])
+def player_inventory():
+    """Retorna inventário do jogador (poções) para o modo rápido"""
+    try:
+        player = Player.query.first()
+        if not player:
+            return jsonify({'success': False, 'message': 'Jogador não encontrado'})
+
+        # Buscar slots de poções (usar PlayerPotionSlot, não PotionSlot)
+        from models import PlayerPotionSlot
+        slots = PlayerPotionSlot.query.filter_by(player_id=player.id).order_by(PlayerPotionSlot.slot_number).all()
+
+        print(f"📦 Buscando inventário para player {player.id}")
+        print(f"📦 Slots encontrados: {len(slots)}")
+
+        items = []
+        for slot in slots:
+            print(f"📦 Slot {slot.slot_number}: type={slot.potion_type}, qty={slot.quantity}")
+            if slot.potion_type and slot.quantity > 0:
+                # Usar métodos do modelo para obter informações
+                items.append({
+                    'id': slot.id,
+                    'slot_number': slot.slot_number,
+                    'name': slot.get_name(),
+                    'icon': f"/static/game.data/{slot.get_icon()}",
+                    'quantity': slot.quantity,
+                    'potion_type': slot.potion_type
+                })
+
+        print(f"📦 Items retornados: {len(items)}")
+
+        return jsonify({
+            'success': True,
+            'items': items
+        })
+
+    except Exception as e:
+        print(f"❌ Erro ao buscar inventário: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': str(e)}), 500

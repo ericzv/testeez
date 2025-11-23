@@ -30,6 +30,45 @@
 
 ---
 
+### 3. Shop não atualiza itens entre diferentes nodes do mapa
+**Descrição**: Quando o jogador muda de node no mapa procedural, a loja deveria mostrar itens diferentes, mas está mantendo os mesmos itens do shop anterior.
+
+**Status**: Pendente
+**Prioridade**: Alta
+**Localização**: Sistema de shop/loja - routes relacionadas ao mapa e shop
+
+**Notas**:
+- Cada node do tipo "shop" deve ter sua própria seleção de itens aleatórios
+- Ao visitar um novo shop node, os itens devem ser regenerados/diferentes
+- Possível causa: cache dos itens não está sendo limpo entre nodes
+- Possível causa: seed/random dos itens não está sendo recalculado por node
+- Verificar se items estão sendo carregados de forma estática ao invés de dinâmica
+- Arquivos relacionados: routes/map*.py, routes/items.py ou routes/shop.py
+
+**Data de identificação**: 2025-11-22
+
+---
+
+### 4. Recompensa não aparece após derrotar inimigo (às vezes)
+**Descrição**: Às vezes, após derrotar um inimigo, o jogador volta para o hub mas a recompensa não aparece. Quando isso acontece, o jogador também não consegue avançar de node e precisa começar outra batalha no mesmo node.
+
+**Status**: Pendente
+**Prioridade**: CRÍTICA
+**Localização**: Sistema de recompensas pós-batalha - routes/battle.py, hub.html
+
+**Notas**:
+- Bug intermitente (nem sempre acontece)
+- Quando ocorre, bloqueia progresso do jogador
+- Possível causa: pending_rewards não está sendo salvo corretamente na session
+- Possível causa: redirecionamento para hub acontece antes de salvar recompensas
+- Possível causa: localStorage de vitória recente não está sendo setado
+- Verificar fluxo: damage_boss() → session['pending_rewards'] → hub checkForRecentVictory()
+- Arquivos relacionados: routes/battle.py (damage_boss), templates/gamification/hub.html
+
+**Data de identificação**: 2025-11-22
+
+---
+
 ## Bugs Corrigidos Recentemente
 
 ### ✅ HP máximo não persistia entre eventos e batalhas

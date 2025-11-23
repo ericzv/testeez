@@ -1,0 +1,461 @@
+/* ================================================================================
+   FAST BATTLE MODE - Modo Rápido de Batalha
+   ================================================================================
+*/
+
+/* Container principal dos botões de atalho */
+.fast-battle-container {
+  position: fixed;
+  top: 120px;
+  left: 20px;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+/* Botões principais circulares */
+.fast-battle-btn {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  border: 3px solid #8B4513;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  position: relative;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.fast-battle-btn:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(139, 69, 19, 0.6);
+  border-color: #CD853F;
+}
+
+.fast-battle-btn.active {
+  background: linear-gradient(135deg, #8B4513, #654321);
+  border-color: #CD853F;
+  box-shadow: 0 0 20px rgba(205, 133, 63, 0.8);
+}
+
+/* Cores específicas para cada tipo */
+.fast-battle-btn.attacks {
+  border-color: #c0392b;
+}
+
+.fast-battle-btn.attacks:hover,
+.fast-battle-btn.attacks.active {
+  border-color: #e74c3c;
+  box-shadow: 0 0 20px rgba(231, 76, 60, 0.6);
+}
+
+.fast-battle-btn.specials {
+  border-color: #8e44ad;
+}
+
+.fast-battle-btn.specials:hover,
+.fast-battle-btn.specials.active {
+  border-color: #9b59b6;
+  box-shadow: 0 0 20px rgba(155, 89, 182, 0.6);
+}
+
+.fast-battle-btn.inventory {
+  border-color: #16a085;
+}
+
+.fast-battle-btn.inventory:hover,
+.fast-battle-btn.inventory.active {
+  border-color: #1abc9c;
+  box-shadow: 0 0 20px rgba(26, 188, 156, 0.6);
+}
+
+/* Submenu de opções */
+.fast-battle-submenu {
+  position: absolute;
+  top: 0;
+  left: 85px;
+  display: none;
+  flex-wrap: nowrap;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(20, 20, 20, 0.95);
+  border: 2px solid #8B4513;
+  border-radius: 15px;
+  max-width: none;
+  justify-content: flex-start;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+  flex-direction: row;
+}
+
+.fast-battle-submenu.active {
+  display: flex;
+  animation: slideRight 0.2s ease;
+}
+
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Botões de ações no submenu (com ícones) */
+.fast-action-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: rgba(40, 40, 40, 0.8);
+  border: 2px solid #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-image: var(--icon-url, none);
+}
+
+/* Imagem do ícone com outline branco APENAS para ataques */
+.fast-action-btn.attack-icon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-image: var(--icon-url, none);
+  filter:
+    drop-shadow(1px 0px 0px rgba(255, 255, 255, 0.9))
+    drop-shadow(-1px 0px 0px rgba(255, 255, 255, 0.9))
+    drop-shadow(0px 1px 0px rgba(255, 255, 255, 0.9))
+    drop-shadow(0px -1px 0px rgba(255, 255, 255, 0.9))
+    drop-shadow(1px 1px 0px rgba(255, 255, 255, 0.7))
+    drop-shadow(-1px -1px 0px rgba(255, 255, 255, 0.7))
+    drop-shadow(1px -1px 0px rgba(255, 255, 255, 0.7))
+    drop-shadow(-1px 1px 0px rgba(255, 255, 255, 0.7));
+  z-index: 1;
+}
+
+/* Custo deve ficar acima da imagem */
+.fast-action-cost {
+  z-index: 2;
+}
+
+.fast-action-btn:hover {
+  transform: scale(1.1);
+  border-color: #CD853F;
+  box-shadow: 0 4px 15px rgba(205, 133, 63, 0.6);
+}
+
+.fast-action-btn:active {
+  transform: scale(0.95);
+}
+
+/* Tooltip para mostrar nome da ação */
+.fast-action-btn::after {
+  content: attr(data-name);
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 9999;
+}
+
+.fast-action-btn:hover::after {
+  opacity: 1;
+}
+
+/* Custo de recursos (energia) e quantidade de itens */
+.fast-action-cost {
+  position: absolute;
+  bottom: -27px;
+  right: 0;
+  /* background: linear-gradient(135deg, #f39c12, #e67e22); */
+  /* color: #fff; */
+  font-size: 14px;
+  font-weight: bold;
+  padding: 0px 6px;
+  border-radius: 12px;
+  border: 0px solid #fff;
+  box-shadow: 0 0px 0px rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 0px;
+  z-index: 10;
+  color: #f1c40f; /* Amarelo dourado */
+  text-shadow:
+    0 0 8px rgba(255, 255, 255, 0.9),
+    0 0 12px rgba(255, 255, 255, 0.6),
+    0 0 16px rgba(255, 255, 255, 0.4);
+}
+
+/* Ícone de energia dentro do marcador de custo de energia */
+.fast-action-cost.energy::before {
+  content: '';
+  display: inline-block;
+  width: 38px;
+  height: 38px;
+  background-image: url('/static/game.data/energy.webp');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin-right: -2px;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.8))
+          drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+}
+
+/* Marcador de quantidade de itens (sem ícone, só quantidade) */
+.fast-action-cost.quantity {
+  background: linear-gradient(135deg, #16a085, #1abc9c);
+  color: #fff; /* Branco ao invés de dourado */
+  text-shadow: none; /* Sem brilho externo */
+  font-size: 11px;
+  padding: 2px 6px;
+  border: 2px solid #fff;
+}
+
+.fast-action-cost.quantity::before {
+  content: '';
+}
+
+/* Feedback visual de dano/cura */
+.fast-battle-feedback {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 60px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow:
+    2px 2px 0 #000,
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    0 0 20px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+  opacity: 0;
+  animation: damagePop 1s ease forwards;
+  z-index: 9999;
+}
+
+.fast-battle-feedback.damage {
+  color: #e74c3c;
+}
+
+.fast-battle-feedback.heal {
+  color: #2ecc71;
+}
+
+.fast-battle-feedback.critical {
+  color: #f39c12;
+  font-size: 80px;
+  text-shadow:
+    2px 2px 0 #000,
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    0 0 30px rgba(243, 156, 18, 0.8);
+}
+
+.fast-battle-feedback.barrier {
+  color: #3498db;
+}
+
+@keyframes damagePop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -80%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -100%) scale(0.8);
+  }
+}
+
+/* Barra de HP/Energia do inimigo (simplificada) */
+.fast-enemy-status {
+  position: fixed;
+  top: 100px;
+  right: 50px;
+  background: rgba(20, 20, 20, 0.9);
+  padding: 15px 20px;
+  border-radius: 10px;
+  border: 2px solid #8B4513;
+  min-width: 250px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+.fast-enemy-name {
+  color: #CD853F;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.fast-status-bar {
+  background: rgba(40, 40, 40, 0.8);
+  height: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+  border: 1px solid #666;
+}
+
+.fast-status-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.fast-status-fill.hp {
+  background: linear-gradient(90deg, #c0392b, #e74c3c);
+}
+
+.fast-status-fill.energy {
+  background: linear-gradient(90deg, #f39c12, #f1c40f);
+}
+
+/* Barra de HP/Energia do jogador (simplificada) */
+.fast-player-status {
+  position: fixed;
+  top: 100px;
+  left: 50px;
+  background: rgba(20, 20, 20, 0.9);
+  padding: 15px 20px;
+  border-radius: 10px;
+  border: 2px solid #8B4513;
+  min-width: 250px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+.fast-player-name {
+  color: #CD853F;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+/* Loading spinner durante ação */
+.fast-battle-loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #CD853F;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: none;
+  z-index: 9998;
+}
+
+.fast-battle-loading.active {
+  display: block;
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Botão de desabilitar quando sem recursos */
+.fast-action-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.fast-action-btn.disabled:hover {
+  transform: none;
+  border-color: #666;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Botão desabilitado por relíquia (ex: Última Graça) */
+.fast-action-btn.relic-disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  filter: grayscale(1) brightness(0.6);
+  border-color: #8B4513 !important;
+}
+
+.fast-action-btn.relic-disabled:hover {
+  transform: none;
+  border-color: #8B4513 !important;
+  box-shadow: 0 0 15px rgba(139, 69, 19, 0.5);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .fast-battle-container {
+    bottom: 80px;
+  }
+
+  .fast-battle-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 11px;
+  }
+
+  .fast-battle-submenu {
+    max-width: 90vw;
+  }
+
+  .fast-action-btn {
+    width: 50px;
+    height: 50px;
+  }
+
+  .fast-enemy-status,
+  .fast-player-status {
+    top: 60px;
+    min-width: 180px;
+    padding: 10px 15px;
+  }
+}

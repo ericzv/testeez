@@ -16,7 +16,7 @@
     window.addEventListener('load', async () => {
         try {
             const registration = await navigator.serviceWorker.register('/static/service-worker.js', {
-                scope: '/'
+                scope: '/static/'
             });
 
             console.log('[SW] Service Worker registered:', registration.scope);
