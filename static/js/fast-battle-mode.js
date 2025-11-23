@@ -343,15 +343,9 @@ class FastBattleMode {
   }
 
   async executeAction(item, type) {
-    // PREVENIR CLIQUES MÚLTIPLOS
+    // PREVENIR SPAM EXTREMO (debounce curto)
     if (this.isExecuting) {
-      console.log('⏸️ Ação já em execução, ignorando clique');
-      return;
-    }
-
-    // PREVENIR AÇÕES DURANTE ANIMAÇÕES (verificar gameState.inAction)
-    if (window.gameState && window.gameState.inAction) {
-      console.log('⏸️ Animação em andamento (gameState.inAction=true), ignorando clique');
+      console.log('⏸️ Debounce ativo, aguarde...');
       return;
     }
 
@@ -375,76 +369,50 @@ class FastBattleMode {
       return;
     }
 
-    // BLOQUEAR NOVAS AÇÕES
+    // BLOQUEAR TEMPORARIAMENTE (debounce curto)
     this.isExecuting = true;
 
     // Fechar submenu
     this.closeSubmenu();
 
     if (type === 'attacks') {
-      // VALIDAR ATAQUE NO SERVIDOR ANTES DE EXECUTAR ANIMAÇÃO
-      try {
-        const response = await fetch('/gamification/damage_boss', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ skill_id: item.id })
-        });
+      // VALIDAÇÃO RIGOROSA DE ENERGIA ANTES DE CHAMAR triggerAttack
+      if (window.battleState && window.battleState.player) {
+        const energyCost = item.points_cost || item.energy_cost || 1;
+        const currentEnergy = window.battleState.player.energy;
 
-        const data = await response.json();
-
-        if (data.success) {
-          console.log('✅ Servidor validou ataque, executando animação');
-
-          // Servidor confirmou sucesso, AGORA executar animação
-          if (window.triggerAttack) {
-            window.triggerAttack(item.id);
-
-            // AGUARDAR ANIMAÇÃO COMPLETA verificando gameState.inAction
-            const waitForAnimationEnd = () => {
-              return new Promise((resolve) => {
-                const checkInterval = setInterval(() => {
-                  // Verificar se animação terminou (gameState.inAction = false)
-                  if (!window.gameState || !window.gameState.inAction) {
-                    clearInterval(checkInterval);
-                    console.log('✅ Animação concluída (gameState.inAction=false)');
-                    resolve();
-                  }
-                }, 100); // Verificar a cada 100ms
-
-                // Timeout de segurança (máximo 5 segundos)
-                setTimeout(() => {
-                  clearInterval(checkInterval);
-                  console.warn('⚠️ Timeout de animação atingido (5s)');
-                  resolve();
-                }, 5000);
-              });
-            };
-
-            // Aguardar animação terminar
-            await waitForAnimationEnd();
-          }
-
-          // Sincronizar HUD com servidor (energia já descontada no backend)
-          await this.updateHUDFromServer();
-
-          // Aguardar mais um pouco antes de desbloquear
-          setTimeout(() => {
-            this.isExecuting = false;
-            console.log('✅ Ação de ataque finalizada, desbloqueado');
-          }, 300);
-        } else {
-          // Servidor rejeitou (energia insuficiente, etc)
-          console.error('❌ Servidor rejeitou ataque:', data.message);
-          showFloatingText(data.message || 'Erro ao executar ataque', 'error');
+        // VERIFICAR se tem energia suficiente
+        if (currentEnergy < energyCost) {
+          console.log(`❌ Energia insuficiente! Precisa: ${energyCost}, Tem: ${currentEnergy}`);
+          showFloatingText('Energia insuficiente!', 'error');
           this.isExecuting = false;
+          return;
         }
-      } catch (error) {
-        console.error('❌ Erro na requisição de ataque:', error);
-        showFloatingText('Erro ao conectar com servidor', 'error');
-        this.isExecuting = false;
+
+        console.log(`✅ Energia OK: ${currentEnergy} >= ${energyCost}`);
       }
+
+      // Chamar triggerAttack que faz POST + animação + atualização
+      if (window.triggerAttack) {
+        console.log(`🎯 Chamando triggerAttack(${item.id})`);
+        window.triggerAttack(item.id);
+
+        // Sincronizar energia após ataque (com delay para servidor processar)
+        setTimeout(async () => {
+          await this.updateHUDFromServer();
+        }, 800);
+      } else {
+        console.error('❌ triggerAttack não disponível');
+        this.isExecuting = false;
+        return;
+      }
+
+      // Desbloquear rapidamente (permitir ataques consecutivos rápidos)
+      setTimeout(() => {
+        this.isExecuting = false;
+        console.log('✅ Modo rápido desbloqueado para próximo ataque');
+      }, 200); // Debounce curto para ataques rápidos
+
     } else if (type === 'specials') {
       // Executar especial usando a função do sistema de batalha (COM animações/sons)
       if (window.useSpecialSkill) {
