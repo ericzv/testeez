@@ -2637,6 +2637,8 @@ function playNodeSelectionSound() {
 // Estado dos nodes apresentados (evita tocar sons repetidos)
 let mapPresentedNodes = new Set();
 let mapLastCompletedNode = null;
+// Trackear estado anterior para evitar animações repetidas ao reabrir mapa
+let mapLastNodeStates = null;
 
 // Abrir pop-up do mapa
 function openMapPopup() {
@@ -2796,10 +2798,10 @@ function renderMapNodes(mapData) {
       nodeEl.style.cursor = 'default';
       nodeEl.style.filter = 'brightness(0.5) saturate(0.4)';
     } else {
-      // Nodes IGNORADOS/BLOQUEADOS: muito transparentes (15% visível) e acinzentados
-      nodeEl.style.opacity = '0.15';
+      // Nodes IGNORADOS/BLOQUEADOS: opacity aumentada para 45% (antes 15%, muito invisível)
+      nodeEl.style.opacity = '0.45';
       nodeEl.style.cursor = 'not-allowed';
-      nodeEl.style.filter = 'grayscale(100%) brightness(0.3)';
+      nodeEl.style.filter = 'grayscale(100%) brightness(0.4)';
     }
 
     // Imagem com lazy loading
@@ -2917,11 +2919,49 @@ function renderMapNodes(mapData) {
 
 // Tocar sons do mapa com prioridade e timing + animações
 async function playMapSoundsSequence(nodes) {
+    // Criar snapshot do estado atual
+    const currentStates = {};
+    nodes.forEach(n => {
+        currentStates[n.id] = {
+            is_visited: n.is_visited,
+            is_available: n.is_available,
+            is_current: n.is_current
+        };
+    });
+
+    // Se não há estado anterior, salvar e retornar (primeira vez)
+    if (!mapLastNodeStates) {
+        mapLastNodeStates = currentStates;
+        console.log('🎬 Primeira abertura do mapa - pulando animações');
+        return;
+    }
+
+    // Verificar se houve MUDANÇA REAL
+    let hasRealChange = false;
+    for (const nodeId in currentStates) {
+        const prev = mapLastNodeStates[nodeId];
+        const curr = currentStates[nodeId];
+        if (!prev || prev.is_visited !== curr.is_visited || prev.is_available !== curr.is_available) {
+            hasRealChange = true;
+            break;
+        }
+    }
+
+    if (!hasRealChange) {
+        console.log('🎬 Nenhuma mudança detectada - pulando animações e sons');
+        return;
+    }
+
+    console.log('🎬 Mudança detectada - tocando sequência de sons e animações');
+
     // Encontrar nodes recém-completados e recém-disponíveis
     const completedNodes = nodes.filter(n => n.is_visited && n.id !== mapLastCompletedNode);
     const newAvailableNodes = nodes.filter(n => n.is_available && !n.is_visited && !mapPresentedNodes.has(n.id));
 
-    console.log('🎬 Sequência de sons - Completados:', completedNodes.length, 'Novos:', newAvailableNodes.length);
+    console.log('🎬 Completados:', completedNodes.length, 'Novos:', newAvailableNodes.length);
+
+    // Atualizar estado anterior
+    mapLastNodeStates = currentStates;
 
     // PRIORIDADE:
     // 1. Som do mapa abrindo (já tocou no openMapPopup)
