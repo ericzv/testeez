@@ -854,7 +854,7 @@ def _add_memory_buff(player, memory_id: str) -> dict:
         'type': 'memory_gain',
         'memory_name': memory_def['name'],
         'message': f'Memória: {memory_def["name"]} ({memory_def["description"]})',
-        'icon': 'choices/choice-study.png',
+        'icon': 'events/choices/choice-study.png',
         'positive': True
     }
 
