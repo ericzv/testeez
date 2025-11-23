@@ -3240,9 +3240,20 @@ def get_relic_options():
             session['pending_relic_selection'] = pending
             session.modified = True
             print(f"✨ Novas opções GERADAS e SALVAS: {option_ids}")
-        
-        options = [get_relic_definition(rid) for rid in option_ids]
-        
+
+        # Buscar definições e filtrar None
+        options = []
+        for rid in option_ids:
+            definition = get_relic_definition(rid)
+            if definition:
+                options.append(definition)
+            else:
+                print(f"⚠️ AVISO: Relíquia ID '{rid}' não encontrada no RELIC_DEFINITIONS")
+
+        if not options:
+            print(f"❌ ERRO: Nenhuma relíquia válida encontrada para IDs: {option_ids}")
+            return jsonify({'success': False, 'message': 'Nenhuma relíquia válida encontrada'})
+
         return jsonify({
             'success': True,
             'options': [format_relic_for_display(opt) for opt in options],

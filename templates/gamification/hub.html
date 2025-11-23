@@ -262,20 +262,79 @@
       playSound("/static/game.data/sounds/rewardpopup.mp3", 0.7);
   }
 
-  function playMemoryOptionsSound() {
-      playSound("/static/game.data/sounds/memoryoptions.mp3", 0.6);
-  }
-
-  function playMemorySelectionSound() {
-      playSound("/static/game.data/sounds/memoryselection.mp3", 0.8);
-  }
-
   function playEnemySelectionSound() {
       playSound("/static/game.data/sounds/enemyselection.mp3", 0.8);
   }
 
   function playEnemySelectionCloseSound() {
       playSound("/static/game.data/sounds/enemyselectionclose.mp3", 0.5);
+  }
+
+  // === SISTEMA DE SONS DE MOEDAS ===
+  // Som ao GANHAR moedas (alternar aleatoriamente entre 4 variações)
+  function playCoinGainSound() {
+      const variations = ['coin-use4.mp3', 'coin-use5.mp3', 'coin-use6.mp3', 'coin-use8.mp3'];
+      const randomSound = variations[Math.floor(Math.random() * variations.length)];
+      playSound(`/static/game.data/sounds/${randomSound}`, 0.6);
+  }
+
+  // Som ao PERDER/GASTAR moedas (alternar aleatoriamente entre 4 variações)
+  function playCoinLossSound() {
+      const variations = ['coin-use1.mp3', 'coin-use2.mp3', 'coin-use3.mp3', 'coin-use9.mp3'];
+      const randomSound = variations[Math.floor(Math.random() * variations.length)];
+      playSound(`/static/game.data/sounds/${randomSound}`, 0.6);
+  }
+
+  // === SISTEMA DE SONS DE RELÍQUIAS ===
+  function playRelicOptionsSound() {
+      playSound("/static/game.data/sounds/oh-options.mp3", 0.7);
+  }
+
+  // Hovers de relíquias - sistema cíclico (8 sons)
+  let currentRelicHoverIndex = 1; // Contador global para hover de relíquias (1-8)
+
+  function playRelicHoverSound() {
+      // Tocar o som atual do ciclo
+      playSound(`/static/game.data/sounds/oh-hover${currentRelicHoverIndex}.mp3`, 0.25);
+
+      // Avançar para o próximo (1-8, depois volta para 1)
+      currentRelicHoverIndex++;
+      if (currentRelicHoverIndex > 8) {
+          currentRelicHoverIndex = 1;
+      }
+  }
+
+  function playRelicSelectionSound() {
+      playSound("/static/game.data/sounds/oh-selection.mp3", 0.6);
+  }
+
+  function playRelicConfirmedSound() {
+      playSound("/static/game.data/sounds/oh-confirmed.mp3", 0.7);
+  }
+
+  // === SISTEMA DE SONS DE LEMBRANÇAS (ATUALIZADO) ===
+  function playMemoryPopupOpeningSound() {
+      console.log("🔊 Tocando som: memory-reward-popup-openning.wav");
+      playSound("/static/game.data/sounds/memory-reward-popup-openning.wav", 0.7);
+  }
+
+  function playMemoryHoverSound() {
+      console.log("🔊 Tocando som: memory-hover.mp3");
+      playSound("/static/game.data/sounds/memory-hover.mp3", 0.4);
+  }
+
+  function playMemoryRewardSelectionSound() {
+      console.log("🔊 Tocando som: memory-reward-popup-selection.wav");
+      playSound("/static/game.data/sounds/memory-reward-popup-selection.wav", 0.8);
+  }
+
+  // === SONS GERAIS ===
+  function playActionDenialSound() {
+      playSound("/static/game.data/sounds/action-denial-sound.wav", 0.6);
+  }
+
+  function playStartRunBellSound() {
+      playSound("/static/game.data/sounds/short-bell.mp3", 0.7);
   }
 
   // ===== SISTEMA DE MEMÓRIAS =====
@@ -324,8 +383,8 @@
                       confirmBtn.textContent = 'Confirmar Seleção';
                   }
                   
-                  // TOCAR SOM DO POP-UP DE MEMÓRIAS
-                  playMemoryOptionsSound();
+                  // TOCAR SOM DO POP-UP DE MEMÓRIAS (novo som de abertura)
+                  playMemoryPopupOpeningSound();
 
                   console.log("🧠 DEBUG: Mostrando pop-up");
                   window.__preRewardSnapshots = {
@@ -368,7 +427,9 @@
                 <div class="memory-description">${option.description}</div>
                 <div class="memory-value">${option.formatted_value}</div>
             `;
-            
+
+            // Adicionar hover sound
+            optionElement.addEventListener('mouseenter', () => playMemoryHoverSound());
             optionElement.addEventListener('click', () => selectMemoryOption(option.type));
             container.appendChild(optionElement);
         });
@@ -377,7 +438,10 @@
   // Selecionar opção de memória (apenas visual)
   function selectMemoryOption(memoryType) {
       console.log("🧠 DEBUG: Selecionando opção:", memoryType);
-      
+
+      // Tocar som de seleção
+      playMemoryRewardSelectionSound();
+
       // Remover seleção anterior
       document.querySelectorAll('.memory-option').forEach(el => {
           el.classList.remove('selected');
@@ -388,14 +452,14 @@
       if (clickedOption) {
           clickedOption.classList.add('selected');
           selectedMemoryType = memoryType;
-          
+
           // Habilitar botão de confirmar
           const confirmBtn = document.getElementById('confirm-memory-btn');
           if (confirmBtn) {
               confirmBtn.disabled = false;
               confirmBtn.textContent = `Confirmar: ${memoryOptions.find(opt => opt.type === memoryType)?.name || 'Lembrança'}`;
           }
-          
+
           console.log("🧠 DEBUG: Opção selecionada:", memoryType);
       }
   }
@@ -434,8 +498,8 @@
           console.log("🧠 DEBUG: Resposta do servidor:", data);
           
           if (data.success) {
-              // TOCAR SOM DE SELEÇÃO DE MEMÓRIA
-              playMemorySelectionSound();
+              // TOCAR SOM DE SELEÇÃO DE MEMÓRIA (já foi tocado antes ao clicar)
+              // playMemoryRewardSelectionSound() já foi chamado em selectMemoryOption()
               
               // Mostrar mensagem de sucesso
               addNotification(data.message);
@@ -524,12 +588,30 @@
       const lastVictory = localStorage.getItem('lastVictoryTime');
       const now = Date.now();
       const hasRecentVictory = lastVictory && (now - parseInt(lastVictory)) < 10000;
-      
+
       if (!hasRecentVictory) {
           checkMemoryReward();
       }
       updateActiveRunBuffs();
       updateActiveRelics();
+
+      // Tocar som de início de run apenas UMA VEZ - mas SOMENTE se não houver popups pendentes
+      const hasPlayedStartBell = sessionStorage.getItem('hasPlayedStartBell');
+      if (!hasPlayedStartBell && !hasRecentVictory) {
+          // Aguardar um pouco para garantir que não há popups abrindo
+          setTimeout(() => {
+              // Verificar novamente se nenhum popup está aberto
+              const memoryPopup = document.getElementById('memory-selection-popup');
+              const relicPopup = document.getElementById('relic-selection-popup');
+              const isMemoryOpen = memoryPopup && memoryPopup.style.display === 'flex';
+              const isRelicOpen = relicPopup && relicPopup.style.display === 'flex';
+
+              if (!isMemoryOpen && !isRelicOpen) {
+                  playStartRunBellSound();
+                  sessionStorage.setItem('hasPlayedStartBell', 'true');
+              }
+          }, 500);
+      }
   });
 
 
@@ -755,6 +837,9 @@
                   // Atualizar divider de reroll
                   updateRelicRewriteDivider();
 
+                  // Tocar som de abertura de relíquias
+                  playRelicOptionsSound();
+
                   console.log("🗡️ DEBUG: Mostrando pop-up");
                   document.getElementById('relic-selection-popup').style.display = 'flex';
               }
@@ -787,28 +872,30 @@
             'legendary': 'Lendária'
         };
         
-        relicOptions.forEach(option => {
+        relicOptions.forEach((option, index) => {
             const optionElement = document.createElement('div');
-            
+
             // Normalizar raridades: uncommon vira rare
             let normalizedRarity = option.rarity;
             if (normalizedRarity === 'uncommon') {
                 normalizedRarity = 'rare';
             }
-            
+
             optionElement.className = `relic-option rarity-${normalizedRarity}`;
             optionElement.dataset.relicId = option.id;
-            
+
             // Nome traduzido da raridade
             const rarityName = rarityNames[option.rarity] || rarityNames[normalizedRarity];
-            
+
             optionElement.innerHTML = `
                 <h3 class="relic-name">${option.name}</h3>
                 <img src="/static/game.data/relics/${option.icon}" alt="${option.name}" class="relic-icon" onerror="this.src='/static/game.data/relics/placeholder.png'">
                 <div class="relic-description">${option.description}</div>
                 <div class="relic-rarity-label rarity-${normalizedRarity}">${rarityName}</div>
             `;
-            
+
+            // Adicionar hover sound (sistema cíclico global)
+            optionElement.addEventListener('mouseenter', () => playRelicHoverSound());
             optionElement.addEventListener('click', () => selectRelicOption(option.id));
             container.appendChild(optionElement);
         });
@@ -817,7 +904,10 @@
   // Selecionar opção de relíquia (apenas visual)
   function selectRelicOption(relicId) {
       console.log("🗡️ DEBUG: Selecionando opção:", relicId);
-      
+
+      // Tocar som de seleção
+      playRelicSelectionSound();
+
       // Remover seleção anterior
       document.querySelectorAll('.relic-option').forEach(el => {
           el.classList.remove('selected');
@@ -828,7 +918,7 @@
       if (clickedOption) {
           clickedOption.classList.add('selected');
           selectedRelicId = relicId;
-          
+
           // Habilitar botão de confirmar
           const confirmBtn = document.getElementById('confirm-relic-btn');
           if (confirmBtn) {
@@ -847,9 +937,12 @@
             alert('Selecione uma relíquia primeiro!');
             return;
         }
-        
+
+        // Tocar som de confirmação
+        playRelicConfirmedSound();
+
         console.log("🗡️ DEBUG: Confirmando seleção:", selectedRelicId);
-        
+
         // Desabilitar botão
         const confirmBtn = document.getElementById('confirm-relic-btn');
         if (confirmBtn) {
@@ -1369,7 +1462,11 @@
                   return data;
               });
       }
-      
+
+      // Guardar gold atual ANTES de atualizar
+      const goldEl = document.getElementById('gold-value');
+      const oldGold = goldEl ? parseInt(goldEl.textContent) || 0 : 0;
+
       // Comportamento normal - atualizar DOM
       return fetch('/gamification/get_player_currencies')
           .then(response => response.json())
@@ -1377,13 +1474,20 @@
               if (data.success) {
                   // Atualizar valores direto (sem animação)
                   const crystalsEl = document.getElementById('crystals-value');
-                  const goldEl = document.getElementById('gold-value');
                   const hourglassesEl = document.getElementById('hourglasses-value');
-                  
+
                   if (crystalsEl) crystalsEl.textContent = data.crystals;
                   if (goldEl) goldEl.textContent = data.gold;
                   if (hourglassesEl) hourglassesEl.textContent = data.hourglasses;
-                  
+
+                  // Tocar som de moedas se gold mudou
+                  const newGold = data.gold || 0;
+                  if (newGold > oldGold) {
+                      playCoinGainSound();  // Ganhou moedas
+                  } else if (newGold < oldGold) {
+                      playCoinLossSound();   // Perdeu/gastou moedas
+                  }
+
                   console.log("💰 Currencies atualizadas no DOM:", data);
               }
               return data;
@@ -2501,9 +2605,48 @@ const nodeTypeInfo = {
   }
 };
 
+// === SONS DO MAPA ===
+function playMapSheetSound() {
+    const sounds = ['map-sheet1.mp3', 'map-sheet2.mp3', 'map-sheet3.mp3', 'map-sheet4.mp3', 'map-sheet5.mp3', 'map-sheet6.mp3', 'map-sheet7.mp3', 'map-sheet8.mp3', 'map-sheet9.mp3'];
+    const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+    console.log('🔊 Tocando som de mapa abrindo:', randomSound);
+    playSound(`/static/game.data/sounds/${randomSound}`, 0.5);
+}
+
+function playNodeAvailableSound() {
+    const sounds = ['map-node-available1.mp3', 'map-node-available2.mp3'];
+    const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+    console.log('🔊 Tocando som de node disponível:', randomSound);
+    playSound(`/static/game.data/sounds/${randomSound}`, 0.6);
+}
+
+function playNodeCompleteSound() {
+    const sounds = ['map-node-complete1.mp3', 'map-node-complete2.mp3', 'map-node-complete3.mp3'];
+    const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+    console.log('🔊 Tocando som de node completado:', randomSound);
+    playSound(`/static/game.data/sounds/${randomSound}`, 0.6);
+}
+
+function playNodeSelectionSound() {
+    const sounds = ['map-node-selection1.mp3', 'map-node-selection2.mp3', 'map-node-selection3.mp3', 'map-node-selection4.mp3'];
+    const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+    console.log('🔊 Tocando som de seleção de node:', randomSound);
+    playSound(`/static/game.data/sounds/${randomSound}`, 0.6);
+}
+
+// Estado dos nodes apresentados (evita tocar sons repetidos)
+let mapPresentedNodes = new Set();
+let mapLastCompletedNode = null;
+// Trackear estado anterior para evitar animações repetidas ao reabrir mapa
+let mapLastNodeStates = null;
+
 // Abrir pop-up do mapa
 function openMapPopup() {
   console.log('🗺️ Abrindo mapa...');
+
+  // Tocar som de mapa abrindo
+  playMapSheetSound();
+
   openDialog('#map-popup');
   loadMap();
 }
@@ -2617,9 +2760,9 @@ function renderMapNodes(mapData) {
     const baseX = paddingX + (node.x * spacingX);
     const baseY = paddingY + ((maxY - node.y) * nodeSpacingY);
 
-    // Adicionar variação aleatória (-10 a +10px)
-    const varX = getVariation(node.id, 1);
-    const varY = getVariation(node.id * 7, 1);
+    // Adicionar variação aleatória AUMENTADA (-25 a +25px) para menos "tabela"
+    const varX = getVariation(node.id, 2.5);
+    const varY = getVariation(node.id * 7, 2.5);
     const posX = baseX + varX;
     const posY = baseY + varY;
 
@@ -2628,27 +2771,37 @@ function renderMapNodes(mapData) {
     const nodeEl = document.createElement('div');
     nodeEl.style.cssText = `
       position: absolute;
-      width: 50px;
-      height: 50px;
-      left: ${posX - 25}px;
-      top: ${posY - 25}px;
+      width: 75px;
+      height: 75px;
+      left: ${posX - 37.5}px;
+      top: ${posY - 37.5}px;
       cursor: pointer;
       pointer-events: auto;
       transition: transform 0.2s ease, filter 0.2s ease;
     `;
 
-    // Estado do nó
+    // Adicionar dataset para identificação
+    nodeEl.dataset.nodeId = node.id;
+
+    // Estado do nó com diferenciação visual MUITO mais forte
     if (node.is_current) {
-      nodeEl.style.animation = 'mapNodePulse 1.5s infinite';
+      // Animação RÁPIDA (0.8s) e efeito intenso
+      nodeEl.style.animation = 'mapNodePulse 0.8s infinite';
+      nodeEl.style.filter = 'drop-shadow(0 0 20px rgba(255, 215, 0, 1)) brightness(1.3)';
     } else if (node.is_available) {
+      // VERMELHO intenso ao invés de azul
       nodeEl.style.animation = 'mapNodeAvailable 2s infinite';
+      nodeEl.style.filter = 'brightness(1.3) drop-shadow(0 0 15px rgba(255, 50, 50, 0.9))';
     } else if (node.is_visited) {
-      nodeEl.style.opacity = '0.4';
+      // Nodes POR ONDE PASSEI: opacos (70% visível)
+      nodeEl.style.opacity = '0.7';
       nodeEl.style.cursor = 'default';
+      nodeEl.style.filter = 'brightness(0.5) saturate(0.4)';
     } else {
-      nodeEl.style.opacity = '0.3';
+      // Nodes IGNORADOS/BLOQUEADOS: opacity aumentada para 45% (antes 15%, muito invisível)
+      nodeEl.style.opacity = '0.45';
       nodeEl.style.cursor = 'not-allowed';
-      nodeEl.style.filter = 'grayscale(100%)';
+      nodeEl.style.filter = 'grayscale(100%) brightness(0.4)';
     }
 
     // Imagem com lazy loading
@@ -2665,19 +2818,53 @@ function renderMapNodes(mapData) {
 
     if (isClickable) {
       if (node.is_current) {
-        // Nó atual: reabrir ação do nó
-        nodeEl.addEventListener('click', () => handleCurrentNodeClick(node));
+        // Nó atual: reabrir ação do nó com delay e animação
+        nodeEl.addEventListener('click', () => {
+          playNodeSelectionSound();
+
+          // Aplicar animação de seleção
+          nodeEl.style.animation = 'mapNodeSelection 0.5s ease-out';
+
+          // Delay de 500ms antes de processar
+          setTimeout(() => {
+            // Restaurar animação normal
+            nodeEl.style.animation = 'mapNodePulse 0.8s infinite';
+            handleCurrentNodeClick(node);
+          }, 500);
+        });
       } else {
-        // Nó disponível: avançar para ele
-        nodeEl.addEventListener('click', () => handleMapNodeClick(node));
+        // Nó disponível: avançar para ele com delay e animação
+        nodeEl.addEventListener('click', () => {
+          playNodeSelectionSound();
+
+          // Aplicar animação de seleção
+          nodeEl.style.animation = 'mapNodeSelection 0.5s ease-out';
+
+          // Delay de 500ms antes de processar
+          setTimeout(() => {
+            // Restaurar animação normal
+            nodeEl.style.animation = 'mapNodeAvailable 2s infinite';
+            handleMapNodeClick(node);
+          }, 500);
+        });
       }
       nodeEl.addEventListener('mouseenter', () => {
-        nodeEl.style.transform = 'scale(1.2)';
-        nodeEl.style.filter = 'brightness(1.3)';
+        nodeEl.style.transform = 'scale(1.25)';
+        if (node.is_available) {
+          // VERMELHO no hover
+          nodeEl.style.filter = 'brightness(1.6) drop-shadow(0 0 25px rgba(255, 50, 50, 1))';
+        } else {
+          nodeEl.style.filter = 'brightness(1.5)';
+        }
       });
       nodeEl.addEventListener('mouseleave', () => {
         nodeEl.style.transform = 'scale(1)';
-        nodeEl.style.filter = '';
+        if (node.is_available) {
+          // VERMELHO normal
+          nodeEl.style.filter = 'brightness(1.3) drop-shadow(0 0 15px rgba(255, 50, 50, 0.9))';
+        } else {
+          nodeEl.style.filter = 'drop-shadow(0 0 20px rgba(255, 215, 0, 1)) brightness(1.3)';
+        }
       });
     }
 
@@ -2711,6 +2898,9 @@ function renderMapNodes(mapData) {
     }
   });
 
+  // Tocar sons e animar nodes em sequência
+  playMapSoundsSequence(mapData.nodes);
+
   // Scroll para o nó atual (se existir) ou para o início
   setTimeout(() => {
     const currentNode = mapData.nodes.find(n => n.is_current);
@@ -2725,6 +2915,108 @@ function renderMapNodes(mapData) {
       scrollContainer.scrollTop = scrollContainer.scrollHeight;
     }
   }, 100);
+}
+
+// Tocar sons do mapa com prioridade e timing + animações
+async function playMapSoundsSequence(nodes) {
+    // Criar snapshot do estado atual
+    const currentStates = {};
+    nodes.forEach(n => {
+        currentStates[n.id] = {
+            is_visited: n.is_visited,
+            is_available: n.is_available,
+            is_current: n.is_current
+        };
+    });
+
+    // Se não há estado anterior, salvar e retornar (primeira vez)
+    if (!mapLastNodeStates) {
+        mapLastNodeStates = currentStates;
+        console.log('🎬 Primeira abertura do mapa - pulando animações');
+        return;
+    }
+
+    // Verificar se houve MUDANÇA REAL
+    let hasRealChange = false;
+    for (const nodeId in currentStates) {
+        const prev = mapLastNodeStates[nodeId];
+        const curr = currentStates[nodeId];
+        if (!prev || prev.is_visited !== curr.is_visited || prev.is_available !== curr.is_available) {
+            hasRealChange = true;
+            break;
+        }
+    }
+
+    if (!hasRealChange) {
+        console.log('🎬 Nenhuma mudança detectada - pulando animações e sons');
+        return;
+    }
+
+    console.log('🎬 Mudança detectada - tocando sequência de sons e animações');
+
+    // Encontrar nodes recém-completados e recém-disponíveis
+    const completedNodes = nodes.filter(n => n.is_visited && n.id !== mapLastCompletedNode);
+    const newAvailableNodes = nodes.filter(n => n.is_available && !n.is_visited && !mapPresentedNodes.has(n.id));
+
+    console.log('🎬 Completados:', completedNodes.length, 'Novos:', newAvailableNodes.length);
+
+    // Atualizar estado anterior
+    mapLastNodeStates = currentStates;
+
+    // PRIORIDADE:
+    // 1. Som do mapa abrindo (já tocou no openMapPopup)
+
+    // 2. Aguardar 250ms
+    await new Promise(resolve => setTimeout(resolve, 250));
+
+    // 3. Som de node finalizado (se tiver) + animação de fechamento
+    if (completedNodes.length > 0) {
+        playNodeCompleteSound();
+
+        // Aplicar animação de fechamento aos nodes completados
+        completedNodes.forEach(node => {
+            const nodeElement = document.querySelector(`[data-node-id="${node.id}"]`);
+            if (nodeElement) {
+                nodeElement.style.animation = 'mapNodeClosing 0.6s ease-in forwards';
+                console.log('🎬 Animação de fechamento aplicada ao node:', node.id);
+            }
+        });
+
+        // Atualizar último completado
+        if (completedNodes.length > 0) {
+            mapLastCompletedNode = completedNodes[completedNodes.length - 1].id;
+        }
+    }
+
+    // 4. Aguardar 1000ms
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // 5. Som de nodes sendo liberados (se tiver novos) + animação de abertura
+    if (newAvailableNodes.length > 0) {
+        playNodeAvailableSound();
+
+        // Aplicar animação de abertura aos novos nodes disponíveis
+        newAvailableNodes.forEach((node, index) => {
+            const nodeElement = document.querySelector(`[data-node-id="${node.id}"]`);
+            if (nodeElement) {
+                // Stagger animation: cada node abre com pequeno delay
+                setTimeout(() => {
+                    nodeElement.style.animation = 'mapNodeOpening 0.8s ease-out forwards';
+                    console.log('🎬 Animação de abertura aplicada ao node:', node.id);
+
+                    // Restaurar animação normal após abertura
+                    setTimeout(() => {
+                        nodeElement.style.animation = 'mapNodeAvailable 2s infinite';
+                    }, 800);
+                }, index * 100); // 100ms de delay entre cada node
+            }
+        });
+
+        // Marcar nodes como apresentados
+        newAvailableNodes.forEach(n => mapPresentedNodes.add(n.id));
+    }
+
+    // (Som de seleção de node será tocado quando o usuário clicar)
 }
 
 // Mapeamento de boss_id para nome (usado em elite/boss)
@@ -3007,17 +3299,76 @@ function hideMapTooltip() {
 @keyframes mapNodePulse {
   0%, 100% {
     transform: scale(1);
-    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1)) brightness(1.3);
   }
   50% {
-    transform: scale(1.15);
-    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1));
+    transform: scale(1.3);
+    filter: drop-shadow(0 0 40px rgba(255, 215, 0, 1)) brightness(1.6);
   }
 }
 
 @keyframes mapNodeAvailable {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1.3) drop-shadow(0 0 15px rgba(255, 50, 50, 0.9));
+  }
+  50% {
+    transform: scale(1.15);
+    filter: brightness(1.6) drop-shadow(0 0 30px rgba(255, 50, 50, 1));
+  }
+}
+
+/* Animação de seleção ao clicar */
+@keyframes mapNodeSelection {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.4);
+    filter: brightness(2.5) drop-shadow(0 0 35px rgba(255, 255, 255, 1));
+  }
+  60% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Animação de abertura para novos nodes */
+@keyframes mapNodeOpening {
+  0% {
+    transform: scale(0.3) rotate(-180deg);
+    opacity: 0;
+    filter: brightness(2) blur(4px);
+  }
+  60% {
+    transform: scale(1.2) rotate(10deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+    filter: brightness(1.3) drop-shadow(0 0 15px rgba(255, 50, 50, 0.9));
+  }
+}
+
+/* Animação de fechamento para nodes completados */
+@keyframes mapNodeClosing {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(0.85);
+    filter: brightness(0.6);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+    filter: brightness(0.5) saturate(0.4);
+  }
 }
 
 .map-popup-panel {

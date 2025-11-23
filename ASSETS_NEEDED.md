@@ -1,304 +1,378 @@
-# Assets Necessários - Sistema de Eventos
+# Assets Necessários - Sistema Completo de Áudio
+
+## 📋 ÍNDICE
+1. [Tela de Derrota](#tela-de-derrota)
+2. [Sistema de Descanso (Bonefire)](#sistema-de-descanso-bonefire)
+3. [Sistema de Moedas](#sistema-de-moedas)
+4. [Sistema de Eventos](#sistema-de-eventos)
+5. [Sistema de Relíquias](#sistema-de-relíquias)
+6. [Sistema de Lembranças (Memories)](#sistema-de-lembranças-memories)
+7. [Seleção de Personagens](#seleção-de-personagens)
+8. [Sistema de Talentos](#sistema-de-talentos)
+9. [Sons Gerais](#sons-gerais)
+
+---
 
 ## 🎵 SONS NECESSÁRIOS
 
-### Eventos - Escolhas e Resultados
-Localização: `/static/game.data/sounds/events/`
+### Tela de Derrota
+📁 `/static/game.data/sounds/`
 
-1. **event-choice-hover.mp3**
-   - Quando: Mouse passa por cima de uma opção de escolha
-   - Como deve ser: Som sutil, curto (0.1s), tipo "tick" suave
-   - Volume: Baixo, não intrusivo
-
-2. **event-choice-select.mp3**
-   - Quando: Clica em uma escolha
-   - Como deve ser: Som de confirmação, tipo "click" satisfatório (0.2s)
-   - Volume: Médio
-
-3. **event-positive.mp3**
-   - Quando: Resultado positivo (ganhou HP, gold, relíquia)
-   - Como deve ser: Som alegre, ascendente, tipo "ding" brilhante (0.5s)
-   - Volume: Médio-alto
-   - Exemplos: ganhar moedas, curar HP, encontrar item
-
-4. **event-negative.mp3**
-   - Quando: Resultado negativo (perdeu HP, gold, debuff)
-   - Como deve ser: Som pesado, descendente, tipo "thud" sombrio (0.5s)
-   - Volume: Médio
-   - Exemplos: perder recursos, tomar dano, falha
-
-5. **event-neutral.mp3**
-   - Quando: Resultado neutro (nada aconteceu, passou direto)
-   - Como deve ser: Som suave de página virando (0.3s)
-   - Volume: Baixo-médio
-
-6. **event-combat-trigger.mp3**
-   - Quando: Escolha que inicia combate
-   - Como deve ser: Som de alerta tenso, tipo sino de batalha (0.8s)
-   - Volume: Alto
-   - Deve causar tensão, avisar perigo
-
-7. **event-rare.mp3**
-   - Quando: Encontra evento raro (5% chance)
-   - Como deve ser: Som místico, especial, jingle curto (1s)
-   - Volume: Médio-alto
-   - Deve parecer "sorte", "descoberta especial"
-
-### Mapa - Navegação
-Localização: `/static/game.data/sounds/map/`
-
-8. **map-node-available.mp3**
-   - Quando: Nós do próximo nível ficam disponíveis
-   - Como deve ser: Som sutil de "desbloqueio" (0.3s)
-   - Volume: Baixo
-
-9. **map-node-select.mp3**
-   - Quando: Clica em um nó do mapa
-   - Como deve ser: Som de seleção firme (0.2s)
-   - Volume: Médio
-
-10. **map-act-complete.mp3**
-    - Quando: Derrota boss final e avança de ato
-    - Como deve ser: Som épico de conquista, fanfarra curta (2s)
-    - Volume: Alto
-    - Deve transmitir sensação de progresso importante
-
-### Recursos - Ganhos/Perdas
-Localização: `/static/game.data/sounds/resources/`
-
-11. **gold-gain.mp3**
-    - Quando: Ganha gold (eventos, vitórias)
-    - Como deve ser: Som de moedas tilintando (0.4s)
-    - Volume: Médio
-    - Já existe "currency-up.mp3" mas pode melhorar
-
-12. **gold-loss.mp3**
-    - Quando: Perde/gasta gold
-    - Como deve ser: Som de moedas caindo/perdendo (0.3s)
-    - Volume: Médio
-
-13. **hp-heal.mp3**
-    - Quando: Cura HP (eventos, descanso)
-    - Como deve ser: Som suave de cura, tipo "restauração" (0.5s)
-    - Volume: Médio
-
-14. **hp-damage.mp3**
-    - Quando: Toma dano de evento
-    - Como deve ser: Som de impacto, dor (0.3s)
-    - Volume: Médio-alto
-
-15. **relic-discover.mp3**
-    - Quando: Ganha relíquia de evento
-    - Como deve ser: Som especial de descoberta, mágico (0.8s)
-    - Volume: Alto
-    - Deve parecer item raro e importante
+**defeat.wav** (1:34 - som longo)
+- **Quando**: Tocar em loop na tela de estatísticas da run após ser derrotado
+- **Onde**: Página de escolher novo personagem, enquanto pop-up de estatísticas estiver aberto
+- **Status**: ❌ FALTANDO (existe defeat.mp3, mas precisa do .wav longo)
 
 ---
 
-## 🎨 ÍCONES NECESSÁRIOS (PNG, 64x64px)
+### Sistema de Descanso (Bonefire)
+📁 `/static/game.data/sounds/`
 
-### Eventos - Substituir Emojis
-Localização: `/static/game.data/events/icons/`
-
-Estilo: Dark fantasy, pixel art ou hand-drawn, tons escuros com detalhes coloridos
-
-1. **shrine.png** (Santuário Antigo)
-   - Substitui: 🏛️
-   - Descrição: Ruínas de templo com aura brilhante
-
-2. **chest.png** (Baú Abandonado)
-   - Substitui: 📦
-   - Descrição: Baú de madeira escura, trancado
-
-3. **merchant.png** (Mercador Errante)
-   - Substitui: 🎭
-   - Descrição: Figura encapuzada com itens
-
-4. **well.png** (Poço dos Desejos)
-   - Substitui: 🌊
-   - Descrição: Poço de pedra com água brilhante
-
-5. **shrine-mysterious.png** (Altar Misterioso)
-   - Substitui: 🗿
-   - Descrição: Altar de pedra com símbolos místicos
-
-6. **fountain.png** (Fonte Curativa)
-   - Substitui: ⛲
-   - Descrição: Fonte com água cristalina brilhando
-
-7. **library.png** (Biblioteca Esquecida)
-   - Substitui: 📚
-   - Descrição: Estante com livros antigos, poeira
-
-8. **campfire.png** (Fogueira Solitária)
-   - Substitui: 🔥
-   - Descrição: Fogueira acesa com cinzas ao redor
-
-9. **statue.png** (Estátua Guardiã)
-   - Substitui: 🗿
-   - Descrição: Estátua de guerreiro com olhos brilhantes
-
-10. **treasure.png** (Tesouro Escondido)
-    - Substitui: 💎
-    - Descrição: Pilha de moedas e gemas
-
-11. **mirror.png** (Espelho Sombrio)
-    - Substitui: 🪞
-    - Descrição: Espelho ornamentado com reflexo distorcido
-
-12. **goblin.png** (Goblin Vendedor)
-    - Substitui: 👺
-    - Descrição: Goblin com mercadorias
-
-13. **portal.png** (Portal Instável)
-    - Substitui: 🌀
-    - Descrição: Portal mágico com energia instável
-
-14. **offering.png** (Oferenda Profana)
-    - Substitui: 🕯️
-    - Descrição: Altar com velas e símbolos
-
-15. **trap.png** (Armadilha Antiga)
-    - Substitui: ⚠️
-    - Descrição: Mecanismo de armadilha visível
-
-16. **garden.png** (Jardim Venenoso)
-    - Substitui: 🌿
-    - Descrição: Plantas tóxicas com névoa verde
-
-17. **crossroads.png** (Encruzilhada do Destino)
-    - Substitui: ⚔️
-    - Descrição: Três caminhos divergentes com placas
-
-18. **forge.png** (Forja Abandonada)
-    - Substitui: 🔨
-    - Descrição: Bigorna e fogo aceso
-
-19. **cards.png** (Jogo de Cartas Sombrio)
-    - Substitui: 🎴
-    - Descrição: Cartas místicas espalhadas
-
-20. **tree.png** (Árvore Ancestral)
-    - Substitui: 🌳
-    - Descrição: Árvore antiga com rosto
-
-21. **cage.png** (Gaiola Esquecida)
-    - Substitui: 🗝️
-    - Descrição: Gaiola com correntes quebradas
-
-### Escolhas - Ícones de Ação
-Localização: `/static/game.data/events/choices/`
-
-22. **choice-accept.png**
-    - Descrição: Mão aceitando/pegando
-
-23. **choice-refuse.png**
-    - Descrição: Mão recusando/empurrando
-
-24. **choice-attack.png**
-    - Descrição: Espada em posição de ataque
-
-25. **choice-pray.png**
-    - Descrição: Mãos em oração
-
-26. **choice-inspect.png**
-    - Descrição: Lupa ou olho investigando
-
-27. **choice-rest.png**
-    - Descrição: Figura descansando
-
-28. **choice-run.png**
-    - Descrição: Pés correndo/fugindo
-
-29. **choice-trade.png**
-    - Descrição: Moedas sendo trocadas
-
-30. **choice-destroy.png**
-    - Descrição: Martelo destruindo
-
-### Recursos - Indicadores
-Localização: `/static/game.data/resources/`
-
-31. **hp-icon.png**
-    - Descrição: Coração com cruz vermelha
-
-32. **maxhp-icon.png**
-    - Descrição: Coração com seta para cima/baixo
-
-33. **gold-icon.png**
-    - Descrição: Pilha de moedas douradas
-    - (Já existe gold.png, mas pode melhorar)
-
-34. **relic-icon-rare.png**
-    - Descrição: Ícone de relíquia com brilho especial
-    - (Para eventos raros que dão relíquias)
+**heal-on-bonefire.wav**
+- **Quando**: Ao descansar em node de fogueira (bonefire/rest)
+- **Efeito**: Som de cura/restauração
+- **Status**: ❌ FALTANDO
 
 ---
 
-## 📋 PRIORIDADE DE IMPLEMENTAÇÃO
+### Sistema de Moedas
+📁 `/static/game.data/sounds/`
 
-### ALTA (fazer primeiro):
-- Sons: event-positive, event-negative, event-choice-select
-- Ícones: Todos os 21 eventos principais (shrine.png até cage.png)
+#### Sons para GANHAR dinheiro (usar alternadamente/aleatoriamente):
+1. **coin-use4.mp3** ❌ FALTANDO
+2. **coin-use5.mp3** ❌ FALTANDO
+3. **coin-use6.mp3** ❌ FALTANDO
+4. **coin-use8.mp3** ❌ FALTANDO
 
-### MÉDIA:
-- Sons: event-rare, event-combat-trigger, map-act-complete
-- Ícones: Escolhas (choice-*.png)
+- **Quando**: Recebe gold (eventos, vitórias, recompensas)
+- **Comportamento**: Alternar entre os 4 sons ou escolher aleatoriamente
 
-### BAIXA (polimento):
-- Sons: event-choice-hover, map-node-available
-- Ícones: Recursos extras
+#### Sons para PERDER/GASTAR dinheiro (usar alternadamente/aleatoriamente):
+1. **coin-use1.mp3** ❌ FALTANDO
+2. **coin-use2.mp3** ❌ FALTANDO
+3. **coin-use3.mp3** ❌ FALTANDO
+4. **coin-use9.mp3** ❌ FALTANDO
+
+- **Quando**: Gasta gold (shop, eventos)
+- **Comportamento**: Alternar entre os 4 sons ou escolher aleatoriamente
+
+---
+
+### Sistema de Eventos
+📁 `/static/game.data/sounds/`
+
+#### Abertura de Eventos
+**event-openning.mp3**
+- **Quando**: Ao abrir pop-up de evento
+- **Status**: ❌ FALTANDO
+
+#### Encontro com Inimigos (alternados/aleatórios)
+**enemy-found.mp3**
+**enemy-found2.mp3**
+- **Quando**: Em eventos onde TALVEZ se encontre inimigo (por azar/chance)
+- **Comportamento**: Alternar entre os 2 sons
+- **Status**: ❌ FALTANDO
+
+#### Botões Indisponíveis
+**unavailable.mp3**
+- **Quando**: Tenta clicar em botões de evento sem requisitos cumpridos
+- **Status**: ❌ FALTANDO
+
+#### Escolhas - Tipos de Ações
+
+**choice-damage.mp3**
+- **Quando**: Escolheu opção que causa dano ao personagem
+- **Status**: ❌ FALTANDO
+
+**choice-damage1.mp3**
+**choice-damage2.mp3**
+- **Quando**: Escolheu algo que causou dano (tirou HP)
+- **Comportamento**: Alternar entre os 2 sons
+- **Status**: ❌ FALTANDO
+
+**choice-heal.mp3**
+- **Quando**: Escolheu opção que CURA
+- **Status**: ❌ FALTANDO
+
+**choice-maxhp.mp3**
+- **Quando**: Escolheu opção que aumenta HP máximo
+- **Status**: ❌ FALTANDO
+
+**choice-ignore.mp3**
+- **Quando**: Escolheu ignorar o evento
+- **Status**: ❌ FALTANDO
+
+#### Escolhas - Resultados Emocionais
+
+**choice-negative.mp3**
+- **Quando**: Escolha com resultado negativo
+- **Status**: ❌ FALTANDO
+
+**choice-positive.mp3**
+- **Quando**: Escolha com resultado positivo
+- **Status**: ❌ FALTANDO
+
+**event-neutral.mp3**
+- **Quando**: Escolha neutra (sem ganhos/perdas significativas)
+- **Status**: ❌ FALTANDO
+
+#### Escolhas de Tensão (Probabilidade)
+
+**tension-probability-choice.mp3**
+- **Quando**: Escolha que causa tensão (pode dar certo OU errado)
+- **Momento**: Ao selecionar a escolha
+- **Status**: ❌ FALTANDO
+
+**lucky-choice.mp3**
+- **Quando**: Escolha de tensão DEU CERTO
+- **Momento**: Tocar no resultado (após processar)
+- **Status**: ❌ FALTANDO
+
+**bad-choice.mp3**
+- **Quando**: Escolha "deu azar" (resultado ruim)
+- **Momento**: Tocar no resultado (após processar)
+- **Status**: ❌ FALTANDO
+
+#### Relíquia Encontrada em Evento
+
+**impressive-show.mp3**
+- **Quando**: Relíquia encontrada em evento
+- **Momento**: Tocar nos "resultados" do evento
+- **Status**: ❌ FALTANDO
+
+---
+
+### Sistema de Relíquias
+📁 `/static/game.data/sounds/`
+
+**oh-options.mp3**
+- **Quando**: Ao abrir pop-up de escolha de relíquias
+- **Status**: ❌ FALTANDO
+
+#### Hover em Relíquias (uma para cada opção)
+**oh-hover1.mp3**
+- **Quando**: Hover na 1ª opção de relíquia
+- **Comportamento**: Sons podem se interpolar (não precisa cancelar um para tocar outro)
+- **Status**: ❌ FALTANDO
+
+**oh-hover2.mp3**
+- **Quando**: Hover na 2ª opção de relíquia
+- **Status**: ❌ FALTANDO
+
+**oh-hover3.mp3**
+- **Quando**: Hover na 3ª opção de relíquia
+- **Status**: ❌ FALTANDO
+
+**Nota**: Se houver 4ª opção, usar oh-hover1.mp3 novamente
+
+**oh-selection.mp3**
+- **Quando**: Ao SELECIONAR e confirmar a relíquia desejada
+- **Status**: ❌ FALTANDO
+
+---
+
+### Sistema de Lembranças (Memories)
+📁 `/static/game.data/sounds/`
+
+**memory-reward-popup-openning.wav**
+- **Quando**: Ao abrir pop-up de escolha de lembranças após derrotar inimigo
+- **Status**: ❌ FALTANDO
+
+**memory-hover.mp3**
+- **Quando**: Hover nos botões de escolha de lembranças
+- **Status**: ❌ FALTANDO
+
+**memory-reward-popup-selection.wav**
+- **Quando**: Ao selecionar a lembrança desejada
+- **Status**: ❌ FALTANDO
+
+**Nota**: Já existem `memoryoptions.mp3` e `memoryselection.mp3` - verificar se são os mesmos
+
+---
+
+### Seleção de Personagens
+📁 `/static/game.data/sounds/`
+
+**choose-character-openning.mp3**
+- **Quando**: Ao abrir tela de seleção de personagens (tocar UMA VEZ)
+- **Status**: ❌ FALTANDO
+
+**choose-character-hover.mp3**
+- **Quando**: Ao fazer hover em opção de personagem
+- **Status**: ❌ FALTANDO
+
+**choose-character-click.mp3**
+- **Quando**: Ao clicar em um personagem
+- **Status**: ❌ FALTANDO
+
+**short-bell.mp3**
+- **Quando**: No hub, quando o personagem COMEÇA a run (apenas na primeira vez)
+- **Momento**: Logo após selecionar personagem e ser direcionado ao hub
+- **Status**: ❌ FALTANDO
+
+---
+
+### Sistema de Talentos
+📁 `/static/game.data/sounds/`
+
+**talents-background-sound.wav**
+- **Quando**: Tocar em LOOP de fundo na tela de talentos
+- **Volume**: Baixo (música ambiente)
+- **Status**: ❌ FALTANDO
+
+#### Sons de Sino para Talentos Adquiridos (alternar sequencialmente)
+**talentbell1.wav** ❌ FALTANDO
+**talentbell2.wav** ❌ FALTANDO
+**talentbell3.wav** ❌ FALTANDO
+**talentbell4.wav** ❌ FALTANDO
+**talentbell5.wav** ❌ FALTANDO
+**talentbell6.wav** ❌ FALTANDO
+
+- **Quando**: Ao adquirir um talento
+- **Comportamento**: Ciclar entre os 6 sons (1→2→3→4→5→6→1...)
+- **Referência**: `templates/gamification/talents.html:530`
+
+**reveal-sound.wav**
+- **Quando**: Revelação de constelação secreta de talentos
+- **Referência**: `templates/gamification/talents.html:548`
+- **Status**: ❌ FALTANDO
+
+---
+
+### Sons Gerais
+📁 `/static/game.data/sounds/`
+
+**action-denial-sound.wav**
+- **Quando**: Negação de ação (tentativa de ação inválida)
+- **Status**: ❌ FALTANDO
+
+---
+
+## 📊 RESUMO DE STATUS
+
+### ✅ SONS QUE JÁ EXISTEM:
+- `defeat.mp3` (mas precisa versão .wav de 1:34)
+- `memoryoptions.mp3`
+- `memoryselection.mp3`
+- `rewardpopup.mp3`
+
+### ❌ SONS FALTANDO:
+
+#### Alta Prioridade (Gameplay Core):
+- Sistema de Moedas: 8 sons (coin-use1-9)
+- Escolhas de Eventos: 10 sons principais
+- Sistema de Lembranças: 3 sons
+- Sistema de Relíquias: 5 sons
+
+#### Média Prioridade:
+- Seleção de Personagens: 4 sons
+- Sistema de Talentos: 7 sons (6 bells + reveal)
+- Eventos Especiais: 5 sons
+
+#### Baixa Prioridade:
+- Sons de Ambiente: 2 sons
+- Sons Gerais: 1 som
+
+**TOTAL: ~45 arquivos de áudio faltando**
 
 ---
 
 ## 🎨 DIRETRIZES DE ESTILO
 
 ### Para Sons:
-- Formato: MP3, 128kbps
-- Duração: 0.1s a 2s (sons curtos, sem música longa)
-- Mixagem: Normalizar volume, sem clipping
-- Estilo: Dark fantasy, medieval, místico
+- **Formato**: MP3 (128kbps) ou WAV para loops/sons longos
+- **Duração**: 0.1s a 2s para SFX (exceto músicas de fundo)
+- **Mixagem**: Normalizar volume, sem clipping
+- **Estilo**: Dark fantasy, medieval, místico
 
-### Para Ícones:
-- Tamanho: 64x64 pixels
-- Formato: PNG com transparência
-- Estilo: Pixel art ou hand-drawn, consistente
-- Paleta: Tons escuros (cinza, marrom, preto) com detalhes coloridos
-- Consistência: Todos devem parecer do mesmo jogo
-- Referência visual: Similar ao estilo de Slay the Spire, Darkest Dungeon
+### Comportamento de Sons Múltiplos:
+- Quando há múltiplas variações (ex: coin-use1-9), **alternar** entre elas ou escolher **aleatoriamente**
+- Sons de hover podem se **interpolar** (tocar simultaneamente sem cancelar)
+- Sons sequenciais (talentbell1-6) devem **ciclar** em ordem
 
 ---
 
-## 📂 ESTRUTURA DE PASTAS
+## 📂 ESTRUTURA DE PASTAS ATUAL
 
 ```
-/static/game.data/
-├── sounds/
-│   ├── events/
-│   │   ├── event-choice-hover.mp3
-│   │   ├── event-choice-select.mp3
-│   │   ├── event-positive.mp3
-│   │   ├── event-negative.mp3
-│   │   ├── event-neutral.mp3
-│   │   ├── event-combat-trigger.mp3
-│   │   └── event-rare.mp3
-│   ├── map/
-│   │   ├── map-node-available.mp3
-│   │   ├── map-node-select.mp3
-│   │   └── map-act-complete.mp3
-│   └── resources/
-│       ├── gold-gain.mp3
-│       ├── gold-loss.mp3
-│       ├── hp-heal.mp3
-│       ├── hp-damage.mp3
-│       └── relic-discover.mp3
-└── events/
-    ├── icons/
-    │   ├── shrine.png
-    │   ├── chest.png
-    │   └── ... (21 eventos)
-    └── choices/
-        ├── choice-accept.png
-        ├── choice-refuse.png
-        └── ... (9 escolhas)
+/static/game.data/sounds/
+├── defeat.wav (1:34 - loop para tela de derrota)
+├── heal-on-bonefire.wav
+├── coin-use1.mp3 até coin-use9.mp3 (exceto 7)
+├── event-openning.mp3
+├── enemy-found.mp3, enemy-found2.mp3
+├── unavailable.mp3
+├── choice-*.mp3 (damage, heal, maxhp, ignore, positive, negative)
+├── choice-damage1.mp3, choice-damage2.mp3
+├── tension-probability-choice.mp3
+├── lucky-choice.mp3, bad-choice.mp3
+├── event-neutral.mp3
+├── impressive-show.mp3
+├── oh-options.mp3, oh-selection.mp3
+├── oh-hover1.mp3, oh-hover2.mp3, oh-hover3.mp3
+├── memory-reward-popup-openning.wav
+├── memory-hover.mp3
+├── memory-reward-popup-selection.wav
+├── choose-character-openning.mp3
+├── choose-character-hover.mp3
+├── choose-character-click.mp3
+├── short-bell.mp3
+├── talents-background-sound.wav (loop)
+├── talentbell1.wav até talentbell6.wav
+├── reveal-sound.wav
+└── action-denial-sound.wav
 ```
+
+---
+
+## 🎯 PRIORIDADE DE IMPLEMENTAÇÃO
+
+### 🔴 CRÍTICA (implementar primeiro):
+1. Sistema de Moedas (8 sons) - usado constantemente
+2. Escolhas de Eventos principais (choice-damage, choice-heal, choice-positive, choice-negative)
+3. Sistema de Lembranças (3 sons) - após cada batalha
+4. Talentos básicos (6 talentbells + reveal)
+
+### 🟡 ALTA:
+5. Sistema de Relíquias (5 sons)
+6. Seleção de Personagens (4 sons)
+7. Descanso/Bonefire (1 som)
+
+### 🟢 MÉDIA:
+8. Eventos especiais (enemy-found, tension, lucky/bad choice)
+9. Som de derrota longo (defeat.wav)
+10. Sons de abertura (event-openning)
+
+### ⚪ BAIXA (polimento):
+11. Sons de negação (unavailable, action-denial)
+12. Background de talentos (talents-background-sound)
+
+---
+
+## 📝 NOTAS DE IMPLEMENTAÇÃO
+
+### Sons com Variações:
+- **Moedas**: Implementar sistema que escolhe aleatoriamente entre as variações
+- **Talentos**: Implementar contador que cicla 1→6→1...
+- **Dano de escolha**: Alternar entre choice-damage1 e choice-damage2
+- **Encontro de inimigo**: Alternar entre enemy-found e enemy-found2
+
+### Sons que Precisam de Loop:
+- `defeat.wav` (1:34) - loop na tela de estatísticas
+- `talents-background-sound.wav` - loop na tela de talentos
+
+### Sons de Hover que se Interpolam:
+- `oh-hover1.mp3`, `oh-hover2.mp3`, `oh-hover3.mp3` - não cancelar ao trocar
+
+---
+
+## ✅ CHECKLIST DE INTEGRAÇÃO
+
+- [ ] Criar diretórios se necessário
+- [ ] Adicionar todos os arquivos .mp3/.wav
+- [ ] Implementar sistema de alternância de sons (moedas, dano)
+- [ ] Implementar sistema de ciclo (talentbells)
+- [ ] Configurar loops (defeat, talents-background)
+- [ ] Testar volume de cada som
+- [ ] Testar interpolação de hovers
+- [ ] Documentar mapeamento som→evento no código

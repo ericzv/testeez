@@ -57,6 +57,9 @@ def generate_relic_options(player_id, context='first_relic'):
     by_rarity = {}
     for rid in available_ids:
         definition = get_relic_definition(rid)
+        if not definition:
+            print(f"⚠️ AVISO: Relíquia ID '{rid}' retornou None em generate_relic_options - pulando")
+            continue
         rarity = definition['rarity']
         if rarity not in by_rarity:
             by_rarity[rarity] = []

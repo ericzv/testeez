@@ -920,6 +920,9 @@
             choiceBtn.classList.add('selected');
             selectedChoiceId = choiceId;
             document.getElementById('confirm-btn').disabled = false;
+
+            // Tocar som de seleção de escolha
+            playTensionChoiceSound();
         }
     }
 
@@ -951,10 +954,22 @@
             loading.style.display = 'none';
 
             if (data.success) {
+                // Capturar gold antigo ANTES de atualizar
+                const goldEl = document.getElementById('player-gold');
+                const oldGold = goldEl ? parseInt(goldEl.textContent) || 0 : 0;
+
                 // Atualizar status do jogador
                 document.getElementById('player-hp').textContent = data.player_hp;
                 document.getElementById('player-max-hp').textContent = data.player_max_hp;
-                document.getElementById('player-gold').textContent = data.player_gold;
+                goldEl.textContent = data.player_gold;
+
+                // Tocar som de moedas se gold mudou
+                const newGold = data.player_gold || 0;
+                if (newGold > oldGold) {
+                    playCoinGainSound();  // Ganhou moedas
+                } else if (newGold < oldGold) {
+                    playCoinLossSound();   // Perdeu/gastou moedas
+                }
 
                 console.log('🎭 Dados recebidos:', data);
                 console.log('🎭 Max HP atualizado para:', data.player_max_hp);
@@ -998,6 +1013,28 @@
                 setTimeout(() => {
                     const itemClass = result.positive ? 'positive' : (result.positive === false ? 'negative' : 'neutral');
 
+                    // Tocar som apropriado baseado no tipo de resultado
+                    if (result.positive === true) {
+                        // Resultado positivo
+                        if (result.message && result.message.toLowerCase().includes('ouro')) {
+                            playCoinGainSound();  // Som específico para ganhar ouro
+                        } else if (result.message && result.message.toLowerCase().includes('hp') && result.message.includes('+')) {
+                            playChoiceHealSound();  // Som de cura
+                        } else {
+                            playChoicePositiveSound();  // Som genérico positivo
+                        }
+                    } else if (result.positive === false) {
+                        // Resultado negativo
+                        if (result.message && (result.message.toLowerCase().includes('dano') || result.message.includes('perd'))) {
+                            playChoiceDamageSound();  // Som de dano
+                        } else {
+                            playChoiceNegativeSound();  // Som genérico negativo
+                        }
+                    } else {
+                        // Resultado neutro
+                        playEventNeutralSound();
+                    }
+
                     // Renderizar ícone como imagem se for um path .png, senão como emoji
                     let iconHtml;
                     if (result.icon && result.icon.endsWith('.png')) {
@@ -1026,17 +1063,113 @@
         window.location.href = '/gamification';
     }
 
-    // Adicionar efeito sonoro placeholder (campo para sons futuros)
-    function playEventSound(soundName) {
-        // TODO: Implementar sistema de sons
-        // const audio = new Audio(`/static/sounds/events/${soundName}`);
-        // audio.play();
-        console.log('Som do evento:', soundName);
+    // === SISTEMA DE SONS DE EVENTOS ===
+    function playSound(audioPath, volume = 0.6) {
+        try {
+            const audio = new Audio(audioPath);
+            audio.volume = volume;
+            audio.play().catch(err => {
+                console.warn("Som não pôde ser reproduzido:", err);
+            });
+        } catch (e) {
+            console.error("Erro ao tocar som:", e);
+        }
     }
 
-    // Tocar som de entrada do evento
-    {% if event.sound %}
-    playEventSound('{{ event.sound }}');
-    {% endif %}
+    // === SISTEMA DE SONS DE MOEDAS ===
+    function playCoinGainSound() {
+        const variations = ['coin-use4.mp3', 'coin-use5.mp3', 'coin-use6.mp3', 'coin-use8.mp3'];
+        const randomSound = variations[Math.floor(Math.random() * variations.length)];
+        playSound(`/static/game.data/sounds/${randomSound}`, 0.6);
+    }
+
+    function playCoinLossSound() {
+        const variations = ['coin-use1.mp3', 'coin-use2.mp3', 'coin-use3.mp3', 'coin-use9.mp3'];
+        const randomSound = variations[Math.floor(Math.random() * variations.length)];
+        playSound(`/static/game.data/sounds/${randomSound}`, 0.6);
+    }
+
+    // Som de abertura do popup de evento
+    function playEventOpeningSound() {
+        playSound("/static/game.data/sounds/event-openning.mp3", 0.7);
+    }
+
+    // Encontro com inimigos (alternar aleatoriamente)
+    function playEnemyFoundSound() {
+        const sounds = ['enemy-found.mp3', 'enemy-found2.mp3'];
+        const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+        playSound(`/static/game.data/sounds/${randomSound}`, 0.8);
+    }
+
+    // Botão indisponível
+    function playUnavailableSound() {
+        playSound("/static/game.data/sounds/unavailable.mp3", 0.5);
+    }
+
+    // Escolhas - Tipos de ações
+    function playChoiceDamageSound() {
+        // Alternar entre 2 variações
+        const sounds = ['choice-damage1.mp3', 'choice-damage2.mp3'];
+        const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+        playSound(`/static/game.data/sounds/${randomSound}`, 0.7);
+    }
+
+    function playChoiceHealSound() {
+        playSound("/static/game.data/sounds/choice-heal.mp3", 0.7);
+    }
+
+    function playChoiceMaxHPSound() {
+        playSound("/static/game.data/sounds/choice-maxhp.mp3", 0.7);
+    }
+
+    function playChoiceIgnoreSound() {
+        playSound("/static/game.data/sounds/choice-ignore.mp3", 0.5);
+    }
+
+    // Escolhas - Resultados emocionais
+    function playChoiceNegativeSound() {
+        playSound("/static/game.data/sounds/choice-negative.mp3", 0.7);
+    }
+
+    function playChoicePositiveSound() {
+        playSound("/static/game.data/sounds/choice-positive.mp3", 0.7);
+    }
+
+    function playEventNeutralSound() {
+        playSound("/static/game.data/sounds/event-neutral.mp3", 0.6);
+    }
+
+    // Escolhas de tensão
+    function playTensionChoiceSound() {
+        playSound("/static/game.data/sounds/tension-probability-choice.mp3", 0.7);
+    }
+
+    function playLuckyChoiceSound() {
+        playSound("/static/game.data/sounds/lucky-choice.mp3", 0.8);
+    }
+
+    function playBadChoiceSound() {
+        playSound("/static/game.data/sounds/bad-choice.mp3", 0.7);
+    }
+
+    // Relíquia encontrada em evento
+    function playImpressiveShowSound() {
+        playSound("/static/game.data/sounds/impressive-show.mp3", 0.8);
+    }
+
+    // Tocar som de abertura do evento ao carregar
+    playEventOpeningSound();
+
+    // Adicionar event listeners para botões de escolha ao carregar
+    document.addEventListener('DOMContentLoaded', () => {
+        // Adicionar som de "unavailable" ao clicar em botões disabled
+        document.querySelectorAll('.choice-button.disabled').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                playUnavailableSound();
+            });
+        });
+    });
 </script>
 {% endblock %}

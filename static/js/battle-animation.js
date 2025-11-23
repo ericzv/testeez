@@ -380,6 +380,18 @@ function updatePlayerStatusCard() {
      */
     window.triggerAttack = function (idOrName) {
 
+        // Evitar interromper ações em andamento
+        if (window.gameState && window.gameState.inAction) {
+            console.log("⚠️ Ação em andamento, não é possível atacar agora");
+            return;
+        }
+
+        // Evitar interromper especiais sendo processados
+        if (window.processingSkill) {
+            console.log("⚠️ Especial em andamento, não é possível atacar agora");
+            return;
+        }
+
         // Normaliza a chave de busca (ID numérico ou nome em minúsculas)
         const key = (typeof idOrName === 'number')
             ? idOrName

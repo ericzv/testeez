@@ -525,6 +525,12 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentBellIndex = 1;  // Contador para talentbell (1-6)
     let secretConstellationWasHidden = true;  // Rastrear se constelação secreta estava oculta
 
+    // Tocar som de fundo em LOOP na tela de talentos
+    const talentsBackgroundAudio = new Audio('/static/game.data/sounds/talents-background-sound.wav');
+    talentsBackgroundAudio.loop = true;
+    talentsBackgroundAudio.volume = 0.3;  // Volume baixo (música ambiente)
+    talentsBackgroundAudio.play().catch(e => log('Erro ao tocar som de fundo:', e));
+
     // Função para tocar som de aquisição de talento
     function playTalentBellSound() {
         const audio = new Audio(`/static/game.data/sounds/talentbell${currentBellIndex}.wav`);

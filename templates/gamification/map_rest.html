@@ -220,6 +220,23 @@
 <script>
     let hasRested = false;
 
+    // === SISTEMA DE SONS ===
+    function playSound(audioPath, volume = 0.6) {
+        try {
+            const audio = new Audio(audioPath);
+            audio.volume = volume;
+            audio.play().catch(err => {
+                console.warn("Som não pôde ser reproduzido:", err);
+            });
+        } catch (e) {
+            console.error("Erro ao tocar som:", e);
+        }
+    }
+
+    function playHealOnBonefireSound() {
+        playSound("/static/game.data/sounds/heal-on-bonefire.wav", 0.7);
+    }
+
     async function restHeal() {
         if (hasRested) return;
 
@@ -244,6 +261,9 @@
                 const healResult = document.getElementById('heal-result');
                 document.getElementById('heal-amount').textContent = `+${data.healed} HP`;
                 healResult.classList.add('show');
+
+                // Tocar som de cura no bonefire
+                playHealOnBonefireSound();
 
                 // Habilitar botão de continuar
                 const continueBtn = document.getElementById('continue-btn');

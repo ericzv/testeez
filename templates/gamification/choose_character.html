@@ -202,7 +202,45 @@
     </div>
     
     <script>
+        // === SISTEMA DE SONS ===
+        function playSound(audioPath, volume = 0.6) {
+            try {
+                const audio = new Audio(audioPath);
+                audio.volume = volume;
+                audio.play().catch(err => {
+                    console.warn("Som não pôde ser reproduzido:", err);
+                });
+            } catch (e) {
+                console.error("Erro ao tocar som:", e);
+            }
+        }
+
+        function playCharacterOpeningSound() {
+            playSound("/static/game.data/sounds/choose-character-openning.mp3", 0.7);
+        }
+
+        function playCharacterHoverSound() {
+            playSound("/static/game.data/sounds/choose-character-hover.mp3", 0.4);
+        }
+
+        function playCharacterClickSound() {
+            playSound("/static/game.data/sounds/choose-character-click.mp3", 0.7);
+        }
+
+        // Tocar som de abertura ao carregar a página
+        window.addEventListener('DOMContentLoaded', () => {
+            playCharacterOpeningSound();
+
+            // Adicionar hover sounds aos character orbs
+            document.querySelectorAll('.character-orb').forEach(orb => {
+                orb.addEventListener('mouseenter', () => playCharacterHoverSound());
+            });
+        });
+
         function selectCharacter(characterId) {
+            // Tocar som de click
+            playCharacterClickSound();
+
             document.querySelectorAll('.character-orb').forEach(orb => {
                 orb.classList.remove('selected');
             });
@@ -294,12 +332,15 @@
         }
     });
 
+    // Variável global para controlar o áudio de derrota
+    let defeatAudio = null;
+
     async function showRunStatistics() {
         try {
             // Buscar estatísticas do servidor
             const response = await fetch('{{ url_for("battle.get_run_statistics") }}');
             const data = await response.json();
-            
+
             if (data.success) {
                 // Preencher conteúdo do pop-up
                 const statsContent = document.getElementById('stats-content');
@@ -320,15 +361,28 @@
                         <strong>• Bosses derrotados:</strong> ${data.bosses_defeated.toLocaleString()}
                     </div>
                 `;
-                
+
                 // Mostrar pop-up
                 const overlay = document.getElementById('run-stats-overlay');
                 overlay.style.display = 'flex';
-                
+
+                // Tocar som de derrota em LOOP (1:34)
+                defeatAudio = new Audio('/static/game.data/sounds/defeat.wav');
+                defeatAudio.loop = true;
+                defeatAudio.volume = 0.5;
+                defeatAudio.play().catch(err => console.warn("Som de derrota não pôde ser reproduzido:", err));
+
                 // Event listener para fechar pop-up
                 document.getElementById('stats-continue-btn').addEventListener('click', function() {
                     overlay.style.display = 'none';
-                    
+
+                    // Parar som de derrota ao fechar
+                    if (defeatAudio) {
+                        defeatAudio.pause();
+                        defeatAudio.currentTime = 0;
+                        defeatAudio = null;
+                    }
+
                     // Limpar parâmetro da URL
                     const newUrl = window.location.pathname;
                     window.history.replaceState({}, document.title, newUrl);

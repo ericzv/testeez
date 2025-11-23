@@ -897,13 +897,19 @@ function useAttackSkill(skillId, skillName, damageModifier) {
 // Usar habilidade especial
 function useSpecialSkill(skillId, skillName) {
     console.log(`Usando habilidade especial: ${skillName} (ID: ${skillId})`);
-    
+
     // Evitar processamento duplicado
     if (window.processingSkill) {
         console.log("Já processando uma skill, ignorando nova requisição");
         return false;
     }
-    
+
+    // Evitar interromper ataques básicos em andamento
+    if (window.gameState && window.gameState.inAction) {
+        console.log("⚠️ Ataque em andamento, não é possível usar especial agora");
+        return false;
+    }
+
     // Definir flag de processamento
     window.processingSkill = true;
     
