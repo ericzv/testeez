@@ -278,6 +278,59 @@
       playSound("/static/game.data/sounds/enemyselectionclose.mp3", 0.5);
   }
 
+  // === SISTEMA DE SONS DE MOEDAS ===
+  // Som ao GANHAR moedas (alternar aleatoriamente entre 4 variações)
+  function playCoinGainSound() {
+      const variations = ['coin-use4.mp3', 'coin-use5.mp3', 'coin-use6.mp3', 'coin-use8.mp3'];
+      const randomSound = variations[Math.floor(Math.random() * variations.length)];
+      playSound(`/static/game.data/sounds/${randomSound}`, 0.6);
+  }
+
+  // Som ao PERDER/GASTAR moedas (alternar aleatoriamente entre 4 variações)
+  function playCoinLossSound() {
+      const variations = ['coin-use1.mp3', 'coin-use2.mp3', 'coin-use3.mp3', 'coin-use9.mp3'];
+      const randomSound = variations[Math.floor(Math.random() * variations.length)];
+      playSound(`/static/game.data/sounds/${randomSound}`, 0.6);
+  }
+
+  // === SISTEMA DE SONS DE RELÍQUIAS ===
+  function playRelicOptionsSound() {
+      playSound("/static/game.data/sounds/oh-options.mp3", 0.7);
+  }
+
+  // Hovers de relíquias (cada opção tem seu próprio som)
+  function playRelicHoverSound(optionIndex) {
+      const hoverSounds = ['oh-hover1.mp3', 'oh-hover2.mp3', 'oh-hover3.mp3'];
+      const soundIndex = (optionIndex - 1) % 3; // Cicla entre 0, 1, 2
+      playSound(`/static/game.data/sounds/${hoverSounds[soundIndex]}`, 0.5);
+  }
+
+  function playRelicSelectionSound() {
+      playSound("/static/game.data/sounds/oh-selection.mp3", 0.8);
+  }
+
+  // === SISTEMA DE SONS DE LEMBRANÇAS (ATUALIZADO) ===
+  function playMemoryPopupOpeningSound() {
+      playSound("/static/game.data/sounds/memory-reward-popup-openning.wav", 0.7);
+  }
+
+  function playMemoryHoverSound() {
+      playSound("/static/game.data/sounds/memory-hover.mp3", 0.4);
+  }
+
+  function playMemoryRewardSelectionSound() {
+      playSound("/static/game.data/sounds/memory-reward-popup-selection.wav", 0.8);
+  }
+
+  // === SONS GERAIS ===
+  function playActionDenialSound() {
+      playSound("/static/game.data/sounds/action-denial-sound.wav", 0.6);
+  }
+
+  function playStartRunBellSound() {
+      playSound("/static/game.data/sounds/short-bell.mp3", 0.7);
+  }
+
   // ===== SISTEMA DE MEMÓRIAS =====
 
   let memoryOptions = [];
@@ -324,8 +377,8 @@
                       confirmBtn.textContent = 'Confirmar Seleção';
                   }
                   
-                  // TOCAR SOM DO POP-UP DE MEMÓRIAS
-                  playMemoryOptionsSound();
+                  // TOCAR SOM DO POP-UP DE MEMÓRIAS (novo som de abertura)
+                  playMemoryPopupOpeningSound();
 
                   console.log("🧠 DEBUG: Mostrando pop-up");
                   window.__preRewardSnapshots = {
@@ -368,7 +421,9 @@
                 <div class="memory-description">${option.description}</div>
                 <div class="memory-value">${option.formatted_value}</div>
             `;
-            
+
+            // Adicionar hover sound
+            optionElement.addEventListener('mouseenter', () => playMemoryHoverSound());
             optionElement.addEventListener('click', () => selectMemoryOption(option.type));
             container.appendChild(optionElement);
         });
@@ -377,7 +432,10 @@
   // Selecionar opção de memória (apenas visual)
   function selectMemoryOption(memoryType) {
       console.log("🧠 DEBUG: Selecionando opção:", memoryType);
-      
+
+      // Tocar som de seleção
+      playMemoryRewardSelectionSound();
+
       // Remover seleção anterior
       document.querySelectorAll('.memory-option').forEach(el => {
           el.classList.remove('selected');
@@ -388,14 +446,14 @@
       if (clickedOption) {
           clickedOption.classList.add('selected');
           selectedMemoryType = memoryType;
-          
+
           // Habilitar botão de confirmar
           const confirmBtn = document.getElementById('confirm-memory-btn');
           if (confirmBtn) {
               confirmBtn.disabled = false;
               confirmBtn.textContent = `Confirmar: ${memoryOptions.find(opt => opt.type === memoryType)?.name || 'Lembrança'}`;
           }
-          
+
           console.log("🧠 DEBUG: Opção selecionada:", memoryType);
       }
   }
@@ -524,12 +582,19 @@
       const lastVictory = localStorage.getItem('lastVictoryTime');
       const now = Date.now();
       const hasRecentVictory = lastVictory && (now - parseInt(lastVictory)) < 10000;
-      
+
       if (!hasRecentVictory) {
           checkMemoryReward();
       }
       updateActiveRunBuffs();
       updateActiveRelics();
+
+      // Tocar som de início de run apenas UMA VEZ (na primeira vez que entra no hub após selecionar personagem)
+      const hasPlayedStartBell = sessionStorage.getItem('hasPlayedStartBell');
+      if (!hasPlayedStartBell) {
+          playStartRunBellSound();
+          sessionStorage.setItem('hasPlayedStartBell', 'true');
+      }
   });
 
 
@@ -755,6 +820,9 @@
                   // Atualizar divider de reroll
                   updateRelicRewriteDivider();
 
+                  // Tocar som de abertura de relíquias
+                  playRelicOptionsSound();
+
                   console.log("🗡️ DEBUG: Mostrando pop-up");
                   document.getElementById('relic-selection-popup').style.display = 'flex';
               }
@@ -787,28 +855,30 @@
             'legendary': 'Lendária'
         };
         
-        relicOptions.forEach(option => {
+        relicOptions.forEach((option, index) => {
             const optionElement = document.createElement('div');
-            
+
             // Normalizar raridades: uncommon vira rare
             let normalizedRarity = option.rarity;
             if (normalizedRarity === 'uncommon') {
                 normalizedRarity = 'rare';
             }
-            
+
             optionElement.className = `relic-option rarity-${normalizedRarity}`;
             optionElement.dataset.relicId = option.id;
-            
+
             // Nome traduzido da raridade
             const rarityName = rarityNames[option.rarity] || rarityNames[normalizedRarity];
-            
+
             optionElement.innerHTML = `
                 <h3 class="relic-name">${option.name}</h3>
                 <img src="/static/game.data/relics/${option.icon}" alt="${option.name}" class="relic-icon" onerror="this.src='/static/game.data/relics/placeholder.png'">
                 <div class="relic-description">${option.description}</div>
                 <div class="relic-rarity-label rarity-${normalizedRarity}">${rarityName}</div>
             `;
-            
+
+            // Adicionar hover sound (cada opção tem seu próprio som)
+            optionElement.addEventListener('mouseenter', () => playRelicHoverSound(index + 1));
             optionElement.addEventListener('click', () => selectRelicOption(option.id));
             container.appendChild(optionElement);
         });
@@ -817,7 +887,10 @@
   // Selecionar opção de relíquia (apenas visual)
   function selectRelicOption(relicId) {
       console.log("🗡️ DEBUG: Selecionando opção:", relicId);
-      
+
+      // Tocar som de seleção
+      playRelicSelectionSound();
+
       // Remover seleção anterior
       document.querySelectorAll('.relic-option').forEach(el => {
           el.classList.remove('selected');
@@ -828,7 +901,7 @@
       if (clickedOption) {
           clickedOption.classList.add('selected');
           selectedRelicId = relicId;
-          
+
           // Habilitar botão de confirmar
           const confirmBtn = document.getElementById('confirm-relic-btn');
           if (confirmBtn) {
