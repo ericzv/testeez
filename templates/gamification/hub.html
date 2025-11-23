@@ -262,14 +262,6 @@
       playSound("/static/game.data/sounds/rewardpopup.mp3", 0.7);
   }
 
-  function playMemoryOptionsSound() {
-      playSound("/static/game.data/sounds/memoryoptions.mp3", 0.6);
-  }
-
-  function playMemorySelectionSound() {
-      playSound("/static/game.data/sounds/memoryselection.mp3", 0.8);
-  }
-
   function playEnemySelectionSound() {
       playSound("/static/game.data/sounds/enemyselection.mp3", 0.8);
   }
@@ -298,15 +290,26 @@
       playSound("/static/game.data/sounds/oh-options.mp3", 0.7);
   }
 
-  // Hovers de relíquias (cada opção tem seu próprio som)
-  function playRelicHoverSound(optionIndex) {
-      const hoverSounds = ['oh-hover1.mp3', 'oh-hover2.mp3', 'oh-hover3.mp3'];
-      const soundIndex = (optionIndex - 1) % 3; // Cicla entre 0, 1, 2
-      playSound(`/static/game.data/sounds/${hoverSounds[soundIndex]}`, 0.5);
+  // Hovers de relíquias - sistema cíclico (8 sons)
+  let currentRelicHoverIndex = 1; // Contador global para hover de relíquias (1-8)
+
+  function playRelicHoverSound() {
+      // Tocar o som atual do ciclo
+      playSound(`/static/game.data/sounds/oh-hover${currentRelicHoverIndex}.mp3`, 0.25);
+
+      // Avançar para o próximo (1-8, depois volta para 1)
+      currentRelicHoverIndex++;
+      if (currentRelicHoverIndex > 8) {
+          currentRelicHoverIndex = 1;
+      }
   }
 
   function playRelicSelectionSound() {
-      playSound("/static/game.data/sounds/oh-selection.mp3", 0.8);
+      playSound("/static/game.data/sounds/oh-selection.mp3", 0.6);
+  }
+
+  function playRelicConfirmedSound() {
+      playSound("/static/game.data/sounds/oh-confirmed.mp3", 0.7);
   }
 
   // === SISTEMA DE SONS DE LEMBRANÇAS (ATUALIZADO) ===
@@ -492,8 +495,8 @@
           console.log("🧠 DEBUG: Resposta do servidor:", data);
           
           if (data.success) {
-              // TOCAR SOM DE SELEÇÃO DE MEMÓRIA
-              playMemorySelectionSound();
+              // TOCAR SOM DE SELEÇÃO DE MEMÓRIA (já foi tocado antes ao clicar)
+              // playMemoryRewardSelectionSound() já foi chamado em selectMemoryOption()
               
               // Mostrar mensagem de sucesso
               addNotification(data.message);
@@ -589,11 +592,22 @@
       updateActiveRunBuffs();
       updateActiveRelics();
 
-      // Tocar som de início de run apenas UMA VEZ (na primeira vez que entra no hub após selecionar personagem)
+      // Tocar som de início de run apenas UMA VEZ - mas SOMENTE se não houver popups pendentes
       const hasPlayedStartBell = sessionStorage.getItem('hasPlayedStartBell');
-      if (!hasPlayedStartBell) {
-          playStartRunBellSound();
-          sessionStorage.setItem('hasPlayedStartBell', 'true');
+      if (!hasPlayedStartBell && !hasRecentVictory) {
+          // Aguardar um pouco para garantir que não há popups abrindo
+          setTimeout(() => {
+              // Verificar novamente se nenhum popup está aberto
+              const memoryPopup = document.getElementById('memory-selection-popup');
+              const relicPopup = document.getElementById('relic-selection-popup');
+              const isMemoryOpen = memoryPopup && memoryPopup.style.display === 'flex';
+              const isRelicOpen = relicPopup && relicPopup.style.display === 'flex';
+
+              if (!isMemoryOpen && !isRelicOpen) {
+                  playStartRunBellSound();
+                  sessionStorage.setItem('hasPlayedStartBell', 'true');
+              }
+          }, 500);
       }
   });
 
@@ -877,8 +891,8 @@
                 <div class="relic-rarity-label rarity-${normalizedRarity}">${rarityName}</div>
             `;
 
-            // Adicionar hover sound (cada opção tem seu próprio som)
-            optionElement.addEventListener('mouseenter', () => playRelicHoverSound(index + 1));
+            // Adicionar hover sound (sistema cíclico global)
+            optionElement.addEventListener('mouseenter', () => playRelicHoverSound());
             optionElement.addEventListener('click', () => selectRelicOption(option.id));
             container.appendChild(optionElement);
         });
@@ -920,9 +934,12 @@
             alert('Selecione uma relíquia primeiro!');
             return;
         }
-        
+
+        // Tocar som de confirmação
+        playRelicConfirmedSound();
+
         console.log("🗡️ DEBUG: Confirmando seleção:", selectedRelicId);
-        
+
         // Desabilitar botão
         const confirmBtn = document.getElementById('confirm-relic-btn');
         if (confirmBtn) {
