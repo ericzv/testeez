@@ -997,13 +997,17 @@ def damage_boss():
     # Checar ignore_defense separadamente (comportamento especial)
     if offensive_stats['ignore_defense'] > 0:
         special_effects.append("Ignora Defesa")
-        
-        # Se o buff for por número de ataques, reduzir contador
+
+    # ===== DECREMENTAR BUFFS BASEADOS EM ATAQUES =====
+    # IMPORTANTE: Isto deve acontecer para TODOS os buffs, não apenas ignore_defense
+    for buff in active_buffs:
         if buff.duration_type == "attacks":
             buff.attacks_remaining -= 1
+            print(f"⏳ Buff {buff.effect_type}: {buff.attacks_remaining} ataques restantes")
             if buff.attacks_remaining <= 0:
+                print(f"✅ Buff {buff.effect_type} consumido!")
                 db.session.delete(buff)
-    
+
     # Aplicar multiplicadores de buffs
     if buffs_damage_multiplier != 1.0:
         final_damage = int(final_damage * buffs_damage_multiplier)
@@ -1604,44 +1608,73 @@ def use_special():
         if success and negative_effects.get('enemy_defeated'):
             print("🎯 Inimigo derrotado por skill especial! Criando recompensas...")
 
-            from models import PendingReward, GenericEnemy, PlayerProgress
+            from models import PendingReward, GenericEnemy, LastBoss, PlayerProgress
             from .battle_modules.reward_system import select_random_memory_options
             import random
 
             # Buscar o inimigo que acabou de ser derrotado pelo ID
             enemy_id = negative_effects.get('enemy_id')
+            is_boss_fight = negative_effects.get('is_boss', False)
             current_enemy = None
 
             if enemy_id:
-                current_enemy = GenericEnemy.query.get(enemy_id)
-                print(f"🎯 Inimigo encontrado pelo ID {enemy_id}: {current_enemy.name if current_enemy else 'NÃO ENCONTRADO'}")
+                # Tentar buscar no tipo correto
+                if is_boss_fight:
+                    current_enemy = LastBoss.query.get(enemy_id)
+                    print(f"🎯 Boss encontrado pelo ID {enemy_id}: {current_enemy.name if current_enemy else 'NÃO ENCONTRADO'}")
+                else:
+                    current_enemy = GenericEnemy.query.get(enemy_id)
+                    print(f"🎯 Inimigo encontrado pelo ID {enemy_id}: {current_enemy.name if current_enemy else 'NÃO ENCONTRADO'}")
             else:
                 print("⚠️ enemy_id não encontrado nos details, buscando último derrotado...")
-                current_enemy = GenericEnemy.query.filter_by(
-                    is_available=False
-                ).order_by(GenericEnemy.id.desc()).first()
+                if is_boss_fight:
+                    current_enemy = LastBoss.query.filter_by(
+                        is_active=False
+                    ).order_by(LastBoss.id.desc()).first()
+                else:
+                    current_enemy = GenericEnemy.query.filter_by(
+                        is_available=False
+                    ).order_by(GenericEnemy.id.desc()).first()
 
             if current_enemy:
-                # Calcular recompensas baseado no inimigo
-                base_exp = random.randint(30 + (current_enemy.enemy_number * 10), 50 + (current_enemy.enemy_number * 20))
-                rarity_multipliers = {1: 1.0, 2: 1.2, 3: 1.5, 4: 2.0}
-                rarity_multiplier = rarity_multipliers.get(current_enemy.rarity, 1.0)
-                equipment_bonus_percent = current_enemy.reward_bonus_percentage or 0
+                # Calcular recompensas baseado no tipo de inimigo
+                if is_boss_fight:
+                    # Recompensas de boss
+                    base_exp = current_enemy.reward_crystals // 4
+                    exp_reward = base_exp
 
-                exp_reward = int(base_exp * rarity_multiplier * (1 + equipment_bonus_percent / 100))
-                crystals_gained = 0
-                gold_gained = 0
-                hourglasses_gained = 0
+                    if hasattr(player, 'exp_boost') and player.exp_boost > 0:
+                        exp_boost_bonus = int(base_exp * player.exp_boost)
+                        exp_reward += exp_boost_bonus
 
-                reward_type = current_enemy.reward_type or 'crystals'
+                    crystals_gained = current_enemy.reward_crystals
+                    gold_gained = 0
+                    hourglasses_gained = 0
+                    reward_type = 'crystals'
+                    enemy_rarity = 4  # Bosses contam como lendário para memórias
+                else:
+                    # Recompensas de inimigo genérico
+                    base_exp = random.randint(30 + (current_enemy.enemy_number * 10), 50 + (current_enemy.enemy_number * 20))
+                    rarity_multipliers = {1: 1.0, 2: 1.2, 3: 1.5, 4: 2.0}
+                    rarity_multiplier = rarity_multipliers.get(current_enemy.rarity, 1.0)
+                    equipment_bonus_percent = current_enemy.reward_bonus_percentage or 0
 
-                if reward_type == 'crystals':
-                    base_crystals = random.randint(30 + (current_enemy.enemy_number * 5), 50 + (current_enemy.enemy_number * 8))
-                    crystals_gained = int(base_crystals * rarity_multiplier * (1 + equipment_bonus_percent / 100))
-                elif reward_type == 'gold':
-                    gold_gained = calculate_gold_reward(current_enemy.enemy_number, current_enemy.rarity, equipment_bonus_percent)
-                elif reward_type == 'hourglasses':
-                    hourglasses_gained = calculate_hourglass_reward(current_enemy.rarity)
+                    exp_reward = int(base_exp * rarity_multiplier * (1 + equipment_bonus_percent / 100))
+                    crystals_gained = 0
+                    gold_gained = 0
+                    hourglasses_gained = 0
+
+                    reward_type = current_enemy.reward_type or 'crystals'
+
+                    if reward_type == 'crystals':
+                        base_crystals = random.randint(30 + (current_enemy.enemy_number * 5), 50 + (current_enemy.enemy_number * 8))
+                        crystals_gained = int(base_crystals * rarity_multiplier * (1 + equipment_bonus_percent / 100))
+                    elif reward_type == 'gold':
+                        gold_gained = calculate_gold_reward(current_enemy.enemy_number, current_enemy.rarity, equipment_bonus_percent)
+                    elif reward_type == 'hourglasses':
+                        hourglasses_gained = calculate_hourglass_reward(current_enemy.rarity)
+
+                    enemy_rarity = current_enemy.rarity
 
                 # Aplicar bônus de relíquias
                 rewards = {'crystals': crystals_gained, 'gold': gold_gained, 'hourglasses': hourglasses_gained}
@@ -1670,7 +1703,7 @@ def use_special():
                 # Gerar opções de lembranças
                 memory_options = select_random_memory_options()
                 session['pending_memory_reward'] = {
-                    'enemy_rarity': current_enemy.rarity,
+                    'enemy_rarity': enemy_rarity,
                     'timestamp': datetime.utcnow().isoformat(),
                     'memory_options': memory_options
                 }
