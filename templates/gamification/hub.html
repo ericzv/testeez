@@ -248,13 +248,15 @@
   // === SISTEMA DE SONS ===
   function playSound(audioPath, volume = 0.6) {
       try {
-          const audio = new Audio(audioPath);
+          // Adicionar timestamp para evitar cache
+          const cacheBuster = `?v=${Date.now()}`;
+          const audio = new Audio(audioPath + cacheBuster);
           audio.volume = volume;
           audio.play().catch(err => {
-              console.warn("Som não pôde ser reproduzido:", err);
+              console.warn("Som não pôde ser reproduzido:", audioPath, err);
           });
       } catch (e) {
-          console.error("Erro ao tocar som:", e);
+          console.error("Erro ao tocar som:", audioPath, e);
       }
   }
 
