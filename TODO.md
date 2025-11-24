@@ -2,35 +2,7 @@
 
 ## Bugs Conhecidos (Para Corrigir Depois)
 
-### 1. Lâmina de Sangue não funciona no LastBoss
-**Descrição**: O lifesteal da skill "Lâmina de Sangue" não está funcionando quando usado contra bosses (LastBoss).
-
-**Status**: Pendente
-**Prioridade**: Média
-**Localização**: Sistema de lifesteal em `routes/battle_modules/` ou processamento de skills
-
-**Notas**:
-- Funciona corretamente contra inimigos genéricos
-- Parece ser um problema específico da classe LastBoss
-- Verificar se o cálculo de lifesteal está sendo aplicado corretamente para bosses
-
----
-
-### 2. Autofagia - Bonus de dano persiste por muito tempo
-**Descrição**: O bônus de dano da skill "Autofagia" está ficando ativo por mais tempo do que deveria.
-
-**Status**: Pendente
-**Prioridade**: Média
-**Localização**: Sistema de buffs/debuffs ou processamento da skill Autofagia
-
-**Notas**:
-- O buff de dano deve durar apenas por um turno ou por uma ação específica
-- Atualmente persiste por múltiplos turnos
-- Verificar sistema de duração de buffs e limpeza de efeitos temporários
-
----
-
-### 3. Shop não atualiza itens entre diferentes nodes do mapa
+### 1. Shop não atualiza itens entre diferentes nodes do mapa
 **Descrição**: Quando o jogador muda de node no mapa procedural, a loja deveria mostrar itens diferentes, mas está mantendo os mesmos itens do shop anterior.
 
 **Status**: Pendente
@@ -49,7 +21,7 @@
 
 ---
 
-### 4. Recompensa não aparece após derrotar inimigo (às vezes)
+### 2. Recompensa não aparece após derrotar inimigo (às vezes)
 **Descrição**: Às vezes, após derrotar um inimigo, o jogador volta para o hub mas a recompensa não aparece. Quando isso acontece, o jogador também não consegue avançar de node e precisa começar outra batalha no mesmo node.
 
 **Status**: Pendente
@@ -70,6 +42,22 @@
 ---
 
 ## Bugs Corrigidos Recentemente
+
+### ✅ Lâmina de Sangue não funcionava contra LastBoss
+**Corrigido em**: 2025-11-24
+**Solução**:
+- Corrigido detecção de tipo de inimigo (LastBoss vs GenericEnemy)
+- Usar `is_active` ao invés de `is_available` para bosses
+- Limpar `selected_boss_id` ao invés de `selected_enemy_id`
+- Buscar e calcular recompensas corretas para cada tipo
+- **Nota**: A skill não tem lifesteal por design, o problema real era o dano não matar o boss corretamente
+
+### ✅ Autofagia - Bônus de dano persistia indefinidamente
+**Corrigido em**: 2025-11-24
+**Solução**:
+- Movido lógica de decremento de buffs para fora do `if ignore_defense`
+- Agora TODOS os buffs com `duration_type == "attacks"` são decrementados corretamente
+- Bônus de +5 de dano agora é consumido após 1 ataque
 
 ### ✅ HP máximo não persistia entre eventos e batalhas
 **Corrigido em**: 2025-11-17
