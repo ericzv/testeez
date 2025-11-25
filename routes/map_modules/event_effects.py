@@ -922,7 +922,7 @@ def _add_skill_damage_bonus(player, skill_type: str, value: int) -> dict:
         'skill_type': skill_type,
         'value': value,
         'message': f'+{value} dano no {skill_names.get(skill_type, skill_type)}',
-        'icon': 'choices/choice-power.png',
+        'icon': 'events/choices/choice-power.png',
         'positive': True
     }
 

@@ -248,13 +248,15 @@
   // === SISTEMA DE SONS ===
   function playSound(audioPath, volume = 0.6) {
       try {
-          const audio = new Audio(audioPath);
+          // Adicionar timestamp para evitar cache
+          const cacheBuster = `?v=${Date.now()}`;
+          const audio = new Audio(audioPath + cacheBuster);
           audio.volume = volume;
           audio.play().catch(err => {
-              console.warn("Som não pôde ser reproduzido:", err);
+              console.warn("Som não pôde ser reproduzido:", audioPath, err);
           });
       } catch (e) {
-          console.error("Erro ao tocar som:", e);
+          console.error("Erro ao tocar som:", audioPath, e);
       }
   }
 
@@ -1391,13 +1393,6 @@
             </div>
 
             ${relicBonusHtml}
-
-            <div class="progress-section">
-                <span class="progress-text">Inimigos derrotados na região: ${(data.enemies_defeated % 20) || 20}/20</span>
-                <div class="progress-bar-container">
-                    <div class="progress-bar-fill"></div>
-                </div>
-            </div>
 
             <button class="victory-continue-btn" onclick="acceptVictoryRewards()">
                 Receber Recompensas

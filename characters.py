@@ -1254,7 +1254,7 @@ def use_special_skill(player_id, skill_id):
             if current_enemy.hp <= 0:
                 enemy_defeated = True
                 from routes.relics.hooks import on_kill, reset_battle_counters
-                from models import PlayerProgress
+                from models import PlayerProgress, LastBoss
 
                 enemy_data = {
                     'enemy_id': current_enemy.id,
@@ -1263,18 +1263,28 @@ def use_special_skill(player_id, skill_id):
                 on_kill(player, enemy_data)
 
                 # MARCAR INIMIGO COMO DERROTADO
-                current_enemy.is_available = False
+                # Verificar se é LastBoss ou GenericEnemy
+                is_boss = isinstance(current_enemy, LastBoss)
+
+                if is_boss:
+                    current_enemy.is_active = False
+                else:
+                    current_enemy.is_available = False
 
                 # LIMPAR SELEÇÃO DO INIMIGO
                 progress = PlayerProgress.query.filter_by(player_id=player.id).first()
                 if progress:
-                    progress.selected_enemy_id = None
+                    if is_boss:
+                        progress.selected_boss_id = None
+                        player.run_bosses_defeated += 1
+                    else:
+                        progress.selected_enemy_id = None
 
                 # RESETAR CONTADORES DE BATALHA
                 reset_battle_counters(player)
 
-                print(f"💀 Inimigo morto por Lâmina de Sangue! HP: {current_enemy.hp}")
-                print(f"✅ Inimigo marcado como derrotado e seleção limpa")
+                print(f"💀 {'Boss' if is_boss else 'Inimigo'} morto por Lâmina de Sangue! HP: {current_enemy.hp}")
+                print(f"✅ {'Boss' if is_boss else 'Inimigo'} marcado como derrotado e seleção limpa")
 
             effect_msg = f"Consumiu {blood_stacks}x Sangue Coagulado e causou {total_damage} de dano!"
 
@@ -1285,6 +1295,11 @@ def use_special_skill(player_id, skill_id):
             negative_effects["enemy_defeated"] = enemy_defeated
             negative_effects["blood_stacks"] = 0
             negative_effects["enemy_id"] = current_enemy.id  # Para buscar recompensas
+
+            # Indicar se é boss para o backend buscar recompensas corretas
+            if enemy_defeated:
+                from models import LastBoss
+                negative_effects["is_boss"] = isinstance(current_enemy, LastBoss)
 
         elif positive_type == "blood_barrier":
             # Barreira de Sangue: Consome Blood Stacks, gera barreira
