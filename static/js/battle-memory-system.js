@@ -5,23 +5,21 @@ let selectedMemoryType = null;
 let pendingMemoryData = null;
 let memoryRerollCount = 0; // Rastreador local de rerolls
 
-// Função para carregar sons (se houver)
+// Função para tocar sons de memórias
 function playMemoryOptionsSound() {
-    // Se você tiver um sistema de som no battle, use aqui
-    // Por exemplo: playSound('/static/sounds/memoryoptions.mp3');
-    console.log("🎵 Som de opções de memória (placeholder)");
+    playSound('/static/game.data/sounds/memory-reward-popup-openning.wav', 0.7);
 }
 
 function playMemorySelectionSound() {
-    // Se você tiver um sistema de som no battle, use aqui
-    // Por exemplo: playSound('/static/sounds/memoryselection.mp3');
-    console.log("🎵 Som de seleção de memória (placeholder)");
+    playSound('/static/game.data/sounds/memory-reward-popup-selection.wav', 0.8);
+}
+
+function playMemoryHoverSound() {
+    playSound('/static/game.data/sounds/memory-hover.mp3', 0.4);
 }
 
 function playRewriteSound() {
-    const audio = new Audio('/static/game.data/sounds/rewrite.mp3');
-    audio.volume = 0.5;
-    audio.play().catch(err => console.log("Erro ao tocar som de rewrite:", err));
+    playSound('/static/game.data/sounds/rewrite.mp3', 0.5);
 }
 
 // Mostrar pop-up de seleção de memórias
@@ -205,6 +203,7 @@ function displayMemoryOptions(enemyRarity) {
             <div class="memory-value">${option.formatted_value}</div>
         `;
 
+        optionElement.addEventListener('mouseenter', () => playMemoryHoverSound());
         optionElement.addEventListener('click', () => selectMemoryOption(option.type, optionElement));
         container.appendChild(optionElement);
     });
