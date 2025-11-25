@@ -277,7 +277,7 @@ function confirmMemorySelection() {
                 total_value: data.total_value
             });
 
-            // Fechar pop-up e redirecionar para o hub imediatamente
+            // Aguardar 1200ms para o som terminar antes de redirecionar
             setTimeout(() => {
                 const popup = document.getElementById('memory-selection-popup');
                 if (popup) popup.style.display = 'none';
@@ -296,7 +296,7 @@ function confirmMemorySelection() {
                     // Recarregar a página para atualizar os dados
                     window.location.reload();
                 }
-            }, 300);
+            }, 1200);
         } else {
             alert('Erro: ' + data.message);
 
