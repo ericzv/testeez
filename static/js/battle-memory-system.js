@@ -296,7 +296,7 @@ function confirmMemorySelection() {
                     // Recarregar a página para atualizar os dados
                     window.location.reload();
                 }
-            }, 1200);
+            }, 1800);
         } else {
             alert('Erro: ' + data.message);
 
