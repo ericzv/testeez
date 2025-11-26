@@ -335,13 +335,7 @@
     }
 }
 
-/* Estado de "sem intenções" */
-.intentions-icons:empty::before {
-    content: "Aguardando...";
-    color: rgba(255, 215, 0, 0.5);
-    font-size: 14px;
-    font-style: italic;
-}
+/* Estado de "sem intenções" - removido para evitar texto durante transições */
 
 /* Responsividade */
 @media (max-width: 768px) {
