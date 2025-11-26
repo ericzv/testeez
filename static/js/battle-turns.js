@@ -315,6 +315,22 @@ async function updateEnemyActionsHUD() {
             return;
         }
 
+        // ===== ANIMAÇÃO DE SAÍDA DOS ÍCONES ATUAIS =====
+        const currentIcons = container.querySelectorAll('.intention-icon');
+        if (currentIcons.length > 0) {
+            // Animar saída dos ícones atuais
+            currentIcons.forEach((icon, index) => {
+                setTimeout(() => {
+                    icon.style.transition = 'all 0.3s ease-out';
+                    icon.style.opacity = '0';
+                    icon.style.transform = 'scale(0.5)';
+                }, index * 50); // Cascata de saída
+            });
+
+            // Aguardar animação de saída terminar antes de limpar
+            await new Promise(resolve => setTimeout(resolve, 400));
+        }
+
         // Prioridade: action_queue (ações atuais) > next_intentions (próximas ações)
         const actionQueue = status.action_queue || [];
         const nextIntentions = status.next_intentions || [];
@@ -341,7 +357,7 @@ async function updateEnemyActionsHUD() {
             console.log('🎯 Mostrando PRÓXIMAS AÇÕES (próximo turno):', actionsToShow);
         }
 
-        // Limpar container
+        // Limpar container (após animação de saída)
         container.innerHTML = '';
 
         if (actionsToShow.length === 0) {
@@ -349,7 +365,11 @@ async function updateEnemyActionsHUD() {
             return;
         }
 
-        // Criar ícone para cada ação
+        // ===== PEQUENO DELAY ANTES DE MOSTRAR NOVOS ÍCONES =====
+        // Isso garante separação visual clara entre consumo e novos ícones
+        await new Promise(resolve => setTimeout(resolve, 150));
+
+        // Criar ícone para cada ação (com animação de entrada)
         actionsToShow.forEach((action, index) => {
             const iconDiv = document.createElement('div');
 
