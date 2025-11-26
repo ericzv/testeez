@@ -526,8 +526,8 @@
     right: 20%;
     top: 40%;
     width: 300px;
-    background-color: rgba(0, 0, 0, 0.8);
-    border: 2px solid rgba(255, 50, 50, 0.5);
+    background: rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 10px;
     padding: 20px;
     color: white;
@@ -537,6 +537,7 @@
     transition: all 0.4s ease;
     z-index: 1300;
     visibility: hidden;
+    backdrop-filter: blur(20px) saturate(180%);
   }
   
   .boss-view .boss-info-panel {
@@ -2505,8 +2506,8 @@
   .character-view #special-submenu,
   .character-view #inventory-submenu {
     position: absolute !important;
-    top: 63% !important; /* Posicionar no meio da tela */
-    left: 15% !important; 
+    top: 26% !important; /* Posicionar no meio da tela */
+    left: 15% !important;
     transform: translateY(-50%) !important; /* Centraliza verticalmente */
     width: 75%; /* Largura maior para acomodar ícones em linha */
     display: flex;
