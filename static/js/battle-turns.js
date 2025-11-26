@@ -602,35 +602,35 @@ function showTurnFeedback(data) {
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(20, 20, 40, 0.95) 100%);
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(20, 20, 40, 0.15) 100%);
+        backdrop-filter: blur(20px) saturate(180%);
         color: white;
-        padding: 40px 60px;
-        border-radius: 20px;
-        font-size: 28px;
+        padding: 20px 35px;
+        border-radius: 16px;
+        font-size: 20px;
         font-weight: bold;
         font-family: 'Cinzel', serif;
         z-index: 9999;
-        border: 4px solid #ffd700;
+        border: 1px solid rgba(255, 255, 255, 0.3);
         text-align: center;
-        box-shadow: 
-            0 10px 40px rgba(0, 0, 0, 0.8),
-            0 0 30px rgba(255, 215, 0, 0.4),
-            inset 0 0 20px rgba(255, 215, 0, 0.1);
+        box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.4),
+            0 0 20px rgba(255, 215, 0, 0.2);
         animation: feedbackPop 0.5s ease-out;
     `;
-    
+
     const actionsText = data.num_actions === 1 ? 'ação' : 'ações';
-    
+
     feedback.innerHTML = `
-        <div style="color: #ffd700; margin-bottom: 10px; font-size: 20px;">⚔️ TURNO DO INIMIGO ⚔️</div>
-        <div style="font-size: 24px;">${data.enemy_name}</div>
-        <div style="color: #ff6b6b; margin-top: 15px; font-size: 22px;">
+        <div style="color: #ffd700; margin-bottom: 8px; font-size: 16px;">⚔️ TURNO DO INIMIGO ⚔️</div>
+        <div style="font-size: 18px;">${data.enemy_name}</div>
+        <div style="color: #ff6b6b; margin-top: 10px; font-size: 16px;">
             ${data.num_actions} ${actionsText} preparada${data.num_actions > 1 ? 's' : ''}!
         </div>
     `;
-    
+
     document.body.appendChild(feedback);
-    
+
     setTimeout(() => {
         feedback.style.animation = 'feedbackFade 0.5s ease-out';
         setTimeout(() => feedback.remove(), 500);
