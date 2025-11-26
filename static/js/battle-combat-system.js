@@ -4307,8 +4307,14 @@ async function executeSingleEnemyAttack() {
         console.log("🔍 DEBUG: Resposta do execute_enemy_attack:", JSON.stringify(result, null, 2));
         
         if (result.success) {
-            // Remover carga do HUD visualmente
+            // Remover carga do HUD visualmente (legado)
             removeChargeFromHUD();
+
+            // ATUALIZAR HUD UNIFICADO: Remover ícone da ação executada
+            if (typeof window.updateEnemyActionsHUD === 'function') {
+                await window.updateEnemyActionsHUD();
+                console.log('✅ HUD unificado atualizado após ação do inimigo');
+            }
 
             // NOVA LÓGICA: Verificar se é qualquer tipo de skill ou ataque normal
             if (result.skill_id && (result.is_skill_attack || result.is_buff_skill || result.is_debuff_skill)) {
@@ -4620,7 +4626,12 @@ async function handlePlayerDeath() {
 
 function showDefeatScreen() {
     console.log("Mostrando tela de derrota com botão");
-    
+
+    // Esconder HUD de ações do inimigo
+    if (typeof window.hideEnemyActionsHUD === 'function') {
+        window.hideEnemyActionsHUD();
+    }
+
     const defeatOverlay = document.getElementById('defeat-overlay');
     if (defeatOverlay) {
         // Remover qualquer botão existente

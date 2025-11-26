@@ -126,9 +126,9 @@ function updatePlayerStatusCard() {
     const lifestealContainer = document.getElementById('player-status-lifesteal-container');
     const buffsContainer = document.getElementById('player-buffs-container');
     
-    if (!pointsEl || !hpEl || !damageEl || !critChanceEl || !critBonusEl || 
+    if (!pointsEl || !hpEl || !damageEl || !critChanceEl || !critBonusEl ||
         !blockEl || !dodgeEl || !lifestealEl || !lifestealContainer || !buffsContainer) {
-        console.error("Elementos do card de status não encontrados");
+        // Player status panel foi removido - retornar silenciosamente
         return;
     }
     

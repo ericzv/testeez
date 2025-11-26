@@ -1862,50 +1862,21 @@ function stopHeartbeatMusic() {
 
 function updateEnemyChargesHUD(attackStatus) {
     const hudElement = document.getElementById('enemy-charges-hud');
-    const timersContainer = document.getElementById('timers-container');
-    const timerElement = document.getElementById('charge-timer');
     const containerElement = document.getElementById('charges-container');
     const buffDebuffContainer = document.getElementById('buff-debuff-container');
-    
-    if (!hudElement || !timerElement || !containerElement) {
-        console.warn('Elementos do HUD de cargas não encontrados');
+
+    if (!hudElement || !containerElement) {
+        // Sistema de turnos não está usando timers - retornar silenciosamente
         return;
     }
     
     // Mostrar HUD
     hudElement.classList.add('visible');
-    
-    // ===== ATUALIZAR TIMER DE ATAQUE NORMAL =====
-    if (attackStatus.time_to_next) {
-        const time = attackStatus.time_to_next;
-        const hours = String(time.hours).padStart(2, '0');
-        const minutes = String(time.minutes).padStart(2, '0');
-        const seconds = String(time.seconds).padStart(2, '0');
-        timerElement.textContent = `Próxima carga em: ${hours}:${minutes}:${seconds}`;
-    } else {
-        timerElement.textContent = 'Próxima carga em: --:--:--';
-    }
-    
-    // ===== ADICIONAR/ATUALIZAR TIMERS DE SKILLS =====
-    // Remover timers de skills antigos
-    const oldSkillTimers = timersContainer.querySelectorAll('.skill-timer');
-    oldSkillTimers.forEach(timer => timer.remove());
-    
-    // Adicionar novos timers de skills
-    if (attackStatus.skill_timers) {
-        Object.keys(attackStatus.skill_timers).forEach(skillId => {
-            const skillTime = attackStatus.skill_timers[skillId];
-            const hours = String(skillTime.hours).padStart(2, '0');
-            const minutes = String(skillTime.minutes).padStart(2, '0');
-            const seconds = String(skillTime.seconds).padStart(2, '0');
-            
-            const skillTimer = document.createElement('div');
-            skillTimer.className = 'skill-timer';
-            skillTimer.textContent = `Skill ${skillId}: ${hours}:${minutes}:${seconds}`;
-            timersContainer.appendChild(skillTimer);
-        });
-    }
-    
+
+    // ===== TIMERS REMOVIDOS - Sistema de turnos não usa mais timers em tempo real =====
+    // Os elementos 'timerElement' e 'timersContainer' não existem mais no HTML
+    // O sistema agora usa 'enemy-intentions-container' para mostrar próximas ações
+
     // ===== ATUALIZAR FILA DE ATAQUES NORMAIS + SKILLS DE ATAQUE =====
     containerElement.innerHTML = '';
     

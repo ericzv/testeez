@@ -314,18 +314,16 @@
 <!-- Vinheta para Enemy Attack View -->
 <div class="enemy-attack-vignette" id="enemy-attack-vignette"></div>
 
-<!-- HUD de cargas de ataque do inimigo - ACIMA DO INIMIGO -->
-<div class="enemy-charges-hud" id="enemy-charges-hud">
-    <!-- Fila de ataques normais + skills de ataque - ESTE TURNO -->
+<!-- HUD de cargas de ataque do inimigo - REMOVIDO (unificado com enemy-intentions-container) -->
+<!-- <div class="enemy-charges-hud" id="enemy-charges-hud" style="display: none;">
     <div class="charges-container" id="charges-container">
         <span class="no-charges-text">Aguardando turno</span>
     </div>
-    
-    <!-- Fila de buff/debuff skills - ESTE TURNO -->
+
     <div class="buff-debuff-container" id="buff-debuff-container" style="display: none;">
         <span class="no-buffs-text">Nenhuma skill pendente</span>
     </div>
-</div>
+</div> -->
 
 <!-- Ícones de buffs ativos no inimigo -->
 <div class="enemy-active-buffs" id="enemy-active-buffs">
@@ -505,66 +503,6 @@
   <div class="boss-quote">"O conhecimento é a minha maior fraqueza."</div>
 </div>
 
-<!-- SUBSTITUIR a div player-status-panel inteira por este código -->
-<div class="player-status-panel" id="player-status-panel">
-  <div class="player-name">Status do Personagem</div>
-  
-  <!-- Estatísticas vitais -->
-  <div class="vital-stats">
-    <!-- HP e MP na mesma linha -->
-    <div class="vital-stat-row">
-      <div class="vital-stat hp-stat">
-        <span class="stat-label">HP:</span>
-        <span id="player-status-hp" class="stat-value">0/0</span>
-      </div>
-    </div>
-    <!-- Pontos de Dano em destaque abaixo -->
-    <div class="vital-stat damage-points-stat">
-      <span class="stat-label">Pontos de Dano:</span>
-      <span id="player-status-points" class="stat-value">0</span>
-    </div>
-  </div>
-  
-  <!-- Duas colunas para as demais estatísticas -->
-  <div class="player-stats-columns">
-    <!-- Coluna esquerda (ofensiva) -->
-    <div class="stats-column">
-      <div class="player-stat">
-        <span class="stat-label">Dano:</span>
-        <span id="player-status-damage" class="stat-value">0</span>
-      </div>
-      <div class="player-stat">
-        <span class="stat-label">Chance Crítico:</span>
-        <span id="player-status-crit-chance" class="stat-value">0%</span>
-      </div>
-      <div class="player-stat">
-        <span class="stat-label">Bônus Crítico:</span>
-        <span id="player-status-crit-bonus" class="stat-value">0%</span>
-      </div>
-    </div>
-    
-    <!-- Coluna direita (defensiva) -->
-    <div class="stats-column">
-      <div class="player-stat">
-        <span class="stat-label">Bloqueio:</span>
-        <span id="player-status-block" class="stat-value">0%</span>
-      </div>
-      <div class="player-stat">
-        <span class="stat-label">Esquiva:</span>
-        <span id="player-status-dodge" class="stat-value">0%</span>
-      </div>
-      <div class="player-stat" id="player-status-lifesteal-container">
-        <span class="stat-label">Roubo de Vida:</span>
-        <span id="player-status-lifesteal" class="stat-value">0%</span>
-      </div>
-    </div>
-  </div>
-  
-  <div class="player-buffs-title">Buffs Ativos</div>
-  <div class="player-buffs-container" id="player-buffs-container">
-    <!-- Buffs serão adicionados aqui dinamicamente -->
-  </div>
-</div>
 
 <!-- Boss View Background -->
 <div class="boss-view-background"></div>
@@ -605,10 +543,6 @@
   <input type="hidden" id="special-skill-id" name="skill_id" value="">
 </form>
 
-<!-- Botão de teste para diagnosticar problema do boss -->
-<div style="position: fixed; bottom: 80px; left: 10px; z-index: 9999;">
-  <button id="test-boss-damage" style="background: #ff3300; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Testar Dano (Bypass API)</button>
-</div>
 
 elementos ocultos para debug (antes dos scripts) -->
 <!-- Inserir antes da linha ~450 (onde começam os scripts) -->
@@ -833,13 +767,13 @@ document.addEventListener('DOMContentLoaded', function() {
      SISTEMA DE TURNOS - HUD EXTERNO
      ======================================== -->
      
-<!-- Área de Intenções do Inimigo -->
+<!-- Área de Ações do Inimigo (Unificado - mostra ações atuais OU próximas) -->
 <div id="enemy-intentions-container" class="enemy-intentions-container">
     <div class="intentions-header">
-        🔮 Próximo Turno do Inimigo
+        ⚔️ Ações do Inimigo
     </div>
     <div id="intentions-icons" class="intentions-icons">
-        <!-- Ícones das intenções aparecerão aqui -->
+        <!-- Ícones das ações aparecerão aqui -->
     </div>
 </div>
 

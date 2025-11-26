@@ -41,20 +41,15 @@ async function endPlayerTurn() {
         if (data.success) {
             console.log('✅ Turno do inimigo processado:', data);
             
-            // Atualizar visualização de intenções
-            await updateEnemyIntentions();
-            
+            // Atualizar HUD unificado de ações
+            await updateEnemyActionsHUD();
+
             // Mostrar feedback
             showTurnFeedback(data);
-            
+
             // Se tem ações, habilitar sistemas de combate
             if (data.has_actions) {
                 console.log('⚔️ Inimigo tem ações disponíveis!');
-                
-                // Atualizar HUD de cargas
-                if (typeof updateChargesHUD === 'function') {
-                    updateChargesHUD();
-                }
                 
                 // DESABILITAR BOTÃO ATÉ JOGADOR RESOLVER AS AÇÕES DO INIMIGO
                 btn.disabled = true;
@@ -143,137 +138,13 @@ function showYourTurnFeedback() {
 window.showYourTurnFeedback = showYourTurnFeedback;
 
 /**
- * Atualizar HUD de cargas de ataque (turno ATUAL do inimigo)
- * Mostra as ações que o inimigo vai executar NESTE turno
- * AGORA TAMBÉM desabilita o botão "End Turn" se houver ações pendentes na carga.
+ * Atualizar HUD unificado de ações do inimigo
+ * Mostra ações ATUAIS (se houver) ou PRÓXIMAS (se não houver ações atuais)
+ * Segue a lógica do Slay the Spire: um único HUD para todas as ações
  */
 async function updateChargesHUD() {
-    try {
-        const response = await fetch('/gamification/enemy_attack_status');
-        const data = await response.json();
-        
-        if (!data.success) {
-            console.warn('⚠️ Não foi possível obter status das cargas');
-            return;
-        }
-        
-        const status = data.status;
-        const chargesContainer = document.getElementById('charges-container');
-        const buffDebuffContainer = document.getElementById('buff-debuff-container');
-        const enemyChargesHud = document.getElementById('enemy-charges-hud');
-        
-        if (!chargesContainer || !buffDebuffContainer || !enemyChargesHud) {
-            console.error('❌ Containers de cargas não encontrados');
-            return;
-        }
-        
-        // ===== ATUALIZAR CARGAS DE ATAQUE =====
-        const actionQueue = status.action_queue || [];
-        const attackActions = actionQueue.filter(action => 
-            action.type === 'attack' || action.type === 'attack_skill'
-        );
-        
-        console.log('⚡ Atualizando charges HUD (TURNO ATUAL):', {
-            total_actions: actionQueue.length,
-            attack_actions: attackActions.length
-        });
-        
-        chargesContainer.innerHTML = '';
-        
-        if (attackActions.length > 0) {
-            // Mostrar ícones das cargas
-            attackActions.forEach((action, index) => {
-                const chargeIcon = document.createElement('div');
-
-                if (action.type === 'attack') {
-                    chargeIcon.className = 'attack-charge-icon';
-                    chargesContainer.appendChild(chargeIcon);
-
-                    // Tooltip estilizado
-                    const tooltipText = `⚔️ Ataque Básico (Dano: ${action.data.damage})`;
-                    if (typeof addStyledTooltip === 'function') {
-                        addStyledTooltip(chargeIcon, tooltipText, 'bottom');
-                    } else {
-                        chargeIcon.title = tooltipText;
-                    }
-                } else if (action.type === 'attack_skill') {
-                    chargeIcon.className = 'attack-charge-icon';
-                    chargeIcon.style.backgroundImage = `url('${action.icon}')`;
-                    chargesContainer.appendChild(chargeIcon);
-
-                    // Tooltip estilizado
-                    const tooltipText = `🔥 ${action.data?.name || 'Skill de Ataque'} (Dano: ${action.data.calculated_damage || '??'})`;
-                    if (typeof addStyledTooltip === 'function') {
-                        addStyledTooltip(chargeIcon, tooltipText, 'bottom');
-                    } else {
-                        chargeIcon.title = tooltipText;
-                    }
-                }
-            });
-            
-            // Mostrar HUD
-            enemyChargesHud.classList.add('visible');
-        } else {
-            chargesContainer.innerHTML = '<span class="no-charges-text">Aguardando turno</span>';
-            // Esconder HUD se não houver ações
-            // (Não remover 'visible' se buffs/debuffs ainda estiverem lá)
-            if (status.buff_debuff_queue.length === 0) {
-                enemyChargesHud.classList.remove('visible');
-            }
-        }
-        
-        // ===== ATUALIZAR BUFF/DEBUFF =====
-        const buffDebuffQueue = status.buff_debuff_queue || [];
-        
-        if (buffDebuffQueue.length > 0) {
-            buffDebuffContainer.innerHTML = '';
-            buffDebuffContainer.style.display = 'flex';
-            console.log('🔮 Buff/Debuff container ativado com', buffDebuffQueue.length, 'skill(s)');
-            
-            buffDebuffQueue.forEach(skill => {
-                const skillIcon = document.createElement('div');
-                skillIcon.className = skill.type === 'buff' ? 'buff-skill-icon' : 'debuff-skill-icon';
-                skillIcon.style.backgroundImage = `url('${skill.icon}')`;
-
-                buffDebuffContainer.appendChild(skillIcon);
-
-                // Tooltip estilizado
-                const tooltipText = skill.data?.name || (skill.type === 'buff' ? 'Buff' : 'Debuff');
-                if (typeof addStyledTooltip === 'function') {
-                    addStyledTooltip(skillIcon, tooltipText, 'bottom');
-                } else {
-                    skillIcon.title = tooltipText;
-                }
-            });
-            
-            enemyChargesHud.classList.add('visible');
-        } else {
-            buffDebuffContainer.style.display = 'none';
-        }
-
-        // ===== CORREÇÃO DO BUG DO F5 (PROBLEMA 1) =====
-        const btn = document.getElementById('end-turn-btn');
-        if (btn) {
-            if (attackActions.length > 0 || buffDebuffQueue.length > 0) {
-                // Se o inimigo TEM ações, DESABILITE o botão
-                console.log('🔒 Botão desabilitado (via F5) - Inimigo tem ações pendentes');
-                btn.disabled = true;
-                btn.querySelector('.turn-icon-img').style.filter = 'drop-shadow(0 0 15px rgba(255, 68, 68, 0.8)) grayscale(30%)';
-                btn.querySelector('.turn-icon-img').style.animation = 'rotateSlow 10s linear infinite';
-            } else {
-                // Se o inimigo NÃO TEM ações (é turno do jogador), HABILITE o botão
-                // (Isso também garante que o botão volte ao normal se o F5 for
-                // pressionado durante o turno do jogador)
-                console.log('✅ Botão habilitado (via F5) - Turno do jogador');
-                btn.disabled = false;
-                btn.querySelector('.turn-icon-img').style.filter = 'drop-shadow(0 0 10px rgba(102, 126, 234, 0.6))';
-                btn.querySelector('.turn-icon-img').style.animation = 'rotateSlow 10s linear infinite';
-            }
-        }
-        
-    } catch (error) {
-        console.error('❌ Erro ao atualizar charges HUD:', error);
-    }
+    // Redirecionar para a função unificada
+    await updateEnemyActionsHUD();
 }
 
 /**
@@ -422,100 +293,172 @@ window.restorePlayerEnergy = restorePlayerEnergy;
 window.enableEndTurnButton = enableEndTurnButton;
 
 /**
- * Atualizar visualização de intenções do inimigo
+ * HUD UNIFICADO: Atualizar ações do inimigo
+ * Mostra action_queue (turno atual) OU next_intentions (próximo turno)
+ * Estilo Slay the Spire: sempre mostra o que o inimigo vai fazer
  */
-async function updateEnemyIntentions() {
+async function updateEnemyActionsHUD() {
     try {
         const response = await fetch('/gamification/enemy_attack_status');
         const data = await response.json();
-        
-        if (!data.success) {
-            console.warn('⚠️ Não foi possível obter intenções');
-            return;
-        }
-        
-        // 'intentions' agora é uma lista de OBJETOS RICOS
-        const intentions = data.status.next_intentions || [];
-        const container = document.getElementById('intentions-icons');
-        
-        if (!container) {
-            console.error('❌ Container intentions-icons não encontrado');
-            return;
-        }
-        
-        // Limpar container
-        container.innerHTML = '';
-        
-        console.log('🎯 Próximas intenções (OBJETOS):', intentions);
-        console.log('📋 IMPORTANTE: Estas são as intenções do PRÓXIMO turno (não do turno atual)');
-        
-        if (intentions.length === 0) {
-            container.innerHTML = '<span style="color: rgba(255,215,0,0.5); font-size: 14px;">Aguardando...</span>';
-            return;
-        }
-        
-        // NÃO PRECISAMOS MAIS DE: const skillsData = await loadSkillsData();
-        // O backend já nos enviou tudo.
 
-        // Criar ícone para cada intenção
-        intentions.forEach((intention, index) => {
-            // 'intention' é um OBJETO (ex: { type: "debuff", name: "Nictalopia", ... })
-            
+        if (!data.success) {
+            console.warn('⚠️ Não foi possível obter ações do inimigo');
+            return;
+        }
+
+        const status = data.status;
+        const container = document.getElementById('intentions-icons');
+        const hudContainer = document.getElementById('enemy-intentions-container');
+
+        if (!container || !hudContainer) {
+            console.error('❌ Containers não encontrados');
+            return;
+        }
+
+        // ===== ANIMAÇÃO DE SAÍDA COM SHAKE DOS ÍCONES ATUAIS =====
+        const currentIcons = container.querySelectorAll('.intention-icon');
+        if (currentIcons.length > 0) {
+            // Aplicar animação de shake/consumo aos ícones atuais
+            currentIcons.forEach((icon, index) => {
+                setTimeout(() => {
+                    icon.style.animation = 'iconConsumeShake 0.5s ease-out forwards';
+                }, index * 80); // Cascata de saída
+            });
+
+            // Aguardar animação de shake terminar antes de limpar
+            await new Promise(resolve => setTimeout(resolve, 600));
+        }
+
+        // Prioridade: action_queue (ações atuais) > next_intentions (próximas ações)
+        const actionQueue = status.action_queue || [];
+        const nextIntentions = status.next_intentions || [];
+
+        // Determinar qual lista mostrar
+        let actionsToShow = [];
+        let isCurrentTurn = false;
+
+        if (actionQueue.length > 0) {
+            // Há ações no turno atual - mostrar elas
+            actionsToShow = actionQueue.map(action => ({
+                type: action.type,
+                name: action.data?.name || (action.type === 'attack' ? 'Ataque Básico' : 'Ação'),
+                icon: action.icon || '/static/game.data/icons/attackcharge.png',
+                damage: action.data?.calculated_damage || action.data?.damage,
+                id: action.id || Math.random() // ID único para remover depois
+            }));
+            isCurrentTurn = true;
+            console.log('⚔️ Mostrando AÇÕES ATUAIS (turno do inimigo):', actionsToShow);
+        } else {
+            // Sem ações atuais - mostrar próximas intenções
+            actionsToShow = nextIntentions;
+            isCurrentTurn = false;
+            console.log('🎯 Mostrando PRÓXIMAS AÇÕES (próximo turno):', actionsToShow);
+        }
+
+        // Limpar container (após animação de saída)
+        container.innerHTML = '';
+
+        // NÃO mostrar "Aguardando..." durante transição - apenas deixar vazio
+        if (actionsToShow.length === 0) {
+            // Sem ações e sem próximas intenções - esconder HUD
+            hudContainer.classList.remove('visible');
+            return;
+        }
+
+        // Mostrar HUD se houver ações
+        hudContainer.classList.add('visible');
+
+        // ===== PEQUENO DELAY ANTES DE MOSTRAR NOVOS ÍCONES =====
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // Criar ícone para cada ação (com animação de entrada)
+        actionsToShow.forEach((action, index) => {
             const iconDiv = document.createElement('div');
-            
-            // Usar o .type para a classe CSS
-            iconDiv.className = `intention-icon ${intention.type}`;
-            
-            // Usar o .icon (caminho completo) enviado pelo backend
-            const iconPath = intention.icon;
+
+            // Classe CSS baseada no tipo
+            iconDiv.className = `intention-icon ${action.type}`;
+
+            // Adicionar atributo data-action-id para remoção posterior
+            if (action.id) {
+                iconDiv.setAttribute('data-action-id', action.id);
+            }
+
+            // Ícone
+            const iconPath = action.icon;
             if (iconPath) {
                 iconDiv.style.backgroundImage = `url('${iconPath}')`;
             } else {
-                // Fallback se o ícone não vier
                 iconDiv.style.backgroundImage = `url('/static/game.data/icons/attackcharge.png')`;
             }
-            
-            // Adicionar badge de ordem (código anterior estava correto)
-            if (intentions.length > 1) {
+
+            // Badge de ordem
+            if (actionsToShow.length > 1) {
                 const badge = document.createElement('div');
                 badge.className = 'intention-badge';
                 badge.textContent = index + 1;
                 iconDiv.appendChild(badge);
             }
-            
-            // Tooltip com descrição vinda do backend
-            let tooltip = intention.name || 'Ação';
-            
-            // Adicionar dano ao tooltip se for um ataque
-            if ((intention.type === 'attack' || intention.type === 'attack_skill') && intention.damage) {
-                tooltip += ` (Dano: ${intention.damage})`;
+
+            // Tooltip
+            let tooltip = action.name || 'Ação';
+            if ((action.type === 'attack' || action.type === 'attack_skill') && action.damage) {
+                tooltip += ` (Dano: ${action.damage})`;
             }
 
-            // Animação de entrada (código anterior estava correto)
+            // Aplicar animação de fade in suave via CSS
+            iconDiv.style.animation = `iconFadeIn 0.5s ease-out forwards ${index * 0.1}s`;
             iconDiv.style.opacity = '0';
-            iconDiv.style.transform = 'scale(0.5)';
 
             container.appendChild(iconDiv);
 
-            // Adicionar tooltip estilizado
+            // Tooltip estilizado
             if (typeof addStyledTooltip === 'function') {
                 addStyledTooltip(iconDiv, tooltip, 'bottom');
             } else {
-                iconDiv.title = tooltip; // Fallback
+                iconDiv.title = tooltip;
             }
-
-            // Animar entrada
-            setTimeout(() => {
-                iconDiv.style.transition = 'all 0.4s ease-out';
-                iconDiv.style.opacity = '1';
-                iconDiv.style.transform = 'scale(1)';
-            }, index * 100);
         });
-        
+
+        // ===== CONTROLE DO BOTÃO END TURN =====
+        const btn = document.getElementById('end-turn-btn');
+        if (btn) {
+            if (isCurrentTurn && actionsToShow.length > 0) {
+                // Turno do inimigo - desabilitar botão
+                console.log('🔒 Botão desabilitado - Inimigo tem ações pendentes');
+                btn.disabled = true;
+                btn.querySelector('.turn-icon-img').style.filter = 'drop-shadow(0 0 15px rgba(255, 68, 68, 0.8)) grayscale(30%)';
+                btn.querySelector('.turn-icon-img').style.animation = 'rotateSlow 10s linear infinite';
+            } else {
+                // Turno do jogador - habilitar botão
+                console.log('✅ Botão habilitado - Turno do jogador');
+                btn.disabled = false;
+                btn.querySelector('.turn-icon-img').style.filter = 'drop-shadow(0 0 10px rgba(102, 126, 234, 0.6))';
+                btn.querySelector('.turn-icon-img').style.animation = 'rotateSlow 10s linear infinite';
+            }
+        }
+
     } catch (error) {
-        // Este é o erro que você viu
-        console.error('❌ Erro ao atualizar intenções:', error);
+        console.error('❌ Erro ao atualizar ações do inimigo:', error);
     }
+}
+
+/**
+ * Esconder HUD de ações do inimigo (chamado ao vencer/perder)
+ */
+function hideEnemyActionsHUD() {
+    const hudContainer = document.getElementById('enemy-intentions-container');
+    if (hudContainer) {
+        hudContainer.classList.remove('visible');
+        console.log('👻 HUD de ações do inimigo escondido');
+    }
+}
+
+/**
+ * Função legada - redireciona para updateEnemyActionsHUD
+ */
+async function updateEnemyIntentions() {
+    await updateEnemyActionsHUD();
 }
 
 /**
@@ -659,35 +602,35 @@ function showTurnFeedback(data) {
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(20, 20, 40, 0.95) 100%);
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(20, 20, 40, 0.15) 100%);
+        backdrop-filter: blur(20px) saturate(180%);
         color: white;
-        padding: 40px 60px;
-        border-radius: 20px;
-        font-size: 28px;
+        padding: 20px 35px;
+        border-radius: 16px;
+        font-size: 20px;
         font-weight: bold;
         font-family: 'Cinzel', serif;
         z-index: 9999;
-        border: 4px solid #ffd700;
+        border: 1px solid rgba(255, 255, 255, 0.3);
         text-align: center;
-        box-shadow: 
-            0 10px 40px rgba(0, 0, 0, 0.8),
-            0 0 30px rgba(255, 215, 0, 0.4),
-            inset 0 0 20px rgba(255, 215, 0, 0.1);
+        box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.4),
+            0 0 20px rgba(255, 215, 0, 0.2);
         animation: feedbackPop 0.5s ease-out;
     `;
-    
+
     const actionsText = data.num_actions === 1 ? 'ação' : 'ações';
-    
+
     feedback.innerHTML = `
-        <div style="color: #ffd700; margin-bottom: 10px; font-size: 20px;">⚔️ TURNO DO INIMIGO ⚔️</div>
-        <div style="font-size: 24px;">${data.enemy_name}</div>
-        <div style="color: #ff6b6b; margin-top: 15px; font-size: 22px;">
+        <div style="color: #ffd700; margin-bottom: 8px; font-size: 16px;">⚔️ TURNO DO INIMIGO ⚔️</div>
+        <div style="font-size: 18px;">${data.enemy_name}</div>
+        <div style="color: #ff6b6b; margin-top: 10px; font-size: 16px;">
             ${data.num_actions} ${actionsText} preparada${data.num_actions > 1 ? 's' : ''}!
         </div>
     `;
-    
+
     document.body.appendChild(feedback);
-    
+
     setTimeout(() => {
         feedback.style.animation = 'feedbackFade 0.5s ease-out';
         setTimeout(() => feedback.remove(), 500);
@@ -710,20 +653,16 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('⚠️ Botão end-turn-btn não encontrado no DOM');
     }
     
-    // Atualizar intenções ao carregar a página
+    // Atualizar HUD unificado de ações ao carregar a página
     setTimeout(() => {
-        updateEnemyIntentions();
-        console.log('✅ Intenções iniciais carregadas');
+        updateEnemyActionsHUD();
+        console.log('✅ HUD de ações do inimigo carregado');
     }, 1000);
-
-    // Atualizar HUD de cargas ao carregar a página
-    setTimeout(() => {
-        updateChargesHUD();
-        console.log('✅ HUD de cargas inicial carregado');
-    }, 1200);
 });
 
 // Expor funções globalmente para outros scripts
 window.endPlayerTurn = endPlayerTurn;
-window.updateEnemyIntentions = updateEnemyIntentions;
+window.updateEnemyIntentions = updateEnemyIntentions; // Legado
+window.updateEnemyActionsHUD = updateEnemyActionsHUD; // Novo unificado
 window.updateChargesHUD = updateChargesHUD;
+window.hideEnemyActionsHUD = hideEnemyActionsHUD;

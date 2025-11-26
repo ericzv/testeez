@@ -1056,6 +1056,11 @@ function useSpecialSkill(skillId, skillName) {
                                 if (pendingDamageData.enemy_defeated) {
                                     console.log("💀 INIMIGO DERROTADO POR LÂMINA DE SANGUE!");
 
+                                    // Esconder HUD de ações do inimigo
+                                    if (typeof window.hideEnemyActionsHUD === 'function') {
+                                        window.hideEnemyActionsHUD();
+                                    }
+
                                     // Salvar dados de vitória no localStorage
                                     // Usar dados de recompensa retornados pelo backend
                                     localStorage.setItem('lastVictoryTime', Date.now());

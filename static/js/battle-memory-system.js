@@ -51,6 +51,11 @@ function showMemorySelectionPopup(enemyRarity) {
                 // TOCAR SOM DO POP-UP DE MEMÓRIAS
                 playMemoryOptionsSound();
 
+                // Esconder HUD de ações do inimigo
+                if (typeof window.hideEnemyActionsHUD === 'function') {
+                    window.hideEnemyActionsHUD();
+                }
+
                 console.log("🧠 DEBUG: Mostrando pop-up");
                 document.getElementById('memory-selection-popup').style.display = 'flex';
             }
