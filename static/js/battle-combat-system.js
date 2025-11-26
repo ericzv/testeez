@@ -4626,7 +4626,12 @@ async function handlePlayerDeath() {
 
 function showDefeatScreen() {
     console.log("Mostrando tela de derrota com botão");
-    
+
+    // Esconder HUD de ações do inimigo
+    if (typeof window.hideEnemyActionsHUD === 'function') {
+        window.hideEnemyActionsHUD();
+    }
+
     const defeatOverlay = document.getElementById('defeat-overlay');
     if (defeatOverlay) {
         // Remover qualquer botão existente

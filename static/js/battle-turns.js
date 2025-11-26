@@ -309,26 +309,25 @@ async function updateEnemyActionsHUD() {
 
         const status = data.status;
         const container = document.getElementById('intentions-icons');
+        const hudContainer = document.getElementById('enemy-intentions-container');
 
-        if (!container) {
-            console.error('❌ Container intentions-icons não encontrado');
+        if (!container || !hudContainer) {
+            console.error('❌ Containers não encontrados');
             return;
         }
 
-        // ===== ANIMAÇÃO DE SAÍDA DOS ÍCONES ATUAIS =====
+        // ===== ANIMAÇÃO DE SAÍDA COM SHAKE DOS ÍCONES ATUAIS =====
         const currentIcons = container.querySelectorAll('.intention-icon');
         if (currentIcons.length > 0) {
-            // Animar saída dos ícones atuais
+            // Aplicar animação de shake/consumo aos ícones atuais
             currentIcons.forEach((icon, index) => {
                 setTimeout(() => {
-                    icon.style.transition = 'all 0.3s ease-out';
-                    icon.style.opacity = '0';
-                    icon.style.transform = 'scale(0.5)';
-                }, index * 50); // Cascata de saída
+                    icon.style.animation = 'iconConsumeShake 0.5s ease-out forwards';
+                }, index * 80); // Cascata de saída
             });
 
-            // Aguardar animação de saída terminar antes de limpar
-            await new Promise(resolve => setTimeout(resolve, 400));
+            // Aguardar animação de shake terminar antes de limpar
+            await new Promise(resolve => setTimeout(resolve, 600));
         }
 
         // Prioridade: action_queue (ações atuais) > next_intentions (próximas ações)
@@ -360,14 +359,18 @@ async function updateEnemyActionsHUD() {
         // Limpar container (após animação de saída)
         container.innerHTML = '';
 
+        // NÃO mostrar "Aguardando..." durante transição - apenas deixar vazio
         if (actionsToShow.length === 0) {
-            container.innerHTML = '<span style="color: rgba(255,215,0,0.5); font-size: 14px;">Aguardando...</span>';
+            // Sem ações e sem próximas intenções - esconder HUD
+            hudContainer.classList.remove('visible');
             return;
         }
 
+        // Mostrar HUD se houver ações
+        hudContainer.classList.add('visible');
+
         // ===== PEQUENO DELAY ANTES DE MOSTRAR NOVOS ÍCONES =====
-        // Isso garante separação visual clara entre consumo e novos ícones
-        await new Promise(resolve => setTimeout(resolve, 150));
+        await new Promise(resolve => setTimeout(resolve, 200));
 
         // Criar ícone para cada ação (com animação de entrada)
         actionsToShow.forEach((action, index) => {
@@ -403,9 +406,9 @@ async function updateEnemyActionsHUD() {
                 tooltip += ` (Dano: ${action.damage})`;
             }
 
-            // Animação de entrada
+            // Aplicar animação de fade in suave via CSS
+            iconDiv.style.animation = `iconFadeIn 0.5s ease-out forwards ${index * 0.1}s`;
             iconDiv.style.opacity = '0';
-            iconDiv.style.transform = 'scale(0.5)';
 
             container.appendChild(iconDiv);
 
@@ -415,13 +418,6 @@ async function updateEnemyActionsHUD() {
             } else {
                 iconDiv.title = tooltip;
             }
-
-            // Animar entrada
-            setTimeout(() => {
-                iconDiv.style.transition = 'all 0.4s ease-out';
-                iconDiv.style.opacity = '1';
-                iconDiv.style.transform = 'scale(1)';
-            }, index * 100);
         });
 
         // ===== CONTROLE DO BOTÃO END TURN =====
@@ -444,6 +440,17 @@ async function updateEnemyActionsHUD() {
 
     } catch (error) {
         console.error('❌ Erro ao atualizar ações do inimigo:', error);
+    }
+}
+
+/**
+ * Esconder HUD de ações do inimigo (chamado ao vencer/perder)
+ */
+function hideEnemyActionsHUD() {
+    const hudContainer = document.getElementById('enemy-intentions-container');
+    if (hudContainer) {
+        hudContainer.classList.remove('visible');
+        console.log('👻 HUD de ações do inimigo escondido');
     }
 }
 
@@ -658,3 +665,4 @@ window.endPlayerTurn = endPlayerTurn;
 window.updateEnemyIntentions = updateEnemyIntentions; // Legado
 window.updateEnemyActionsHUD = updateEnemyActionsHUD; // Novo unificado
 window.updateChargesHUD = updateChargesHUD;
+window.hideEnemyActionsHUD = hideEnemyActionsHUD;
