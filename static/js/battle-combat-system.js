@@ -2754,14 +2754,15 @@ function performAttack(skill) {
             setTimeout(() => {
                 // Tocar som do impacto no momento do dano
                 playSound(this.currentSkill.sound_effect_2, 0.8);
-                
-                this.applyBossDamageEffect();
-                
+
+                // SHADER JÁ FOI APLICADO aos 800ms dentro do createEnergyBeamVisual
+                // NÃO aplicar novamente aqui
+
                 // Restaurar idle do personagem após o beam
                 setTimeout(() => {
                     restoreCharacterIdle();
                 }, 300);
-                
+
                 this.nextPhase(500);
             }, beamDuration);
         }
