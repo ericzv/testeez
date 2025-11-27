@@ -91,21 +91,21 @@
   .boss-fx-back {
       z-index: 1;
       /* Sobrescrever .pixie-canvas para ter mesmo tamanho/posição do boss-layer-body */
-      top: 0;
-      left: 0;
-      transform: none;
-      width: 100%;
-      height: 100%;
+      top: 0 !important;
+      left: 0 !important;
+      transform: scaleX(-2) scaleY(2) !important;
+      width: 100% !important;
+      height: 100% !important;
   }
 
   .boss-fx-front {
       z-index: 25;
       /* Sobrescrever .pixie-canvas para ter mesmo tamanho/posição do boss-layer-body */
-      top: 0;
-      left: 0;
-      transform: none;
-      width: 100%;
-      height: 100%;
+      top: 0 !important;
+      left: 0 !important;
+      transform: scaleX(-2) scaleY(2) !important;
+      width: 100% !important;
+      height: 100% !important;
   }
   
   
