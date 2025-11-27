@@ -90,22 +90,24 @@
 
   .boss-fx-back {
       z-index: 1;
-      /* Canvas maior (200%) para evitar corte dos efeitos, centralizado */
-      top: -50% !important;
-      left: -50% !important;
-      transform: scaleX(-2) scaleY(2) !important;
-      width: 200% !important;
-      height: 200% !important;
+      /* Canvas cobrindo tela inteira para evitar corte dos efeitos */
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      transform: none !important;
+      width: 100vw !important;
+      height: 100vh !important;
   }
 
   .boss-fx-front {
       z-index: 25;
-      /* Canvas maior (200%) para evitar corte dos efeitos, centralizado */
-      top: -50% !important;
-      left: -50% !important;
-      transform: scaleX(-2) scaleY(2) !important;
-      width: 200% !important;
-      height: 200% !important;
+      /* Canvas cobrindo tela inteira para evitar corte dos efeitos */
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      transform: none !important;
+      width: 100vw !important;
+      height: 100vh !important;
   }
   
   
