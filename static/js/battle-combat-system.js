@@ -2433,7 +2433,7 @@ function performAttack(skill) {
                     console.log("💥 Aplicando shader no inimigo:", this.currentSkill.boss_damage_overlay);
                     this.applyBossDamageEffect();
                 }
-            }.bind(this), 800);
+            }, 800);
 
             // Fase 3: Intensificação e pulsação (1200ms)
             let pulseInterval = null;
