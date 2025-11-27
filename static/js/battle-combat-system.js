@@ -2405,59 +2405,64 @@ function performAttack(skill) {
             this.addBeamAnimations();
             
             // ===== SEQUÊNCIA DE ANIMAÇÃO =====
-            
-            // Fase 1: Charge-up (1000ms) - AUMENTADO
-            setTimeout(() => {
-                console.log("⚡ Fase 1: Charge-up");
-                // As camadas aparecem gradualmente
-                outerGlow.style.opacity = '0.8';
-                outerGlow.style.transition = 'opacity 1.2s ease-out'; // AUMENTADO
-            }, 100);
 
-            // Fase 2: Beam aparece (300ms)
+            // Fase 1: Apenas círculo de emissão (500ms)
             setTimeout(() => {
-                console.log("⚡ Fase 2: Beam ativo");
+                console.log("⚡ Fase 1: Círculo de emissão");
+                outerGlow.style.opacity = '0.8';
+                outerGlow.style.transition = 'opacity 0.3s ease-out';
+            }, 500);
+
+            // Fase 2: Raio laser aparece + SHADER NO INIMIGO (800ms)
+            setTimeout(() => {
+                console.log("⚡ Fase 2: Laser disparando + SHADER!");
                 energyHalo.style.opacity = '0.9';
                 beamCore.style.opacity = '1.0';
                 innerEnergy.style.opacity = '0.7';
                 impactEffect.style.opacity = '1.0';
                 particles.style.opacity = '1.0';
-                
+
                 energyHalo.style.transition = 'opacity 0.3s ease-out';
                 beamCore.style.transition = 'opacity 0.3s ease-out';
                 innerEnergy.style.transition = 'opacity 0.3s ease-out';
                 impactEffect.style.transition = 'opacity 0.3s ease-out';
                 particles.style.transition = 'opacity 0.3s ease-out';
-            }, 1200);
-            
-            // Fase 3: Intensificação e pulsação
+
+                // APLICAR SHADER DE IMPACTO NO INIMIGO AQUI
+                if (this.currentSkill && this.currentSkill.boss_damage_overlay) {
+                    console.log("💥 Aplicando shader no inimigo:", this.currentSkill.boss_damage_overlay);
+                    this.applyBossDamageEffect();
+                }
+            }.bind(this), 800);
+
+            // Fase 3: Intensificação e pulsação (1200ms)
             let pulseInterval = null;
             setTimeout(() => {
                 console.log("⚡ Fase 3: Intensificação");
                 let intensity = 1;
                 let direction = 1;
-                
+
                 pulseInterval = setInterval(() => {
                     intensity += direction * 0.15;
                     if (intensity >= 1.8) direction = -1;
                     if (intensity <= 0.8) direction = 1;
-                    
+
                     beamCore.style.filter = `brightness(${intensity}) saturate(${intensity})`;
                     innerEnergy.style.filter = `brightness(${intensity * 1.5})`;
                     impactEffect.style.filter = `brightness(${intensity}) scale(${intensity})`;
-                    
+
                     // Shake sutil no beam
                     const shake = (Math.random() - 0.3) * 2;
                     beamContainer.style.transform = `rotate(${angle + shake}deg)`;
-                    
+
                 }, config.pulseSpeed);
-            }, 900);
+            }, 1200);
             
-            // Fase 4: Fade out
+            // Fase 4: Fade out (1800ms)
             setTimeout(() => {
                 console.log("⚡ Fase 4: Desaparecendo");
                 if (pulseInterval) clearInterval(pulseInterval);
-                
+
                 // Fade out de todas as camadas
                 outerGlow.style.opacity = '0';
                 energyHalo.style.opacity = '0';
@@ -2465,22 +2470,22 @@ function performAttack(skill) {
                 innerEnergy.style.opacity = '0';
                 impactEffect.style.opacity = '0';
                 particles.style.opacity = '0';
-                
+
                 outerGlow.style.transition = 'opacity 0.4s ease-in';
                 energyHalo.style.transition = 'opacity 0.4s ease-in';
                 beamCore.style.transition = 'opacity 0.4s ease-in';
                 innerEnergy.style.transition = 'opacity 0.4s ease-in';
                 impactEffect.style.transition = 'opacity 0.4s ease-in';
                 particles.style.transition = 'opacity 0.4s ease-in';
-                
+
                 // Remover elementos
                 setTimeout(() => {
                     if (beamContainer.parentNode) beamContainer.remove();
                     if (impactEffect.parentNode) impactEffect.remove();
                     if (particles.parentNode) particles.remove();
                 }, 500);
-                
-            }, config.duration);
+
+            }, 1800);
         }
 
         // ===== EFEITO DE CHARGE-UP NO PERSONAGEM =====
