@@ -2490,8 +2490,15 @@ function performAttack(skill) {
                     beamContainer.style.transform = `rotate(${angle + shake}deg)`;
 
                 }, config.pulseSpeed);
+
+                // APLICAR DANO REAL no pico da intensificação (após 300ms = 1500ms total)
+                setTimeout(() => {
+                    console.log("💥 Aplicando DANO REAL no finalzinho da animação!");
+                    this.applyDamageAndEffects();
+                    this.damageAlreadyApplied = true; // Marcar que dano foi aplicado
+                }, 300);
             }, 1200);
-            
+
             // Fase 4: Fade out (1800ms)
             setTimeout(() => {
                 console.log("⚡ Fase 4: Desaparecendo");
@@ -2712,14 +2719,20 @@ function performAttack(skill) {
         // Fase: Aplicar dano
         executePhase_apply_damage() {
             console.log("QC Fase: Apply Damage");
-            
+
             // Esconder container de ataque QC2
             qc2AttackContainer.style.opacity = '0';
             qc2AttackContainer.innerHTML = '';
 
-            // Aplicar dano e efeitos visuais (código original)
-            this.applyDamageAndEffects();
-            
+            // Verificar se dano já foi aplicado (para skills de beam)
+            if (this.damageAlreadyApplied) {
+                console.log("✅ Dano já foi aplicado durante a animação, pulando");
+                this.damageAlreadyApplied = false; // Reset flag
+            } else {
+                // Aplicar dano e efeitos visuais (código original)
+                this.applyDamageAndEffects();
+            }
+
             this.nextPhase(800);
         }
 
