@@ -1556,10 +1556,27 @@ function performAttack(skill) {
                     }, duration - 200);
                 }
 
-                // ===== PARA SKILLS DE BEAM - APENAS ANIMAÇÃO SEM CRIAR O BEAM =====
+                // ===== PARA SKILLS DE BEAM - CRIAR BEAM 1000ms ANTES DO FIM DA ANIMAÇÃO =====
                 if (isBeamSkill) {
-                    console.log("⚡ Preparando para beam (sem criar visual ainda)");
-                    // NÃO criar o beam aqui - será criado na fase energy_beam
+                    console.log("⚡ Preparando para beam (antecipado em 1000ms)");
+
+                    // Antecipar criação do beam em 1000ms
+                    const beamStartTime = Math.max(0, duration - 1000);
+
+                    setTimeout(() => {
+                        console.log("🔥 Criando beam antecipado!");
+
+                        // Tocar sons do ataque
+                        playSound(this.currentSkill.sound_attack, 0.8);
+                        playSound(this.currentSkill.sound_effect_1, 0.8);
+
+                        // Criar beam visual
+                        this.createEnergyBeamVisual();
+
+                        // Marcar que beam já foi criado
+                        this.beamAlreadyCreated = true;
+
+                    }, beamStartTime);
                 }
                 
                 // VOLTAR PARA IDLE após a animação
@@ -1592,9 +1609,26 @@ function performAttack(skill) {
                     }, 600);
                 }
 
-                // ===== PARA SKILLS DE BEAM =====
+                // ===== PARA SKILLS DE BEAM - FALLBACK =====
                 if (isBeamSkill) {
-                    console.log("⚡ Preparando para beam no fallback");
+                    console.log("⚡ Preparando para beam no fallback (antecipado)");
+
+                    // Antecipar criação do beam em 1000ms (mas fallback tem 800ms de duração)
+                    // Então criar imediatamente
+                    setTimeout(() => {
+                        console.log("🔥 Criando beam antecipado (fallback)!");
+
+                        // Tocar sons do ataque
+                        playSound(this.currentSkill.sound_attack, 0.8);
+                        playSound(this.currentSkill.sound_effect_1, 0.8);
+
+                        // Criar beam visual
+                        this.createEnergyBeamVisual();
+
+                        // Marcar que beam já foi criado
+                        this.beamAlreadyCreated = true;
+
+                    }, 0);
                 }
                 
                 // VOLTAR PARA IDLE
@@ -2693,13 +2727,19 @@ function performAttack(skill) {
         executePhase_energy_beam() {
             console.log("🔥 QC Fase: Energy Beam");
             console.log("🔍 DEBUG - currentSkill na executePhase_energy_beam:", this.currentSkill);
-            
-            // Tocar sons
-            playSound(this.currentSkill.sound_attack, 0.8);
-            playSound(this.currentSkill.sound_effect_1, 0.8);
-            
-            // Criar beam visual conectando personagem ao boss (NA TELA NORMAL)
-            this.createEnergyBeamVisual();
+
+            // Verificar se beam já foi criado na fase anterior
+            if (this.beamAlreadyCreated) {
+                console.log("⚡ Beam já foi criado antecipadamente, pulando criação");
+                this.beamAlreadyCreated = false; // Reset flag
+            } else {
+                // Tocar sons
+                playSound(this.currentSkill.sound_attack, 0.8);
+                playSound(this.currentSkill.sound_effect_1, 0.8);
+
+                // Criar beam visual conectando personagem ao boss (NA TELA NORMAL)
+                this.createEnergyBeamVisual();
+            }
             
             // Aplicar dano quando o beam terminar
             const config = BEAM_TYPES[this.currentSkill.beam_type] || BEAM_TYPES["energy_beam"];
