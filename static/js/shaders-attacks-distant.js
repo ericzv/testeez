@@ -1373,9 +1373,13 @@ Object.assign(window.BOSS_DAMAGE_SHADERS, {
         name: "Abraço da Escuridão Distante",
         create: function(app) {
             const container = new PIXI.Container();
-            
-            const centerX = app.view.width / 2;
-            const centerY = app.view.height / 2;
+
+            // Pegar posição do boss na tela para centralizar efeito
+            const bossElement = document.getElementById('boss');
+            const bossRect = bossElement ? bossElement.getBoundingClientRect() : null;
+
+            const centerX = bossRect ? (bossRect.left + bossRect.width / 2) : (app.view.width / 2);
+            const centerY = bossRect ? (bossRect.top + bossRect.height / 2) : (app.view.height / 2);
             const maxRadius = Math.max(app.view.width, app.view.height) * 0.6;
             
             // Vertex shader
