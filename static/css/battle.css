@@ -68,49 +68,6 @@
     -ms-interpolation-mode: nearest-neighbor; /* IE */
   }
 
-  /* Canvas PixiJS */
-  .pixie-canvas {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-60%, -50%);
-      pointer-events: none;
-      width: 200%;
-      height: 200%;
-  }
-
-  /* Z-Index específicos */
-  .character-fx-back {
-      z-index: 1;
-  }
-
-  .character-fx-front {
-      z-index: 46;
-  }
-
-  .boss-fx-back {
-      z-index: 1;
-      /* Canvas cobrindo tela inteira para evitar corte dos efeitos */
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      transform: none !important;
-      width: 100vw !important;
-      height: 100vh !important;
-  }
-
-  .boss-fx-front {
-      z-index: 25;
-      /* Canvas cobrindo tela inteira para evitar corte dos efeitos */
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      transform: none !important;
-      width: 100vw !important;
-      height: 100vh !important;
-  }
-  
-  
   /* Estilos para árvores de paralaxe */
   .tree-paralax-container {
     position: fixed;

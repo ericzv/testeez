@@ -11,7 +11,6 @@
 
 <!-- Preload crítico -->
 <link rel="preload" href="/static/css/battle.css" as="style">
-<link rel="preload" href="/static/js/lib/pixi.min.js" as="script">
 <link rel="preload" href="/static/js/performance-manager.js" as="script">
 
 <!-- Stylesheets -->
@@ -342,28 +341,18 @@
 
 <!-- Character -->
 <div class="character-container" id="character" data-character="{{ player.character_id or 'mago_teste' }}" data-animation="idle">
-  <!-- Canvas PixiJS para Character - Atrás -->
-  <canvas id="character-fx-back" class="pixie-canvas character-fx-back"></canvas>
-  
   <!-- As camadas de sprite serão criadas dinamicamente pelo JavaScript -->
   <!-- baseadas na classe do jogador (Samurai, Mago, etc.) -->
-  
+
   <!-- Camadas FX tradicionais -->
   <div class="character-fx-layer fx-layer-behind" id="fx-layer-b"></div>
   <div class="character-fx-layer fx-layer-front" id="fx-layer-a"></div>
-  
-  <!-- Canvas PixiJS para Character - Frente -->
-  <canvas id="character-fx-front" class="pixie-canvas character-fx-front"></canvas>
 </div>
 
 <div id="player-character" style="display: none;">{{ player.character_id or 'Mago' }}</div>
 
 <!-- Boss -->
 <div class="boss-container" id="boss">
-  <!-- Canvas PixiJS para Boss - Atrás -->
-  <canvas id="boss-fx-back" class="pixie-canvas boss-fx-back"></canvas>
-  <!-- Canvas PixiJS para Boss - Frente -->
-  <canvas id="boss-fx-front" class="pixie-canvas boss-fx-front"></canvas>
 </div>
 
 <!-- Stats Display (removido) -->
@@ -796,9 +785,6 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Image Optimizer - WebP support + lazy loading -->
 <script src="/static/js/image-optimizer.js"></script>
 
-<!-- PixiJS Libraries -->
-<script src="/static/js/lib/pixi.min.js"></script>
-
 <!-- Efeitos (carregar antes das vinhetas) -->
 <script defer src="/static/js/fx-attacks.js"></script>
 <script defer src="/static/js/fx-specials.js"></script>
@@ -809,20 +795,8 @@ document.addEventListener('DOMContentLoaded', function() {
 <script defer src="/static/js/battle-vignette-part3.js"></script>
 <script defer src="/static/js/battle-vignette-part4.js"></script>
 
-<!-- Sistema PixiJS principal -->
-<script src="/static/js/battle-pixie.js"></script>
-
 <!-- Integração de vinhetas -->
 <script defer src="/static/js/vignette-integration.js"></script>
-
-<!-- Shaders (async - não bloqueiam) -->
-<script async src="/static/js/shaders-attacks1.js"></script>
-<script async src="/static/js/shaders-attacks2.js"></script>
-<script async src="/static/js/shaders-attacks3.js"></script>
-<script async src="/static/js/shaders-attacks4.js"></script>
-<script async src="/static/js/shaders-attacks5.js"></script>
-<script async src="/static/js/shaders-attacks-distant.js"></script>
-<script defer src="/static/js/shaders-attacks.js"></script>
 
 <!-- Sistema de Pré-carregamento de Assets -->
 <script src="/static/js/battle-preloader.js"></script>
@@ -834,7 +808,6 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="/static/js/battle-combat-system.js"></script>
 <script src="/static/js/battle-skills-system.js"></script>
 <script src="/static/js/battle-animation.js"></script>
-<script defer src="/static/js/battle-sakura.js"></script>
 <script src="/static/js/battle-turns.js"></script>
 <script src="/static/js/battle-memory-system.js"></script>
 

@@ -3366,27 +3366,7 @@ function performAttack(skill) {
         }
 
         applyBossDamageEffect() {
-            // Efeito de dano no boss
-            if (this.currentSkill.boss_damage_overlay && this.currentSkill.boss_damage_overlay.trim() !== "") {
-                console.log("🔍 DEBUG: boss_damage_overlay detectado:", this.currentSkill.boss_damage_overlay);
-                console.log("🔍 DEBUG: Tipo do boss_damage_overlay:", typeof this.currentSkill.boss_damage_overlay);
-                console.log("🔍 DEBUG: window.BOSS_DAMAGE_SHADERS disponível?", !!window.BOSS_DAMAGE_SHADERS);
-                console.log("🔍 DEBUG: Lista de shaders disponíveis:", window.BOSS_DAMAGE_SHADERS ? Object.keys(window.BOSS_DAMAGE_SHADERS) : "Nenhum");
-                
-                if (window.BOSS_DAMAGE_SHADERS && window.BOSS_DAMAGE_SHADERS[this.currentSkill.boss_damage_overlay]) {
-                    console.log("🎭 Aplicando shader de dano no boss:", this.currentSkill.boss_damage_overlay);
-                    
-                    if (window.pixieSystem && window.pixieSystem.bossFrontApp) {
-                        const shaderEffect = window.applyBossDamageShader(this.currentSkill.boss_damage_overlay, window.pixieSystem.bossFrontApp);
-                        if (shaderEffect) {
-                            console.log("✅ Shader aplicado com sucesso no boss");
-                        }
-                    }
-                } else if (isPixiEffect(this.currentSkill.boss_damage_overlay)) {
-                    console.log("🎭 Aplicando efeito PixiJS no boss:", this.currentSkill.boss_damage_overlay);
-                    playPixiEffect(this.currentSkill.boss_damage_overlay, 'boss', 'front', 'AttackPhaseSystem_BOSS_DAMAGE');
-                }
-            }
+            // Sistema PixiJS removido - função vazia
         }
         
         createProjectileEffect() {
