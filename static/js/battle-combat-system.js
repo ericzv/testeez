@@ -397,9 +397,7 @@ function toggleZoomView() {
 
         // Animar árvores
         if (goingToZoomView) {
-            animateTrees('left-to-right');
         } else {
-            animateTrees('right-to-left');
         }
 
         // Adicionar classes para indicar que estamos saindo da view atual
@@ -1083,7 +1081,6 @@ function performAttack(skill) {
             console.log("... Detectada necessidade de voltar para Default View");
 
             // Animar árvores voltando
-            animateTrees('right-to-left');
 
             // Remove classes de view e efeitos associados
             battleArena.classList.remove('zoom-view', 'zoom-view-attack', 'character-view', 'boss-view', 'menu-open');
