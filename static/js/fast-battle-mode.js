@@ -38,7 +38,7 @@ class FastBattleMode {
       // Verificar se elementos necessários existem
       const attackButton = document.getElementById('attack-button');
 
-      console.log(`Tentativa ${attempts}: attack-button=${!!attackButton}, battleState=${!!window.battleState}`);
+      console.log(`Tentativa ${attempts}: attack-button=${!!attackButton}, battleState=${!!window.gameState}`);
 
       // Inicializar se o botão de ataque existir (não precisa esperar battleState)
       if (attackButton) {
@@ -315,7 +315,7 @@ class FastBattleMode {
 
     // Atualizar estado dos botões quando battleState estiver pronto
     const checkAndUpdate = () => {
-      if (window.battleState && window.battleState.player) {
+      if (window.gameState && window.gameState.player) {
         this.updateButtonStates();
       } else {
         // Tentar novamente em 200ms
@@ -334,12 +334,12 @@ class FastBattleMode {
       }
 
       // VERIFICAÇÃO 2: Energia suficiente
-      if (!window.battleState || !window.battleState.player) {
-        console.log('⚠️ checkResources: battleState não disponível');
+      if (!window.gameState || !window.gameState.player) {
+        console.log('⚠️ checkResources: gameState não disponível');
         return true; // Permitir otimisticamente na criação, será verificado no executeAction
       }
 
-      const player = window.battleState.player;
+      const player = window.gameState.player;
       const cost = item.points_cost || item.energy_cost || 1;
       const hasEnough = player.energy >= cost;
       console.log(`checkResources (attack): energia=${player.energy}, custo=${cost}, ok=${hasEnough}`);
@@ -355,9 +355,9 @@ class FastBattleMode {
 
   // Atualizar estado dos botões quando energia mudar
   updateButtonStates() {
-    if (!window.battleState || !window.battleState.player) return;
+    if (!window.gameState || !window.gameState.player) return;
 
-    const player = window.battleState.player;
+    const player = window.gameState.player;
 
     // Atualizar botões de ataque
     document.querySelectorAll('.fast-action-btn[data-type="attacks"]').forEach(btn => {
@@ -390,8 +390,8 @@ class FastBattleMode {
 
     // VERIFICAÇÃO CRÍTICA PARA ATAQUES: battleState DEVE existir
     if (type === 'attacks') {
-      if (!window.battleState || !window.battleState.player) {
-        console.log('❌ battleState não disponível, BLOQUEANDO ataque!');
+      if (!window.gameState || !window.gameState.player) {
+        console.log('❌ gameState não disponível, BLOQUEANDO ataque!');
         showFloatingText('Sistema não pronto, aguarde...', 'error');
         this.closeSubmenu();
         return;
@@ -407,7 +407,7 @@ class FastBattleMode {
 
       // VALIDAÇÃO RIGOROSA DE ENERGIA
       const energyCost = item.points_cost || item.energy_cost || 1;
-      const currentEnergy = window.battleState.player.energy;
+      const currentEnergy = window.gameState.player.energy;
 
       if (currentEnergy < energyCost) {
         console.log(`❌ Energia insuficiente! Precisa: ${energyCost}, Tem: ${currentEnergy}`);
@@ -544,12 +544,12 @@ class FastBattleMode {
       const response = await fetch('/gamification/player_status');
       const data = await response.json();
 
-      if (data.success && window.battleState) {
+      if (data.success && window.gameState) {
         // Atualizar battleState
-        window.battleState.player.hp = data.hp;
-        window.battleState.player.max_hp = data.max_hp;
-        window.battleState.player.energy = data.energy;
-        window.battleState.player.barrier = data.barrier || 0;
+        window.gameState.player.hp = data.hp;
+        window.gameState.player.max_hp = data.max_hp;
+        window.gameState.player.energy = data.energy;
+        window.gameState.player.barrier = data.barrier || 0;
 
         console.log('✅ HUD atualizado do servidor:', data);
         console.log('🛡️ Barreira atualizada:', data.barrier);
