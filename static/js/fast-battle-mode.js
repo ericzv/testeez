@@ -325,7 +325,7 @@ class FastBattleMode {
       // VERIFICAÇÃO 2: Energia suficiente
       if (!window.battleState || !window.battleState.player) {
         console.log('⚠️ checkResources: battleState não disponível');
-        return true; // Permitir, será verificado no servidor
+        return false; // NÃO PERMITIR se não tiver battleState
       }
 
       const player = window.battleState.player;
@@ -340,6 +340,32 @@ class FastBattleMode {
       return item.quantity > 0;
     }
     return true;
+  }
+
+  // Atualizar estado dos botões quando energia mudar
+  updateButtonStates() {
+    if (!window.battleState || !window.battleState.player) return;
+
+    const player = window.battleState.player;
+
+    // Atualizar botões de ataque
+    document.querySelectorAll('.fast-action-btn[data-type="attacks"]').forEach(btn => {
+      const skillId = parseInt(btn.dataset.id);
+      const skill = this.attacks.find(s => s.id === skillId);
+
+      if (skill) {
+        const cost = skill.points_cost || skill.energy_cost || 1;
+        const hasEnough = player.energy >= cost;
+
+        if (!hasEnough || skill.is_disabled) {
+          btn.classList.add('disabled');
+          btn.style.pointerEvents = 'none';
+        } else {
+          btn.classList.remove('disabled');
+          btn.style.pointerEvents = 'auto';
+        }
+      }
+    });
   }
 
   async executeAction(item, type) {

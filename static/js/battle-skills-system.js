@@ -1266,34 +1266,20 @@ function applySpecialSkillVisualEffect(animationData) {
 
         // ANIMATION_ACTIVATE_1 - Efeito frontal
         if (hasVisualEffect1) {
-            if (isPixiEffect(hasVisualEffect1)) {
-                console.log("🎭 Aplicando PixiJS activate_1:", hasVisualEffect1);
-                setTimeout(() => {
-                    playPixiEffect(hasVisualEffect1, 'character', 'front', 'applySpecialSkillVisualEffect_activate_1');
-                }, delay * 3); // Sincronizar com sound_effect_1
-            } else {
-                console.log("🖼️ Aplicando sprite activate_1:", hasVisualEffect1, "no target:", targetElement?.id);
-                // Usar sistema existente de sprites - agora com TARGET correto
-                setTimeout(() => {
-                    createSpriteAnimationLayers(hasVisualEffect1, 'front', targetElement);
-                }, delay * 3);
-            }
+            console.log("🖼️ Aplicando sprite activate_1:", hasVisualEffect1, "no target:", targetElement?.id);
+            // Usar sistema existente de sprites - agora com TARGET correto
+            setTimeout(() => {
+                createSpriteAnimationLayers(hasVisualEffect1, 'front', targetElement);
+            }, delay * 3);
         }
 
         // ANIMATION_ACTIVATE_2 - Efeito traseiro
         if (hasVisualEffect2) {
-            if (isPixiEffect(hasVisualEffect2)) {
-                console.log("🎭 Aplicando PixiJS activate_2:", hasVisualEffect2);
-                setTimeout(() => {
-                    playPixiEffect(hasVisualEffect2, 'character', 'back', 'applySpecialSkillVisualEffect_activate_2');
-                }, delay * 3); // Sincronizar com sound_effect_1
-            } else {
-                console.log("🖼️ Aplicando sprite activate_2:", hasVisualEffect2, "no target:", targetElement?.id);
-                // Usar sistema existente de sprites - agora com TARGET correto
-                setTimeout(() => {
-                    createSpriteAnimationLayers(hasVisualEffect2, 'back', targetElement);
-                }, delay * 3);
-            }
+            console.log("🖼️ Aplicando sprite activate_2:", hasVisualEffect2, "no target:", targetElement?.id);
+            // Usar sistema existente de sprites
+            setTimeout(() => {
+                createSpriteAnimationLayers(hasVisualEffect2, 'back', targetElement);
+            }, delay * 3);
         }
     }
     

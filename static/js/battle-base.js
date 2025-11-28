@@ -1155,6 +1155,11 @@ function updateEnergyIndicator() {
     }
     
     console.log(`⚡ Energia atualizada: ${currentEnergy}/${maxEnergy} (${energyPercent.toFixed(1)}%)`);
+
+    // Atualizar botões do fast battle mode
+    if (window.fastBattleMode && typeof window.fastBattleMode.updateButtonStates === 'function') {
+        window.fastBattleMode.updateButtonStates();
+    }
 }
 
 //Anima o consumo de energia
