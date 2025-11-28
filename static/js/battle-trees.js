@@ -7,8 +7,12 @@ function calculateResponsiveTreeScale(verticalPos) {
 
 // Animar árvores nas transições de view
 function animateTrees(direction) {
+    console.log(`🌳 animateTrees chamada: direction=${direction}`);
+
     const leftTrees = document.querySelectorAll('.tree-paralax.left-side');
     const rightTrees = document.querySelectorAll('.tree-paralax.right-side');
+
+    console.log(`🌳 Árvores encontradas: esquerda=${leftTrees.length}, direita=${rightTrees.length}`);
 
     if (direction === 'left-to-right') {
         // Árvores se movem da esquerda para direita (indo para zoom-view)

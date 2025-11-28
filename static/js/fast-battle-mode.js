@@ -313,10 +313,16 @@ class FastBattleMode {
     const container = document.querySelector('.fast-battle-container');
     container.appendChild(submenu);
 
-    // Atualizar estado dos botões imediatamente após criar
-    setTimeout(() => {
-      this.updateButtonStates();
-    }, 100);
+    // Atualizar estado dos botões quando battleState estiver pronto
+    const checkAndUpdate = () => {
+      if (window.battleState && window.battleState.player) {
+        this.updateButtonStates();
+      } else {
+        // Tentar novamente em 200ms
+        setTimeout(checkAndUpdate, 200);
+      }
+    };
+    setTimeout(checkAndUpdate, 200);
   }
 
   checkResources(item, type) {
@@ -382,20 +388,40 @@ class FastBattleMode {
 
     console.log(`⚡ Executando ação rápida: ${item.name} (${type})`);
 
-    // Verificar recursos ANTES de executar qualquer ação
-    if (!this.checkResources(item, type)) {
-      console.log('❌ Recursos insuficientes ou skill desabilitada!');
-
-      if (type === 'attacks') {
-        if (item.is_disabled) {
-          showFloatingText(item.disabled_reason || 'Skill desabilitada', 'error');
-        } else {
-          showFloatingText('Energia insuficiente!', 'error');
-        }
-      } else if (type === 'inventory') {
-        showFloatingText('Slot vazio ou poção indisponível!', 'error');
+    // VERIFICAÇÃO CRÍTICA PARA ATAQUES: battleState DEVE existir
+    if (type === 'attacks') {
+      if (!window.battleState || !window.battleState.player) {
+        console.log('❌ battleState não disponível, BLOQUEANDO ataque!');
+        showFloatingText('Sistema não pronto, aguarde...', 'error');
+        this.closeSubmenu();
+        return;
       }
 
+      // Verificar se skill está desabilitada
+      if (item.is_disabled) {
+        console.log('❌ Skill desabilitada!');
+        showFloatingText(item.disabled_reason || 'Skill desabilitada', 'error');
+        this.closeSubmenu();
+        return;
+      }
+
+      // VALIDAÇÃO RIGOROSA DE ENERGIA
+      const energyCost = item.points_cost || item.energy_cost || 1;
+      const currentEnergy = window.battleState.player.energy;
+
+      if (currentEnergy < energyCost) {
+        console.log(`❌ Energia insuficiente! Precisa: ${energyCost}, Tem: ${currentEnergy}`);
+        showFloatingText('Energia insuficiente!', 'error');
+        this.closeSubmenu();
+        return;
+      }
+
+      console.log(`✅ Energia OK: ${currentEnergy} >= ${energyCost}`);
+    }
+
+    // Verificar inventário
+    if (type === 'inventory' && item.quantity <= 0) {
+      showFloatingText('Slot vazio ou poção indisponível!', 'error');
       this.closeSubmenu();
       return;
     }
@@ -407,21 +433,6 @@ class FastBattleMode {
     this.closeSubmenu();
 
     if (type === 'attacks') {
-      // VALIDAÇÃO RIGOROSA DE ENERGIA ANTES DE CHAMAR triggerAttack
-      if (window.battleState && window.battleState.player) {
-        const energyCost = item.points_cost || item.energy_cost || 1;
-        const currentEnergy = window.battleState.player.energy;
-
-        // VERIFICAR se tem energia suficiente
-        if (currentEnergy < energyCost) {
-          console.log(`❌ Energia insuficiente! Precisa: ${energyCost}, Tem: ${currentEnergy}`);
-          showFloatingText('Energia insuficiente!', 'error');
-          this.isExecuting = false;
-          return;
-        }
-
-        console.log(`✅ Energia OK: ${currentEnergy} >= ${energyCost}`);
-      }
 
       // Chamar triggerAttack que faz POST + animação + atualização
       if (window.triggerAttack) {
