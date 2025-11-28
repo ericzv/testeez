@@ -68,47 +68,6 @@
     -ms-interpolation-mode: nearest-neighbor; /* IE */
   }
 
-  /* Canvas PixiJS */
-  .pixie-canvas {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-60%, -50%);
-      pointer-events: none;
-      width: 200%;
-      height: 200%;
-  }
-
-  /* Z-Index específicos */
-  .character-fx-back {
-      z-index: 1;
-  }
-
-  .character-fx-front {
-      z-index: 46;
-  }
-
-  .boss-fx-back {
-      z-index: 1;
-  }
-
-  .boss-fx-front {
-      z-index: 25;
-  }
-  
-  
-  /* Estilos para árvores de paralaxe */
-  .tree-paralax-container {
-    position: fixed;
-    top: -80px;
-    left: 0;
-    width: 100%;
-    height: 200%;
-    pointer-events: none;
-    z-index: 1000;
-    overflow: hidden;
-  }
-
   /* Estilos para os menus de habilidades */
   .skill-option {
     background: linear-gradient(to bottom, #2a3d5c, #1a2d4c);
@@ -187,41 +146,7 @@
   .cooldown {
     color: #ff7777;
   }
-  
-  .tree-paralax {
-    position: absolute;
-    width: 26vw;
-    height: 36vh;
-    max-width: 500px;
-    max-height: 700px;
-    min-width: 200px;
-    min-height: 280px;
-    background-image: url('/static/game.data/tree-paralax.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    opacity: 0.8;
-    transition: transform 1.8s linear, filter 1s ease-in-out;
-    transform-origin: bottom center;
-    /* Animação de balanço suave - GPU acelerada */
-    animation: tree-gentle-sway 6s infinite alternate ease-in-out;
-  }
 
-  /* Usar WebP quando suportado (74.6% menor que PNG!) */
-  .webp .tree-paralax {
-    background-image: url('/static/game.data/tree-paralax.webp');
-  }
-  
-  /* Animação de balanço suave */
-  @keyframes tree-gentle-sway {
-      0%, 100% { 
-          transform: translateZ(0) scale3d(var(--tree-scale, 1), var(--tree-scale, 1), 1) rotate(-0.5deg); 
-      }
-      50% { 
-          transform: translateZ(0) scale3d(var(--tree-scale, 1), var(--tree-scale, 1), 1) rotate(0.5deg); 
-      }
-  }
-  
   /* Animações específicas para personagem, boss e botões */
   @keyframes character-dynamic {
     0% { transform: translate(0, 0) rotate(0deg); }
@@ -275,63 +200,7 @@
   .no-transition {
     transition: none !important;
   }
-  
-  /* Filtros específicos para cada visualização */
-  .zoom-view .tree-paralax {
-    filter: brightness(0.6); /* Mais escuro na zoom-view */
-  }
-  
-  .boss-view .tree-paralax {
-    filter: brightness(0.4) saturate(0.8); /* Ainda mais escuro e menos saturado na boss-view */
-  }
-  
-  .character-view .tree-paralax {
-    filter: brightness(0.9); /* Mais claro na character-view */
-  }
-  
-  /* Ajustar posições quando árvores estão em transição */
-  .tree-paralax.left-to-right,
-  .tree-paralax.right-to-left {
-    animation: tree-gentle-sway 3s infinite alternate ease-in-out;
-    transition: transform 2.5s linear, filter 1s ease-in-out; /* Manter transição de filter */
-  }
-  
-  /* Posicionamento inicial das árvores do lado esquerdo */
-  .tree-paralax.left-side {
-    left: -20px; /* parte visível na borda esquerda */
-    right: auto;
-    display: block;
-    opacity: 0.8;
-  }
-  
-  /* Posicionamento inicial das árvores do lado direito */
-  .tree-paralax.right-side {
-    right: -20px; /* parte  visível na borda direita */
-    left: auto;
-    display: block;
-    opacity: 0.8;
-  }
-  
-  .tree-paralax.left-to-right.animate {
-    transform: translateX(calc(100vw + 300px));
-  }
-  
-  .tree-paralax.right-to-left.animate {
-    transform: translateX(calc(-100vw - 300px));
-  }
-  
-  /* Z-index baseado na posição vertical - árvores inferiores na frente */
-  .tree-paralax[style*="top: 0"] { z-index: 900; }
-  .tree-paralax[style*="top: 10"] { z-index: 901; }
-  .tree-paralax[style*="top: 20"] { z-index: 902; }
-  .tree-paralax[style*="top: 30"] { z-index: 903; }
-  .tree-paralax[style*="top: 40"] { z-index: 904; }
-  .tree-paralax[style*="top: 50"] { z-index: 905; }
-  .tree-paralax[style*="top: 60"] { z-index: 906; }
-  .tree-paralax[style*="top: 70"] { z-index: 907; }
-  .tree-paralax[style*="top: 80"] { z-index: 908; }
-  .tree-paralax[style*="top: 100"] { z-index: 909; }
-  
+
   body, html {
     width: 100%;
     height: 100%;
@@ -369,12 +238,12 @@
     width: 100%;
     height: 100%;
     background-image: url('/static/game.data/background-sakura.png');
-    background-size: contain; /* Mantém proporção */
+    background-size: auto 100%; /* Altura 100%, largura proporcional */
     background-position: center;
     background-repeat: no-repeat;
     transition: all 0.4s linear;
   }
-  
+
   .background-zoom {
     position: absolute;
     top: 0;
@@ -382,7 +251,7 @@
     width: 100%;
     height: 100%;
     background-image: url('/static/game.data/background-sakura-zoom-view.png');
-    background-size: contain; /* Mantém proporção */
+    background-size: auto 100%; /* Altura 100%, largura proporcional */
     background-position: center;
     background-repeat: no-repeat;
     opacity: 0;
@@ -390,7 +259,7 @@
     transform: translateX(-100%);
     transition: all 0.4s linear;
   }
-  
+
   .background-character {
     position: absolute;
     top: 0;
@@ -398,7 +267,7 @@
     width: 100%;
     height: 100%;
     background-image: url('/static/game.data/background-sakura-zoom-character1.png');
-    background-size: contain; /* Mantém proporção */
+    background-size: auto 100%; /* Altura 100%, largura proporcional */
     background-position: center;
     background-repeat: no-repeat;
     opacity: 0;

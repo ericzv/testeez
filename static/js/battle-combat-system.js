@@ -387,30 +387,19 @@ function toggleZoomView() {
         // Resetar o menu principal
         actionMenu.style = "";
     }
-    
+
     if (!gameState.inAction) {
         // Reset do menu - esconder primeiro
         actionMenu.classList.remove('visible');
-        
+
         // Determinar se estamos indo ou voltando da zoom-view
         const goingToZoomView = !gameState.zoomedView;
-        
-        // Se vamos para zoom-view a partir da character-view
-        if (goingToZoomView && gameState.characterView) {
-            // Árvores da esquerda para a direita
-            animateTrees('left-to-right');
-        } 
-        // Se vamos para zoom-view a partir da tela inicial
-        else if (goingToZoomView && !gameState.characterView) {
-            // Árvores da esquerda para a direita
-            animateTrees('left-to-right');
+
+        // Animar árvores
+        if (goingToZoomView) {
+        } else {
         }
-        // Se estamos saindo da zoom-view
-        else if (!goingToZoomView) {
-            // Árvores da direita para a esquerda
-            animateTrees('right-to-left');
-        }
-        
+
         // Adicionar classes para indicar que estamos saindo da view atual
         if (gameState.zoomedView) {
             battleArena.classList.add('zoom-view-leaving');
@@ -610,22 +599,18 @@ function toggleCharacterView() {
         // Se vamos para character-view a partir da zoom-view
         if (goingToCharacterView && gameState.zoomedView) {
             // Árvores da direita para a esquerda
-            animateTrees('right-to-left');
         } 
         // Se vamos para character-view a partir da tela inicial
         else if (goingToCharacterView && !gameState.zoomedView) {
             // Árvores da direita para a esquerda
-            animateTrees('right-to-left');
         }
         // Se estamos saindo da character-view
         else if (!goingToCharacterView) {
             // Se estamos voltando para a zoom-view
             if (gameState.zoomedView) {
                 // Árvores da esquerda para a direita
-                animateTrees('left-to-right');
             } else {
                 // Árvores da direita para a esquerda (para voltar à tela inicial)
-                animateTrees('right-to-left');
             }
         }
         
@@ -772,16 +757,13 @@ function toggleBossView() {
             } else if (gameState.characterView) {
                 gameState.previousView = 'character';
                 // Árvores da esquerda para a direita
-                animateTrees('left-to-right');
             } else {
                 gameState.previousView = 'initial';
                 // Árvores da esquerda para a direita
-                animateTrees('left-to-right');
             }
         } else {
             // Árvores da direita para a esquerda (menos quando voltamos para zoom-view)
             if (gameState.previousView !== 'zoom') {
-                animateTrees('right-to-left');
             }
         }
         
@@ -1097,8 +1079,8 @@ function performAttack(skill) {
         let needsTransitionBack = gameState.zoomedView || gameState.characterView;
         if (needsTransitionBack) {
             console.log("... Detectada necessidade de voltar para Default View");
-            // Animação das árvores para voltar
-            animateTrees('right-to-left'); // Ou a direção apropriada
+
+            // Animar árvores voltando
 
             // Remove classes de view e efeitos associados
             battleArena.classList.remove('zoom-view', 'zoom-view-attack', 'character-view', 'boss-view', 'menu-open');
@@ -1556,10 +1538,27 @@ function performAttack(skill) {
                     }, duration - 200);
                 }
 
-                // ===== PARA SKILLS DE BEAM - APENAS ANIMAÇÃO SEM CRIAR O BEAM =====
+                // ===== PARA SKILLS DE BEAM - CRIAR BEAM 1000ms ANTES DO FIM DA ANIMAÇÃO =====
                 if (isBeamSkill) {
-                    console.log("⚡ Preparando para beam (sem criar visual ainda)");
-                    // NÃO criar o beam aqui - será criado na fase energy_beam
+                    console.log("⚡ Preparando para beam (antecipado em 1000ms)");
+
+                    // Antecipar criação do beam em 1000ms
+                    const beamStartTime = Math.max(0, duration - 1000);
+
+                    setTimeout(() => {
+                        console.log("🔥 Criando beam antecipado!");
+
+                        // Tocar sons do ataque
+                        playSound(this.currentSkill.sound_attack, 0.8);
+                        playSound(this.currentSkill.sound_effect_1, 0.8);
+
+                        // Criar beam visual
+                        this.createEnergyBeamVisual();
+
+                        // Marcar que beam já foi criado
+                        this.beamAlreadyCreated = true;
+
+                    }, beamStartTime);
                 }
                 
                 // VOLTAR PARA IDLE após a animação
@@ -1592,9 +1591,26 @@ function performAttack(skill) {
                     }, 600);
                 }
 
-                // ===== PARA SKILLS DE BEAM =====
+                // ===== PARA SKILLS DE BEAM - FALLBACK =====
                 if (isBeamSkill) {
-                    console.log("⚡ Preparando para beam no fallback");
+                    console.log("⚡ Preparando para beam no fallback (antecipado)");
+
+                    // Antecipar criação do beam em 1000ms (mas fallback tem 800ms de duração)
+                    // Então criar imediatamente
+                    setTimeout(() => {
+                        console.log("🔥 Criando beam antecipado (fallback)!");
+
+                        // Tocar sons do ataque
+                        playSound(this.currentSkill.sound_attack, 0.8);
+                        playSound(this.currentSkill.sound_effect_1, 0.8);
+
+                        // Criar beam visual
+                        this.createEnergyBeamVisual();
+
+                        // Marcar que beam já foi criado
+                        this.beamAlreadyCreated = true;
+
+                    }, 0);
                 }
                 
                 // VOLTAR PARA IDLE
@@ -2405,59 +2421,71 @@ function performAttack(skill) {
             this.addBeamAnimations();
             
             // ===== SEQUÊNCIA DE ANIMAÇÃO =====
-            
-            // Fase 1: Charge-up (1000ms) - AUMENTADO
-            setTimeout(() => {
-                console.log("⚡ Fase 1: Charge-up");
-                // As camadas aparecem gradualmente
-                outerGlow.style.opacity = '0.8';
-                outerGlow.style.transition = 'opacity 1.2s ease-out'; // AUMENTADO
-            }, 100);
 
-            // Fase 2: Beam aparece (300ms)
+            // Fase 1: Apenas círculo de emissão (500ms)
             setTimeout(() => {
-                console.log("⚡ Fase 2: Beam ativo");
+                console.log("⚡ Fase 1: Círculo de emissão");
+                outerGlow.style.opacity = '0.8';
+                outerGlow.style.transition = 'opacity 0.3s ease-out';
+            }, 500);
+
+            // Fase 2: Raio laser aparece + SHADER NO INIMIGO (800ms)
+            setTimeout(() => {
+                console.log("⚡ Fase 2: Laser disparando + SHADER!");
                 energyHalo.style.opacity = '0.9';
                 beamCore.style.opacity = '1.0';
                 innerEnergy.style.opacity = '0.7';
                 impactEffect.style.opacity = '1.0';
                 particles.style.opacity = '1.0';
-                
+
                 energyHalo.style.transition = 'opacity 0.3s ease-out';
                 beamCore.style.transition = 'opacity 0.3s ease-out';
                 innerEnergy.style.transition = 'opacity 0.3s ease-out';
                 impactEffect.style.transition = 'opacity 0.3s ease-out';
                 particles.style.transition = 'opacity 0.3s ease-out';
-            }, 1200);
-            
-            // Fase 3: Intensificação e pulsação
+
+                // APLICAR SHADER DE IMPACTO NO INIMIGO AQUI
+                if (this.currentSkill && this.currentSkill.boss_damage_overlay) {
+                    console.log("💥 Aplicando shader no inimigo:", this.currentSkill.boss_damage_overlay);
+                    this.applyBossDamageEffect();
+                }
+            }, 800);
+
+            // Fase 3: Intensificação e pulsação (1200ms)
             let pulseInterval = null;
             setTimeout(() => {
                 console.log("⚡ Fase 3: Intensificação");
                 let intensity = 1;
                 let direction = 1;
-                
+
                 pulseInterval = setInterval(() => {
                     intensity += direction * 0.15;
                     if (intensity >= 1.8) direction = -1;
                     if (intensity <= 0.8) direction = 1;
-                    
+
                     beamCore.style.filter = `brightness(${intensity}) saturate(${intensity})`;
                     innerEnergy.style.filter = `brightness(${intensity * 1.5})`;
                     impactEffect.style.filter = `brightness(${intensity}) scale(${intensity})`;
-                    
+
                     // Shake sutil no beam
                     const shake = (Math.random() - 0.3) * 2;
                     beamContainer.style.transform = `rotate(${angle + shake}deg)`;
-                    
+
                 }, config.pulseSpeed);
-            }, 900);
-            
-            // Fase 4: Fade out
+
+                // APLICAR DANO REAL no pico da intensificação (após 300ms = 1500ms total)
+                setTimeout(() => {
+                    console.log("💥 Aplicando DANO REAL no finalzinho da animação!");
+                    this.applyDamageAndEffects();
+                    this.damageAlreadyApplied = true; // Marcar que dano foi aplicado
+                }, 300);
+            }, 1200);
+
+            // Fase 4: Fade out (1800ms)
             setTimeout(() => {
                 console.log("⚡ Fase 4: Desaparecendo");
                 if (pulseInterval) clearInterval(pulseInterval);
-                
+
                 // Fade out de todas as camadas
                 outerGlow.style.opacity = '0';
                 energyHalo.style.opacity = '0';
@@ -2465,22 +2493,22 @@ function performAttack(skill) {
                 innerEnergy.style.opacity = '0';
                 impactEffect.style.opacity = '0';
                 particles.style.opacity = '0';
-                
+
                 outerGlow.style.transition = 'opacity 0.4s ease-in';
                 energyHalo.style.transition = 'opacity 0.4s ease-in';
                 beamCore.style.transition = 'opacity 0.4s ease-in';
                 innerEnergy.style.transition = 'opacity 0.4s ease-in';
                 impactEffect.style.transition = 'opacity 0.4s ease-in';
                 particles.style.transition = 'opacity 0.4s ease-in';
-                
+
                 // Remover elementos
                 setTimeout(() => {
                     if (beamContainer.parentNode) beamContainer.remove();
                     if (impactEffect.parentNode) impactEffect.remove();
                     if (particles.parentNode) particles.remove();
                 }, 500);
-                
-            }, config.duration);
+
+            }, 1800);
         }
 
         // ===== EFEITO DE CHARGE-UP NO PERSONAGEM =====
@@ -2673,14 +2701,20 @@ function performAttack(skill) {
         // Fase: Aplicar dano
         executePhase_apply_damage() {
             console.log("QC Fase: Apply Damage");
-            
+
             // Esconder container de ataque QC2
             qc2AttackContainer.style.opacity = '0';
             qc2AttackContainer.innerHTML = '';
 
-            // Aplicar dano e efeitos visuais (código original)
-            this.applyDamageAndEffects();
-            
+            // Verificar se dano já foi aplicado (para skills de beam)
+            if (this.damageAlreadyApplied) {
+                console.log("✅ Dano já foi aplicado durante a animação, pulando");
+                this.damageAlreadyApplied = false; // Reset flag
+            } else {
+                // Aplicar dano e efeitos visuais (código original)
+                this.applyDamageAndEffects();
+            }
+
             this.nextPhase(800);
         }
 
@@ -2688,13 +2722,19 @@ function performAttack(skill) {
         executePhase_energy_beam() {
             console.log("🔥 QC Fase: Energy Beam");
             console.log("🔍 DEBUG - currentSkill na executePhase_energy_beam:", this.currentSkill);
-            
-            // Tocar sons
-            playSound(this.currentSkill.sound_attack, 0.8);
-            playSound(this.currentSkill.sound_effect_1, 0.8);
-            
-            // Criar beam visual conectando personagem ao boss (NA TELA NORMAL)
-            this.createEnergyBeamVisual();
+
+            // Verificar se beam já foi criado na fase anterior
+            if (this.beamAlreadyCreated) {
+                console.log("⚡ Beam já foi criado antecipadamente, pulando criação");
+                this.beamAlreadyCreated = false; // Reset flag
+            } else {
+                // Tocar sons
+                playSound(this.currentSkill.sound_attack, 0.8);
+                playSound(this.currentSkill.sound_effect_1, 0.8);
+
+                // Criar beam visual conectando personagem ao boss (NA TELA NORMAL)
+                this.createEnergyBeamVisual();
+            }
             
             // Aplicar dano quando o beam terminar
             const config = BEAM_TYPES[this.currentSkill.beam_type] || BEAM_TYPES["energy_beam"];
@@ -2709,14 +2749,15 @@ function performAttack(skill) {
             setTimeout(() => {
                 // Tocar som do impacto no momento do dano
                 playSound(this.currentSkill.sound_effect_2, 0.8);
-                
-                this.applyBossDamageEffect();
-                
+
+                // SHADER JÁ FOI APLICADO aos 800ms dentro do createEnergyBeamVisual
+                // NÃO aplicar novamente aqui
+
                 // Restaurar idle do personagem após o beam
                 setTimeout(() => {
                     restoreCharacterIdle();
                 }, 300);
-                
+
                 this.nextPhase(500);
             }, beamDuration);
         }
@@ -3307,27 +3348,7 @@ function performAttack(skill) {
         }
 
         applyBossDamageEffect() {
-            // Efeito de dano no boss
-            if (this.currentSkill.boss_damage_overlay && this.currentSkill.boss_damage_overlay.trim() !== "") {
-                console.log("🔍 DEBUG: boss_damage_overlay detectado:", this.currentSkill.boss_damage_overlay);
-                console.log("🔍 DEBUG: Tipo do boss_damage_overlay:", typeof this.currentSkill.boss_damage_overlay);
-                console.log("🔍 DEBUG: window.BOSS_DAMAGE_SHADERS disponível?", !!window.BOSS_DAMAGE_SHADERS);
-                console.log("🔍 DEBUG: Lista de shaders disponíveis:", window.BOSS_DAMAGE_SHADERS ? Object.keys(window.BOSS_DAMAGE_SHADERS) : "Nenhum");
-                
-                if (window.BOSS_DAMAGE_SHADERS && window.BOSS_DAMAGE_SHADERS[this.currentSkill.boss_damage_overlay]) {
-                    console.log("🎭 Aplicando shader de dano no boss:", this.currentSkill.boss_damage_overlay);
-                    
-                    if (window.pixieSystem && window.pixieSystem.bossFrontApp) {
-                        const shaderEffect = window.applyBossDamageShader(this.currentSkill.boss_damage_overlay, window.pixieSystem.bossFrontApp);
-                        if (shaderEffect) {
-                            console.log("✅ Shader aplicado com sucesso no boss");
-                        }
-                    }
-                } else if (isPixiEffect(this.currentSkill.boss_damage_overlay)) {
-                    console.log("🎭 Aplicando efeito PixiJS no boss:", this.currentSkill.boss_damage_overlay);
-                    playPixiEffect(this.currentSkill.boss_damage_overlay, 'boss', 'front', 'AttackPhaseSystem_BOSS_DAMAGE');
-                }
-            }
+            // Sistema PixiJS removido - função vazia
         }
         
         createProjectileEffect() {
