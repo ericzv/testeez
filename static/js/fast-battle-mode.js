@@ -325,7 +325,7 @@ class FastBattleMode {
       // VERIFICAÇÃO 2: Energia suficiente
       if (!window.battleState || !window.battleState.player) {
         console.log('⚠️ checkResources: battleState não disponível');
-        return false; // NÃO PERMITIR se não tiver battleState
+        return true; // Permitir otimisticamente na criação, será verificado no executeAction
       }
 
       const player = window.battleState.player;
