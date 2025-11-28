@@ -468,7 +468,6 @@ function setupMenuButtonListeners() {
                     window.gameState.zoomedView = true;
                     window.battleArena.classList.remove('character-view');
                     window.battleArena.classList.add('zoom-view');
-                    animateTrees('left-to-right');
                 }
                 
                 const openDelay = fromCharacter ? 1000 : 50;

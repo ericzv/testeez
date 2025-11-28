@@ -596,22 +596,18 @@ function toggleCharacterView() {
         // Se vamos para character-view a partir da zoom-view
         if (goingToCharacterView && gameState.zoomedView) {
             // Árvores da direita para a esquerda
-            animateTrees('right-to-left');
         } 
         // Se vamos para character-view a partir da tela inicial
         else if (goingToCharacterView && !gameState.zoomedView) {
             // Árvores da direita para a esquerda
-            animateTrees('right-to-left');
         }
         // Se estamos saindo da character-view
         else if (!goingToCharacterView) {
             // Se estamos voltando para a zoom-view
             if (gameState.zoomedView) {
                 // Árvores da esquerda para a direita
-                animateTrees('left-to-right');
             } else {
                 // Árvores da direita para a esquerda (para voltar à tela inicial)
-                animateTrees('right-to-left');
             }
         }
         
@@ -758,16 +754,13 @@ function toggleBossView() {
             } else if (gameState.characterView) {
                 gameState.previousView = 'character';
                 // Árvores da esquerda para a direita
-                animateTrees('left-to-right');
             } else {
                 gameState.previousView = 'initial';
                 // Árvores da esquerda para a direita
-                animateTrees('left-to-right');
             }
         } else {
             // Árvores da direita para a esquerda (menos quando voltamos para zoom-view)
             if (gameState.previousView !== 'zoom') {
-                animateTrees('right-to-left');
             }
         }
         
@@ -1083,8 +1076,8 @@ function performAttack(skill) {
         let needsTransitionBack = gameState.zoomedView || gameState.characterView;
         if (needsTransitionBack) {
             console.log("... Detectada necessidade de voltar para Default View");
-            // Animação das árvores para voltar
-            animateTrees('right-to-left'); // Ou a direção apropriada
+
+            // Animação de árvores removida (sistema PixiJS)
 
             // Remove classes de view e efeitos associados
             battleArena.classList.remove('zoom-view', 'zoom-view-attack', 'character-view', 'boss-view', 'menu-open');
