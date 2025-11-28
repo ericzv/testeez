@@ -312,6 +312,11 @@ class FastBattleMode {
     // Adicionar ao container
     const container = document.querySelector('.fast-battle-container');
     container.appendChild(submenu);
+
+    // Atualizar estado dos botões imediatamente após criar
+    setTimeout(() => {
+      this.updateButtonStates();
+    }, 100);
   }
 
   checkResources(item, type) {

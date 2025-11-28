@@ -395,7 +395,12 @@ function toggleZoomView() {
         // Determinar se estamos indo ou voltando da zoom-view
         const goingToZoomView = !gameState.zoomedView;
 
-        // Animação de árvores removida (sistema PixiJS)
+        // Animar árvores
+        if (goingToZoomView) {
+            animateTrees('left-to-right');
+        } else {
+            animateTrees('right-to-left');
+        }
 
         // Adicionar classes para indicar que estamos saindo da view atual
         if (gameState.zoomedView) {
@@ -1077,7 +1082,8 @@ function performAttack(skill) {
         if (needsTransitionBack) {
             console.log("... Detectada necessidade de voltar para Default View");
 
-            // Animação de árvores removida (sistema PixiJS)
+            // Animar árvores voltando
+            animateTrees('right-to-left');
 
             // Remove classes de view e efeitos associados
             battleArena.classList.remove('zoom-view', 'zoom-view-attack', 'character-view', 'boss-view', 'menu-open');

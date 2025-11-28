@@ -5,6 +5,50 @@ function calculateResponsiveTreeScale(verticalPos) {
     return baseSize;
 }
 
+// Animar árvores nas transições de view
+function animateTrees(direction) {
+    const leftTrees = document.querySelectorAll('.tree-paralax.left-side');
+    const rightTrees = document.querySelectorAll('.tree-paralax.right-side');
+
+    if (direction === 'left-to-right') {
+        // Árvores se movem da esquerda para direita (indo para zoom-view)
+        leftTrees.forEach((tree, index) => {
+            tree.style.transition = 'transform 0.8s ease-in-out';
+            tree.style.transform = `translateX(150px)`;
+        });
+        rightTrees.forEach((tree, index) => {
+            tree.style.transition = 'transform 0.8s ease-in-out';
+            tree.style.transform = `translateX(150px)`;
+        });
+
+        // Voltar ao normal após animação
+        setTimeout(() => {
+            leftTrees.forEach(tree => tree.style.transform = 'translateX(0)');
+            rightTrees.forEach(tree => tree.style.transform = 'translateX(0)');
+        }, 800);
+
+    } else if (direction === 'right-to-left') {
+        // Árvores se movem da direita para esquerda (voltando da zoom-view)
+        leftTrees.forEach((tree, index) => {
+            tree.style.transition = 'transform 0.8s ease-in-out';
+            tree.style.transform = `translateX(-150px)`;
+        });
+        rightTrees.forEach((tree, index) => {
+            tree.style.transition = 'transform 0.8s ease-in-out';
+            tree.style.transform = `translateX(-150px)`;
+        });
+
+        // Voltar ao normal após animação
+        setTimeout(() => {
+            leftTrees.forEach(tree => tree.style.transform = 'translateX(0)');
+            rightTrees.forEach(tree => tree.style.transform = 'translateX(0)');
+        }, 800);
+    }
+}
+
+// Expor função globalmente
+window.animateTrees = animateTrees;
+
 function initializeTrees() {
     console.log("🌳 Inicializando árvores");
 
