@@ -387,30 +387,16 @@ function toggleZoomView() {
         // Resetar o menu principal
         actionMenu.style = "";
     }
-    
+
     if (!gameState.inAction) {
         // Reset do menu - esconder primeiro
         actionMenu.classList.remove('visible');
-        
+
         // Determinar se estamos indo ou voltando da zoom-view
         const goingToZoomView = !gameState.zoomedView;
-        
-        // Se vamos para zoom-view a partir da character-view
-        if (goingToZoomView && gameState.characterView) {
-            // Árvores da esquerda para a direita
-            animateTrees('left-to-right');
-        } 
-        // Se vamos para zoom-view a partir da tela inicial
-        else if (goingToZoomView && !gameState.characterView) {
-            // Árvores da esquerda para a direita
-            animateTrees('left-to-right');
-        }
-        // Se estamos saindo da zoom-view
-        else if (!goingToZoomView) {
-            // Árvores da direita para a esquerda
-            animateTrees('right-to-left');
-        }
-        
+
+        // Animação de árvores removida (sistema PixiJS)
+
         // Adicionar classes para indicar que estamos saindo da view atual
         if (gameState.zoomedView) {
             battleArena.classList.add('zoom-view-leaving');
