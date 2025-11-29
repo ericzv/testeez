@@ -257,19 +257,29 @@
             }
         }
 
-        // Inicializar uma categoria com distribuição automática
+        // Inicializar uma categoria RESPEITANDO os tiers salvos
         function initializeCategory(category) {
             const items = equipmentData[category] || [];
 
-            // Ordenar por total_points (usar tier atual como fallback)
-            items.sort((a, b) => (a.tier || 1) - (b.tier || 1) || a.total_points - b.total_points);
+            // Se algum item NÃO tem tier definido, distribuir automaticamente
+            const hasTiers = items.some(item => item.tier && item.tier > 0);
 
-            // Distribuir em 6 tiers automaticamente
-            const itemsPerTier = Math.ceil(items.length / 6);
+            if (!hasTiers) {
+                // Primeira vez: distribuir automaticamente por total_points
+                items.sort((a, b) => a.total_points - b.total_points);
+                const itemsPerTier = Math.ceil(items.length / 6);
 
-            items.forEach((item, index) => {
-                item.tier = Math.min(6, Math.floor(index / itemsPerTier) + 1);
-            });
+                items.forEach((item, index) => {
+                    item.tier = Math.min(6, Math.floor(index / itemsPerTier) + 1);
+                });
+            } else {
+                // Já tem tiers salvos: MANTER os tiers do JSON!
+                // Apenas ordenar por tier para organizar a visualização
+                items.sort((a, b) => {
+                    if (a.tier !== b.tier) return a.tier - b.tier;
+                    return a.filename.localeCompare(b.filename);
+                });
+            }
 
             renderCategory(category);
         }
