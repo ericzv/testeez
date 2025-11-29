@@ -1816,7 +1816,7 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
     # Apply bonuses as percentages
     final_hp = int(rarity_stats['hp'] * (1 + hp_bonus / 100))
     final_damage = int(rarity_stats['damage'] * (1 + damage_bonus / 100))
-    final_block = int(rarity_stats['block_percentage'] * (1 + armor_bonus / 100))
+    final_block = int(rarity_stats['block'] * (1 + armor_bonus / 100))
 
     # Limit block percentage to 80%
     final_block = min(final_block, 80)
