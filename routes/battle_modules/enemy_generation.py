@@ -1767,7 +1767,24 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
         final_equipment['back'] = sprite_back
 
     # Generate random name from theme's name pool
-    name_pool = theme_config.get('name_pool', ["Guerreiro", "Lutador", "Combatente"])
+    name_pool = theme_config.get('name_pool', [])
+    if not name_pool or len(name_pool) == 0:
+        # Se name_pool estiver vazio, usar o nome do tema como base
+        base_names = {
+            'Guerreiro azul': ['Guerreiro Azul', 'Soldado Azul', 'Combatente Azul'],
+            'Guerreiro azul claro e verde': ['Guerreiro Verde', 'Soldado Verde', 'Combatente Verde'],
+            'Guerreiro branco/cinza/neutro': ['Guerreiro Neutro', 'Soldado Branco', 'Combatente Cinza'],
+            'Guerreiro dark': ['Guerreiro das Trevas', 'Soldado Sombrio', 'Combatente Negro'],
+            'Guerreiro redish': ['Guerreiro Vermelho', 'Soldado Escarlate', 'Combatente Rubro'],
+            'Guerreiros coloridos para acessorios genericos': ['Guerreiro', 'Soldado', 'Combatente'],
+            'Guerreiros grandes': ['Guerreiro Gigante', 'Soldado Colossal', 'Combatente Imenso'],
+            'Guerreiros pouca roupa': ['Bárbaro', 'Lutador Selvagem', 'Guerreiro Tribal'],
+            'Mages': ['Mago', 'Feiticeiro', 'Arcano'],
+            'Ninjas e samurais sem cores fortes': ['Ninja', 'Samurai', 'Guerreiro Oriental'],
+            'Samurais only hat': ['Samurai', 'Ronin', 'Espadachim']
+        }
+        name_pool = base_names.get(theme_name, [theme_name.split()[0], 'Guerreiro', 'Combatente'])
+
     name = random.choice(name_pool)
 
     # Calcular stats finais
