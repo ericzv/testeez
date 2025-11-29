@@ -1767,7 +1767,7 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
         final_equipment['back'] = sprite_back
 
     # Generate random name from theme's name pool
-    name_pool = json.loads(theme_config.get('name_pool', '["Guerreiro", "Lutador", "Combatente"]'))
+    name_pool = theme_config.get('name_pool', ["Guerreiro", "Lutador", "Combatente"])
     name = random.choice(name_pool)
 
     # Calcular stats finais
