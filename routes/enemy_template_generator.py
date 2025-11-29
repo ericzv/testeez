@@ -1,0 +1,167 @@
+"""
+Enemy Template Generator - Ferramenta para gerar e salvar templates de inimigos
+"""
+from flask import Blueprint, render_template, jsonify, request
+import json
+import os
+import random
+from routes.battle_modules.enemy_generation import generate_enemy_by_theme
+
+enemy_template_bp = Blueprint('enemy_template', __name__)
+
+# Caminho para salvar templates
+TEMPLATES_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'game.data', 'enemy_templates.json')
+
+def load_templates():
+    """Carrega templates salvos"""
+    try:
+        if os.path.exists(TEMPLATES_PATH):
+            with open(TEMPLATES_PATH, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        return {'templates': []}
+    except Exception as e:
+        print(f"Erro ao carregar templates: {e}")
+        return {'templates': []}
+
+def save_templates(templates_data):
+    """Salva templates"""
+    try:
+        with open(TEMPLATES_PATH, 'w', encoding='utf-8') as f:
+            json.dump(templates_data, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        print(f"Erro ao salvar templates: {e}")
+        return False
+
+@enemy_template_bp.route('/gamification/enemy_template_generator')
+def template_generator_page():
+    """Renderiza a página do Enemy Template Generator"""
+    return render_template('gamification/enemy_template_generator.html')
+
+@enemy_template_bp.route('/gamification/generate_enemy_preview', methods=['POST'])
+def generate_enemy_preview():
+    """Gera um inimigo procedural para preview"""
+    try:
+        data = request.get_json()
+        theme_id = data.get('theme_id', 1)
+        enemy_number = data.get('enemy_number', random.randint(1, 50))
+        seed = data.get('seed')
+
+        # Usar seed se fornecida
+        if seed:
+            random.seed(seed)
+        else:
+            seed = random.randint(1, 999999)
+            random.seed(seed)
+
+        # Gerar inimigo usando o sistema existente
+        from models import EnemyTheme
+        from database import db
+
+        enemy = generate_enemy_by_theme(theme_id, enemy_number, player_id=None)
+
+        if not enemy:
+            return jsonify({
+                'success': False,
+                'message': 'Erro ao gerar inimigo'
+            }), 500
+
+        # Preparar dados para retorno
+        enemy_data = {
+            'id': enemy.id,
+            'name': enemy.name,
+            'theme_id': enemy.theme_id,
+            'enemy_number': enemy_number,
+            'rarity': enemy.rarity,
+            'rarity_name': ['', 'Comum', 'Raro', 'Épico', 'Lendário'][enemy.rarity],
+            'hp': enemy.hp,
+            'max_hp': enemy.max_hp,
+            'damage': enemy.damage,
+            'block_percentage': enemy.block_percentage,
+            'equipment_rank': enemy.equipment_rank,
+            'sprite_layers': {
+                'weapon': enemy.sprite_weapon,
+                'head': enemy.sprite_head,
+                'body': enemy.sprite_body,
+                'back': enemy.sprite_back
+            },
+            'seed': seed,
+            'typical_phrase': '',  # Para o usuário editar
+            'behavior_pattern': 'default'  # Para o usuário escolher
+        }
+
+        # Limpar inimigo gerado do banco (não salvar ainda)
+        db.session.delete(enemy)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'enemy': enemy_data
+        })
+
+    except Exception as e:
+        print(f"Erro ao gerar preview: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'message': f'Erro: {str(e)}'
+        }), 500
+
+@enemy_template_bp.route('/gamification/save_enemy_template', methods=['POST'])
+def save_enemy_template():
+    """Salva um template de inimigo"""
+    try:
+        template_data = request.get_json()
+
+        # Carregar templates existentes
+        templates = load_templates()
+
+        # Gerar ID único
+        template_id = max([t.get('id', 0) for t in templates['templates']], default=0) + 1
+        template_data['id'] = template_id
+
+        # Adicionar à lista
+        templates['templates'].append(template_data)
+
+        # Salvar
+        if save_templates(templates):
+            return jsonify({
+                'success': True,
+                'message': 'Template salvo com sucesso!',
+                'template_id': template_id
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Erro ao salvar template'
+            }), 500
+
+    except Exception as e:
+        print(f"Erro ao salvar template: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'Erro: {str(e)}'
+        }), 500
+
+@enemy_template_bp.route('/gamification/get_enemy_templates')
+def get_enemy_templates():
+    """Retorna todos os templates salvos"""
+    templates = load_templates()
+    return jsonify(templates)
+
+@enemy_template_bp.route('/gamification/delete_enemy_template/<int:template_id>', methods=['DELETE'])
+def delete_enemy_template(template_id):
+    """Deleta um template"""
+    try:
+        templates = load_templates()
+        templates['templates'] = [t for t in templates['templates'] if t.get('id') != template_id]
+
+        if save_templates(templates):
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'message': 'Erro ao salvar'}), 500
+
+    except Exception as e:
+        print(f"Erro ao deletar template: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
