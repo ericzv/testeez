@@ -1,18 +1,83 @@
 {
   "action_patterns": {
-    "Guerreiro azul": ["attack", "attack", "attack_skill", "attack", "buff_debuff"],
-    "Guerreiros grandes": ["buff_debuff", "attack", "attack", "attack_skill", "buff_debuff"],
-    "Guerreiros pouca roupa": ["attack", "attack_skill", "attack", "attack", "buff_debuff"],
-    "Guerreiro dark": ["attack_skill", "attack", "buff_debuff", "attack_skill", "buff_debuff"],
-    "Guerreiros coloridos para acessorios genericos": ["attack", "attack", "attack_skill", "attack", "buff_debuff"],
-    "Ninjas e samurais sem cores fortes": ["attack", "attack_skill", "attack", "attack", "buff_debuff"],
-    "Mages": ["attack_skill", "attack", "buff_debuff", "attack_skill", "buff_debuff"],
-    "Guerreiro neutro branco cinza": ["buff_debuff", "attack", "attack", "buff_debuff", "attack_skill"],
-    "Redish": ["attack", "attack", "buff_debuff", "attack", "attack"],
-    "Samurais only hat": ["attack", "attack_skill", "buff_debuff", "attack", "attack_skill"],
-    "default": ["attack", "attack_skill", "attack", "buff_debuff", "attack"]
+    "Guerreiro azul": [
+      "attack",
+      "attack",
+      "attack_skill",
+      "attack",
+      "buff_debuff"
+    ],
+    "Guerreiros grandes": [
+      "buff_debuff",
+      "attack",
+      "attack",
+      "attack_skill",
+      "buff_debuff"
+    ],
+    "Guerreiros pouca roupa": [
+      "attack",
+      "attack_skill",
+      "attack",
+      "attack",
+      "buff_debuff"
+    ],
+    "Guerreiro dark": [
+      "attack_skill",
+      "attack",
+      "buff_debuff",
+      "attack_skill",
+      "buff_debuff"
+    ],
+    "Guerreiros coloridos para acessorios genericos": [
+      "attack",
+      "attack",
+      "attack_skill",
+      "attack",
+      "buff_debuff"
+    ],
+    "Ninjas e samurais sem cores fortes": [
+      "attack",
+      "attack_skill",
+      "attack",
+      "attack",
+      "buff_debuff"
+    ],
+    "Mages": [
+      "attack_skill",
+      "attack",
+      "buff_debuff",
+      "attack_skill",
+      "buff_debuff"
+    ],
+    "Guerreiro neutro branco cinza": [
+      "buff_debuff",
+      "attack",
+      "attack",
+      "buff_debuff",
+      "attack_skill"
+    ],
+    "Redish": [
+      "attack",
+      "attack",
+      "buff_debuff",
+      "attack",
+      "attack"
+    ],
+    "Samurais only hat": [
+      "attack",
+      "attack_skill",
+      "buff_debuff",
+      "attack",
+      "attack_skill"
+    ],
+    "default": [
+      "attack",
+      "attack_skill",
+      "attack",
+      "buff_debuff",
+      "attack"
+    ]
   },
-  
   "backup_info": {
     "created_at": "2025-07-03T09:56:28.962078",
     "modifier_count": 283,
@@ -24,7 +89,6 @@
       "armor": 0,
       "damage": 10,
       "hp": 0,
-      "posture": 0,
       "total_points": 10,
       "tier": 2
     },
@@ -32,23 +96,20 @@
       "armor": 0,
       "damage": 11,
       "hp": 0,
-      "posture": 5,
-      "total_points": 16,
+      "total_points": 11,
       "tier": 2
     },
     "back11.png": {
       "armor": 6,
       "damage": 1,
       "hp": 1,
-      "posture": 1,
-      "total_points": 9,
+      "total_points": 8,
       "tier": 1
     },
     "back12.png": {
       "armor": 20,
       "damage": 0,
       "hp": 0,
-      "posture": 0,
       "total_points": 20,
       "tier": 3
     },
@@ -56,7 +117,6 @@
       "armor": 22,
       "damage": 0,
       "hp": 0,
-      "posture": 0,
       "total_points": 22,
       "tier": 3
     },
@@ -64,7 +124,6 @@
       "armor": 25,
       "damage": 0,
       "hp": 0,
-      "posture": 0,
       "total_points": 25,
       "tier": 3
     },
@@ -72,7 +131,6 @@
       "armor": 0,
       "damage": 15,
       "hp": 0,
-      "posture": 0,
       "total_points": 15,
       "tier": 2
     },
@@ -80,7 +138,6 @@
       "armor": 0,
       "damage": 16,
       "hp": 0,
-      "posture": 0,
       "total_points": 16,
       "tier": 2
     },
@@ -88,15 +145,13 @@
       "armor": 0,
       "damage": 5,
       "hp": 0,
-      "posture": 10,
-      "total_points": 15,
+      "total_points": 5,
       "tier": 2
     },
     "back18.png": {
       "armor": 5,
       "damage": 20,
       "hp": 0,
-      "posture": 0,
       "total_points": 25,
       "tier": 3
     },
@@ -104,7 +159,6 @@
       "armor": 0,
       "damage": 15,
       "hp": 0,
-      "posture": 0,
       "total_points": 15,
       "tier": 2
     },
@@ -112,15 +166,13 @@
       "armor": 5,
       "damage": 5,
       "hp": 0,
-      "posture": 5,
-      "total_points": 15,
+      "total_points": 10,
       "tier": 2
     },
     "back20.png": {
       "armor": 0,
       "damage": 0,
       "hp": 15,
-      "posture": 0,
       "total_points": 15,
       "tier": 2
     },
@@ -128,15 +180,13 @@
       "armor": 0,
       "damage": 0,
       "hp": 8,
-      "posture": 8,
-      "total_points": 16,
+      "total_points": 8,
       "tier": 2
     },
     "back22.png": {
       "armor": 0,
       "damage": 0,
       "hp": 22,
-      "posture": 0,
       "total_points": 22,
       "tier": 3
     },
@@ -144,7 +194,6 @@
       "armor": 5,
       "damage": 12,
       "hp": 0,
-      "posture": 0,
       "total_points": 17,
       "tier": 2
     },
@@ -152,39 +201,34 @@
       "armor": 5,
       "damage": 0,
       "hp": 15,
-      "posture": 5,
-      "total_points": 25,
+      "total_points": 20,
       "tier": 3
     },
     "back25.png": {
       "armor": 3,
       "damage": 6,
       "hp": 4,
-      "posture": 4,
-      "total_points": 17,
+      "total_points": 13,
       "tier": 2
     },
     "back26.png": {
       "armor": 1,
       "damage": 3,
       "hp": 8,
-      "posture": 1,
-      "total_points": 13,
+      "total_points": 12,
       "tier": 2
     },
     "back27.png": {
       "armor": 2,
       "damage": 5,
       "hp": 3,
-      "posture": 3,
-      "total_points": 13,
+      "total_points": 10,
       "tier": 2
     },
     "back28.png": {
       "armor": 20,
       "damage": 0,
       "hp": 0,
-      "posture": 0,
       "total_points": 20,
       "tier": 3
     },
@@ -192,7 +236,6 @@
       "armor": 20,
       "damage": 0,
       "hp": 5,
-      "posture": 0,
       "total_points": 25,
       "tier": 3
     },
@@ -200,7 +243,6 @@
       "armor": 0,
       "damage": 15,
       "hp": 0,
-      "posture": 0,
       "total_points": 15,
       "tier": 2
     },
@@ -208,15 +250,13 @@
       "armor": 22,
       "damage": 0,
       "hp": 3,
-      "posture": 3,
-      "total_points": 28,
+      "total_points": 25,
       "tier": 3
     },
     "back31.png": {
       "armor": 25,
       "damage": 0,
       "hp": 0,
-      "posture": 0,
       "total_points": 25,
       "tier": 3
     },
@@ -224,15 +264,13 @@
       "armor": 18,
       "damage": 0,
       "hp": 0,
-      "posture": 5,
-      "total_points": 23,
+      "total_points": 18,
       "tier": 3
     },
     "back33.png": {
       "armor": 30,
       "damage": 0,
       "hp": 10,
-      "posture": 0,
       "total_points": 40,
       "tier": 5
     },
@@ -240,7 +278,6 @@
       "armor": 0,
       "damage": 5,
       "hp": 0,
-      "posture": 0,
       "total_points": 5,
       "tier": 1
     },
@@ -248,7 +285,6 @@
       "armor": 0,
       "damage": 7,
       "hp": 5,
-      "posture": 0,
       "total_points": 12,
       "tier": 2
     },
@@ -256,15 +292,13 @@
       "armor": 3,
       "damage": 4,
       "hp": 0,
-      "posture": 3,
-      "total_points": 10,
+      "total_points": 7,
       "tier": 2
     },
     "back37.png": {
       "armor": 0,
       "damage": 15,
       "hp": 0,
-      "posture": 0,
       "total_points": 15,
       "tier": 2
     },
@@ -272,7 +306,6 @@
       "armor": 0,
       "damage": 11,
       "hp": 0,
-      "posture": 0,
       "total_points": 11,
       "tier": 2
     },
@@ -280,7 +313,6 @@
       "armor": 0,
       "damage": 8,
       "hp": 0,
-      "posture": 0,
       "total_points": 8,
       "tier": 1
     },
@@ -288,15 +320,13 @@
       "armor": 5,
       "damage": 2,
       "hp": 2,
-      "posture": 2,
-      "total_points": 11,
+      "total_points": 9,
       "tier": 2
     },
     "back40.png": {
       "armor": 0,
       "damage": 10,
       "hp": 0,
-      "posture": 0,
       "total_points": 10,
       "tier": 2
     },
@@ -304,7 +334,6 @@
       "armor": 0,
       "damage": 5,
       "hp": 10,
-      "posture": 0,
       "total_points": 15,
       "tier": 2
     },
@@ -312,55 +341,48 @@
       "armor": 10,
       "damage": 15,
       "hp": 10,
-      "posture": 10,
-      "total_points": 45,
+      "total_points": 35,
       "tier": 5
     },
     "back43.png": {
       "armor": 10,
       "damage": 10,
       "hp": 5,
-      "posture": 5,
-      "total_points": 30,
+      "total_points": 25,
       "tier": 4
     },
     "back44.png": {
       "armor": 1,
       "damage": 15,
       "hp": 3,
-      "posture": 3,
-      "total_points": 22,
+      "total_points": 19,
       "tier": 3
     },
     "back45.png": {
       "armor": 3,
       "damage": 12,
       "hp": 5,
-      "posture": 3,
-      "total_points": 23,
+      "total_points": 20,
       "tier": 3
     },
     "back46.png": {
       "armor": 10,
       "damage": 15,
       "hp": 10,
-      "posture": 10,
-      "total_points": 45,
+      "total_points": 35,
       "tier": 5
     },
     "back47.png": {
       "armor": 5,
       "damage": 5,
       "hp": 5,
-      "posture": 5,
-      "total_points": 20,
+      "total_points": 15,
       "tier": 3
     },
     "back48.png": {
       "armor": 0,
       "damage": 15,
       "hp": 0,
-      "posture": 0,
       "total_points": 15,
       "tier": 2
     },
@@ -368,23 +390,20 @@
       "armor": 5,
       "damage": 15,
       "hp": 0,
-      "posture": 5,
-      "total_points": 25,
+      "total_points": 20,
       "tier": 3
     },
     "back5.png": {
       "armor": 3,
       "damage": 3,
       "hp": 3,
-      "posture": 3,
-      "total_points": 12,
+      "total_points": 9,
       "tier": 2
     },
     "back50.png": {
       "armor": 5,
       "damage": 20,
       "hp": 5,
-      "posture": 0,
       "total_points": 30,
       "tier": 4
     },
@@ -392,399 +411,349 @@
       "armor": 1,
       "damage": 3,
       "hp": 18,
-      "posture": 2,
-      "total_points": 24,
+      "total_points": 22,
       "tier": 3
     },
     "back7.png": {
       "armor": 5,
       "damage": 3,
       "hp": 3,
-      "posture": 3,
-      "total_points": 14,
+      "total_points": 11,
       "tier": 2
     },
     "back8.png": {
       "armor": 6,
       "damage": 2,
       "hp": 2,
-      "posture": 2,
-      "total_points": 12,
+      "total_points": 10,
       "tier": 2
     },
     "back9.png": {
       "armor": 3,
       "damage": 3,
       "hp": 2,
-      "posture": 1,
-      "total_points": 9,
+      "total_points": 8,
       "tier": 1
     },
     "body1.png": {
       "armor": 15,
       "damage": 0,
       "hp": 10,
-      "posture": 30,
-      "total_points": 55,
+      "total_points": 25,
       "tier": 6
     },
     "body10.png": {
       "armor": 5,
       "damage": 0,
       "hp": 20,
-      "posture": 5,
-      "total_points": 30,
+      "total_points": 25,
       "tier": 4
     },
     "body11.png": {
       "armor": 20,
       "damage": 0,
       "hp": 10,
-      "posture": 15,
-      "total_points": 45,
+      "total_points": 30,
       "tier": 5
     },
     "body12.png": {
       "armor": 20,
       "damage": 0,
       "hp": 12,
-      "posture": 17,
-      "total_points": 49,
+      "total_points": 32,
       "tier": 5
     },
     "body13.png": {
       "armor": 15,
       "damage": 0,
       "hp": 18,
-      "posture": 13,
-      "total_points": 46,
+      "total_points": 33,
       "tier": 5
     },
     "body14.png": {
       "armor": 25,
       "damage": 0,
       "hp": 20,
-      "posture": 15,
-      "total_points": 60,
+      "total_points": 45,
       "tier": 6
     },
     "body15.png": {
       "armor": 16,
       "damage": 0,
       "hp": 12,
-      "posture": 12,
-      "total_points": 40,
+      "total_points": 28,
       "tier": 5
     },
     "body16.png": {
       "armor": 22,
       "damage": 0,
       "hp": 5,
-      "posture": 15,
-      "total_points": 42,
+      "total_points": 27,
       "tier": 5
     },
     "body17.png": {
       "armor": 15,
       "damage": 0,
       "hp": 7,
-      "posture": 12,
-      "total_points": 34,
+      "total_points": 22,
       "tier": 4
     },
     "body18.png": {
       "armor": 18,
       "damage": 0,
       "hp": 15,
-      "posture": 5,
-      "total_points": 38,
+      "total_points": 33,
       "tier": 4
     },
     "body19.png": {
       "armor": 1,
       "damage": 0,
       "hp": 22,
-      "posture": 1,
-      "total_points": 24,
+      "total_points": 23,
       "tier": 3
     },
     "body2.png": {
       "armor": 15,
       "damage": 0,
       "hp": 10,
-      "posture": 10,
-      "total_points": 35,
+      "total_points": 25,
       "tier": 4
     },
     "body20.png": {
       "armor": 20,
       "damage": 0,
       "hp": 12,
-      "posture": 12,
-      "total_points": 44,
+      "total_points": 32,
       "tier": 5
     },
     "body21.png": {
       "armor": 15,
       "damage": 5,
       "hp": 15,
-      "posture": 15,
-      "total_points": 50,
+      "total_points": 35,
       "tier": 6
     },
     "body22.png": {
       "armor": 10,
       "damage": 0,
       "hp": 5,
-      "posture": 35,
-      "total_points": 50,
+      "total_points": 15,
       "tier": 6
     },
     "body23.png": {
       "armor": 25,
       "damage": 0,
       "hp": 30,
-      "posture": 10,
-      "total_points": 65,
+      "total_points": 55,
       "tier": 6
     },
     "body24.png": {
       "armor": 45,
       "damage": 0,
       "hp": 20,
-      "posture": 20,
-      "total_points": 85,
+      "total_points": 65,
       "tier": 6
     },
     "body25.png": {
       "armor": 22,
       "damage": 0,
       "hp": 15,
-      "posture": 12,
-      "total_points": 49,
+      "total_points": 37,
       "tier": 5
     },
     "body26.png": {
       "armor": 15,
       "damage": 0,
       "hp": 5,
-      "posture": 40,
-      "total_points": 60,
+      "total_points": 20,
       "tier": 6
     },
     "body27.png": {
       "armor": 8,
       "damage": 0,
       "hp": 5,
-      "posture": 32,
-      "total_points": 45,
+      "total_points": 13,
       "tier": 5
     },
     "body28.png": {
       "armor": 25,
       "damage": 0,
       "hp": 10,
-      "posture": 40,
-      "total_points": 75,
+      "total_points": 35,
       "tier": 6
     },
     "body29.png": {
       "armor": 32,
       "damage": 0,
       "hp": 12,
-      "posture": 15,
-      "total_points": 59,
+      "total_points": 44,
       "tier": 6
     },
     "body3.png": {
       "armor": 30,
       "damage": 0,
       "hp": 25,
-      "posture": 15,
-      "total_points": 70,
+      "total_points": 55,
       "tier": 6
     },
     "body30.png": {
       "armor": 12,
       "damage": 0,
       "hp": 5,
-      "posture": 34,
-      "total_points": 51,
+      "total_points": 17,
       "tier": 6
     },
     "body31.png": {
       "armor": 5,
       "damage": 0,
       "hp": 32,
-      "posture": 5,
-      "total_points": 42,
+      "total_points": 37,
       "tier": 5
     },
     "body32.png": {
       "armor": 5,
       "damage": 0,
       "hp": 28,
-      "posture": 5,
-      "total_points": 38,
+      "total_points": 33,
       "tier": 4
     },
     "body33.png": {
       "armor": 22,
       "damage": 0,
       "hp": 12,
-      "posture": 8,
-      "total_points": 42,
+      "total_points": 34,
       "tier": 5
     },
     "body34.png": {
       "armor": 12,
       "damage": 0,
       "hp": 5,
-      "posture": 5,
-      "total_points": 22,
+      "total_points": 17,
       "tier": 3
     },
     "body35.png": {
       "armor": 12,
       "damage": 0,
       "hp": 8,
-      "posture": 8,
-      "total_points": 28,
+      "total_points": 20,
       "tier": 3
     },
     "body36.png": {
       "armor": 18,
       "damage": 0,
       "hp": 10,
-      "posture": 10,
-      "total_points": 38,
+      "total_points": 28,
       "tier": 4
     },
     "body37.png": {
       "armor": 18,
       "damage": 0,
       "hp": 12,
-      "posture": 10,
-      "total_points": 40,
+      "total_points": 30,
       "tier": 5
     },
     "body38.png": {
       "armor": 18,
       "damage": 0,
       "hp": 8,
-      "posture": 10,
-      "total_points": 36,
+      "total_points": 26,
       "tier": 4
     },
     "body39.png": {
       "armor": 20,
       "damage": 0,
       "hp": 10,
-      "posture": 10,
-      "total_points": 40,
+      "total_points": 30,
       "tier": 5
     },
     "body4.png": {
       "armor": 25,
       "damage": 0,
       "hp": 20,
-      "posture": 15,
-      "total_points": 60,
+      "total_points": 45,
       "tier": 6
     },
     "body40.png": {
       "armor": 12,
       "damage": 0,
       "hp": 20,
-      "posture": 5,
-      "total_points": 37,
+      "total_points": 32,
       "tier": 4
     },
     "body41.png": {
       "armor": 15,
       "damage": 0,
       "hp": 23,
-      "posture": 6,
-      "total_points": 44,
+      "total_points": 38,
       "tier": 5
     },
     "body42.png": {
       "armor": 12,
       "damage": 0,
       "hp": 12,
-      "posture": 10,
-      "total_points": 34,
+      "total_points": 24,
       "tier": 4
     },
     "body43.png": {
       "armor": 11,
       "damage": 0,
       "hp": 13,
-      "posture": 10,
-      "total_points": 34,
+      "total_points": 24,
       "tier": 4
     },
     "body44.png": {
       "armor": 12,
       "damage": 10,
       "hp": 8,
-      "posture": 10,
-      "total_points": 40,
+      "total_points": 30,
       "tier": 5
     },
     "body45.png": {
       "armor": 11,
       "damage": 12,
       "hp": 9,
-      "posture": 10,
-      "total_points": 42,
+      "total_points": 32,
       "tier": 5
     },
     "body46.png": {
       "armor": 10,
       "damage": 15,
       "hp": 5,
-      "posture": 20,
-      "total_points": 50,
+      "total_points": 30,
       "tier": 6
     },
     "body47.png": {
       "armor": 10,
       "damage": 12,
       "hp": 5,
-      "posture": 18,
-      "total_points": 45,
+      "total_points": 27,
       "tier": 5
     },
     "body48.png": {
       "armor": 10,
       "damage": 13,
       "hp": 6,
-      "posture": 15,
-      "total_points": 44,
+      "total_points": 29,
       "tier": 5
     },
     "body49.png": {
       "armor": 10,
       "damage": 15,
       "hp": 10,
-      "posture": 18,
-      "total_points": 53,
+      "total_points": 35,
       "tier": 6
     },
     "body5.png": {
       "armor": 10,
       "damage": 0,
       "hp": 5,
-      "posture": 35,
-      "total_points": 50,
+      "total_points": 15,
       "tier": 6
     },
     "body50.png": {
       "armor": 0,
       "damage": 12,
       "hp": 0,
-      "posture": 0,
       "total_points": 12,
       "tier": 2
     },
@@ -792,127 +761,111 @@
       "armor": 5,
       "damage": 5,
       "hp": 8,
-      "posture": 12,
-      "total_points": 30,
+      "total_points": 18,
       "tier": 4
     },
     "body52.png": {
       "armor": 1,
       "damage": 7,
       "hp": 10,
-      "posture": 12,
-      "total_points": 30,
+      "total_points": 18,
       "tier": 4
     },
     "body53.png": {
       "armor": 5,
       "damage": 12,
       "hp": 5,
-      "posture": 30,
-      "total_points": 52,
+      "total_points": 22,
       "tier": 6
     },
     "body54.png": {
       "armor": 5,
       "damage": 20,
       "hp": 5,
-      "posture": 30,
-      "total_points": 60,
+      "total_points": 30,
       "tier": 6
     },
     "body55.png": {
       "armor": 5,
       "damage": 8,
       "hp": 5,
-      "posture": 25,
-      "total_points": 43,
+      "total_points": 18,
       "tier": 5
     },
     "body56.png": {
       "armor": 5,
       "damage": 20,
       "hp": 10,
-      "posture": 30,
-      "total_points": 65,
+      "total_points": 35,
       "tier": 6
     },
     "body57.png": {
       "armor": 10,
       "damage": 5,
       "hp": 10,
-      "posture": 5,
-      "total_points": 30,
+      "total_points": 25,
       "tier": 4
     },
     "body58.png": {
       "armor": 5,
       "damage": 3,
       "hp": 12,
-      "posture": 5,
-      "total_points": 25,
+      "total_points": 20,
       "tier": 3
     },
     "body59.png": {
       "armor": 5,
       "damage": 0,
       "hp": 10,
-      "posture": 5,
-      "total_points": 20,
+      "total_points": 15,
       "tier": 3
     },
     "body6.png": {
       "armor": 25,
       "damage": 5,
       "hp": 15,
-      "posture": 15,
-      "total_points": 60,
+      "total_points": 45,
       "tier": 6
     },
     "body60.png": {
       "armor": 5,
       "damage": 0,
       "hp": 14,
-      "posture": 5,
-      "total_points": 24,
+      "total_points": 19,
       "tier": 3
     },
     "body61.png": {
       "armor": 10,
       "damage": 0,
       "hp": 10,
-      "posture": 15,
-      "total_points": 35,
+      "total_points": 20,
       "tier": 4
     },
     "body7.png": {
       "armor": 10,
       "damage": 0,
       "hp": 5,
-      "posture": 10,
-      "total_points": 25,
+      "total_points": 15,
       "tier": 3
     },
     "body8.png": {
       "armor": 5,
       "damage": 0,
       "hp": 5,
-      "posture": 5,
-      "total_points": 15,
+      "total_points": 10,
       "tier": 2
     },
     "body9.png": {
       "armor": 20,
       "damage": 0,
       "hp": 15,
-      "posture": 10,
-      "total_points": 45,
+      "total_points": 35,
       "tier": 5
     },
     "head1.png": {
       "armor": 5,
       "damage": 10,
       "hp": 15,
-      "posture": 0,
       "total_points": 30,
       "tier": 4
     },
@@ -920,7 +873,6 @@
       "armor": 10,
       "damage": 0,
       "hp": 5,
-      "posture": 0,
       "total_points": 15,
       "tier": 2
     },
@@ -928,7 +880,6 @@
       "armor": 5,
       "damage": 3,
       "hp": 0,
-      "posture": 0,
       "total_points": 8,
       "tier": 1
     },
@@ -936,7 +887,6 @@
       "armor": 5,
       "damage": 0,
       "hp": 0,
-      "posture": 0,
       "total_points": 5,
       "tier": 1
     },
@@ -944,7 +894,6 @@
       "armor": 6,
       "damage": 0,
       "hp": 0,
-      "posture": 0,
       "total_points": 6,
       "tier": 1
     },
@@ -952,7 +901,6 @@
       "armor": 7,
       "damage": 0,
       "hp": 0,
-      "posture": 0,
       "total_points": 7,
       "tier": 1
     },
@@ -960,7 +908,6 @@
       "armor": 6,
       "damage": 0,
       "hp": 0,
-      "posture": 0,
       "total_points": 6,
       "tier": 1
     },
@@ -968,7 +915,6 @@
       "armor": 0,
       "damage": 15,
       "hp": 10,
-      "posture": 0,
       "total_points": 25,
       "tier": 3
     },
@@ -976,23 +922,20 @@
       "armor": 5,
       "damage": 5,
       "hp": 20,
-      "posture": 5,
-      "total_points": 35,
+      "total_points": 30,
       "tier": 4
     },
     "head18.png": {
       "armor": 5,
       "damage": 5,
       "hp": 5,
-      "posture": 5,
-      "total_points": 20,
+      "total_points": 15,
       "tier": 3
     },
     "head19.png": {
       "armor": 0,
       "damage": 5,
       "hp": 3,
-      "posture": 0,
       "total_points": 8,
       "tier": 1
     },
@@ -1000,7 +943,6 @@
       "armor": 5,
       "damage": 18,
       "hp": 10,
-      "posture": 0,
       "total_points": 33,
       "tier": 4
     },
@@ -1008,7 +950,6 @@
       "armor": 0,
       "damage": 4,
       "hp": 5,
-      "posture": 0,
       "total_points": 9,
       "tier": 1
     },
@@ -1016,7 +957,6 @@
       "armor": 10,
       "damage": 0,
       "hp": 10,
-      "posture": 0,
       "total_points": 20,
       "tier": 3
     },
@@ -1024,15 +964,13 @@
       "armor": 5,
       "damage": 5,
       "hp": 5,
-      "posture": 5,
-      "total_points": 20,
+      "total_points": 15,
       "tier": 3
     },
     "head23.png": {
       "armor": 10,
       "damage": 15,
       "hp": 10,
-      "posture": 0,
       "total_points": 35,
       "tier": 4
     },
@@ -1040,55 +978,48 @@
       "armor": 5,
       "damage": 15,
       "hp": 10,
-      "posture": 5,
-      "total_points": 35,
+      "total_points": 30,
       "tier": 4
     },
     "head25.png": {
       "armor": 5,
       "damage": 7,
       "hp": 5,
-      "posture": 5,
-      "total_points": 22,
+      "total_points": 17,
       "tier": 3
     },
     "head26.png": {
       "armor": 0,
       "damage": 0,
       "hp": 0,
-      "posture": 25,
-      "total_points": 25,
+      "total_points": 0,
       "tier": 3
     },
     "head27.png": {
       "armor": 10,
       "damage": 0,
       "hp": 0,
-      "posture": 20,
-      "total_points": 30,
+      "total_points": 10,
       "tier": 4
     },
     "head28.png": {
       "armor": 10,
       "damage": 0,
       "hp": 10,
-      "posture": 10,
-      "total_points": 30,
+      "total_points": 20,
       "tier": 4
     },
     "head29.png": {
       "armor": 5,
       "damage": 5,
       "hp": 5,
-      "posture": 15,
-      "total_points": 30,
+      "total_points": 15,
       "tier": 4
     },
     "head3.png": {
       "armor": 7,
       "damage": 10,
       "hp": 5,
-      "posture": 0,
       "total_points": 22,
       "tier": 3
     },
@@ -1096,15 +1027,13 @@
       "armor": 5,
       "damage": 5,
       "hp": 5,
-      "posture": 10,
-      "total_points": 25,
+      "total_points": 15,
       "tier": 3
     },
     "head31.png": {
       "armor": 20,
       "damage": 0,
       "hp": 10,
-      "posture": 0,
       "total_points": 30,
       "tier": 4
     },
@@ -1112,7 +1041,6 @@
       "armor": 20,
       "damage": 0,
       "hp": 8,
-      "posture": 0,
       "total_points": 28,
       "tier": 3
     },
@@ -1120,55 +1048,48 @@
       "armor": 15,
       "damage": 5,
       "hp": 20,
-      "posture": 3,
-      "total_points": 43,
+      "total_points": 40,
       "tier": 5
     },
     "head34.png": {
       "armor": 0,
       "damage": 15,
       "hp": 0,
-      "posture": 10,
-      "total_points": 25,
+      "total_points": 15,
       "tier": 3
     },
     "head35.png": {
       "armor": 0,
       "damage": 15,
       "hp": 0,
-      "posture": 5,
-      "total_points": 20,
+      "total_points": 15,
       "tier": 3
     },
     "head36.png": {
       "armor": 0,
       "damage": 10,
       "hp": 15,
-      "posture": 10,
-      "total_points": 35,
+      "total_points": 25,
       "tier": 4
     },
     "head37.png": {
       "armor": 0,
       "damage": 15,
       "hp": 5,
-      "posture": 15,
-      "total_points": 35,
+      "total_points": 20,
       "tier": 4
     },
     "head38.png": {
       "armor": 0,
       "damage": 25,
       "hp": 0,
-      "posture": 5,
-      "total_points": 30,
+      "total_points": 25,
       "tier": 4
     },
     "head39.png": {
       "armor": 20,
       "damage": 0,
       "hp": 0,
-      "posture": 0,
       "total_points": 20,
       "tier": 3
     },
@@ -1176,7 +1097,6 @@
       "armor": 5,
       "damage": 5,
       "hp": 20,
-      "posture": 0,
       "total_points": 30,
       "tier": 4
     },
@@ -1184,15 +1104,13 @@
       "armor": 18,
       "damage": 0,
       "hp": 0,
-      "posture": 5,
-      "total_points": 23,
+      "total_points": 18,
       "tier": 3
     },
     "head41.png": {
       "armor": 0,
       "damage": 5,
       "hp": 5,
-      "posture": 0,
       "total_points": 10,
       "tier": 2
     },
@@ -1200,7 +1118,6 @@
       "armor": 0,
       "damage": 10,
       "hp": 0,
-      "posture": 0,
       "total_points": 10,
       "tier": 2
     },
@@ -1208,15 +1125,13 @@
       "armor": 0,
       "damage": 20,
       "hp": 0,
-      "posture": 10,
-      "total_points": 30,
+      "total_points": 20,
       "tier": 4
     },
     "head44.png": {
       "armor": 0,
       "damage": 25,
       "hp": 0,
-      "posture": 0,
       "total_points": 25,
       "tier": 3
     },
@@ -1224,15 +1139,13 @@
       "armor": 0,
       "damage": 20,
       "hp": 0,
-      "posture": 5,
-      "total_points": 25,
+      "total_points": 20,
       "tier": 3
     },
     "head46.png": {
       "armor": 0,
       "damage": 20,
       "hp": 0,
-      "posture": 0,
       "total_points": 20,
       "tier": 3
     },
@@ -1240,7 +1153,6 @@
       "armor": 0,
       "damage": 25,
       "hp": 0,
-      "posture": 0,
       "total_points": 25,
       "tier": 3
     },
@@ -1248,7 +1160,6 @@
       "armor": 0,
       "damage": 30,
       "hp": 0,
-      "posture": 0,
       "total_points": 30,
       "tier": 4
     },
@@ -1256,7 +1167,6 @@
       "armor": 0,
       "damage": 15,
       "hp": 0,
-      "posture": 0,
       "total_points": 15,
       "tier": 2
     },
@@ -1264,7 +1174,6 @@
       "armor": 5,
       "damage": 20,
       "hp": 3,
-      "posture": 0,
       "total_points": 28,
       "tier": 3
     },
@@ -1272,7 +1181,6 @@
       "armor": 0,
       "damage": 18,
       "hp": 0,
-      "posture": 0,
       "total_points": 18,
       "tier": 2
     },
@@ -1280,7 +1188,6 @@
       "armor": 0,
       "damage": 20,
       "hp": 0,
-      "posture": 0,
       "total_points": 20,
       "tier": 3
     },
@@ -1288,15 +1195,13 @@
       "armor": 0,
       "damage": 25,
       "hp": 0,
-      "posture": 15,
-      "total_points": 40,
+      "total_points": 25,
       "tier": 5
     },
     "head53.png": {
       "armor": 0,
       "damage": 25,
       "hp": 0,
-      "posture": 0,
       "total_points": 25,
       "tier": 3
     },
@@ -1304,7 +1209,6 @@
       "armor": 0,
       "damage": 23,
       "hp": 8,
-      "posture": 0,
       "total_points": 31,
       "tier": 4
     },
@@ -1312,7 +1216,6 @@
       "armor": 0,
       "damage": 30,
       "hp": 0,
-      "posture": 0,
       "total_points": 30,
       "tier": 4
     },
@@ -1320,7 +1223,6 @@
       "armor": 0,
       "damage": 32,
       "hp": 0,
-      "posture": 0,
       "total_points": 32,
       "tier": 4
     },
@@ -1328,7 +1230,6 @@
       "armor": 0,
       "damage": 10,
       "hp": 0,
-      "posture": 0,
       "total_points": 10,
       "tier": 2
     },
@@ -1336,7 +1237,6 @@
       "armor": 0,
       "damage": 10,
       "hp": 0,
-      "posture": 0,
       "total_points": 10,
       "tier": 2
     },
@@ -1344,7 +1244,6 @@
       "armor": 0,
       "damage": 0,
       "hp": 1,
-      "posture": 0,
       "total_points": 1,
       "tier": 1
     },
@@ -1352,7 +1251,6 @@
       "armor": 5,
       "damage": 10,
       "hp": 0,
-      "posture": 0,
       "total_points": 15,
       "tier": 2
     },
@@ -1360,7 +1258,6 @@
       "armor": 0,
       "damage": 0,
       "hp": 5,
-      "posture": 0,
       "total_points": 5,
       "tier": 1
     },
@@ -1368,15 +1265,13 @@
       "armor": 0,
       "damage": 20,
       "hp": 20,
-      "posture": 5,
-      "total_points": 45,
+      "total_points": 40,
       "tier": 5
     },
     "head62.png": {
       "armor": 0,
       "damage": 30,
       "hp": 25,
-      "posture": 0,
       "total_points": 55,
       "tier": 6
     },
@@ -1384,7 +1279,6 @@
       "armor": 3,
       "damage": 5,
       "hp": 20,
-      "posture": 0,
       "total_points": 28,
       "tier": 3
     },
@@ -1392,23 +1286,20 @@
       "armor": 5,
       "damage": 15,
       "hp": 5,
-      "posture": 5,
-      "total_points": 30,
+      "total_points": 25,
       "tier": 4
     },
     "head9.png": {
       "armor": 5,
       "damage": 0,
       "hp": 5,
-      "posture": 10,
-      "total_points": 20,
+      "total_points": 10,
       "tier": 3
     },
     "weapon1.png": {
       "armor": 0,
       "damage": 15,
       "hp": 0,
-      "posture": 0,
       "total_points": 15,
       "tier": 2
     },
@@ -1416,15 +1307,13 @@
       "armor": 0,
       "damage": 25,
       "hp": 5,
-      "posture": 20,
-      "total_points": 50,
+      "total_points": 30,
       "tier": 6
     },
     "weapon100.png": {
       "armor": 10,
       "damage": 20,
       "hp": 0,
-      "posture": 0,
       "total_points": 30,
       "tier": 4
     },
@@ -1432,15 +1321,13 @@
       "armor": 0,
       "damage": 21,
       "hp": 0,
-      "posture": 30,
-      "total_points": 51,
+      "total_points": 21,
       "tier": 6
     },
     "weapon102.png": {
       "armor": 10,
       "damage": 20,
       "hp": 10,
-      "posture": 0,
       "total_points": 40,
       "tier": 5
     },
@@ -1448,7 +1335,6 @@
       "armor": 3,
       "damage": 12,
       "hp": 3,
-      "posture": 0,
       "total_points": 18,
       "tier": 2
     },
@@ -1456,7 +1342,6 @@
       "armor": 0,
       "damage": 10,
       "hp": 0,
-      "posture": 0,
       "total_points": 10,
       "tier": 2
     },
@@ -1464,7 +1349,6 @@
       "armor": 0,
       "damage": 10,
       "hp": 0,
-      "posture": 0,
       "total_points": 10,
       "tier": 2
     },
@@ -1472,7 +1356,6 @@
       "armor": 0,
       "damage": 14,
       "hp": 0,
-      "posture": 0,
       "total_points": 14,
       "tier": 2
     },
@@ -1480,7 +1363,6 @@
       "armor": 0,
       "damage": 25,
       "hp": 20,
-      "posture": 0,
       "total_points": 45,
       "tier": 5
     },
@@ -1488,7 +1370,6 @@
       "armor": 0,
       "damage": 2,
       "hp": 0,
-      "posture": 0,
       "total_points": 2,
       "tier": 1
     },
@@ -1496,15 +1377,13 @@
       "armor": 0,
       "damage": 8,
       "hp": 5,
-      "posture": 3,
-      "total_points": 16,
+      "total_points": 13,
       "tier": 2
     },
     "weapon11.png": {
       "armor": 0,
       "damage": 16,
       "hp": 0,
-      "posture": 0,
       "total_points": 16,
       "tier": 2
     },
@@ -1512,23 +1391,20 @@
       "armor": 0,
       "damage": 11,
       "hp": 10,
-      "posture": 5,
-      "total_points": 26,
+      "total_points": 21,
       "tier": 3
     },
     "weapon111.png": {
       "armor": 10,
       "damage": 20,
       "hp": 10,
-      "posture": 10,
-      "total_points": 50,
+      "total_points": 40,
       "tier": 6
     },
     "weapon12.png": {
       "armor": 0,
       "damage": 7,
       "hp": 0,
-      "posture": 0,
       "total_points": 7,
       "tier": 1
     },
@@ -1536,7 +1412,6 @@
       "armor": 0,
       "damage": 11,
       "hp": 0,
-      "posture": 0,
       "total_points": 11,
       "tier": 2
     },
@@ -1544,7 +1419,6 @@
       "armor": 0,
       "damage": 10,
       "hp": 0,
-      "posture": 0,
       "total_points": 10,
       "tier": 2
     },
@@ -1552,7 +1426,6 @@
       "armor": 0,
       "damage": 15,
       "hp": 0,
-      "posture": 0,
       "total_points": 15,
       "tier": 2
     },
@@ -1560,7 +1433,6 @@
       "armor": 0,
       "damage": 15,
       "hp": 0,
-      "posture": 0,
       "total_points": 15,
       "tier": 2
     },
@@ -1568,7 +1440,6 @@
       "armor": 0,
       "damage": 22,
       "hp": 10,
-      "posture": 0,
       "total_points": 32,
       "tier": 4
     },
@@ -1576,7 +1447,6 @@
       "armor": 0,
       "damage": 16,
       "hp": 10,
-      "posture": 0,
       "total_points": 26,
       "tier": 3
     },
@@ -1584,7 +1454,6 @@
       "armor": 0,
       "damage": 13,
       "hp": 5,
-      "posture": 0,
       "total_points": 18,
       "tier": 2
     },
@@ -1592,7 +1461,6 @@
       "armor": 0,
       "damage": 20,
       "hp": 0,
-      "posture": 0,
       "total_points": 20,
       "tier": 3
     },
@@ -1600,7 +1468,6 @@
       "armor": 0,
       "damage": 18,
       "hp": 4,
-      "posture": 0,
       "total_points": 22,
       "tier": 3
     },
@@ -1608,7 +1475,6 @@
       "armor": 0,
       "damage": 22,
       "hp": 0,
-      "posture": 0,
       "total_points": 22,
       "tier": 3
     },
@@ -1616,23 +1482,20 @@
       "armor": 0,
       "damage": 14,
       "hp": 0,
-      "posture": 5,
-      "total_points": 19,
+      "total_points": 14,
       "tier": 2
     },
     "weapon23.png": {
       "armor": 0,
       "damage": 20,
       "hp": 5,
-      "posture": 10,
-      "total_points": 35,
+      "total_points": 25,
       "tier": 4
     },
     "weapon24.png": {
       "armor": 0,
       "damage": 22,
       "hp": 0,
-      "posture": 0,
       "total_points": 22,
       "tier": 3
     },
@@ -1640,7 +1503,6 @@
       "armor": 0,
       "damage": 28,
       "hp": 0,
-      "posture": 0,
       "total_points": 28,
       "tier": 3
     },
@@ -1648,7 +1510,6 @@
       "armor": 0,
       "damage": 35,
       "hp": 0,
-      "posture": 0,
       "total_points": 35,
       "tier": 4
     },
@@ -1656,7 +1517,6 @@
       "armor": 0,
       "damage": 28,
       "hp": 0,
-      "posture": 0,
       "total_points": 28,
       "tier": 3
     },
@@ -1664,7 +1524,6 @@
       "armor": 0,
       "damage": 25,
       "hp": 0,
-      "posture": 0,
       "total_points": 25,
       "tier": 3
     },
@@ -1672,7 +1531,6 @@
       "armor": 0,
       "damage": 33,
       "hp": 0,
-      "posture": 0,
       "total_points": 33,
       "tier": 4
     },
@@ -1680,7 +1538,6 @@
       "armor": 8,
       "damage": 35,
       "hp": 0,
-      "posture": 0,
       "total_points": 43,
       "tier": 5
     },
@@ -1688,7 +1545,6 @@
       "armor": 0,
       "damage": 25,
       "hp": 0,
-      "posture": 0,
       "total_points": 25,
       "tier": 3
     },
@@ -1696,7 +1552,6 @@
       "armor": 0,
       "damage": 32,
       "hp": 0,
-      "posture": 0,
       "total_points": 32,
       "tier": 4
     },
@@ -1704,7 +1559,6 @@
       "armor": 0,
       "damage": 24,
       "hp": 0,
-      "posture": 0,
       "total_points": 24,
       "tier": 3
     },
@@ -1712,7 +1566,6 @@
       "armor": 0,
       "damage": 25,
       "hp": 0,
-      "posture": 0,
       "total_points": 25,
       "tier": 3
     },
@@ -1720,7 +1573,6 @@
       "armor": 0,
       "damage": 8,
       "hp": 0,
-      "posture": 0,
       "total_points": 8,
       "tier": 1
     },
@@ -1728,7 +1580,6 @@
       "armor": 0,
       "damage": 14,
       "hp": 0,
-      "posture": 0,
       "total_points": 14,
       "tier": 2
     },
@@ -1736,7 +1587,6 @@
       "armor": 0,
       "damage": 18,
       "hp": 0,
-      "posture": 0,
       "total_points": 18,
       "tier": 2
     },
@@ -1744,7 +1594,6 @@
       "armor": 0,
       "damage": 4,
       "hp": 0,
-      "posture": 0,
       "total_points": 4,
       "tier": 1
     },
@@ -1752,7 +1601,6 @@
       "armor": 0,
       "damage": 6,
       "hp": 0,
-      "posture": 0,
       "total_points": 6,
       "tier": 1
     },
@@ -1760,7 +1608,6 @@
       "armor": 0,
       "damage": 28,
       "hp": 0,
-      "posture": 0,
       "total_points": 28,
       "tier": 3
     },
@@ -1768,7 +1615,6 @@
       "armor": 0,
       "damage": 9,
       "hp": 0,
-      "posture": 0,
       "total_points": 9,
       "tier": 1
     },
@@ -1776,7 +1622,6 @@
       "armor": 0,
       "damage": 16,
       "hp": 0,
-      "posture": 0,
       "total_points": 16,
       "tier": 2
     },
@@ -1784,7 +1629,6 @@
       "armor": 0,
       "damage": 13,
       "hp": 0,
-      "posture": 0,
       "total_points": 13,
       "tier": 2
     },
@@ -1792,7 +1636,6 @@
       "armor": 0,
       "damage": 20,
       "hp": 0,
-      "posture": 0,
       "total_points": 20,
       "tier": 3
     },
@@ -1800,7 +1643,6 @@
       "armor": 0,
       "damage": 14,
       "hp": 0,
-      "posture": 0,
       "total_points": 14,
       "tier": 2
     },
@@ -1808,7 +1650,6 @@
       "armor": 0,
       "damage": 14,
       "hp": 0,
-      "posture": 0,
       "total_points": 14,
       "tier": 2
     },
@@ -1816,7 +1657,6 @@
       "armor": 0,
       "damage": 16,
       "hp": 0,
-      "posture": 0,
       "total_points": 16,
       "tier": 2
     },
@@ -1824,7 +1664,6 @@
       "armor": 0,
       "damage": 10,
       "hp": 0,
-      "posture": 0,
       "total_points": 10,
       "tier": 2
     },
@@ -1832,7 +1671,6 @@
       "armor": 0,
       "damage": 12,
       "hp": 0,
-      "posture": 0,
       "total_points": 12,
       "tier": 2
     },
@@ -1840,7 +1678,6 @@
       "armor": 0,
       "damage": 14,
       "hp": 0,
-      "posture": 0,
       "total_points": 14,
       "tier": 2
     },
@@ -1848,7 +1685,6 @@
       "armor": 0,
       "damage": 25,
       "hp": 0,
-      "posture": 0,
       "total_points": 25,
       "tier": 3
     },
@@ -1856,7 +1692,6 @@
       "armor": 0,
       "damage": 17,
       "hp": 0,
-      "posture": 0,
       "total_points": 17,
       "tier": 2
     },
@@ -1864,7 +1699,6 @@
       "armor": 0,
       "damage": 22,
       "hp": 0,
-      "posture": 0,
       "total_points": 22,
       "tier": 3
     },
@@ -1872,7 +1706,6 @@
       "armor": 0,
       "damage": 23,
       "hp": 0,
-      "posture": 0,
       "total_points": 23,
       "tier": 3
     },
@@ -1880,7 +1713,6 @@
       "armor": 0,
       "damage": 15,
       "hp": 0,
-      "posture": 0,
       "total_points": 15,
       "tier": 2
     },
@@ -1888,7 +1720,6 @@
       "armor": 0,
       "damage": 14,
       "hp": 0,
-      "posture": 0,
       "total_points": 14,
       "tier": 2
     },
@@ -1896,7 +1727,6 @@
       "armor": 0,
       "damage": 12,
       "hp": 0,
-      "posture": 0,
       "total_points": 12,
       "tier": 2
     },
@@ -1904,7 +1734,6 @@
       "armor": 0,
       "damage": 12,
       "hp": 0,
-      "posture": 0,
       "total_points": 12,
       "tier": 2
     },
@@ -1912,7 +1741,6 @@
       "armor": 0,
       "damage": 10,
       "hp": 0,
-      "posture": 0,
       "total_points": 10,
       "tier": 2
     },
@@ -1920,7 +1748,6 @@
       "armor": 0,
       "damage": 8,
       "hp": 0,
-      "posture": 0,
       "total_points": 8,
       "tier": 1
     },
@@ -1928,7 +1755,6 @@
       "armor": 0,
       "damage": 9,
       "hp": 0,
-      "posture": 0,
       "total_points": 9,
       "tier": 1
     },
@@ -1936,7 +1762,6 @@
       "armor": 0,
       "damage": 23,
       "hp": 0,
-      "posture": 0,
       "total_points": 23,
       "tier": 3
     },
@@ -1944,7 +1769,6 @@
       "armor": 0,
       "damage": 11,
       "hp": 0,
-      "posture": 0,
       "total_points": 11,
       "tier": 2
     },
@@ -1952,7 +1776,6 @@
       "armor": 0,
       "damage": 10,
       "hp": 0,
-      "posture": 0,
       "total_points": 10,
       "tier": 2
     },
@@ -1960,7 +1783,6 @@
       "armor": 0,
       "damage": 13,
       "hp": 0,
-      "posture": 0,
       "total_points": 13,
       "tier": 2
     },
@@ -1968,7 +1790,6 @@
       "armor": 0,
       "damage": 20,
       "hp": 0,
-      "posture": 0,
       "total_points": 20,
       "tier": 3
     },
@@ -1976,7 +1797,6 @@
       "armor": 0,
       "damage": 20,
       "hp": 0,
-      "posture": 0,
       "total_points": 20,
       "tier": 3
     },
@@ -1984,7 +1804,6 @@
       "armor": 0,
       "damage": 18,
       "hp": 0,
-      "posture": 0,
       "total_points": 18,
       "tier": 2
     },
@@ -1992,7 +1811,6 @@
       "armor": 0,
       "damage": 17,
       "hp": 0,
-      "posture": 0,
       "total_points": 17,
       "tier": 2
     },
@@ -2000,7 +1818,6 @@
       "armor": 0,
       "damage": 13,
       "hp": 0,
-      "posture": 0,
       "total_points": 13,
       "tier": 2
     },
@@ -2008,7 +1825,6 @@
       "armor": 0,
       "damage": 18,
       "hp": 0,
-      "posture": 0,
       "total_points": 18,
       "tier": 2
     },
@@ -2016,7 +1832,6 @@
       "armor": 0,
       "damage": 11,
       "hp": 0,
-      "posture": 0,
       "total_points": 11,
       "tier": 2
     },
@@ -2024,7 +1839,6 @@
       "armor": 0,
       "damage": 30,
       "hp": 0,
-      "posture": 0,
       "total_points": 30,
       "tier": 4
     },
@@ -2032,7 +1846,6 @@
       "armor": 0,
       "damage": 21,
       "hp": 0,
-      "posture": 0,
       "total_points": 21,
       "tier": 3
     },
@@ -2040,7 +1853,6 @@
       "armor": 0,
       "damage": 28,
       "hp": 0,
-      "posture": 0,
       "total_points": 28,
       "tier": 3
     },
@@ -2048,7 +1860,6 @@
       "armor": 0,
       "damage": 14,
       "hp": 0,
-      "posture": 0,
       "total_points": 14,
       "tier": 2
     },
@@ -2056,7 +1867,6 @@
       "armor": 0,
       "damage": 15,
       "hp": 0,
-      "posture": 0,
       "total_points": 15,
       "tier": 2
     },
@@ -2064,7 +1874,6 @@
       "armor": 0,
       "damage": 13,
       "hp": 0,
-      "posture": 0,
       "total_points": 13,
       "tier": 2
     },
@@ -2072,7 +1881,6 @@
       "armor": 0,
       "damage": 11,
       "hp": 0,
-      "posture": 0,
       "total_points": 11,
       "tier": 2
     },
@@ -2080,7 +1888,6 @@
       "armor": 10,
       "damage": 29,
       "hp": 10,
-      "posture": 0,
       "total_points": 49,
       "tier": 5
     },
@@ -2088,7 +1895,6 @@
       "armor": 0,
       "damage": 23,
       "hp": 0,
-      "posture": 0,
       "total_points": 23,
       "tier": 3
     },
@@ -2096,7 +1902,6 @@
       "armor": 0,
       "damage": 10,
       "hp": 0,
-      "posture": 0,
       "total_points": 10,
       "tier": 2
     },
@@ -2104,7 +1909,6 @@
       "armor": 0,
       "damage": 11,
       "hp": 0,
-      "posture": 0,
       "total_points": 11,
       "tier": 2
     },
@@ -2112,7 +1916,6 @@
       "armor": 0,
       "damage": 12,
       "hp": 10,
-      "posture": 0,
       "total_points": 22,
       "tier": 3
     },
@@ -2120,15 +1923,13 @@
       "armor": 0,
       "damage": 25,
       "hp": 8,
-      "posture": 25,
-      "total_points": 58,
+      "total_points": 33,
       "tier": 6
     },
     "weapon81.png": {
       "armor": 7,
       "damage": 27,
       "hp": 8,
-      "posture": 0,
       "total_points": 42,
       "tier": 5
     },
@@ -2136,7 +1937,6 @@
       "armor": 10,
       "damage": 20,
       "hp": 15,
-      "posture": 0,
       "total_points": 45,
       "tier": 5
     },
@@ -2144,7 +1944,6 @@
       "armor": 0,
       "damage": 20,
       "hp": 0,
-      "posture": 0,
       "total_points": 20,
       "tier": 3
     },
@@ -2152,7 +1951,6 @@
       "armor": 0,
       "damage": 6,
       "hp": 0,
-      "posture": 0,
       "total_points": 6,
       "tier": 1
     },
@@ -2160,7 +1958,6 @@
       "armor": 0,
       "damage": 3,
       "hp": 0,
-      "posture": 0,
       "total_points": 3,
       "tier": 1
     },
@@ -2168,7 +1965,6 @@
       "armor": 0,
       "damage": 4,
       "hp": 0,
-      "posture": 0,
       "total_points": 4,
       "tier": 1
     },
@@ -2176,7 +1972,6 @@
       "armor": 0,
       "damage": 5,
       "hp": 0,
-      "posture": 0,
       "total_points": 5,
       "tier": 1
     },
@@ -2184,7 +1979,6 @@
       "armor": 0,
       "damage": 9,
       "hp": 0,
-      "posture": 0,
       "total_points": 9,
       "tier": 1
     },
@@ -2192,7 +1986,6 @@
       "armor": 0,
       "damage": 8,
       "hp": 0,
-      "posture": 0,
       "total_points": 8,
       "tier": 1
     },
@@ -2200,15 +1993,13 @@
       "armor": 0,
       "damage": 20,
       "hp": 7,
-      "posture": 15,
-      "total_points": 42,
+      "total_points": 27,
       "tier": 5
     },
     "weapon90.png": {
       "armor": 0,
       "damage": 15,
       "hp": 0,
-      "posture": 0,
       "total_points": 15,
       "tier": 2
     },
@@ -2216,7 +2007,6 @@
       "armor": 0,
       "damage": 8,
       "hp": 0,
-      "posture": 0,
       "total_points": 8,
       "tier": 1
     },
@@ -2224,7 +2014,6 @@
       "armor": 0,
       "damage": 11,
       "hp": 0,
-      "posture": 0,
       "total_points": 11,
       "tier": 2
     },
@@ -2232,7 +2021,6 @@
       "armor": 0,
       "damage": 12,
       "hp": 0,
-      "posture": 0,
       "total_points": 12,
       "tier": 2
     },
@@ -2240,7 +2028,6 @@
       "armor": 0,
       "damage": 14,
       "hp": 0,
-      "posture": 0,
       "total_points": 14,
       "tier": 2
     },
@@ -2248,7 +2035,6 @@
       "armor": 0,
       "damage": 12,
       "hp": 0,
-      "posture": 0,
       "total_points": 12,
       "tier": 2
     },
@@ -2256,7 +2042,6 @@
       "armor": 0,
       "damage": 16,
       "hp": 0,
-      "posture": 0,
       "total_points": 16,
       "tier": 2
     },
@@ -2264,7 +2049,6 @@
       "armor": 0,
       "damage": 17,
       "hp": 0,
-      "posture": 0,
       "total_points": 17,
       "tier": 2
     },
@@ -2272,7 +2056,6 @@
       "armor": 0,
       "damage": 21,
       "hp": 0,
-      "posture": 0,
       "total_points": 21,
       "tier": 3
     },
@@ -2280,12 +2063,10 @@
       "armor": 0,
       "damage": 22,
       "hp": 0,
-      "posture": 0,
       "total_points": 22,
       "tier": 3
     }
   },
-
   "themes": {
     "Guerreiro azul": {
       "back_options": [

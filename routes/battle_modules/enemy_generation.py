@@ -802,13 +802,11 @@ def calculate_enemy_base_stats(enemy_number):
     """Calcula estatísticas base do inimigo baseado no número"""
     base_hp = int(30 + (enemy_number ** 1.15) / 1.8)
     base_damage = int(8 + (enemy_number * 0.16))
-    base_posture = 50 + (enemy_number * 7)
     base_block = min(25, 5 + (enemy_number * 0.2))
-    
+
     return {
         'hp': base_hp,
         'damage': base_damage,
-        'posture': base_posture,
         'block': base_block
     }
 
@@ -871,17 +869,16 @@ def calculate_rarity_chances(enemy_number):
 def apply_rarity_modifiers(base_stats, rarity):
     """Aplica modificadores de raridade às estatísticas"""
     modifiers = {
-        1: {'hp': 1.0, 'damage': 1.0, 'posture': 1.0},     # Comum
-        2: {'hp': 1.1, 'damage': 1.1, 'posture': 1.05},    # Raro
-        3: {'hp': 1.25, 'damage': 1.2, 'posture': 1.15},   # Épico
-        4: {'hp': 1.5, 'damage': 1.4, 'posture': 1.25}     # Lendário
+        1: {'hp': 1.0, 'damage': 1.0},     # Comum
+        2: {'hp': 1.1, 'damage': 1.1},     # Raro
+        3: {'hp': 1.25, 'damage': 1.2},    # Épico
+        4: {'hp': 1.5, 'damage': 1.4}      # Lendário
     }
-    
+
     mod = modifiers[rarity]
     return {
         'hp': int(base_stats['hp'] * mod['hp']),
         'damage': int(base_stats['damage'] * mod['damage']),
-        'posture': int(base_stats['posture'] * mod['posture']),
         'block': base_stats['block']  # Bloqueio não é afetado por raridade
     }
 
@@ -1261,8 +1258,6 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
                 final_stats['damage'] = int(final_stats['damage'] * (1 + modifiers['damage'] / 100))
             if modifiers.get('armor', 0) > 0:
                 final_stats['block'] = min(75, final_stats['block'] + modifiers['armor'])
-            if modifiers.get('posture', 0) > 0:
-                final_stats['posture'] = int(final_stats['posture'] * (1 + modifiers['posture'] / 100))
             
             total_modifier_sum += sum(modifiers.values())
     
@@ -1297,8 +1292,6 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
                 final_stats['damage'] = int(final_stats['damage'] * (1 + modifiers['damage'] / 100))
             if modifiers.get('armor', 0) > 0:
                 final_stats['block'] = min(75, final_stats['block'] + modifiers['armor'])
-            if modifiers.get('posture', 0) > 0:
-                final_stats['posture'] = int(final_stats['posture'] * (1 + modifiers['posture'] / 100))
 
     print(f"🔍 PONTOS FINAIS PARA RANK: {total_modifier_sum}")
 
@@ -1434,7 +1427,6 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
         hp=final_stats['hp'],
         max_hp=final_stats['hp'],
         damage=final_stats['damage'],
-        posture=final_stats['posture'],
         block_percentage=final_stats['block'],
         rounds_remaining=initial_rounds,
         initial_rounds=initial_rounds,
@@ -1971,7 +1963,6 @@ BOSS_DATA = {
         "hp": 200,
         "max_hp": 200,
         "damage": 16,
-        "posture": 777,
         "block_percentage": 44.0,
         "sprite_idle": "bosses/purassombra/purassombra-idle-128x128-9f.png",
         "sprite_frames": 9,
@@ -1987,7 +1978,6 @@ BOSS_DATA = {
         "hp": 350,
         "max_hp": 350,
         "damage": 20,
-        "posture": 1020,
         "block_percentage": 36.0,
         "sprite_idle": "bosses/heresiarca/heresiarca-idle-256x128px-27f-6912x128.png",
         "sprite_frames": 27,
@@ -2003,7 +1993,6 @@ BOSS_DATA = {
         "hp": 500,
         "max_hp": 500,
         "damage": 22,
-        "posture": 1520,
         "block_percentage": 44.0,
         "sprite_idle": "bosses/almanegra/almanegra-idle-256x128px-8f-2048x128.png",
         "sprite_frames": 8,
@@ -2019,7 +2008,6 @@ BOSS_DATA = {
         "hp": 700,
         "max_hp": 700,
         "damage": 24,
-        "posture": 2220,
         "block_percentage": 51.0,
         "sprite_idle": "bosses/formofagus/formofagus-idle-256x256-15f-3584x256.png",
         "sprite_frames": 15,
@@ -2035,7 +2023,6 @@ BOSS_DATA = {
         "hp": 1000,
         "max_hp": 1000,
         "damage": 26,
-        "posture": 666,
         "block_percentage": 66.0,
         "sprite_idle": "bosses/nefasto/nefasto-128x128-9f-1152x128.png",
         "sprite_frames": 9,
@@ -2113,7 +2100,6 @@ def create_boss_by_name(boss_name):
         hp=boss_data["hp"],
         max_hp=boss_data["max_hp"],
         damage=boss_data["damage"],
-        posture=boss_data["posture"],
         block_percentage=boss_data["block_percentage"],
         sprite_idle=boss_data["sprite_idle"],
         sprite_frames=boss_data["sprite_frames"],

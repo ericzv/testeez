@@ -497,7 +497,6 @@ class GenericEnemy(db.Model):
     hp = db.Column(db.Integer, nullable=False)
     max_hp = db.Column(db.Integer, nullable=False)
     damage = db.Column(db.Integer, nullable=False)
-    posture = db.Column(db.Integer, nullable=False)
     block_percentage = db.Column(db.Float, nullable=False)
     special_skill = db.Column(db.Text)  # JSON: {type, chance, cooldown}
     powerful_attack = db.Column(db.Text)  # JSON: para implementação futura
@@ -753,7 +752,6 @@ class LastBoss(db.Model):
     hp = db.Column(db.Integer, default=1000)
     max_hp = db.Column(db.Integer, default=1000)
     damage = db.Column(db.Integer, default=30)
-    posture = db.Column(db.Integer, default=500)
     block_percentage = db.Column(db.Float, default=0.0)
     
     # Sistema de sprites
@@ -818,7 +816,6 @@ class LastBoss(db.Model):
             'hp': self.current_hp,
             'max_hp': self.max_hp,
             'damage': self.damage,
-            'posture': self.posture,
             'block_percentage': self.block_percentage,
             'sprite_idle': self.sprite_idle,
             'sprite_frames': self.sprite_frames,

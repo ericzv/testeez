@@ -30,6 +30,7 @@ except Exception as e:
 
 # INSERIR essas linhas nas importações (junto com os outros imports de rotas)
 from routes.sprite_organizer import sprite_organizer_bp
+from routes.equipment_orderer import equipment_orderer_bp
 
 # Importar blueprints do sistema de mapa procedural
 try:
@@ -164,6 +165,7 @@ try:
 except Exception as e:
     print(f"❌ Erro ao registrar battle blueprint: {e}")
 app.register_blueprint(sprite_organizer_bp)
+app.register_blueprint(equipment_orderer_bp)
 
 # Registrar blueprints do sistema de mapa procedural
 try:
