@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, jsonify, request
 import json
 import os
 import random
-from routes.battle_modules.enemy_generation import generate_enemy_by_theme
+from routes.battle_modules.enemy_generation import generate_enemy_by_theme, initialize_equipment_tiers_smart
 
 enemy_template_bp = Blueprint('enemy_template', __name__)
 
@@ -42,6 +42,9 @@ def template_generator_page():
 def generate_enemy_preview():
     """Gera um inimigo procedural para preview"""
     try:
+        # Inicializar sistema de equipamentos por tier
+        initialize_equipment_tiers_smart()
+
         data = request.get_json()
         theme_id = data.get('theme_id', 1)
         enemy_number = data.get('enemy_number', random.randint(1, 50))
