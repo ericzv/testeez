@@ -1868,6 +1868,22 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
     else:  # Lendário
         actions_probability_json = json.dumps({"1": 20, "2": 40, "3": 40})
 
+    # Determine rounds
+    rand_rounds = random.random()
+    if rand_rounds < 0.8:
+        initial_rounds = 3
+    elif rand_rounds < 0.9:
+        initial_rounds = 2
+    else:
+        initial_rounds = 4
+
+    # Equipment modifiers applied (for tracking)
+    equipment_modifiers = {
+        'hp': hp_bonus,
+        'armor': armor_bonus,
+        'damage': damage_bonus
+    }
+
     # Create enemy (add to database)
     enemy = GenericEnemy(
         enemy_number=enemy_number,
@@ -1878,10 +1894,13 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
         max_hp=final_hp,
         damage=final_damage,
         block_percentage=final_block,
+        rounds_remaining=initial_rounds,
+        initial_rounds=initial_rounds,
         sprite_body=final_equipment.get('body'),
         sprite_head=final_equipment.get('head'),
         sprite_weapon=final_equipment.get('weapon'),
         sprite_back=sprite_back,
+        equipment_modifiers_applied=json.dumps(equipment_modifiers),
         player_id=player_id,
         reward_bonus_percentage=total_modifier_sum,
         equipment_rank=equipment_rank,
