@@ -6,13 +6,13 @@
     <title>Equipment Orderer - Organizar Equipamentos</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <style>
         body {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: #fff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
+            padding: 20px;
         }
 
         .header {
@@ -20,6 +20,15 @@
             padding: 20px;
             margin-bottom: 30px;
             border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .info-box {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
         }
 
         .category-container {
@@ -31,9 +40,6 @@
         }
 
         .category-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 2px solid rgba(255, 255, 255, 0.2);
@@ -47,160 +53,255 @@
             letter-spacing: 2px;
         }
 
-        .equipment-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 15px;
-            min-height: 150px;
-            padding: 15px;
+        .equipment-table {
+            width: 100%;
             background: rgba(0, 0, 0, 0.2);
             border-radius: 10px;
-            border: 2px dashed rgba(255, 255, 255, 0.2);
+            overflow: hidden;
         }
 
-        .equipment-item {
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
+        .equipment-table thead {
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .equipment-table th {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .equipment-table td {
             padding: 10px;
             text-align: center;
-            cursor: grab;
-            transition: all 0.3s ease;
-            position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            vertical-align: middle;
         }
 
-        .equipment-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
-            border-color: #ffd700;
+        .equipment-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
         }
 
-        .equipment-item.ui-sortable-helper {
-            cursor: grabbing;
-            transform: scale(1.1);
-            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
-            z-index: 1000;
-        }
-
-        .equipment-item img {
-            width: 100%;
-            height: 80px;
-            object-fit: contain;
+        /* FIX: Mostrar apenas o primeiro frame do sprite */
+        .sprite-preview {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto;
+            background-size: auto 64px;
+            background-repeat: no-repeat;
+            background-position: 0 0;
             image-rendering: pixelated;
-            margin-bottom: 5px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
         }
 
-        .equipment-name {
-            font-size: 0.8rem;
-            color: #ddd;
-            margin-top: 5px;
+        .order-input {
+            width: 80px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            color: #fff;
+            text-align: center;
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            font-weight: bold;
         }
 
-        .tier-badge {
-            position: absolute;
-            top: 5px;
-            right: 5px;
+        .order-input:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .auto-sort-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
+            border: none;
+            padding: 8px 20px;
+            font-size: 0.9rem;
             font-weight: bold;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        .points-badge {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            padding: 3px 10px;
-            border-radius: 15px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            display: inline-block;
-            margin-top: 5px;
+        .auto-sort-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.5);
         }
 
         .save-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
             border: none;
-            padding: 12px 30px;
-            font-size: 1.1rem;
+            padding: 15px 40px;
+            font-size: 1.2rem;
             font-weight: bold;
             border-radius: 25px;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
         }
 
         .save-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            box-shadow: 0 6px 20px rgba(17, 153, 142, 0.6);
         }
 
-        .instructions {
-            background: rgba(255, 215, 0, 0.1);
-            border: 2px solid rgba(255, 215, 0, 0.3);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
+        .badge-custom {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: bold;
         }
 
-        .ui-sortable-placeholder {
-            border: 2px dashed #ffd700;
-            background: rgba(255, 215, 0, 0.2);
-            visibility: visible !important;
-            border-radius: 10px;
+        .legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-icon {
+            font-size: 1.2rem;
         }
     </style>
 </head>
 <body>
     <div class="container-fluid">
         <div class="header">
-            <h1 class="text-center"><i class="fas fa-sort"></i> Equipment Orderer</h1>
-            <p class="text-center mb-0">Organize os equipamentos do mais fraco ao mais forte através de drag & drop</p>
+            <h1 class="text-center"><i class="fas fa-sort-amount-up"></i> Equipment Orderer</h1>
+            <p class="text-center mb-0">Organize os equipamentos por força visual usando números de ordem</p>
         </div>
 
-        <div class="instructions">
-            <h5><i class="fas fa-info-circle"></i> Instruções:</h5>
-            <ul class="mb-0">
-                <li>Arraste os equipamentos para ordená-los do <strong>mais fraco</strong> (esquerda) ao <strong>mais forte</strong> (direita)</li>
-                <li>A ordem define automaticamente os tiers e pontos de cada equipamento</li>
-                <li>Clique em "💾 Salvar Ordem" quando terminar para aplicar as mudanças</li>
+        <div class="info-box">
+            <h5><i class="fas fa-info-circle"></i> Como funciona:</h5>
+            <ul class="mb-2">
+                <li><strong>Ordem:</strong> Número da posição (menor = mais fraco, maior = mais forte)</li>
+                <li><strong>Tier (T):</strong> Nível de força automático (1 = muito fraco, 6 = muito forte)</li>
+                <li><strong>Pontos:</strong> Valor numérico de força total (0-50)</li>
+                <li>Digite um número na coluna "Ordem" e pressione Enter</li>
+                <li>Use "Auto-ordenar" para organizar automaticamente pelos pontos atuais</li>
             </ul>
+            <div class="legend">
+                <div class="legend-item">
+                    <span class="legend-icon">🔢</span>
+                    <span><strong>Ordem:</strong> Posição do equipamento (1, 2, 3...)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-icon">🏆</span>
+                    <span><strong>Tier:</strong> Calculado automaticamente (T1 a T6)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-icon">⭐</span>
+                    <span><strong>Pontos:</strong> Força total (0 a 50)</span>
+                </div>
+            </div>
         </div>
 
         <!-- Weapon Category -->
         <div class="category-container">
             <div class="category-header">
-                <div class="category-title"><i class="fas fa-sword"></i> Armas (Weapon)</div>
-                <span class="badge bg-info">Total: <span id="weapon-count">0</span> equipamentos</span>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="category-title"><i class="fas fa-sword"></i> Armas (Weapon)</div>
+                    <button class="btn auto-sort-btn" onclick="autoSort('weapon')">
+                        <i class="fas fa-sort"></i> Auto-ordenar
+                    </button>
+                </div>
             </div>
-            <div class="equipment-grid" id="weapon-grid" data-category="weapon"></div>
+            <table class="equipment-table" id="weapon-table">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Preview</th>
+                        <th>Nome</th>
+                        <th style="width: 100px;">Ordem</th>
+                        <th style="width: 80px;">Tier</th>
+                        <th style="width: 80px;">Pontos</th>
+                        <th style="width: 150px;">Atributos</th>
+                    </tr>
+                </thead>
+                <tbody id="weapon-tbody"></tbody>
+            </table>
         </div>
 
         <!-- Head Category -->
         <div class="category-container">
             <div class="category-header">
-                <div class="category-title"><i class="fas fa-helmet-battle"></i> Cabeça (Helmet/Head)</div>
-                <span class="badge bg-info">Total: <span id="head-count">0</span> equipamentos</span>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="category-title"><i class="fas fa-helmet-battle"></i> Cabeça (Head)</div>
+                    <button class="btn auto-sort-btn" onclick="autoSort('head')">
+                        <i class="fas fa-sort"></i> Auto-ordenar
+                    </button>
+                </div>
             </div>
-            <div class="equipment-grid" id="head-grid" data-category="head"></div>
+            <table class="equipment-table" id="head-table">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Preview</th>
+                        <th>Nome</th>
+                        <th style="width: 100px;">Ordem</th>
+                        <th style="width: 80px;">Tier</th>
+                        <th style="width: 80px;">Pontos</th>
+                        <th style="width: 150px;">Atributos</th>
+                    </tr>
+                </thead>
+                <tbody id="head-tbody"></tbody>
+            </table>
         </div>
 
         <!-- Body Category -->
         <div class="category-container">
             <div class="category-header">
-                <div class="category-title"><i class="fas fa-vest"></i> Corpo (Body/Armor)</div>
-                <span class="badge bg-info">Total: <span id="body-count">0</span> equipamentos</span>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="category-title"><i class="fas fa-vest"></i> Corpo (Body)</div>
+                    <button class="btn auto-sort-btn" onclick="autoSort('body')">
+                        <i class="fas fa-sort"></i> Auto-ordenar
+                    </button>
+                </div>
             </div>
-            <div class="equipment-grid" id="body-grid" data-category="body"></div>
+            <table class="equipment-table" id="body-table">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Preview</th>
+                        <th>Nome</th>
+                        <th style="width: 100px;">Ordem</th>
+                        <th style="width: 80px;">Tier</th>
+                        <th style="width: 80px;">Pontos</th>
+                        <th style="width: 150px;">Atributos</th>
+                    </tr>
+                </thead>
+                <tbody id="body-tbody"></tbody>
+            </table>
         </div>
 
         <!-- Back Category -->
         <div class="category-container">
             <div class="category-header">
-                <div class="category-title"><i class="fas fa-shield"></i> Costas (Back)</div>
-                <span class="badge bg-info">Total: <span id="back-count">0</span> equipamentos</span>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="category-title"><i class="fas fa-shield"></i> Costas (Back)</div>
+                    <button class="btn auto-sort-btn" onclick="autoSort('back')">
+                        <i class="fas fa-sort"></i> Auto-ordenar
+                    </button>
+                </div>
             </div>
-            <div class="equipment-grid" id="back-grid" data-category="back"></div>
+            <table class="equipment-table" id="back-table">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Preview</th>
+                        <th>Nome</th>
+                        <th style="width: 100px;">Ordem</th>
+                        <th style="width: 80px;">Tier</th>
+                        <th style="width: 80px;">Pontos</th>
+                        <th style="width: 150px;">Atributos</th>
+                    </tr>
+                </thead>
+                <tbody id="back-tbody"></tbody>
+            </table>
         </div>
 
         <div class="text-center mb-5">
@@ -211,7 +312,6 @@
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script>
         let equipmentData = {};
 
@@ -222,12 +322,10 @@
                 const data = await response.json();
                 equipmentData = data;
 
-                renderEquipment('weapon');
-                renderEquipment('head');
-                renderEquipment('body');
-                renderEquipment('back');
-
-                initializeSortable();
+                renderCategory('weapon');
+                renderCategory('head');
+                renderCategory('body');
+                renderCategory('back');
             } catch (error) {
                 console.error('Erro ao carregar equipamentos:', error);
                 alert('Erro ao carregar equipamentos!');
@@ -235,65 +333,86 @@
         }
 
         // Renderizar equipamentos de uma categoria
-        function renderEquipment(category) {
-            const grid = document.getElementById(`${category}-grid`);
-            const items = equipmentData[category] || [];
+        function renderCategory(category) {
+            const tbody = document.getElementById(`${category}-tbody`);
+            let items = equipmentData[category] || [];
 
-            // Atualizar contador
-            document.getElementById(`${category}-count`).textContent = items.length;
-
-            // Ordenar por tier/pontos atuais
+            // Ordenar por total_points
             items.sort((a, b) => a.total_points - b.total_points);
 
-            grid.innerHTML = items.map(item => `
-                <div class="equipment-item" data-filename="${item.filename}" data-category="${category}">
-                    <div class="tier-badge">T${item.tier}</div>
-                    <img src="/static/game.data/enemies/${category}/${item.filename}" alt="${item.filename}">
-                    <div class="equipment-name">${item.filename.replace('.png', '')}</div>
-                    <div class="points-badge">${item.total_points}pts</div>
-                </div>
-            `).join('');
-        }
-
-        // Inicializar sortable (drag & drop)
-        function initializeSortable() {
-            $('.equipment-grid').sortable({
-                items: '.equipment-item',
-                cursor: 'grabbing',
-                opacity: 0.8,
-                revert: 150,
-                placeholder: 'ui-sortable-placeholder',
-                tolerance: 'pointer',
-                update: function(event, ui) {
-                    updateTiersAfterSort($(this).attr('id').replace('-grid', ''));
-                }
-            });
-        }
-
-        // Atualizar tiers após reorganização
-        function updateTiersAfterSort(category) {
-            const grid = document.getElementById(`${category}-grid`);
-            const items = Array.from(grid.querySelectorAll('.equipment-item'));
-            const totalItems = items.length;
-
+            // Atribuir índice de ordem inicial
             items.forEach((item, index) => {
-                // Calcular tier baseado na posição (1-6)
-                const tier = Math.min(6, Math.floor((index / totalItems) * 6) + 1);
-
-                // Calcular pontos baseado na posição (0-50)
-                const points = Math.round((index / Math.max(1, totalItems - 1)) * 50);
-
-                // Atualizar badges
-                const tierBadge = item.querySelector('.tier-badge');
-                const pointsBadge = item.querySelector('.points-badge');
-
-                tierBadge.textContent = `T${tier}`;
-                pointsBadge.textContent = `${points}pts`;
-
-                // Armazenar dados atualizados
-                item.dataset.tier = tier;
-                item.dataset.points = points;
+                item.order = index + 1;
             });
+
+            tbody.innerHTML = items.map((item, index) => {
+                const tier = calculateTier(index, items.length);
+                const points = calculatePoints(index, items.length);
+
+                return `
+                    <tr data-filename="${item.filename}">
+                        <td>
+                            <div class="sprite-preview" style="background-image: url('/static/game.data/enemies/${category}/${item.filename}');"></div>
+                        </td>
+                        <td style="text-align: left;">${item.filename.replace('.png', '')}</td>
+                        <td>
+                            <input type="number"
+                                   class="order-input"
+                                   value="${item.order}"
+                                   min="1"
+                                   max="${items.length}"
+                                   onchange="updateOrder('${category}', '${item.filename}', this.value)">
+                        </td>
+                        <td>
+                            <span class="badge badge-custom bg-primary" data-tier>T${tier}</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-custom bg-warning text-dark" data-points>${points}pts</span>
+                        </td>
+                        <td style="font-size: 0.85rem;">
+                            HP: ${item.hp} | DMG: ${item.damage} | ARM: ${item.armor}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            equipmentData[category] = items;
+        }
+
+        // Calcular tier baseado na posição
+        function calculateTier(index, total) {
+            return Math.min(6, Math.floor((index / total) * 6) + 1);
+        }
+
+        // Calcular pontos baseado na posição
+        function calculatePoints(index, total) {
+            return Math.round((index / Math.max(1, total - 1)) * 50);
+        }
+
+        // Atualizar ordem de um item
+        function updateOrder(category, filename, newOrder) {
+            newOrder = parseInt(newOrder);
+            const items = equipmentData[category];
+
+            // Encontrar o item
+            const itemIndex = items.findIndex(i => i.filename === filename);
+            if (itemIndex === -1) return;
+
+            // Remover o item da posição atual
+            const [item] = items.splice(itemIndex, 1);
+
+            // Inserir na nova posição (ajustar para índice 0)
+            items.splice(newOrder - 1, 0, item);
+
+            // Re-renderizar
+            renderCategory(category);
+        }
+
+        // Auto-ordenar por pontos atuais
+        function autoSort(category) {
+            const items = equipmentData[category];
+            items.sort((a, b) => a.total_points - b.total_points);
+            renderCategory(category);
         }
 
         // Salvar ordem
@@ -301,15 +420,21 @@
             const updatedData = {};
 
             ['weapon', 'head', 'body', 'back'].forEach(category => {
-                const grid = document.getElementById(`${category}-grid`);
-                const items = Array.from(grid.querySelectorAll('.equipment-item'));
+                const tbody = document.getElementById(`${category}-tbody`);
+                const rows = Array.from(tbody.querySelectorAll('tr'));
 
-                updatedData[category] = items.map((item, index) => ({
-                    filename: item.dataset.filename,
-                    tier: parseInt(item.dataset.tier),
-                    total_points: parseInt(item.dataset.points),
-                    order_index: index
-                }));
+                updatedData[category] = rows.map((row, index) => {
+                    const filename = row.dataset.filename;
+                    const tier = calculateTier(index, rows.length);
+                    const points = calculatePoints(index, rows.length);
+
+                    return {
+                        filename,
+                        tier,
+                        total_points: points,
+                        order_index: index
+                    };
+                });
             });
 
             try {
@@ -324,7 +449,9 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    alert('✅ Ordem salva com sucesso!');
+                    alert('✅ Ordem salva com sucesso!\n\n' +
+                          'Os tiers e pontos foram atualizados automaticamente.');
+                    loadEquipmentData(); // Recarregar para mostrar valores salvos
                 } else {
                     alert('❌ Erro ao salvar ordem: ' + result.message);
                 }
