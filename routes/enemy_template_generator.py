@@ -9,8 +9,9 @@ from routes.battle_modules.enemy_generation import generate_enemy_by_theme, init
 
 enemy_template_bp = Blueprint('enemy_template', __name__)
 
-# Caminho para salvar templates
+# Caminhos
 TEMPLATES_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'game.data', 'enemy_templates.json')
+CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'game.data', 'enemy_themes_config.json')
 
 def load_templates():
     """Carrega templates salvos"""
@@ -38,6 +39,22 @@ def template_generator_page():
     """Renderiza a página do Enemy Template Generator"""
     return render_template('gamification/enemy_template_generator.html')
 
+@enemy_template_bp.route('/gamification/get_themes')
+def get_themes():
+    """Retorna lista de temas disponíveis do JSON"""
+    try:
+        with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+
+        themes = []
+        for theme_name in config.get('themes', {}).keys():
+            themes.append({'name': theme_name})
+
+        return jsonify({'themes': themes})
+    except Exception as e:
+        print(f"Erro ao carregar temas: {e}")
+        return jsonify({'themes': []})
+
 @enemy_template_bp.route('/gamification/generate_enemy_preview', methods=['POST'])
 def generate_enemy_preview():
     """Gera um inimigo procedural para preview"""
@@ -46,7 +63,7 @@ def generate_enemy_preview():
         initialize_equipment_tiers_smart()
 
         data = request.get_json()
-        theme_id = data.get('theme_id', 1)
+        theme_name = data.get('theme_name', 'Guerreiro azul')
         enemy_number = data.get('enemy_number', random.randint(1, 50))
         seed = data.get('seed')
 
@@ -57,11 +74,11 @@ def generate_enemy_preview():
             seed = random.randint(1, 999999)
             random.seed(seed)
 
-        # Gerar inimigo usando o sistema existente
-        from models import EnemyTheme
+        # Gerar inimigo usando sistema direto (sem depender do banco)
+        from routes.battle_modules.enemy_generation import generate_enemy_direct_by_theme_name
         from database import db
 
-        enemy = generate_enemy_by_theme(theme_id, enemy_number, player_id=None)
+        enemy = generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None)
 
         if not enemy:
             return jsonify({

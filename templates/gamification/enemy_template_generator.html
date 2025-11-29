@@ -201,13 +201,7 @@
                         <div class="col-md-4">
                             <label class="form-label">Tema</label>
                             <select class="form-select" id="theme-select">
-                                <option value="1">Guerreiro Azul</option>
-                                <option value="2">Guerreiros Grandes</option>
-                                <option value="3">Guerreiros Pouca Roupa</option>
-                                <option value="4">Guerreiro Dark</option>
-                                <option value="5">Guerreiros Coloridos</option>
-                                <option value="6">Ninjas e Samurais</option>
-                                <option value="7">Mages</option>
+                                <option value="">Carregando...</option>
                             </select>
                         </div>
                         <div class="col-md-4">
@@ -283,9 +277,30 @@
     <script>
         let currentEnemy = null;
 
+        // Carregar temas ao iniciar
+        async function loadThemes() {
+            try {
+                const response = await fetch('/gamification/get_themes');
+                const result = await response.json();
+
+                const select = document.getElementById('theme-select');
+                select.innerHTML = '';
+
+                result.themes.forEach((theme, index) => {
+                    const option = document.createElement('option');
+                    option.value = theme.name;
+                    option.textContent = theme.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar temas:', error);
+                alert('Erro ao carregar temas!');
+            }
+        }
+
         // Gerar inimigo
         async function generateEnemy() {
-            const themeId = parseInt(document.getElementById('theme-select').value);
+            const themeName = document.getElementById('theme-select').value;
             const enemyNumber = parseInt(document.getElementById('enemy-number').value);
             const seed = document.getElementById('seed-input').value || null;
 
@@ -293,7 +308,7 @@
                 const response = await fetch('/gamification/generate_enemy_preview', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ theme_id: themeId, enemy_number: enemyNumber, seed })
+                    body: JSON.stringify({ theme_name: themeName, enemy_number: enemyNumber, seed })
                 });
 
                 const result = await response.json();
@@ -447,8 +462,11 @@
             }
         }
 
-        // Carregar templates ao iniciar
-        window.addEventListener('DOMContentLoaded', loadTemplates);
+        // Carregar temas e templates ao iniciar
+        window.addEventListener('DOMContentLoaded', () => {
+            loadThemes();
+            loadTemplates();
+        });
     </script>
 </body>
 </html>

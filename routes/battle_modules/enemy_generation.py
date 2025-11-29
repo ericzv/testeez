@@ -1535,6 +1535,436 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
     print(f"✅ Enemy created: {name} (Rarity: {rarity}, Rank: {equipment_rank}, Modifiers: +{total_modifier_sum}%)")
     return enemy
 
+def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None, temp_recent_equipment=None):
+    """Generate enemy using theme name directly (without database lookup)"""
+
+    print(f"🔍 Generating enemy #{enemy_number} with theme '{theme_name}' (direct)")
+
+    # Load configuration
+    config = load_enemy_themes_config()
+    if not config or 'themes' not in config or 'sprite_modifiers' not in config:
+        print("❌ Error: Theme configuration not found")
+        return None
+
+    # Verificar se o tema existe no JSON
+    if theme_name not in config['themes']:
+        print(f"❌ Error: Theme '{theme_name}' not found in configuration")
+        print(f"   Available themes: {list(config['themes'].keys())}")
+        return None
+
+    theme_config = config['themes'][theme_name]
+    sprite_modifiers = config['sprite_modifiers']
+
+    # Calculate rarity
+    rarity_chances = calculate_rarity_chances(enemy_number)
+    print(f"🎲 Rarity chances: {rarity_chances}")
+
+    rand = random.random() * 100
+    print(f"🎲 Valor sorteado: {rand:.2f}%")
+
+    cumulative = 0
+    rarity = 1
+    for r, chance in rarity_chances.items():
+        cumulative += chance
+        print(f"   Verificando raridade {r}: {cumulative:.1f}% (sorteado: {rand:.2f}%)")
+        if rand <= cumulative:
+            rarity = r
+            print(f"   ✅ MATCH! Raridade {r} selecionada")
+            break
+
+    print(f"🎯 Selected rarity: {rarity} ({['', 'Comum', 'Raro', 'Épico', 'Lendário'][rarity]})")
+
+    # Get recent equipment for anti-repetition
+    recent_equipment = get_recent_equipment(player_id, 5) if player_id else set()
+
+    # ADICIONAR cache temporário se fornecido
+    if temp_recent_equipment:
+        historic_count = len(recent_equipment)
+        recent_equipment.update(temp_recent_equipment)
+        print(f"🔍 DEBUG ANTI-REPETIÇÃO: Histórico banco={historic_count}, Cache temporário={len(temp_recent_equipment)}, Total filtros={len(recent_equipment)}")
+    else:
+        print(f"🔍 DEBUG ANTI-REPETIÇÃO: Histórico banco={len(recent_equipment)}, Cache temporário=0 (CHAMADA ISOLADA)")
+
+    # Select initial equipment using smart system
+    selected_equipment = {}
+
+    # Calculate smart tier distribution for rarity
+    tier_distribution = calculate_tier_distribution_for_rarity(rarity)
+
+    selected_equipment = {}
+    equipment_types = ['body', 'head', 'weapon']
+
+    for equipment_type in equipment_types:
+        target_tier = tier_distribution[equipment_type]
+
+        print(f"🎯 DEBUG: {equipment_type} → Target tier {target_tier}")
+
+        equipment = get_equipment_by_tier_direct(theme_name, equipment_type, target_tier, recent_equipment)
+        if equipment:
+            selected_equipment[equipment_type] = equipment
+            points = get_equipment_points_from_json(equipment)
+            print(f"🎯 DEBUG: Selected {equipment} with {points} points")
+        else:
+            print(f"❌ Could not select {equipment_type} for theme {theme_name}")
+            return None
+
+    print(f"🔍 Equipment selected so far: {selected_equipment}")
+
+    # Check if total points are within rarity range and adjust if needed
+    total_modifiers = calculate_total_modifiers(selected_equipment)
+    target_range = get_target_range_for_rarity(rarity)
+
+    print(f"🎯 Initial total: {total_modifiers}, target range: {target_range}")
+
+    # If below minimum, upgrade weakest equipment
+    while total_modifiers < target_range[0]:
+        # Set final equipment after adjustments
+        final_equipment = selected_equipment
+        # Find weakest equipment
+        weakest_type = None
+        weakest_points = float('inf')
+
+        for eq_type, eq_file in selected_equipment.items():
+            points = get_equipment_points_from_json(eq_file)
+            if points < weakest_points:
+                weakest_points = points
+                weakest_type = eq_type
+
+        if weakest_type:
+            current_tier = tier_distribution[weakest_type]
+            if current_tier < 6:
+                new_tier = current_tier + 1
+                new_equipment = get_equipment_by_tier_direct(theme_name, weakest_type, new_tier, recent_equipment)
+                if new_equipment:
+                    selected_equipment[weakest_type] = new_equipment
+                    tier_distribution[weakest_type] = new_tier
+                    total_modifiers = calculate_total_modifiers(selected_equipment)
+                    print(f"🔧 Upgraded {weakest_type} to tier {new_tier}, new total: {total_modifiers}")
+                else:
+                    break
+            else:
+                break
+        else:
+            break
+    # Set final equipment after adjustments
+    final_equipment = selected_equipment
+
+    # If above maximum, downgrade strongest equipment intelligently
+    adjustment_attempts = 0
+    max_attempts = 15
+
+    # Verificar se precisa ajustar (pontos OU rank)
+    current_rank = get_rank_from_total_modifiers(total_modifiers)
+    compatible_ranks = RARITY_COMPATIBLE_RANKS[rarity]
+    needs_rank_adjustment = current_rank not in compatible_ranks
+
+    while (total_modifiers > target_range[1] or needs_rank_adjustment) and adjustment_attempts < max_attempts:
+        adjustment_attempts += 1
+        print(f"🔧 AJUSTE #{adjustment_attempts}: Total {total_modifiers} > Máximo {target_range[1]}")
+
+        # Create list of all equipment sorted by points (highest first)
+        equipment_by_points = []
+        for eq_type, eq_file in selected_equipment.items():
+            points = get_equipment_points_from_json(eq_file)
+            current_tier = tier_distribution.get(eq_type, 1)
+            equipment_by_points.append((eq_type, eq_file, points, current_tier))
+
+        # Sort by points (descending)
+        equipment_by_points.sort(key=lambda x: x[2], reverse=True)
+
+        adjustment_made = False
+
+        # Try to downgrade each equipment (starting from strongest)
+        for eq_type, eq_file, current_points, current_tier in equipment_by_points:
+            if current_tier > 1:
+                new_tier = current_tier - 1
+                print(f"🔧 Tentando {eq_type} tier {current_tier}→{new_tier} ({current_points} pontos)")
+
+                new_equipment = get_equipment_by_tier_direct(theme_name, eq_type, new_tier, recent_equipment)
+                if new_equipment:
+                    new_points = get_equipment_points_from_json(new_equipment)
+
+                    # Only proceed if it ACTUALLY reduces points
+                    if new_points < current_points:
+                        selected_equipment[eq_type] = new_equipment
+                        tier_distribution[eq_type] = new_tier
+                        old_total = total_modifiers
+                        total_modifiers = calculate_total_modifiers(selected_equipment)
+
+                        print(f"✅ {eq_type} ajustado: {current_points}→{new_points} pontos")
+                        print(f"   Total: {old_total}→{total_modifiers}")
+                        adjustment_made = True
+                        # Recalcular rank após ajuste
+                        current_rank = get_rank_from_total_modifiers(total_modifiers)
+                        needs_rank_adjustment = current_rank not in compatible_ranks
+                        break
+                    else:
+                        print(f"❌ {eq_type} tier {new_tier} tem {new_points} pontos (não reduz de {current_points})")
+                else:
+                    print(f"❌ Não encontrou equipamento tier {new_tier} para {eq_type}")
+
+        # If no adjustment was possible, break
+        if not adjustment_made:
+            print(f"❌ FALHA: Nenhum ajuste eficaz possível após {adjustment_attempts} tentativas")
+            print(f"   Equipamentos atuais:")
+            for eq_type, eq_file in selected_equipment.items():
+                points = get_equipment_points_from_json(eq_file)
+                tier = tier_distribution.get(eq_type, 1)
+                print(f"     {eq_type}: {eq_file} (tier {tier}, {points} pontos)")
+            break
+
+    if total_modifiers > target_range[1]:
+        print(f"⚠️ AVISO CRÍTICO: Não foi possível ajustar equipamentos!")
+        print(f"   Total final: {total_modifiers} (máximo permitido: {target_range[1]})")
+
+    # Set final equipment after all adjustments
+    final_equipment = selected_equipment
+
+    # Optional back equipment with intelligent tier selection
+    sprite_back = None
+    if theme_config.get('back_options'):
+        back_chance = 0.80 if theme_name in ["Guerreiros pouca roupa", "Guerreiros grandes"] else 0.10
+        if random.random() < back_chance:
+            # NOVA LÓGICA: Calcular margem disponível na faixa da raridade
+            current_total = calculate_total_modifiers(selected_equipment)
+            available_margin = target_range[1] - current_total
+
+            print(f"🎒 BACK SELECTION: Total atual = {current_total}, margem disponível = {available_margin}")
+
+            # Definir tiers permitidos baseado na margem disponível
+            if available_margin >= 30:
+                allowed_tiers = [3, 4, 5, 6]  # Tiers altos OK
+            elif available_margin >= 20:
+                allowed_tiers = [2, 3, 4]     # Tiers médios
+            elif available_margin >= 10:
+                allowed_tiers = [1, 2, 3]     # Tiers baixos/médios
+            else:
+                allowed_tiers = [1, 2]        # Só tiers muito baixos
+
+            print(f"   Tiers permitidos para back: {allowed_tiers}")
+
+            # Tentar selecionar back em ordem decrescente de tier (dentro dos permitidos)
+            for tier in sorted(allowed_tiers, reverse=True):
+                back = get_equipment_by_tier_direct(theme_name, 'back', tier, recent_equipment)
+                if back:
+                    back_points = get_equipment_points_from_json(back)
+
+                    # Verificar se adicionar esse back não ultrapassa o máximo
+                    projected_total = current_total + back_points
+                    if projected_total <= target_range[1]:
+                        sprite_back = back
+                        print(f"✅ Back selecionado: {back} (tier {tier}, {back_points} pontos)")
+                        print(f"   Total com back: {projected_total}")
+                        break
+                    else:
+                        print(f"❌ Back {back} ultrapassaria máximo ({projected_total} > {target_range[1]})")
+
+            if not sprite_back:
+                print(f"❌ Nenhum back adequado encontrado dentro da margem disponível")
+
+    # Update final equipment if back was selected
+    if sprite_back:
+        final_equipment['back'] = sprite_back
+
+    # Generate random name from theme's name pool
+    name_pool = json.loads(theme_config.get('name_pool', '["Guerreiro", "Lutador", "Combatente"]'))
+    name = random.choice(name_pool)
+
+    # Calcular stats finais
+    base_stats = calculate_enemy_base_stats(enemy_number)
+
+    # Aplicar modificadores baseado nos equipamentos
+    total_modifier_sum = 0
+    for equipment_type, equipment_file in final_equipment.items():
+        if equipment_file and equipment_file in sprite_modifiers:
+            modifiers = sprite_modifiers[equipment_file]
+            if equipment_type == 'weapon':
+                total_modifier_sum += modifiers.get('damage', 0)
+            else:
+                total_modifier_sum += modifiers.get('hp', 0) + modifiers.get('armor', 0)
+
+    # Calculate equipment rank
+    equipment_rank = get_rank_from_total_modifiers(total_modifier_sum)
+
+    # Apply rarity modifiers
+    rarity_stats = apply_rarity_modifiers(base_stats.copy(), rarity)
+
+    # Convert equipment modifiers to percentages and apply
+    hp_bonus = sum([sprite_modifiers.get(final_equipment.get(eq_type), {}).get('hp', 0)
+                    for eq_type in ['body', 'head', 'back'] if final_equipment.get(eq_type)])
+    armor_bonus = sum([sprite_modifiers.get(final_equipment.get(eq_type), {}).get('armor', 0)
+                       for eq_type in ['body', 'head', 'back'] if final_equipment.get(eq_type)])
+    damage_bonus = sprite_modifiers.get(final_equipment.get('weapon'), {}).get('damage', 0) if final_equipment.get('weapon') else 0
+
+    # Apply bonuses as percentages
+    final_hp = int(rarity_stats['hp'] * (1 + hp_bonus / 100))
+    final_damage = int(rarity_stats['damage'] * (1 + damage_bonus / 100))
+    final_block = int(rarity_stats['block_percentage'] * (1 + armor_bonus / 100))
+
+    # Limit block percentage to 80%
+    final_block = min(final_block, 80)
+
+    # Determinar tipo de recompensa baseado no equipment_rank
+    if equipment_rank in ['D', 'C']:
+        reward_type = 'coin'
+        reward_icon = 'fa-coins'
+    elif equipment_rank == 'B':
+        reward_type = random.choice(['coin', 'xp'])
+        reward_icon = 'fa-coins' if reward_type == 'coin' else 'fa-star'
+    elif equipment_rank == 'A':
+        reward_type = random.choice(['xp', 'rune'])
+        reward_icon = 'fa-star' if reward_type == 'xp' else 'fa-gem'
+    else:  # S rank
+        reward_type = 'rune'
+        reward_icon = 'fa-gem'
+
+    # Definir animação de hit baseado no tema
+    hit_animation = random.choice(theme_config.get('hit_animations', ['hit-flash']))
+
+    # Escolher action pattern aleatório baseado no tema
+    available_patterns = theme_config.get('action_patterns', [])
+    if available_patterns:
+        selected_pattern = random.choice(available_patterns)
+        action_pattern_json = json.dumps(selected_pattern)
+    else:
+        # Padrão básico se não houver patterns definidos
+        action_pattern_json = json.dumps(["attack", "attack", "skill"])
+
+    # Definir habilidades do inimigo baseado no tema
+    theme_skills = theme_config.get('skills', [])
+    enemy_skills = []
+
+    # Adicionar habilidades baseado na raridade
+    skill_count = min(rarity, len(theme_skills))  # Raridade determina quantas skills
+    if skill_count > 0:
+        enemy_skills = random.sample(theme_skills, skill_count)
+
+    enemy_skills_json = json.dumps(enemy_skills)
+
+    # Definir probabilidade de ações por turno
+    if rarity == 1:  # Comum
+        actions_probability_json = json.dumps({"1": 70, "2": 30, "3": 0})
+    elif rarity == 2:  # Raro
+        actions_probability_json = json.dumps({"1": 50, "2": 40, "3": 10})
+    elif rarity == 3:  # Épico
+        actions_probability_json = json.dumps({"1": 30, "2": 50, "3": 20})
+    else:  # Lendário
+        actions_probability_json = json.dumps({"1": 20, "2": 40, "3": 40})
+
+    # Create enemy (add to database)
+    enemy = GenericEnemy(
+        enemy_number=enemy_number,
+        name=name,
+        theme_id=1,  # Usar ID dummy (vamos mudar o modelo para ser nullable depois)
+        rarity=rarity,
+        hp=final_hp,
+        max_hp=final_hp,
+        damage=final_damage,
+        block_percentage=final_block,
+        sprite_body=final_equipment.get('body'),
+        sprite_head=final_equipment.get('head'),
+        sprite_weapon=final_equipment.get('weapon'),
+        sprite_back=sprite_back,
+        player_id=player_id,
+        reward_bonus_percentage=total_modifier_sum,
+        equipment_rank=equipment_rank,
+        is_new=True,
+        reward_type=reward_type,
+        reward_icon=reward_icon,
+        hit_animation=hit_animation,
+        attack_sfx=None,
+        attack_charges_count=0,
+        action_queue='[]',
+        enemy_skills=enemy_skills_json,
+        buff_debuff_queue='[]',
+        action_pattern=action_pattern_json,
+        current_action_index=0,
+        actions_per_turn_probability=actions_probability_json,
+        attack_skill_rotation_index=0
+    )
+
+
+    # VERIFICAÇÃO EXTRA: Debug de repetições
+    if temp_recent_equipment:
+        repeated_items = []
+        if final_equipment.get('body') in temp_recent_equipment:
+            repeated_items.append(f"body: {final_equipment['body']}")
+        if final_equipment.get('head') in temp_recent_equipment:
+            repeated_items.append(f"head: {final_equipment['head']}")
+        if final_equipment.get('weapon') in temp_recent_equipment:
+            repeated_items.append(f"weapon: {final_equipment['weapon']}")
+        if final_equipment.get('back') and final_equipment.get('back') in temp_recent_equipment:
+            repeated_items.append(f"back: {final_equipment['back']}")
+
+        if repeated_items:
+            print(f"⚠️ REPETIÇÃO DETECTADA: {', '.join(repeated_items)}")
+            print(f"   Cache atual: {temp_recent_equipment}")
+            print(f"   Equipamentos finais: {final_equipment}")
+    else:
+        # Verificar histórico persistente quando não há cache temporário
+        persistent_equipment = get_recent_equipment(player_id, 5) if player_id else set()
+        repeated_items = []
+        if final_equipment.get('body') in persistent_equipment:
+            repeated_items.append(f"body: {final_equipment['body']}")
+        if final_equipment.get('head') in persistent_equipment:
+            repeated_items.append(f"head: {final_equipment['head']}")
+        if final_equipment.get('weapon') in persistent_equipment:
+            repeated_items.append(f"weapon: {final_equipment['weapon']}")
+        if final_equipment.get('back') and final_equipment.get('back') in persistent_equipment:
+            repeated_items.append(f"back: {final_equipment['back']}")
+
+        if repeated_items:
+            print(f"⚠️ REPETIÇÃO NO HISTÓRICO PERSISTENTE: {', '.join(repeated_items)}")
+            print(f"   Histórico persistente: {persistent_equipment}")
+            print(f"   Equipamentos finais: {final_equipment}")
+
+    # VERIFICAÇÃO FINAL: Se ainda incompatível, FALHAR em vez de criar inimigo ruim
+    final_total = calculate_total_modifiers(selected_equipment)
+    current_rank = get_rank_from_total_modifiers(final_total)
+    compatible_ranks = RARITY_COMPATIBLE_RANKS[rarity]
+
+    if current_rank not in compatible_ranks or final_total < target_range[0] or final_total > target_range[1]:
+        print(f"❌ FALHA CRÍTICA: Impossível criar inimigo compatível com este tema")
+        print(f"   Tema: {theme_name}")
+        print(f"   Raridade: {rarity} (ranks permitidos: {compatible_ranks})")
+        print(f"   Total pontos: {final_total} (faixa: {target_range})")
+        print(f"   Rank resultante: {current_rank}")
+        print(f"   ABORTANDO criação deste inimigo")
+        return None  # RETORNAR None EM VEZ DE CRIAR INIMIGO INCOMPATÍVEL
+
+    db.session.add(enemy)
+
+    # Add equipment to history
+    if player_id:
+        for equipment_type, equipment_file in final_equipment.items():
+            if equipment_file:
+                add_equipment_to_history(player_id, equipment_type, equipment_file)
+
+    db.session.commit()
+
+    # Verificação final de compatibilidade
+    print(f"🔍 VERIFICAÇÃO FINAL:")
+    print(f"   Raridade: {rarity} ({'Comum' if rarity==1 else 'Raro' if rarity==2 else 'Épico' if rarity==3 else 'Lendário'})")
+    print(f"   Target range: {target_range}")
+    print(f"   Total pontos: {total_modifier_sum}")
+    print(f"   Rank calculado: {equipment_rank}")
+
+    # Verificar se está dentro da faixa
+    if target_range[0] <= total_modifier_sum <= target_range[1]:
+        print(f"   ✅ COMPATÍVEL: Pontos dentro da faixa da raridade")
+    else:
+        print(f"   ❌ INCOMPATÍVEL: Pontos fora da faixa da raridade!")
+
+    # Verificar se rank está correto para a raridade
+    compatible_ranks = RARITY_COMPATIBLE_RANKS[rarity]
+    if equipment_rank in compatible_ranks:
+        print(f"   ✅ RANK COMPATÍVEL: {equipment_rank} permitido para raridade {rarity}")
+    else:
+        print(f"   ❌ RANK INCOMPATÍVEL: {equipment_rank} NÃO permitido para raridade {rarity}")
+        print(f"   Ranks permitidos: {compatible_ranks}")
+    print(f"✅ Enemy created: {name} (Rarity: {rarity}, Rank: {equipment_rank}, Modifiers: +{total_modifier_sum}%)")
+    return enemy
+
 def calculate_tier_distribution_for_rarity(rarity):
     """Calculate tier distribution with smart compensation for empty tiers"""
     
