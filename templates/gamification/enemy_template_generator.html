@@ -52,11 +52,18 @@
 
         .sprite-layer {
             position: absolute;
-            width: 128px;
-            height: 128px;
+            width: 64px;
+            height: 64px;
             image-rendering: pixelated;
             transform: scale(2);
             transform-origin: top left;
+            background-size: auto 64px;
+            animation: sprite-animation 0.8s steps(11) infinite;
+        }
+
+        @keyframes sprite-animation {
+            from { background-position: 0 0; }
+            to { background-position: -704px 0; }
         }
 
         .rarity-badge {
@@ -333,13 +340,13 @@
             preview.innerHTML = `
                 <h2>${enemy.name}</h2>
                 <span class="rarity-badge rarity-${enemy.rarity}">${enemy.rarity_name}</span>
-                <span class="badge bg-secondary">${enemy.equipment_rank}</span>
+                <span class="badge bg-warning text-dark" style="font-size: 1.2rem; padding: 10px 20px;">Rank ${enemy.equipment_rank}</span>
 
                 <div class="sprite-container">
-                    ${enemy.sprite_layers.back ? `<img src="/static/game.data/enemies/back/${enemy.sprite_layers.back}" class="sprite-layer" style="z-index: 1;">` : ''}
-                    ${enemy.sprite_layers.body ? `<img src="/static/game.data/enemies/body/${enemy.sprite_layers.body}" class="sprite-layer" style="z-index: 2;">` : ''}
-                    ${enemy.sprite_layers.head ? `<img src="/static/game.data/enemies/head/${enemy.sprite_layers.head}" class="sprite-layer" style="z-index: 3;">` : ''}
-                    ${enemy.sprite_layers.weapon ? `<img src="/static/game.data/enemies/weapon/${enemy.sprite_layers.weapon}" class="sprite-layer" style="z-index: 4;">` : ''}
+                    ${enemy.sprite_layers.back ? `<div class="sprite-layer" style="z-index: 1; background-image: url('/static/game.data/enemies/back/${enemy.sprite_layers.back}');"></div>` : ''}
+                    ${enemy.sprite_layers.body ? `<div class="sprite-layer" style="z-index: 2; background-image: url('/static/game.data/enemies/body/${enemy.sprite_layers.body}');"></div>` : ''}
+                    ${enemy.sprite_layers.head ? `<div class="sprite-layer" style="z-index: 3; background-image: url('/static/game.data/enemies/head/${enemy.sprite_layers.head}');"></div>` : ''}
+                    ${enemy.sprite_layers.weapon ? `<div class="sprite-layer" style="z-index: 4; background-image: url('/static/game.data/enemies/weapon/${enemy.sprite_layers.weapon}');"></div>` : ''}
                 </div>
 
                 <div class="stats-grid">
@@ -352,12 +359,12 @@
                         <div class="stat-value">${enemy.damage}</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-label">Defesa</div>
-                        <div class="stat-value">${enemy.block_percentage}%</div>
+                        <div class="stat-label">Raridade</div>
+                        <div class="stat-value">${enemy.rarity_name}</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-label">Raridade</div>
-                        <div class="stat-value">${enemy.rarity}</div>
+                        <div class="stat-label">Rank</div>
+                        <div class="stat-value">${enemy.equipment_rank}</div>
                     </div>
                 </div>
 
