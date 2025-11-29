@@ -1067,12 +1067,8 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
     adjustment_attempts = 0
     max_attempts = 15
 
-    # Verificar se precisa ajustar (pontos OU rank)
-    current_rank = get_rank_from_total_modifiers(total_modifiers)
-    compatible_ranks = RARITY_COMPATIBLE_RANKS[rarity]
-    needs_rank_adjustment = current_rank not in compatible_ranks
-
-    while (total_modifiers > target_range[1] or needs_rank_adjustment) and adjustment_attempts < max_attempts:
+    # Ajustar apenas baseado em pontos (rank removido do jogo)
+    while total_modifiers > target_range[1] and adjustment_attempts < max_attempts:
         adjustment_attempts += 1
         print(f"🔧 AJUSTE #{adjustment_attempts}: Total {total_modifiers} > Máximo {target_range[1]}")
         
@@ -1108,9 +1104,6 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
                         print(f"✅ {eq_type} ajustado: {current_points}→{new_points} pontos")
                         print(f"   Total: {old_total}→{total_modifiers}")
                         adjustment_made = True
-                        # Recalcular rank após ajuste
-                        current_rank = get_rank_from_total_modifiers(total_modifiers)
-                        needs_rank_adjustment = current_rank not in compatible_ranks
                         break
                     else:
                         print(f"❌ {eq_type} tier {new_tier} tem {new_points} pontos (não reduz de {current_points})")
@@ -1523,16 +1516,9 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
     if target_range[0] <= total_modifier_sum <= target_range[1]:
         print(f"   ✅ COMPATÍVEL: Pontos dentro da faixa da raridade")
     else:
-        print(f"   ❌ INCOMPATÍVEL: Pontos fora da faixa da raridade!")
-    
-    # Verificar se rank está correto para a raridade
-    compatible_ranks = RARITY_COMPATIBLE_RANKS[rarity]
-    if equipment_rank in compatible_ranks:
-        print(f"   ✅ RANK COMPATÍVEL: {equipment_rank} permitido para raridade {rarity}")
-    else:
-        print(f"   ❌ RANK INCOMPATÍVEL: {equipment_rank} NÃO permitido para raridade {rarity}")
-        print(f"   Ranks permitidos: {compatible_ranks}")
-    print(f"✅ Enemy created: {name} (Rarity: {rarity}, Rank: {equipment_rank}, Modifiers: +{total_modifier_sum}%)")
+        print(f"   ⚠️ Fora da faixa: Pontos {total_modifier_sum} (ideal: {target_range})")
+
+    print(f"✅ Enemy created: {name} (Rarity: {rarity}, Modifiers: +{total_modifier_sum}%)")
     return enemy
 
 def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None, temp_recent_equipment=None):
@@ -1653,12 +1639,8 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
     adjustment_attempts = 0
     max_attempts = 15
 
-    # Verificar se precisa ajustar (pontos OU rank)
-    current_rank = get_rank_from_total_modifiers(total_modifiers)
-    compatible_ranks = RARITY_COMPATIBLE_RANKS[rarity]
-    needs_rank_adjustment = current_rank not in compatible_ranks
-
-    while (total_modifiers > target_range[1] or needs_rank_adjustment) and adjustment_attempts < max_attempts:
+    # Ajustar apenas baseado em pontos (rank removido do jogo)
+    while total_modifiers > target_range[1] and adjustment_attempts < max_attempts:
         adjustment_attempts += 1
         print(f"🔧 AJUSTE #{adjustment_attempts}: Total {total_modifiers} > Máximo {target_range[1]}")
 
@@ -1694,9 +1676,6 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
                         print(f"✅ {eq_type} ajustado: {current_points}→{new_points} pontos")
                         print(f"   Total: {old_total}→{total_modifiers}")
                         adjustment_made = True
-                        # Recalcular rank após ajuste
-                        current_rank = get_rank_from_total_modifiers(total_modifiers)
-                        needs_rank_adjustment = current_rank not in compatible_ranks
                         break
                     else:
                         print(f"❌ {eq_type} tier {new_tier} tem {new_points} pontos (não reduz de {current_points})")
@@ -1953,19 +1932,17 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
             print(f"   Histórico persistente: {persistent_equipment}")
             print(f"   Equipamentos finais: {final_equipment}")
 
-    # VERIFICAÇÃO FINAL: Se ainda incompatível, FALHAR em vez de criar inimigo ruim
+    # VERIFICAÇÃO FINAL: Apenas log, sem bloquear criação (rank removido)
     final_total = calculate_total_modifiers(selected_equipment)
-    current_rank = get_rank_from_total_modifiers(final_total)
-    compatible_ranks = RARITY_COMPATIBLE_RANKS[rarity]
 
-    if current_rank not in compatible_ranks or final_total < target_range[0] or final_total > target_range[1]:
-        print(f"❌ FALHA CRÍTICA: Impossível criar inimigo compatível com este tema")
+    if final_total < target_range[0] or final_total > target_range[1]:
+        print(f"⚠️ AVISO: Inimigo fora da faixa ideal de pontos")
         print(f"   Tema: {theme_name}")
-        print(f"   Raridade: {rarity} (ranks permitidos: {compatible_ranks})")
-        print(f"   Total pontos: {final_total} (faixa: {target_range})")
-        print(f"   Rank resultante: {current_rank}")
-        print(f"   ABORTANDO criação deste inimigo")
-        return None  # RETORNAR None EM VEZ DE CRIAR INIMIGO INCOMPATÍVEL
+        print(f"   Raridade: {rarity}")
+        print(f"   Total pontos: {final_total} (faixa ideal: {target_range})")
+        print(f"   Continuando criação mesmo assim...")
+    else:
+        print(f"✅ Inimigo dentro da faixa de pontos: {final_total}")
 
     db.session.add(enemy)
 

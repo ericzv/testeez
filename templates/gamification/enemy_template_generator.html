@@ -48,6 +48,8 @@
             width: 256px;
             height: 256px;
             margin: 20px 0;
+            scale: 2;
+            right: -10%;
         }
 
         .sprite-layer {
@@ -340,7 +342,6 @@
             preview.innerHTML = `
                 <h2>${enemy.name}</h2>
                 <span class="rarity-badge rarity-${enemy.rarity}">${enemy.rarity_name}</span>
-                <span class="badge bg-warning text-dark" style="font-size: 1.2rem; padding: 10px 20px;">Rank ${enemy.equipment_rank}</span>
 
                 <div class="sprite-container">
                     ${enemy.sprite_layers.back ? `<div class="sprite-layer" style="z-index: 1; background-image: url('/static/game.data/enemies/back/${enemy.sprite_layers.back}');"></div>` : ''}
@@ -361,10 +362,6 @@
                     <div class="stat-box">
                         <div class="stat-label">Raridade</div>
                         <div class="stat-value">${enemy.rarity_name}</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Rank</div>
-                        <div class="stat-value">${enemy.equipment_rank}</div>
                     </div>
                 </div>
 
