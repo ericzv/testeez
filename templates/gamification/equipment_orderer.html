@@ -121,6 +121,13 @@
             border: 2px solid rgba(255, 255, 255, 0.2);
             border-radius: 5px;
             margin-bottom: 10px;
+            /* Animação de sprite (11 frames = 1408px / 128px) */
+            animation: sprite-animation 0.8s steps(11) infinite;
+        }
+
+        @keyframes sprite-animation {
+            from { background-position: 0 0; }
+            to { background-position: -704px 0; }
         }
 
         .equipment-name {
@@ -272,8 +279,8 @@
             const container = document.getElementById(`${category}-tiers`);
             container.innerHTML = '';
 
-            // Criar 6 tiers
-            for (let tier = 1; tier <= 6; tier++) {
+            // Criar 6 tiers (INVERTIDO: T6 no topo, T1 embaixo)
+            for (let tier = 6; tier >= 1; tier--) {
                 const tierDiv = document.createElement('div');
                 tierDiv.className = `tier-row tier-${tier}`;
 
@@ -302,8 +309,8 @@
 
             return `
                 <div class="equipment-card" data-filename="${item.filename}">
-                    <div class="sprite-preview" style="background-image: url('/static/game.data/enemies/${category}/${item.filename}');"></div>
                     <div class="equipment-name">${item.filename.replace('.png', '')}</div>
+                    <div class="sprite-preview" style="background-image: url('/static/game.data/enemies/${category}/${item.filename}');"></div>
                     <div class="equipment-stats">${category === 'weapon' ? 'DMG' : 'HP'}: ${relevantStat}</div>
                     <div class="move-buttons">
                         <button class="move-btn" onclick="moveItem('${category}', '${item.filename}', ${tier}, 'up')" ${tier === 6 ? 'disabled' : ''}>
