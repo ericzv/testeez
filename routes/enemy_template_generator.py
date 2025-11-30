@@ -116,20 +116,37 @@ def generate_enemy_preview():
                 'message': 'Erro ao gerar inimigo'
             }), 500
 
+        # Carregar tiers dos equipamentos do JSON
+        with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+
+        sprite_modifiers = config.get('sprite_modifiers', {})
+
+        # Obter tier de cada equipamento
+        equipment_tiers = {}
+        for eq_type in ['body', 'head', 'weapon', 'back']:
+            eq_file = getattr(enemy, f'sprite_{eq_type}')
+            if eq_file and eq_file in sprite_modifiers:
+                equipment_tiers[eq_type] = sprite_modifiers[eq_file].get('tier', 1)
+            else:
+                equipment_tiers[eq_type] = 0 if eq_type == 'back' else 1
+
+        # Calcular tier total de HP e Damage
+        hp_tier = equipment_tiers['body'] + equipment_tiers['head'] + equipment_tiers['back']
+        damage_tier = equipment_tiers['weapon']
+
         # Preparar dados para retorno
         enemy_data = {
             'id': enemy.id,
             'name': enemy.name,
             'theme_id': enemy.theme_id,
-            'theme_name': theme_name,  # Adicionar nome do tema
+            'theme_name': theme_name,
             'enemy_number': enemy_number,
             'rarity': enemy.rarity,
             'rarity_name': ['', 'Comum', 'Raro', 'Épico', 'Lendário'][enemy.rarity],
-            'hp': enemy.hp,
-            'max_hp': enemy.max_hp,
-            'damage': enemy.damage,
-            'block_percentage': enemy.block_percentage,
-            'equipment_rank': enemy.equipment_rank,
+            'hp_tier': hp_tier,
+            'damage_tier': damage_tier,
+            'equipment_tiers': equipment_tiers,
             'sprite_layers': {
                 'weapon': enemy.sprite_weapon,
                 'head': enemy.sprite_head,
@@ -137,8 +154,8 @@ def generate_enemy_preview():
                 'back': enemy.sprite_back
             },
             'seed': seed,
-            'typical_phrase': '',  # Para o usuário editar
-            'behavior_pattern': 'default'  # Para o usuário escolher
+            'typical_phrase': '',
+            'behavior_pattern': 'default'
         }
 
         # Limpar inimigo gerado do banco (não salvar ainda)

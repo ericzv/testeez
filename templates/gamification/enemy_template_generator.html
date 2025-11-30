@@ -383,16 +383,29 @@
 
                 <div class="stats-grid">
                     <div class="stat-box">
-                        <div class="stat-label">HP</div>
-                        <div class="stat-value">${enemy.hp}</div>
+                        <div class="stat-label">HP Tier</div>
+                        <div class="stat-value">${enemy.hp_tier}</div>
+                        <div class="stat-label" style="font-size: 0.65rem;">(${enemy.equipment_tiers.body} + ${enemy.equipment_tiers.head} + ${enemy.equipment_tiers.back})</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-label">Dano</div>
-                        <div class="stat-value">${enemy.damage}</div>
+                        <div class="stat-label">Damage Tier</div>
+                        <div class="stat-value">${enemy.damage_tier}</div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-label">Raridade</div>
                         <div class="stat-value">${enemy.rarity_name}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Body</div>
+                        <div class="stat-value">Tier ${enemy.equipment_tiers.body}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Head</div>
+                        <div class="stat-value">Tier ${enemy.equipment_tiers.head}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Weapon</div>
+                        <div class="stat-value">Tier ${enemy.equipment_tiers.weapon}</div>
                     </div>
                 </div>
 
@@ -518,7 +531,7 @@
                             <div>
                                 <h5>${t.name}</h5>
                                 <span class="rarity-badge rarity-${t.rarity}">${t.rarity_name}</span>
-                                <p class="mb-1 mt-2"><small>HP: ${t.hp} | DMG: ${t.damage}</small></p>
+                                <p class="mb-1 mt-2"><small>HP Tier: ${t.hp_tier || 'N/A'} | Damage Tier: ${t.damage_tier || 'N/A'}</small></p>
                                 ${t.typical_phrase ? `<p class="mb-1"><em>"${t.typical_phrase}"</em></p>` : ''}
                                 <p class="mb-0"><small class="text-muted">Seed: ${t.seed}</small></p>
                             </div>
