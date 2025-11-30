@@ -55,6 +55,36 @@ def get_themes():
         print(f"Erro ao carregar temas: {e}")
         return jsonify({'themes': []})
 
+@enemy_template_bp.route('/gamification/get_theme_equipment')
+def get_theme_equipment():
+    """Retorna equipamentos disponíveis de um tema"""
+    try:
+        theme_name = request.args.get('theme', '')
+
+        with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+
+        theme_config = config.get('themes', {}).get(theme_name, {})
+
+        # Formatar opções como arquivos
+        equipment_options = {}
+        for eq_type in ['body', 'head', 'weapon', 'back']:
+            options_key = f'{eq_type}_options'
+            if options_key in theme_config:
+                equipment_options[options_key] = [
+                    f"{eq_type}{num}.png" for num in theme_config[options_key]
+                ]
+
+        return jsonify(equipment_options)
+    except Exception as e:
+        print(f"Erro ao carregar equipamentos: {e}")
+        return jsonify({
+            'body_options': [],
+            'head_options': [],
+            'weapon_options': [],
+            'back_options': []
+        })
+
 @enemy_template_bp.route('/gamification/generate_enemy_preview', methods=['POST'])
 def generate_enemy_preview():
     """Gera um inimigo procedural para preview"""
@@ -91,6 +121,7 @@ def generate_enemy_preview():
             'id': enemy.id,
             'name': enemy.name,
             'theme_id': enemy.theme_id,
+            'theme_name': theme_name,  # Adicionar nome do tema
             'enemy_number': enemy_number,
             'rarity': enemy.rarity,
             'rarity_name': ['', 'Comum', 'Raro', 'Épico', 'Lendário'][enemy.rarity],

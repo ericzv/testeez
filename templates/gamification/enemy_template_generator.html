@@ -256,6 +256,31 @@
                             </div>
                         </div>
 
+                        <!-- Equipamentos Editáveis -->
+                        <h5 class="mt-3 mb-2"><i class="fas fa-tshirt"></i> Equipamentos</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Body</label>
+                                <select class="form-select" id="equipment-body"></select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Head</label>
+                                <select class="form-select" id="equipment-head"></select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Weapon</label>
+                                <select class="form-select" id="equipment-weapon"></select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Back (opcional)</label>
+                                <select class="form-select" id="equipment-back">
+                                    <option value="">Nenhum</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="mb-3">
                             <label class="form-label">Fala Típica</label>
                             <textarea class="form-control" id="typical-phrase" rows="2" placeholder="Ex: 'Você não passará!'"></textarea>
@@ -336,7 +361,7 @@
         }
 
         // Mostrar preview do inimigo
-        function displayEnemyPreview(enemy) {
+        async function displayEnemyPreview(enemy) {
             const preview = document.getElementById('enemy-preview');
 
             preview.innerHTML = `
@@ -374,6 +399,63 @@
             document.getElementById('enemy-name').value = enemy.name;
             document.getElementById('typical-phrase').value = enemy.typical_phrase || '';
             document.getElementById('behavior-pattern').value = enemy.behavior_pattern || 'default';
+
+            // Carregar equipamentos disponíveis do tema e popular selects
+            await loadEquipmentOptions(enemy.theme_name || document.getElementById('theme-select').value);
+
+            // Selecionar equipamentos atuais
+            document.getElementById('equipment-body').value = enemy.sprite_layers.body;
+            document.getElementById('equipment-head').value = enemy.sprite_layers.head;
+            document.getElementById('equipment-weapon').value = enemy.sprite_layers.weapon;
+            document.getElementById('equipment-back').value = enemy.sprite_layers.back || '';
+        }
+
+        // Carregar opções de equipamentos do tema
+        async function loadEquipmentOptions(themeName) {
+            try {
+                const response = await fetch(`/gamification/get_theme_equipment?theme=${encodeURIComponent(themeName)}`);
+                const data = await response.json();
+
+                // Popular selects
+                ['body', 'head', 'weapon', 'back'].forEach(type => {
+                    const select = document.getElementById(`equipment-${type}`);
+                    select.innerHTML = type === 'back' ? '<option value="">Nenhum</option>' : '';
+
+                    (data[`${type}_options`] || []).forEach(option => {
+                        const opt = document.createElement('option');
+                        opt.value = option;
+                        opt.textContent = option;
+                        select.appendChild(opt);
+                    });
+
+                    // Atualizar preview quando trocar
+                    select.onchange = updatePreviewSprite;
+                });
+            } catch (error) {
+                console.error('Erro ao carregar equipamentos:', error);
+            }
+        }
+
+        // Atualizar sprite no preview ao trocar equipamento
+        function updatePreviewSprite() {
+            if (!currentEnemy) return;
+
+            // Atualizar dados do inimigo atual
+            currentEnemy.sprite_layers.body = document.getElementById('equipment-body').value;
+            currentEnemy.sprite_layers.head = document.getElementById('equipment-head').value;
+            currentEnemy.sprite_layers.weapon = document.getElementById('equipment-weapon').value;
+            currentEnemy.sprite_layers.back = document.getElementById('equipment-back').value;
+
+            // Recarregar preview (sem recarregar selects)
+            const preview = document.getElementById('enemy-preview');
+            const spriteContainer = preview.querySelector('.sprite-container');
+
+            spriteContainer.innerHTML = `
+                ${currentEnemy.sprite_layers.back ? `<div class="sprite-layer" style="z-index: 1; background-image: url('/static/game.data/enemies/back/${currentEnemy.sprite_layers.back}');"></div>` : ''}
+                ${currentEnemy.sprite_layers.body ? `<div class="sprite-layer" style="z-index: 2; background-image: url('/static/game.data/enemies/body/${currentEnemy.sprite_layers.body}');"></div>` : ''}
+                ${currentEnemy.sprite_layers.head ? `<div class="sprite-layer" style="z-index: 3; background-image: url('/static/game.data/enemies/head/${currentEnemy.sprite_layers.head}');"></div>` : ''}
+                ${currentEnemy.sprite_layers.weapon ? `<div class="sprite-layer" style="z-index: 4; background-image: url('/static/game.data/enemies/weapon/${currentEnemy.sprite_layers.weapon}');"></div>` : ''}
+            `;
         }
 
         // Salvar template
@@ -430,18 +512,50 @@
                             <div>
                                 <h5>${t.name}</h5>
                                 <span class="rarity-badge rarity-${t.rarity}">${t.rarity_name}</span>
-                                <p class="mb-1 mt-2"><small>HP: ${t.hp} | DMG: ${t.damage} | DEF: ${t.block_percentage}%</small></p>
+                                <p class="mb-1 mt-2"><small>HP: ${t.hp} | DMG: ${t.damage}</small></p>
                                 ${t.typical_phrase ? `<p class="mb-1"><em>"${t.typical_phrase}"</em></p>` : ''}
                                 <p class="mb-0"><small class="text-muted">Seed: ${t.seed}</small></p>
                             </div>
-                            <button class="btn btn-sm btn-danger" onclick="deleteTemplate(${t.id})">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            <div class="d-flex flex-column gap-1">
+                                <button class="btn btn-sm btn-warning" onclick="editTemplate(${t.id})" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteTemplate(${t.id})" title="Deletar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `).join('');
             } catch (error) {
                 console.error('Erro ao carregar templates:', error);
+            }
+        }
+
+        // Editar template existente
+        async function editTemplate(id) {
+            try {
+                const response = await fetch('/gamification/get_enemy_templates');
+                const data = await response.json();
+
+                const template = data.templates.find(t => t.id === id);
+                if (!template) {
+                    alert('Template não encontrado!');
+                    return;
+                }
+
+                // Carregar template como se fosse um inimigo gerado
+                currentEnemy = template;
+                await displayEnemyPreview(template);
+
+                // Mostrar campos de edição
+                document.getElementById('edit-fields').style.display = 'block';
+
+                // Scroll para visualização
+                document.getElementById('enemy-preview').scrollIntoView({ behavior: 'smooth' });
+            } catch (error) {
+                console.error('Erro ao carregar template:', error);
+                alert('❌ Erro ao carregar template para edição!');
             }
         }
 
