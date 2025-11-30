@@ -178,18 +178,66 @@
             padding: 20px;
         }
 
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
         .template-card {
             background: rgba(0, 0, 0, 0.3);
             border: 2px solid rgba(255, 255, 255, 0.2);
             border-radius: 10px;
             padding: 15px;
-            margin-bottom: 15px;
             transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
         }
 
         .template-card:hover {
             border-color: #ffd700;
-            transform: translateX(5px);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .template-sprite-container {
+            position: relative;
+            width: 128px;
+            height: 128px;
+            margin: 10px 0;
+        }
+
+        .template-sprite-layer {
+            position: absolute;
+            width: 64px;
+            height: 64px;
+            image-rendering: pixelated;
+            transform: scale(1);
+            transform-origin: top left;
+            background-size: auto 64px;
+            animation: sprite-animation 0.8s steps(11) infinite;
+        }
+
+        .template-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .template-stats {
+            text-align: center;
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .template-stats small {
+            display: block;
+            margin: 2px 0;
         }
 
         .seed-display {
@@ -297,7 +345,7 @@
         <!-- Templates Salvos (embaixo) -->
         <div class="templates-list mt-4">
             <h3 class="mb-4"><i class="fas fa-bookmark"></i> Templates Salvos</h3>
-            <div id="templates-container">
+            <div id="templates-container" class="templates-grid">
                 <p class="text-center text-muted">Nenhum template salvo ainda</p>
             </div>
         </div>
@@ -542,23 +590,30 @@
                 }
 
                 container.innerHTML = data.templates.map(t => `
-                    <div class="template-card">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h5>${t.name}</h5>
-                                <span class="rarity-badge rarity-${t.rarity}">${t.rarity_name}</span>
-                                <p class="mb-1 mt-2"><small>HP Tier: ${t.hp_tier || 'N/A'} | Damage Tier: ${t.damage_tier || 'N/A'}</small></p>
-                                ${t.typical_phrase ? `<p class="mb-1"><em>"${t.typical_phrase}"</em></p>` : ''}
-                                <p class="mb-0"><small class="text-muted">Seed: ${t.seed}</small></p>
-                            </div>
-                            <div class="d-flex flex-column gap-1">
-                                <button class="btn btn-sm btn-warning" onclick="editTemplate(${t.id})" title="Editar">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn btn-sm btn-danger" onclick="deleteTemplate(${t.id})" title="Deletar">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
+                    <div class="template-card" onclick="editTemplate(${t.id})" style="cursor: pointer;">
+                        <div class="template-actions">
+                            <button class="btn btn-sm btn-warning" onclick="event.stopPropagation(); editTemplate(${t.id})" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteTemplate(${t.id})" title="Deletar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+
+                        <h5 style="margin: 5px 0;">${t.name}</h5>
+                        <span class="rarity-badge rarity-${t.rarity}">${t.rarity_name}</span>
+
+                        <div class="template-sprite-container">
+                            ${t.sprite_layers && t.sprite_layers.back ? `<div class="template-sprite-layer" style="z-index: 1; background-image: url('/static/game.data/enemies/back/${t.sprite_layers.back}');"></div>` : ''}
+                            ${t.sprite_layers && t.sprite_layers.body ? `<div class="template-sprite-layer" style="z-index: 2; background-image: url('/static/game.data/enemies/body/${t.sprite_layers.body}');"></div>` : ''}
+                            ${t.sprite_layers && t.sprite_layers.head ? `<div class="template-sprite-layer" style="z-index: 3; background-image: url('/static/game.data/enemies/head/${t.sprite_layers.head}');"></div>` : ''}
+                            ${t.sprite_layers && t.sprite_layers.weapon ? `<div class="template-sprite-layer" style="z-index: 4; background-image: url('/static/game.data/enemies/weapon/${t.sprite_layers.weapon}');"></div>` : ''}
+                        </div>
+
+                        <div class="template-stats">
+                            <small><strong>HP Tier:</strong> ${t.hp_tier || 'N/A'}</small>
+                            <small><strong>Damage Tier:</strong> ${t.damage_tier || 'N/A'}</small>
+                            ${t.typical_phrase ? `<small style="font-style: italic; color: #aaa; margin-top: 5px;">"${t.typical_phrase.substring(0, 40)}${t.typical_phrase.length > 40 ? '...' : ''}"</small>` : ''}
                         </div>
                     </div>
                 `).join('');
