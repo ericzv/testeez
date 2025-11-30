@@ -206,86 +206,83 @@
 </head>
 <body>
     <div class="container-fluid">
-        <div class="header">
-            <h1 class="text-center"><i class="fas fa-robot"></i> Enemy Template Generator</h1>
-            <p class="text-center mb-0">Gere inimigos proceduralmente e salve os melhores como templates</p>
-        </div>
+        <!-- Gerador -->
+        <div class="generator-panel">
+            <h3 class="mb-4"><i class="fas fa-dice"></i> Enemy Template Generator</h3>
 
-        <div class="row">
-            <!-- Gerador -->
-            <div class="col-lg-8">
-                <div class="generator-panel">
-                    <h3 class="mb-4"><i class="fas fa-dice"></i> Gerador de Inimigos</h3>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Tema</label>
+                    <select class="form-select" id="theme-select">
+                        <option value="">Carregando...</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Enemy Number (1-100)</label>
+                    <input type="number" class="form-control" id="enemy-number" value="25" min="1" max="100">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Seed (opcional)</label>
+                    <input type="number" class="form-control" id="seed-input" placeholder="Aleatório">
+                </div>
+            </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Tema</label>
-                            <select class="form-select" id="theme-select">
-                                <option value="">Carregando...</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Enemy Number (1-100)</label>
-                            <input type="number" class="form-control" id="enemy-number" value="25" min="1" max="100">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Seed (opcional)</label>
-                            <input type="number" class="form-control" id="seed-input" placeholder="Aleatório">
-                        </div>
-                    </div>
+            <div class="text-center mb-4">
+                <button class="btn btn-generate btn-lg" onclick="generateEnemy()">
+                    <i class="fas fa-sync-alt"></i> Gerar Inimigo
+                </button>
+            </div>
 
-                    <div class="text-center mb-4">
-                        <button class="btn btn-generate btn-lg" onclick="generateEnemy()">
-                            <i class="fas fa-sync-alt"></i> Gerar Inimigo
-                        </button>
-                    </div>
-
+            <!-- Preview e Campos Editáveis lado a lado -->
+            <div class="row">
+                <div class="col-md-6">
                     <!-- Preview do Inimigo -->
                     <div class="enemy-preview" id="enemy-preview">
                         <i class="fas fa-ghost" style="font-size: 4rem; color: #555;"></i>
                         <p class="mt-3" style="color: #888;">Clique em "Gerar Inimigo" para começar</p>
                     </div>
+                </div>
 
+                <div class="col-md-6">
                     <!-- Campos Editáveis -->
                     <div id="edit-fields" style="display: none;">
-                        <h4 class="mt-4 mb-3">Editar Template</h4>
+                        <h4 class="mb-3">Editar Template</h4>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Nome</label>
-                                <input type="text" class="form-control" id="enemy-name">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Behavior Pattern</label>
-                                <select class="form-select" id="behavior-pattern">
-                                    <option value="default">Padrão</option>
-                                    <option value="aggressive">Agressivo</option>
-                                    <option value="defensive">Defensivo</option>
-                                    <option value="burst">Burst</option>
-                                    <option value="support">Suporte</option>
-                                </select>
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nome</label>
+                            <input type="text" class="form-control" id="enemy-name">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Behavior Pattern</label>
+                            <select class="form-select" id="behavior-pattern">
+                                <option value="default">Padrão</option>
+                                <option value="aggressive">Agressivo</option>
+                                <option value="defensive">Defensivo</option>
+                                <option value="burst">Burst</option>
+                                <option value="support">Suporte</option>
+                            </select>
                         </div>
 
                         <!-- Equipamentos Editáveis -->
                         <h5 class="mt-3 mb-2"><i class="fas fa-tshirt"></i> Equipamentos</h5>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
+                        <div class="row mb-2">
+                            <div class="col-6">
                                 <label class="form-label">Body</label>
                                 <select class="form-select" id="equipment-body"></select>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-6">
                                 <label class="form-label">Head</label>
                                 <select class="form-select" id="equipment-head"></select>
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-md-6">
+                            <div class="col-6">
                                 <label class="form-label">Weapon</label>
                                 <select class="form-select" id="equipment-weapon"></select>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Back (opcional)</label>
+                            <div class="col-6">
+                                <label class="form-label">Back</label>
                                 <select class="form-select" id="equipment-back">
                                     <option value="">Nenhum</option>
                                 </select>
@@ -299,21 +296,19 @@
 
                         <div class="text-center">
                             <button class="btn btn-save btn-lg" onclick="saveTemplate()">
-                                <i class="fas fa-save"></i> Salvar como Template
+                                <i class="fas fa-save"></i> Salvar Template
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Templates Salvos -->
-            <div class="col-lg-4">
-                <div class="templates-list">
-                    <h3 class="mb-4"><i class="fas fa-bookmark"></i> Templates Salvos</h3>
-                    <div id="templates-container">
-                        <p class="text-center text-muted">Nenhum template salvo ainda</p>
-                    </div>
-                </div>
+        <!-- Templates Salvos (embaixo) -->
+        <div class="templates-list mt-4">
+            <h3 class="mb-4"><i class="fas fa-bookmark"></i> Templates Salvos</h3>
+            <div id="templates-container">
+                <p class="text-center text-muted">Nenhum template salvo ainda</p>
             </div>
         </div>
     </div>
