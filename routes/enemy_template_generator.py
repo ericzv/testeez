@@ -57,7 +57,7 @@ def get_themes():
 
 @enemy_template_bp.route('/gamification/get_theme_equipment')
 def get_theme_equipment():
-    """Retorna equipamentos disponíveis de um tema"""
+    """Retorna equipamentos disponíveis de um tema com seus tiers"""
     try:
         theme_name = request.args.get('theme', '')
 
@@ -65,9 +65,12 @@ def get_theme_equipment():
             config = json.load(f)
 
         theme_config = config.get('themes', {}).get(theme_name, {})
+        sprite_modifiers = config.get('sprite_modifiers', {})
 
-        # Formatar opções como arquivos
+        # Formatar opções como arquivos e incluir tiers
         equipment_options = {}
+        equipment_tiers = {}
+
         for eq_type in ['body', 'head', 'weapon', 'back']:
             options_key = f'{eq_type}_options'
             if options_key in theme_config:
@@ -75,14 +78,26 @@ def get_theme_equipment():
                     f"{eq_type}{num}.png" for num in theme_config[options_key]
                 ]
 
-        return jsonify(equipment_options)
+                # Mapear tier de cada equipamento
+                for num in theme_config[options_key]:
+                    eq_file = f"{eq_type}{num}.png"
+                    if eq_file in sprite_modifiers:
+                        equipment_tiers[eq_file] = sprite_modifiers[eq_file].get('tier', 1)
+                    else:
+                        equipment_tiers[eq_file] = 0 if eq_type == 'back' else 1
+
+        return jsonify({
+            **equipment_options,
+            'equipment_tiers': equipment_tiers
+        })
     except Exception as e:
         print(f"Erro ao carregar equipamentos: {e}")
         return jsonify({
             'body_options': [],
             'head_options': [],
             'weapon_options': [],
-            'back_options': []
+            'back_options': [],
+            'equipment_tiers': {}
         })
 
 @enemy_template_bp.route('/gamification/generate_enemy_preview', methods=['POST'])

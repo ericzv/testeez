@@ -316,6 +316,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         let currentEnemy = null;
+        let equipmentTierMap = {}; // Mapeamento de equipamento → tier
 
         // Carregar temas ao iniciar
         async function loadThemes() {
@@ -435,6 +436,9 @@
                 const response = await fetch(`/gamification/get_theme_equipment?theme=${encodeURIComponent(themeName)}`);
                 const data = await response.json();
 
+                // Armazenar mapeamento de tiers
+                equipmentTierMap = data.equipment_tiers || {};
+
                 // Popular selects
                 ['body', 'head', 'weapon', 'back'].forEach(type => {
                     const select = document.getElementById(`equipment-${type}`);
@@ -465,15 +469,62 @@
             currentEnemy.sprite_layers.weapon = document.getElementById('equipment-weapon').value;
             currentEnemy.sprite_layers.back = document.getElementById('equipment-back').value;
 
+            // Recalcular tiers dos equipamentos
+            const bodyTier = equipmentTierMap[currentEnemy.sprite_layers.body] || 1;
+            const headTier = equipmentTierMap[currentEnemy.sprite_layers.head] || 1;
+            const weaponTier = equipmentTierMap[currentEnemy.sprite_layers.weapon] || 1;
+            const backTier = currentEnemy.sprite_layers.back ? (equipmentTierMap[currentEnemy.sprite_layers.back] || 0) : 0;
+
+            // Atualizar tiers no objeto do inimigo
+            currentEnemy.equipment_tiers = {
+                body: bodyTier,
+                head: headTier,
+                weapon: weaponTier,
+                back: backTier
+            };
+            currentEnemy.hp_tier = bodyTier + headTier + backTier;
+            currentEnemy.damage_tier = weaponTier;
+
             // Recarregar preview (sem recarregar selects)
             const preview = document.getElementById('enemy-preview');
             const spriteContainer = preview.querySelector('.sprite-container');
+            const statsGrid = preview.querySelector('.stats-grid');
 
+            // Atualizar sprite
             spriteContainer.innerHTML = `
                 ${currentEnemy.sprite_layers.back ? `<div class="sprite-layer" style="z-index: 1; background-image: url('/static/game.data/enemies/back/${currentEnemy.sprite_layers.back}');"></div>` : ''}
                 ${currentEnemy.sprite_layers.body ? `<div class="sprite-layer" style="z-index: 2; background-image: url('/static/game.data/enemies/body/${currentEnemy.sprite_layers.body}');"></div>` : ''}
                 ${currentEnemy.sprite_layers.head ? `<div class="sprite-layer" style="z-index: 3; background-image: url('/static/game.data/enemies/head/${currentEnemy.sprite_layers.head}');"></div>` : ''}
                 ${currentEnemy.sprite_layers.weapon ? `<div class="sprite-layer" style="z-index: 4; background-image: url('/static/game.data/enemies/weapon/${currentEnemy.sprite_layers.weapon}');"></div>` : ''}
+            `;
+
+            // Atualizar stats-grid com novos tiers
+            statsGrid.innerHTML = `
+                <div class="stat-box">
+                    <div class="stat-label">HP Tier</div>
+                    <div class="stat-value">${currentEnemy.hp_tier}</div>
+                    <div class="stat-label" style="font-size: 0.65rem;">(${currentEnemy.equipment_tiers.body} + ${currentEnemy.equipment_tiers.head} + ${currentEnemy.equipment_tiers.back})</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Damage Tier</div>
+                    <div class="stat-value">${currentEnemy.damage_tier}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Raridade</div>
+                    <div class="stat-value">${currentEnemy.rarity_name}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Body</div>
+                    <div class="stat-value">Tier ${currentEnemy.equipment_tiers.body}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Head</div>
+                    <div class="stat-value">Tier ${currentEnemy.equipment_tiers.head}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Weapon</div>
+                    <div class="stat-value">Tier ${currentEnemy.equipment_tiers.weapon}</div>
+                </div>
             `;
         }
 
