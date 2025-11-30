@@ -39,55 +39,45 @@ def template_generator_page():
     """Renderiza a página do Enemy Template Generator"""
     return render_template('gamification/enemy_template_generator.html')
 
-@enemy_template_bp.route('/gamification/get_themes')
-def get_themes():
-    """Retorna lista de temas disponíveis do JSON"""
+@enemy_template_bp.route('/gamification/get_all_equipment')
+def get_all_equipment():
+    """Retorna TODOS os equipamentos disponíveis com seus tiers"""
     try:
         with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
             config = json.load(f)
 
-        themes = []
-        for theme_name in config.get('themes', {}).keys():
-            themes.append({'name': theme_name})
-
-        return jsonify({'themes': themes})
-    except Exception as e:
-        print(f"Erro ao carregar temas: {e}")
-        return jsonify({'themes': []})
-
-@enemy_template_bp.route('/gamification/get_theme_equipment')
-def get_theme_equipment():
-    """Retorna equipamentos disponíveis de um tema com seus tiers"""
-    try:
-        theme_name = request.args.get('theme', '')
-
-        with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-
-        theme_config = config.get('themes', {}).get(theme_name, {})
         sprite_modifiers = config.get('sprite_modifiers', {})
 
-        # Formatar opções como arquivos e incluir tiers
-        equipment_options = {}
+        # Organizar equipamentos por tipo
+        equipment_by_type = {
+            'body_options': [],
+            'head_options': [],
+            'weapon_options': [],
+            'back_options': []
+        }
         equipment_tiers = {}
 
-        for eq_type in ['body', 'head', 'weapon', 'back']:
-            options_key = f'{eq_type}_options'
-            if options_key in theme_config:
-                equipment_options[options_key] = [
-                    f"{eq_type}{num}.png" for num in theme_config[options_key]
-                ]
+        # Percorrer todos os sprite_modifiers e categorizar
+        for sprite_file, modifiers in sprite_modifiers.items():
+            tier = modifiers.get('tier', 1)
+            equipment_tiers[sprite_file] = tier
 
-                # Mapear tier de cada equipamento
-                for num in theme_config[options_key]:
-                    eq_file = f"{eq_type}{num}.png"
-                    if eq_file in sprite_modifiers:
-                        equipment_tiers[eq_file] = sprite_modifiers[eq_file].get('tier', 1)
-                    else:
-                        equipment_tiers[eq_file] = 0 if eq_type == 'back' else 1
+            # Determinar tipo baseado no nome do arquivo
+            if sprite_file.startswith('body'):
+                equipment_by_type['body_options'].append(sprite_file)
+            elif sprite_file.startswith('head'):
+                equipment_by_type['head_options'].append(sprite_file)
+            elif sprite_file.startswith('weapon'):
+                equipment_by_type['weapon_options'].append(sprite_file)
+            elif sprite_file.startswith('back'):
+                equipment_by_type['back_options'].append(sprite_file)
+
+        # Ordenar para ficar mais organizado
+        for key in equipment_by_type:
+            equipment_by_type[key].sort()
 
         return jsonify({
-            **equipment_options,
+            **equipment_by_type,
             'equipment_tiers': equipment_tiers
         })
     except Exception as e:
@@ -102,14 +92,9 @@ def get_theme_equipment():
 
 @enemy_template_bp.route('/gamification/generate_enemy_preview', methods=['POST'])
 def generate_enemy_preview():
-    """Gera um inimigo procedural para preview"""
+    """Gera um inimigo aleatório combinando equipamentos de qualquer fonte"""
     try:
-        # Inicializar sistema de equipamentos por tier
-        initialize_equipment_tiers_smart()
-
         data = request.get_json()
-        theme_name = data.get('theme_name', 'Guerreiro azul')
-        enemy_number = data.get('enemy_number', random.randint(1, 50))
         seed = data.get('seed')
 
         # Usar seed se fornecida
@@ -119,63 +104,75 @@ def generate_enemy_preview():
             seed = random.randint(1, 999999)
             random.seed(seed)
 
-        # Gerar inimigo usando sistema direto (sem depender do banco)
-        from routes.battle_modules.enemy_generation import generate_enemy_direct_by_theme_name
-        from database import db
-
-        enemy = generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None)
-
-        if not enemy:
-            return jsonify({
-                'success': False,
-                'message': 'Erro ao gerar inimigo'
-            }), 500
-
-        # Carregar tiers dos equipamentos do JSON
+        # Carregar todos os equipamentos disponíveis
         with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
             config = json.load(f)
 
         sprite_modifiers = config.get('sprite_modifiers', {})
 
-        # Obter tier de cada equipamento
-        equipment_tiers = {}
-        for eq_type in ['body', 'head', 'weapon', 'back']:
-            eq_file = getattr(enemy, f'sprite_{eq_type}')
-            if eq_file and eq_file in sprite_modifiers:
-                equipment_tiers[eq_type] = sprite_modifiers[eq_file].get('tier', 1)
-            else:
-                equipment_tiers[eq_type] = 0 if eq_type == 'back' else 1
+        # Organizar equipamentos por tipo
+        equipment_by_type = {'body': [], 'head': [], 'weapon': [], 'back': []}
 
-        # Calcular tier total de HP e Damage
-        hp_tier = equipment_tiers['body'] + equipment_tiers['head'] + equipment_tiers['back']
-        damage_tier = equipment_tiers['weapon']
+        for sprite_file in sprite_modifiers.keys():
+            if sprite_file.startswith('body'):
+                equipment_by_type['body'].append(sprite_file)
+            elif sprite_file.startswith('head'):
+                equipment_by_type['head'].append(sprite_file)
+            elif sprite_file.startswith('weapon'):
+                equipment_by_type['weapon'].append(sprite_file)
+            elif sprite_file.startswith('back'):
+                equipment_by_type['back'].append(sprite_file)
+
+        # Selecionar equipamentos aleatórios
+        selected_body = random.choice(equipment_by_type['body']) if equipment_by_type['body'] else 'body1.png'
+        selected_head = random.choice(equipment_by_type['head']) if equipment_by_type['head'] else 'head1.png'
+        selected_weapon = random.choice(equipment_by_type['weapon']) if equipment_by_type['weapon'] else 'weapon1.png'
+        selected_back = random.choice(equipment_by_type['back']) if equipment_by_type['back'] and random.random() > 0.5 else None
+
+        # Obter tiers
+        body_tier = sprite_modifiers.get(selected_body, {}).get('tier', 1)
+        head_tier = sprite_modifiers.get(selected_head, {}).get('tier', 1)
+        weapon_tier = sprite_modifiers.get(selected_weapon, {}).get('tier', 1)
+        back_tier = sprite_modifiers.get(selected_back, {}).get('tier', 0) if selected_back else 0
+
+        equipment_tiers = {
+            'body': body_tier,
+            'head': head_tier,
+            'weapon': weapon_tier,
+            'back': back_tier
+        }
+
+        # Calcular tier total
+        hp_tier = body_tier + head_tier + back_tier
+        damage_tier = weapon_tier
+
+        # Gerar raridade aleatória (1-4)
+        rarity = random.randint(1, 4)
+        rarity_names = ['', 'Comum', 'Raro', 'Épico', 'Lendário']
+
+        # Gerar nome aleatório
+        prefixes = ['Guerreiro', 'Mago', 'Ladino', 'Cavaleiro', 'Arqueiro', 'Bárbaro', 'Paladino', 'Necromante']
+        suffixes = ['Sombrio', 'Dourado', 'Sangrento', 'Místico', 'Corrupto', 'Sagrado', 'Maldito', 'Ancestral']
+        name = f"{random.choice(prefixes)} {random.choice(suffixes)}"
 
         # Preparar dados para retorno
         enemy_data = {
-            'id': enemy.id,
-            'name': enemy.name,
-            'theme_id': enemy.theme_id,
-            'theme_name': theme_name,
-            'enemy_number': enemy_number,
-            'rarity': enemy.rarity,
-            'rarity_name': ['', 'Comum', 'Raro', 'Épico', 'Lendário'][enemy.rarity],
+            'name': name,
+            'rarity': rarity,
+            'rarity_name': rarity_names[rarity],
             'hp_tier': hp_tier,
             'damage_tier': damage_tier,
             'equipment_tiers': equipment_tiers,
             'sprite_layers': {
-                'weapon': enemy.sprite_weapon,
-                'head': enemy.sprite_head,
-                'body': enemy.sprite_body,
-                'back': enemy.sprite_back
+                'weapon': selected_weapon,
+                'head': selected_head,
+                'body': selected_body,
+                'back': selected_back
             },
             'seed': seed,
             'typical_phrase': '',
             'behavior_pattern': 'default'
         }
-
-        # Limpar inimigo gerado do banco (não salvar ainda)
-        db.session.delete(enemy)
-        db.session.commit()
 
         return jsonify({
             'success': True,

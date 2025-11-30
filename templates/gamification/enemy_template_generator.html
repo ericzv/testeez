@@ -211,25 +211,15 @@
             <h3 class="mb-4"><i class="fas fa-dice"></i> Enemy Template Generator</h3>
 
             <div class="row mb-3">
-                <div class="col-md-4">
-                    <label class="form-label">Tema</label>
-                    <select class="form-select" id="theme-select">
-                        <option value="">Carregando...</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Enemy Number (1-100)</label>
-                    <input type="number" class="form-control" id="enemy-number" value="25" min="1" max="100">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Seed (opcional)</label>
+                <div class="col-md-12">
+                    <label class="form-label">Seed (opcional - deixe vazio para aleatório)</label>
                     <input type="number" class="form-control" id="seed-input" placeholder="Aleatório">
                 </div>
             </div>
 
             <div class="text-center mb-4">
                 <button class="btn btn-generate btn-lg" onclick="generateEnemy()">
-                    <i class="fas fa-sync-alt"></i> Gerar Inimigo
+                    <i class="fas fa-sync-alt"></i> Gerar Inimigo Aleatório
                 </button>
             </div>
 
@@ -318,38 +308,45 @@
         let currentEnemy = null;
         let equipmentTierMap = {}; // Mapeamento de equipamento → tier
 
-        // Carregar temas ao iniciar
-        async function loadThemes() {
+        // Carregar todos os equipamentos ao iniciar
+        async function loadAllEquipment() {
             try {
-                const response = await fetch('/gamification/get_themes');
-                const result = await response.json();
+                const response = await fetch('/gamification/get_all_equipment');
+                const data = await response.json();
 
-                const select = document.getElementById('theme-select');
-                select.innerHTML = '';
+                // Armazenar mapeamento de tiers globalmente
+                equipmentTierMap = data.equipment_tiers || {};
 
-                result.themes.forEach((theme, index) => {
-                    const option = document.createElement('option');
-                    option.value = theme.name;
-                    option.textContent = theme.name;
-                    select.appendChild(option);
+                // Popular selects com TODOS os equipamentos
+                ['body', 'head', 'weapon', 'back'].forEach(type => {
+                    const select = document.getElementById(`equipment-${type}`);
+                    select.innerHTML = type === 'back' ? '<option value="">Nenhum</option>' : '';
+
+                    (data[`${type}_options`] || []).forEach(option => {
+                        const opt = document.createElement('option');
+                        opt.value = option;
+                        opt.textContent = option;
+                        select.appendChild(opt);
+                    });
+
+                    // Atualizar preview quando trocar
+                    select.onchange = updatePreviewSprite;
                 });
             } catch (error) {
-                console.error('Erro ao carregar temas:', error);
-                alert('Erro ao carregar temas!');
+                console.error('Erro ao carregar equipamentos:', error);
+                alert('Erro ao carregar equipamentos!');
             }
         }
 
-        // Gerar inimigo
+        // Gerar inimigo aleatório
         async function generateEnemy() {
-            const themeName = document.getElementById('theme-select').value;
-            const enemyNumber = parseInt(document.getElementById('enemy-number').value);
             const seed = document.getElementById('seed-input').value || null;
 
             try {
                 const response = await fetch('/gamification/generate_enemy_preview', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ theme_name: themeName, enemy_number: enemyNumber, seed })
+                    body: JSON.stringify({ seed })
                 });
 
                 const result = await response.json();
@@ -420,43 +417,11 @@
             document.getElementById('typical-phrase').value = enemy.typical_phrase || '';
             document.getElementById('behavior-pattern').value = enemy.behavior_pattern || 'default';
 
-            // Carregar equipamentos disponíveis do tema e popular selects
-            await loadEquipmentOptions(enemy.theme_name || document.getElementById('theme-select').value);
-
-            // Selecionar equipamentos atuais
+            // Selecionar equipamentos atuais nos dropdowns (já carregados)
             document.getElementById('equipment-body').value = enemy.sprite_layers.body;
             document.getElementById('equipment-head').value = enemy.sprite_layers.head;
             document.getElementById('equipment-weapon').value = enemy.sprite_layers.weapon;
             document.getElementById('equipment-back').value = enemy.sprite_layers.back || '';
-        }
-
-        // Carregar opções de equipamentos do tema
-        async function loadEquipmentOptions(themeName) {
-            try {
-                const response = await fetch(`/gamification/get_theme_equipment?theme=${encodeURIComponent(themeName)}`);
-                const data = await response.json();
-
-                // Armazenar mapeamento de tiers
-                equipmentTierMap = data.equipment_tiers || {};
-
-                // Popular selects
-                ['body', 'head', 'weapon', 'back'].forEach(type => {
-                    const select = document.getElementById(`equipment-${type}`);
-                    select.innerHTML = type === 'back' ? '<option value="">Nenhum</option>' : '';
-
-                    (data[`${type}_options`] || []).forEach(option => {
-                        const opt = document.createElement('option');
-                        opt.value = option;
-                        opt.textContent = option;
-                        select.appendChild(opt);
-                    });
-
-                    // Atualizar preview quando trocar
-                    select.onchange = updatePreviewSprite;
-                });
-            } catch (error) {
-                console.error('Erro ao carregar equipamentos:', error);
-            }
         }
 
         // Atualizar sprite no preview ao trocar equipamento
@@ -650,9 +615,9 @@
             }
         }
 
-        // Carregar temas e templates ao iniciar
+        // Carregar equipamentos e templates ao iniciar
         window.addEventListener('DOMContentLoaded', () => {
-            loadThemes();
+            loadAllEquipment();
             loadTemplates();
         });
     </script>
