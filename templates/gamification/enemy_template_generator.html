@@ -619,12 +619,12 @@
                 }
 
                 container.innerHTML = data.templates.map(t => `
-                    <div class="template-card" onclick="editTemplate(${t.id})" style="cursor: pointer;">
+                    <div class="template-card">
                         <div class="template-actions">
-                            <button class="btn btn-sm btn-warning" onclick="handleEditButtonClick(event, ${t.id})" title="Editar">
+                            <button class="btn btn-sm btn-warning" onclick="editTemplate(${t.id})" title="Editar">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-sm btn-danger" onclick="handleDeleteClick(event, ${t.id})" title="Deletar">
+                            <button class="btn btn-sm btn-danger" onclick="deleteTemplate(${t.id})" title="Deletar">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -680,44 +680,26 @@
 
         // Deletar template
         async function deleteTemplate(id) {
-            console.log('Tentando deletar template ID:', id);
-
             if (!confirm('Tem certeza que deseja deletar este template?')) {
-                console.log('Deleção cancelada pelo usuário');
                 return;
             }
 
             try {
-                console.log('Fazendo requisição DELETE para ID:', id);
                 const response = await fetch(`/gamification/delete_enemy_template/${id}`, {
                     method: 'DELETE'
                 });
 
                 const result = await response.json();
-                console.log('Resultado da deleção:', result);
 
                 if (result.success) {
-                    console.log('✅ Template deletado com sucesso!');
                     await loadTemplates();
                 } else {
-                    console.error('❌ Erro ao deletar:', result.message);
                     alert('❌ Erro ao deletar: ' + (result.message || 'Erro desconhecido'));
                 }
             } catch (error) {
                 console.error('❌ Erro na requisição:', error);
                 alert('❌ Erro ao deletar template: ' + error.message);
             }
-        }
-
-        // Funções wrapper para prevenir propagação do evento
-        function handleDeleteClick(event, id) {
-            event.stopPropagation();
-            deleteTemplate(id);
-        }
-
-        function handleEditButtonClick(event, id) {
-            event.stopPropagation();
-            editTemplate(id);
         }
 
         // Carregar equipamentos e templates ao iniciar
