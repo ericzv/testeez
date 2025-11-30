@@ -35,8 +35,8 @@
             background: rgba(0, 0, 0, 0.3);
             border: 3px solid rgba(255, 215, 0, 0.3);
             border-radius: 15px;
-            padding: 20px;
-            min-height: 400px;
+            padding: 15px;
+            min-height: 300px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -47,7 +47,7 @@
             position: relative;
             width: 256px;
             height: 256px;
-            margin: 20px 0;
+            margin: 10px 0;
             scale: 2;
             right: -10%;
         }
@@ -69,11 +69,11 @@
         }
 
         .rarity-badge {
-            padding: 8px 20px;
-            border-radius: 20px;
+            padding: 5px 15px;
+            border-radius: 15px;
             font-weight: bold;
-            font-size: 1rem;
-            margin: 10px 0;
+            font-size: 0.85rem;
+            margin: 5px 0;
         }
 
         .rarity-1 { background: #6c757d; }
@@ -83,29 +83,40 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin: 20px 0;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 10px 0;
             width: 100%;
         }
 
         .stat-box {
             background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
+            padding: 8px;
+            border-radius: 8px;
             text-align: center;
         }
 
         .stat-label {
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             color: #aaa;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
 
         .stat-value {
-            font-size: 1.5rem;
+            font-size: 1.1rem;
             font-weight: bold;
             color: #ffd700;
+        }
+
+        .seed-display {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .enemy-preview h2 {
+            font-size: 1.3rem;
+            margin: 5px 0;
         }
 
         .form-control, .form-select, textarea {
