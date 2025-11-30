@@ -214,6 +214,9 @@
             position: absolute;
             width: 64px;
             height: 64px;
+            scale: 4;
+            top: -100%;
+            left: -50%;
             image-rendering: pixelated;
             transform: scale(1);
             transform-origin: top left;
@@ -380,10 +383,36 @@
                     // Atualizar preview quando trocar
                     select.onchange = updatePreviewSprite;
                 });
+
+                // Pré-carregar todas as sprites em cache
+                preloadEquipmentSprites(data);
             } catch (error) {
                 console.error('Erro ao carregar equipamentos:', error);
                 alert('Erro ao carregar equipamentos!');
             }
+        }
+
+        // Pré-carregar todas as sprites de equipamentos
+        function preloadEquipmentSprites(data) {
+            const types = ['body', 'head', 'weapon', 'back'];
+            const imagesToPreload = [];
+
+            types.forEach(type => {
+                const options = data[`${type}_options`] || [];
+                options.forEach(filename => {
+                    if (filename) {
+                        imagesToPreload.push(`/static/game.data/enemies/${type}/${filename}`);
+                    }
+                });
+            });
+
+            // Criar Image objects para forçar cache
+            imagesToPreload.forEach(src => {
+                const img = new Image();
+                img.src = src;
+            });
+
+            console.log(`✅ Pré-carregando ${imagesToPreload.length} sprites de equipamentos...`);
         }
 
         // Gerar inimigo aleatório
