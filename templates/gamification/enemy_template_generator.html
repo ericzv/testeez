@@ -620,11 +620,11 @@
 
                 container.innerHTML = data.templates.map(t => `
                     <div class="template-card" onclick="editTemplate(${t.id})" style="cursor: pointer;">
-                        <div class="template-actions" onclick="event.stopPropagation()">
-                            <button class="btn btn-sm btn-warning" onclick="editTemplate(${t.id})" title="Editar">
+                        <div class="template-actions">
+                            <button class="btn btn-sm btn-warning" onclick="handleEditButtonClick(event, ${t.id})" title="Editar">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteTemplate(${t.id})" title="Deletar">
+                            <button class="btn btn-sm btn-danger" onclick="handleDeleteClick(event, ${t.id})" title="Deletar">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -707,6 +707,17 @@
                 console.error('❌ Erro na requisição:', error);
                 alert('❌ Erro ao deletar template: ' + error.message);
             }
+        }
+
+        // Funções wrapper para prevenir propagação do evento
+        function handleDeleteClick(event, id) {
+            event.stopPropagation();
+            deleteTemplate(id);
+        }
+
+        function handleEditButtonClick(event, id) {
+            event.stopPropagation();
+            editTemplate(id);
         }
 
         // Carregar equipamentos e templates ao iniciar
