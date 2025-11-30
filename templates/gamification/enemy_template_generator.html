@@ -618,6 +618,8 @@
                     return;
                 }
 
+                console.log('🎨 Renderizando templates:', data.templates.map(t => ({ id: t.id, name: t.name })));
+
                 container.innerHTML = data.templates.map(t => `
                     <div class="template-card">
                         <div class="template-actions">
@@ -653,11 +655,15 @@
 
         // Editar template existente
         async function editTemplate(id) {
+            console.log('🔧 editTemplate chamado com ID:', id);
             try {
                 const response = await fetch('/gamification/get_enemy_templates');
                 const data = await response.json();
+                console.log('📦 Templates carregados:', data.templates);
 
                 const template = data.templates.find(t => t.id === id);
+                console.log('🔍 Template encontrado:', template);
+
                 if (!template) {
                     alert('Template não encontrado!');
                     return;
@@ -680,18 +686,24 @@
 
         // Deletar template
         async function deleteTemplate(id) {
+            console.log('🗑️ deleteTemplate chamado com ID:', id);
+
             if (!confirm('Tem certeza que deseja deletar este template?')) {
+                console.log('❌ Deleção cancelada pelo usuário');
                 return;
             }
 
             try {
+                console.log('📡 Enviando DELETE para ID:', id);
                 const response = await fetch(`/gamification/delete_enemy_template/${id}`, {
                     method: 'DELETE'
                 });
 
                 const result = await response.json();
+                console.log('✅ Resposta do servidor:', result);
 
                 if (result.success) {
+                    console.log('✅ Recarregando templates...');
                     await loadTemplates();
                 } else {
                     alert('❌ Erro ao deletar: ' + (result.message || 'Erro desconhecido'));
