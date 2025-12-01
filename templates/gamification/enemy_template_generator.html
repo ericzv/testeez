@@ -806,6 +806,54 @@
 
         // Disponibilizar globalmente
         window.analyzeAssetUsage = analyzeAssetUsage;
+
+        // Análise específica de uso de armas
+        async function analyzeWeaponUsage() {
+            try {
+                const response = await fetch('/gamification/get_enemy_templates');
+                const data = await response.json();
+
+                // Contar uso de cada arma
+                const weaponCount = {};
+
+                data.templates.forEach(t => {
+                    if (t.sprite_layers && t.sprite_layers.weapon) {
+                        const weapon = t.sprite_layers.weapon;
+                        weaponCount[weapon] = (weaponCount[weapon] || 0) + 1;
+                    }
+                });
+
+                // Ordenar por quantidade de uso (mais usado primeiro)
+                const sortedWeapons = Object.entries(weaponCount)
+                    .sort((a, b) => b[1] - a[1]);
+
+                // Mostrar resultados
+                console.log('⚔️ ANÁLISE DE USO DE ARMAS');
+                console.log('==========================\n');
+                console.log(`Total de templates: ${data.templates.length}`);
+                console.log(`Armas diferentes usadas: ${sortedWeapons.length}\n`);
+
+                console.log('📊 ARMAS POR ORDEM DE USO:');
+                console.log('---------------------------');
+                sortedWeapons.forEach(([weapon, count], index) => {
+                    const bar = '█'.repeat(count);
+                    const warning = count > 3 ? ' ⚠️' : '';
+                    console.log(`${index + 1}. ${weapon}: ${count}x ${bar}${warning}`);
+                });
+
+                console.log('\n==========================');
+                if (sortedWeapons.some(([_, count]) => count > 3)) {
+                    console.log('⚠️ Armas marcadas com ⚠️ estão sendo usadas em excesso (>3x)');
+                }
+
+                return weaponCount;
+            } catch (error) {
+                console.error('Erro ao analisar armas:', error);
+            }
+        }
+
+        // Disponibilizar globalmente
+        window.analyzeWeaponUsage = analyzeWeaponUsage;
     </script>
 </body>
 </html>
