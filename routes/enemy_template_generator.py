@@ -190,32 +190,61 @@ def generate_enemy_preview():
 
 @enemy_template_bp.route('/gamification/save_enemy_template', methods=['POST'])
 def save_enemy_template():
-    """Salva um template de inimigo"""
+    """Salva ou atualiza um template de inimigo"""
     try:
         template_data = request.get_json()
 
         # Carregar templates existentes
         templates = load_templates()
 
-        # Gerar ID único
-        template_id = max([t.get('id', 0) for t in templates['templates']], default=0) + 1
-        template_data['id'] = template_id
+        # Verificar se é atualização (tem ID) ou novo template
+        template_id = template_data.get('id')
 
-        # Adicionar à lista
-        templates['templates'].append(template_data)
+        if template_id:
+            # Atualizar template existente
+            for i, t in enumerate(templates['templates']):
+                if t.get('id') == template_id:
+                    # Manter o ID, atualizar os outros campos
+                    template_data['id'] = template_id
+                    templates['templates'][i] = template_data
 
-        # Salvar
-        if save_templates(templates):
-            return jsonify({
-                'success': True,
-                'message': 'Template salvo com sucesso!',
-                'template_id': template_id
-            })
-        else:
+                    if save_templates(templates):
+                        return jsonify({
+                            'success': True,
+                            'message': 'Template atualizado com sucesso!',
+                            'template_id': template_id
+                        })
+                    else:
+                        return jsonify({
+                            'success': False,
+                            'message': 'Erro ao salvar template'
+                        }), 500
+
+            # Se chegou aqui, ID não foi encontrado
             return jsonify({
                 'success': False,
-                'message': 'Erro ao salvar template'
-            }), 500
+                'message': 'Template não encontrado'
+            }), 404
+        else:
+            # Criar novo template
+            template_id = max([t.get('id', 0) for t in templates['templates']], default=0) + 1
+            template_data['id'] = template_id
+
+            # Adicionar à lista
+            templates['templates'].append(template_data)
+
+            # Salvar
+            if save_templates(templates):
+                return jsonify({
+                    'success': True,
+                    'message': 'Template salvo com sucesso!',
+                    'template_id': template_id
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'message': 'Erro ao salvar template'
+                }), 500
 
     except Exception as e:
         print(f"Erro ao salvar template: {e}")

@@ -606,7 +606,7 @@
             }
         }
 
-        // Carregar templates salvos
+        // Carregar templates salvos organizados por tier
         async function loadTemplates() {
             try {
                 const response = await fetch('/gamification/get_enemy_templates');
@@ -619,9 +619,56 @@
                     return;
                 }
 
-                console.log('🎨 Renderizando templates:', data.templates.map(t => ({ id: t.id, name: t.name })));
+                // Calcular tier total (head + body + weapon, SEM back) e ordenar
+                const templatesWithTier = data.templates.map(t => {
+                    const bodyTier = t.equipment_tiers?.body || 0;
+                    const headTier = t.equipment_tiers?.head || 0;
+                    const weaponTier = t.equipment_tiers?.weapon || 0;
+                    const totalTier = bodyTier + headTier + weaponTier;
 
-                container.innerHTML = data.templates.map(t => `
+                    return { ...t, totalTier };
+                }).sort((a, b) => a.totalTier - b.totalTier); // Ordenar do mais fraco para o mais forte
+
+                console.log('🎨 Templates ordenados por tier:', templatesWithTier.map(t => ({
+                    id: t.id,
+                    name: t.name,
+                    tier: t.totalTier
+                })));
+
+                // Dividir em 7 grupos
+                const groupSize = Math.ceil(templatesWithTier.length / 7);
+                const groups = [];
+                for (let i = 0; i < 7; i++) {
+                    groups.push(templatesWithTier.slice(i * groupSize, (i + 1) * groupSize));
+                }
+
+                // Labels dos grupos (grupo 7 = Desafiantes Infernais)
+                const groupLabels = [
+                    'Grupo 1 (Ato 1 - 1ª Metade)',
+                    'Grupo 2 (Ato 1 - 2ª Metade)',
+                    'Grupo 3 (Ato 2 - 1ª Metade)',
+                    'Grupo 4 (Ato 2 - 2ª Metade)',
+                    'Grupo 5 (Ato 3 - 1ª Metade)',
+                    'Grupo 6 (Ato 3 - 2ª Metade)',
+                    'Grupo 7 (Desafiantes Infernais)'
+                ];
+
+                // Renderizar grupos
+                let html = '';
+                groups.forEach((group, index) => {
+                    if (group.length === 0) return;
+
+                    html += `
+                        <div style="grid-column: 1 / -1; margin-top: ${index > 0 ? '30px' : '0'};">
+                            <h4 style="color: #ffd700; border-bottom: 2px solid rgba(255, 215, 0, 0.3); padding-bottom: 10px;">
+                                ${groupLabels[index]}
+                                <span style="font-size: 0.8em; color: #888;"> (${group.length} inimigos)</span>
+                            </h4>
+                        </div>
+                    `;
+
+                    group.forEach(t => {
+                        html += `
                     <div class="template-card">
                         <div class="template-actions">
                             <button class="btn btn-sm btn-warning" onclick="editTemplate(${t.id})" title="Editar">
@@ -634,6 +681,7 @@
 
                         <h5 style="margin: 5px 0;">${t.name}</h5>
                         <span class="rarity-badge rarity-${t.rarity}">${t.rarity_name}</span>
+                        <small style="color: #888; font-size: 0.75em;">Tier Total: ${t.totalTier}</small>
 
                         <div class="template-sprite-container">
                             ${t.sprite_layers && t.sprite_layers.back ? `<div class="template-sprite-layer" style="z-index: 1; background-image: url('/static/game.data/enemies/back/${t.sprite_layers.back}');"></div>` : ''}
@@ -648,7 +696,11 @@
                             ${t.typical_phrase ? `<small style="font-style: italic; color: #aaa; margin-top: 5px;">"${t.typical_phrase.substring(0, 40)}${t.typical_phrase.length > 40 ? '...' : ''}"</small>` : ''}
                         </div>
                     </div>
-                `).join('');
+                        `;
+                    });
+                });
+
+                container.innerHTML = html;
             } catch (error) {
                 console.error('Erro ao carregar templates:', error);
             }
