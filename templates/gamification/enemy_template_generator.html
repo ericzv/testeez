@@ -296,6 +296,21 @@
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label">Grupo de Distribuição</label>
+                            <select class="form-select" id="enemy-group">
+                                <option value="">Automático (por tier)</option>
+                                <option value="0">Grupo 1 (Ato 1 - 1ª Metade)</option>
+                                <option value="1">Grupo 2 (Ato 1 - 2ª Metade)</option>
+                                <option value="2">Grupo 3 (Ato 2 - 1ª Metade)</option>
+                                <option value="3">Grupo 4 (Ato 2 - 2ª Metade)</option>
+                                <option value="4">Grupo 5 (Ato 3 - 1ª Metade)</option>
+                                <option value="5">Grupo 6 (Ato 3 - 2ª Metade)</option>
+                                <option value="6">Grupo 7 (Desafiantes Infernais)</option>
+                            </select>
+                            <small class="text-muted">Deixe "Automático" para organizar por tier automaticamente</small>
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label">Behavior Pattern</label>
                             <select class="form-select" id="behavior-pattern">
                                 <option value="default">Padrão</option>
@@ -494,6 +509,7 @@
             document.getElementById('enemy-name').value = enemy.name;
             document.getElementById('typical-phrase').value = enemy.typical_phrase || '';
             document.getElementById('behavior-pattern').value = enemy.behavior_pattern || 'default';
+            document.getElementById('enemy-group').value = enemy.manual_group !== undefined ? enemy.manual_group : '';
 
             // Selecionar equipamentos atuais nos dropdowns (já carregados)
             document.getElementById('equipment-body').value = enemy.sprite_layers.body;
@@ -578,11 +594,13 @@
                 return;
             }
 
+            const groupValue = document.getElementById('enemy-group').value;
             const templateData = {
                 ...currentEnemy,
                 name: document.getElementById('enemy-name').value,
                 typical_phrase: document.getElementById('typical-phrase').value,
-                behavior_pattern: document.getElementById('behavior-pattern').value
+                behavior_pattern: document.getElementById('behavior-pattern').value,
+                manual_group: groupValue === '' ? undefined : parseInt(groupValue)
             };
 
             try {
@@ -635,11 +653,27 @@
                     tier: t.totalTier
                 })));
 
-                // Dividir em 7 grupos
-                const groupSize = Math.ceil(templatesWithTier.length / 7);
-                const groups = [];
+                // Dividir em 7 grupos (respeitar manual_group se existir)
+                const groups = [[], [], [], [], [], [], []];
+
+                // Primeiro, alocar os que têm grupo manual
+                const withoutManualGroup = [];
+                templatesWithTier.forEach(t => {
+                    if (t.manual_group !== undefined && t.manual_group >= 0 && t.manual_group <= 6) {
+                        groups[t.manual_group].push(t);
+                    } else {
+                        withoutManualGroup.push(t);
+                    }
+                });
+
+                // Depois, distribuir os sem grupo manual automaticamente pelos grupos
+                const groupSize = Math.ceil(withoutManualGroup.length / 7);
                 for (let i = 0; i < 7; i++) {
-                    groups.push(templatesWithTier.slice(i * groupSize, (i + 1) * groupSize));
+                    const autoAssigned = withoutManualGroup.slice(i * groupSize, (i + 1) * groupSize);
+                    groups[i] = groups[i].concat(autoAssigned);
+
+                    // Ordenar cada grupo por tier
+                    groups[i].sort((a, b) => a.totalTier - b.totalTier);
                 }
 
                 // Labels dos grupos (grupo 7 = Desafiantes Infernais)
@@ -681,7 +715,10 @@
 
                         <h5 style="margin: 5px 0;">${t.name}</h5>
                         <span class="rarity-badge rarity-${t.rarity}">${t.rarity_name}</span>
-                        <small style="color: #888; font-size: 0.75em;">Tier Total: ${t.totalTier}</small>
+                        <small style="color: #888; font-size: 0.75em;">
+                            Tier Total: ${t.totalTier}
+                            ${t.manual_group !== undefined ? ' <span style="color: #ffd700;">📌 Manual</span>' : ''}
+                        </small>
 
                         <div class="template-sprite-container">
                             ${t.sprite_layers && t.sprite_layers.back ? `<div class="template-sprite-layer" style="z-index: 1; background-image: url('/static/game.data/enemies/back/${t.sprite_layers.back}');"></div>` : ''}
