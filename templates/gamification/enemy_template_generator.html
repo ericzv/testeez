@@ -720,6 +720,92 @@
             loadAllEquipment();
             loadTemplates();
         });
+
+        // Função de análise de uso de assets
+        async function analyzeAssetUsage() {
+            try {
+                // Buscar templates e equipamentos
+                const [templatesRes, equipRes] = await Promise.all([
+                    fetch('/gamification/get_enemy_templates'),
+                    fetch('/gamification/get_all_equipment')
+                ]);
+
+                const templates = await templatesRes.json();
+                const equipment = await equipRes.json();
+
+                // Contar uso de cada asset
+                const assetCount = {};
+
+                templates.templates.forEach(t => {
+                    if (!t.sprite_layers) return;
+
+                    ['body', 'head', 'weapon', 'back'].forEach(type => {
+                        const asset = t.sprite_layers[type];
+                        if (asset) {
+                            assetCount[asset] = (assetCount[asset] || 0) + 1;
+                        }
+                    });
+                });
+
+                // Separar assets por categoria
+                const allAssets = {
+                    body: equipment.body_options || [],
+                    head: equipment.head_options || [],
+                    weapon: equipment.weapon_options || [],
+                    back: equipment.back_options || []
+                };
+
+                // Encontrar assets usados demais (>3)
+                const overused = Object.entries(assetCount)
+                    .filter(([asset, count]) => count > 3)
+                    .sort((a, b) => b[1] - a[1]);
+
+                // Encontrar assets nunca usados
+                const unused = {};
+                Object.entries(allAssets).forEach(([type, assets]) => {
+                    unused[type] = assets.filter(asset => !assetCount[asset]);
+                });
+
+                // Mostrar resultados
+                console.log('📊 ANÁLISE DE USO DE ASSETS');
+                console.log('================================\n');
+
+                console.log(`📈 Total de templates analisados: ${templates.templates.length}`);
+                console.log(`🎨 Total de assets únicos usados: ${Object.keys(assetCount).length}\n`);
+
+                if (overused.length > 0) {
+                    console.log('⚠️ ASSETS USADOS EM EXCESSO (>3 vezes):');
+                    console.log('==========================================');
+                    overused.forEach(([asset, count]) => {
+                        console.log(`  ${asset}: ${count}x`);
+                    });
+                    console.log('');
+                } else {
+                    console.log('✅ Nenhum asset usado em excesso!\n');
+                }
+
+                console.log('❌ ASSETS NUNCA USADOS:');
+                console.log('========================');
+                Object.entries(unused).forEach(([type, assets]) => {
+                    if (assets.length > 0) {
+                        console.log(`\n${type.toUpperCase()} (${assets.length} não usados):`);
+                        assets.forEach(asset => console.log(`  - ${asset}`));
+                    } else {
+                        console.log(`\n${type.toUpperCase()}: ✅ Todos usados!`);
+                    }
+                });
+
+                console.log('\n================================');
+                console.log('💡 Sugestão: Use os assets não utilizados para criar mais variação!');
+
+                return { overused, unused, assetCount };
+            } catch (error) {
+                console.error('Erro ao analisar assets:', error);
+            }
+        }
+
+        // Disponibilizar globalmente
+        window.analyzeAssetUsage = analyzeAssetUsage;
     </script>
 </body>
 </html>
