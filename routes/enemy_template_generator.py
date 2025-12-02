@@ -274,3 +274,36 @@ def delete_enemy_template(template_id):
     except Exception as e:
         print(f"Erro ao deletar template: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
+
+@enemy_template_bp.route('/gamification/export_templates', methods=['POST'])
+def export_templates():
+    """Exporta todos os templates para o arquivo JSON no filesystem"""
+    try:
+        # Carregar templates atuais da memória/banco
+        templates = load_templates()
+
+        # Garantir que o diretório existe
+        os.makedirs(os.path.dirname(TEMPLATES_PATH), exist_ok=True)
+
+        # Salvar no arquivo
+        if save_templates(templates):
+            return jsonify({
+                'success': True,
+                'message': 'Templates exportados com sucesso!',
+                'file_path': TEMPLATES_PATH,
+                'count': len(templates.get('templates', []))
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Erro ao salvar arquivo'
+            }), 500
+
+    except Exception as e:
+        print(f"Erro ao exportar templates: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'message': f'Erro: {str(e)}'
+        }), 500
