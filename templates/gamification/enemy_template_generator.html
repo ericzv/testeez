@@ -653,28 +653,20 @@
                     tier: t.totalTier
                 })));
 
-                // Dividir em 7 grupos (respeitar manual_group se existir)
+                // Dividir em 7 grupos baseado em posição no ranking (sem redistribuir)
                 const groups = [[], [], [], [], [], [], []];
 
-                // Primeiro, alocar os que têm grupo manual
-                const withoutManualGroup = [];
-                templatesWithTier.forEach(t => {
+                templatesWithTier.forEach((t, index) => {
+                    // Se tem grupo manual, usa o manual
                     if (t.manual_group !== undefined && t.manual_group >= 0 && t.manual_group <= 6) {
                         groups[t.manual_group].push(t);
                     } else {
-                        withoutManualGroup.push(t);
+                        // Se não tem grupo manual, calcular baseado na posição no ranking
+                        // Divide o total de templates em 7 grupos aproximadamente iguais
+                        const groupIndex = Math.min(6, Math.floor((index / templatesWithTier.length) * 7));
+                        groups[groupIndex].push(t);
                     }
                 });
-
-                // Depois, distribuir os sem grupo manual automaticamente pelos grupos
-                const groupSize = Math.ceil(withoutManualGroup.length / 7);
-                for (let i = 0; i < 7; i++) {
-                    const autoAssigned = withoutManualGroup.slice(i * groupSize, (i + 1) * groupSize);
-                    groups[i] = groups[i].concat(autoAssigned);
-
-                    // Ordenar cada grupo por tier
-                    groups[i].sort((a, b) => a.totalTier - b.totalTier);
-                }
 
                 // Labels dos grupos (grupo 7 = Desafiantes Infernais)
                 const groupLabels = [
