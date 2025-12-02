@@ -143,6 +143,40 @@ def generate_enemy_skills(enemy_number, rarity, selected_equipment):
     print(f"🎯 RESULTADO FINAL: {len(selected_skills)} skills selecionadas: {list(selected_skills.keys())}")
     return selected_skills, skill_cooldown_reductions
 
+def convert_skills_to_list_format(selected_skills, skill_cooldown_reductions):
+    """
+    Converte skills do formato {skill_id: equipment_type} para
+    formato de lista [{"skill_id": X, "type": "attack"}, ...]
+
+    Args:
+        selected_skills: Dict {skill_id: equipment_type}
+        skill_cooldown_reductions: Dict {skill_id: reduction_multiplier}
+
+    Returns:
+        List de objetos com skill_id e type
+    """
+    skills_list = []
+
+    for skill_id_str, equipment_type in selected_skills.items():
+        skill_id = int(skill_id_str)
+
+        # Determinar tipo baseado no ID
+        if 1 <= skill_id <= 49:
+            skill_type = "attack"
+        elif 50 <= skill_id <= 99:
+            skill_type = "buff"
+        else:  # 100+
+            skill_type = "debuff"
+
+        skills_list.append({
+            "skill_id": skill_id,
+            "type": skill_type,
+            "equipment": equipment_type,
+            "cooldown_multiplier": skill_cooldown_reductions.get(skill_id_str, 1.0)
+        })
+
+    return skills_list
+
 def load_enemy_themes_config():
     """Carrega configuração dos temas de inimigos do JSON"""
     global _enemy_themes_config
@@ -473,14 +507,16 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
 
     # Calcular stats baseado nos tiers
     # HP baseado em hp_tier (body + head + back)
-    base_hp = 50
-    hp_per_tier = 30
-    final_hp = base_hp + (hp_tier * hp_per_tier)
+    # Tier range: 2-17, avg 7.9
+    base_hp = 30
+    hp_per_tier = 8
+    final_hp = base_hp + (hp_tier * hp_per_tier)  # Range: 46-166, avg ~93
 
     # Damage baseado em damage_tier (weapon)
-    base_damage = 5
-    damage_per_tier = 5
-    final_damage = base_damage + (damage_tier * damage_per_tier)
+    # Tier range: 1-6, avg 3.5
+    base_damage = 3
+    damage_per_tier = 3
+    final_damage = base_damage + (damage_tier * damage_per_tier)  # Range: 6-21, avg ~13.5
 
     # Block percentage baseado na raridade
     block_percentage = 5 + (rarity * 2)
@@ -518,7 +554,10 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
     hit_animation = "shake"
 
     # Gerar skills baseado nos equipamentos
-    enemy_skills = generate_enemy_skills(enemy_number, rarity, sprite_layers)
+    selected_skills, skill_cooldown_reductions = generate_enemy_skills(enemy_number, rarity, sprite_layers)
+
+    # Converter para formato de lista esperado pelo sistema de batalha
+    enemy_skills = convert_skills_to_list_format(selected_skills, skill_cooldown_reductions)
     enemy_skills_json = json.dumps(enemy_skills)
 
     # Gerar action pattern (usar o behavior_pattern do template se disponível)
