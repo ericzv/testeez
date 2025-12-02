@@ -9,7 +9,6 @@ from models_map import MapNode, PlayerMapProgress
 from models import Player, GenericEnemy, LastBoss, PlayerProgress, EnemyTheme
 from .map_modules.node_types import ELITE_BOSSES, FINAL_BOSSES
 from .battle_modules.enemy_generation import (
-    generate_enemy_by_theme,
     get_enemy_template_by_progression,
     get_infernal_challenger_template,
     create_enemy_from_template

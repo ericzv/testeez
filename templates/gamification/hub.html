@@ -2257,8 +2257,9 @@
   // Mostrar pop-up automaticamente se for uma nova sessão de batalha
   // (essa função será chamada quando um boss for derrotado)
   function showNewBattleRewards() {
-    // Esta função será chamada do sistema de batalha
-    showBossSelection(true);
+    // DEPRECATED: Sistema antigo de geração procedural removido
+    // Agora usa sistema de templates fixos via mapa
+    console.log("⚠️ showNewBattleRewards() deprecated - sistema de templates fixos ativo");
   }
 
   // Notification System
@@ -2402,8 +2403,9 @@
                   console.log("✅ Inimigo/Boss já selecionado, indo para batalha");
                   window.location.href = '/gamification/battle';
                 } else {
-                  console.log("⚡ Nenhum inimigo selecionado, mostrando pop-up");
-                  showBossSelection(false);
+                  console.log("⚡ Nenhum inimigo selecionado, abrindo mapa");
+                  // Sistema novo: abrir mapa ao invés de seleção procedural
+                  openMapPopup();
                 }
               }
             })
@@ -2451,25 +2453,6 @@
   }
 
 </script>
-
-<!-- Pop-up de Seleção de Boss -->
-<div id="boss-selection-popup" class="ui-dialog" style="display:none">
-  <div class="ui-panel boss-selection-modal">
-    <h2 class="title">Escolha seu Próximo Desafio</h2>
-    <button class="close-popup-btn" onclick="closeBossSelection()">✕</button>
-    <div class="enemy-grid" id="enemy-grid"></div>
-
-    <!-- Rewrite Divider -->
-    <div class="rewrite-divider" id="enemy-rewrite-divider" style="display: none;">
-        <div class="rewrite-line"></div>
-        <div class="rewrite-button" id="enemy-rewrite-button">
-            <span class="rewrite-cost" id="enemy-rewrite-cost">1</span>
-            <img src="{{ url_for('static', filename='game.data/hourglass_small.png') }}" alt="Ampulheta Eterna" class="rewrite-icon">
-        </div>
-        <div class="rewrite-line"></div>
-    </div>
-  </div>
-</div>
 
 <!-- Pop-up do Mapa Procedural -->
 <div id="map-popup" class="ui-dialog" style="display:none">
@@ -3194,8 +3177,8 @@ async function handleMapNodeClick(node) {
   // Ação baseada no tipo
   switch (node.node_type) {
     case 'battle':
-      // Batalha genérica: abre seleção de inimigos
-      showBossSelection();
+      // Batalha genérica: vai direto para batalha com inimigo fixo
+      window.location.href = '/map/battle/start';
       break;
     case 'elite':
       // Redirecionar para o route que cria e seleciona o boss elite
