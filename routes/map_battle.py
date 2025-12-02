@@ -109,8 +109,13 @@ def start_elite_battle(boss_id):
         return redirect(url_for('battle.gamification'))
 
     try:
-        # NOVO SISTEMA: Selecionar Desafiante Infernal do Grupo 7
-        template = get_infernal_challenger_template()
+        # Determinar ato atual para balanceamento de Infernais
+        from models_map import PlayerMapProgress
+        map_progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+        current_act = map_progress.current_act if map_progress else 1
+
+        # NOVO SISTEMA: Selecionar Desafiante Infernal do Grupo 7 (filtrado por ato)
+        template = get_infernal_challenger_template(act_number=current_act)
 
         if not template:
             flash('Erro ao carregar Desafiante Infernal.', 'error')

@@ -442,6 +442,7 @@ def get_battle_data():
                     'name': current_enemy.name,
                     'hp': current_enemy.hp,
                     'max_hp': current_enemy.max_hp,
+                    'damage': current_enemy.damage,
                     'description': f"Inimigo do Tema {current_enemy.theme_id} - Nível {current_enemy.enemy_number}",
                     'sprite_layers': {
                         'back': current_enemy.sprite_back,
@@ -451,7 +452,8 @@ def get_battle_data():
                     },
                     'is_boss': False,
                     'boss_type': 'generic',
-                    'blood_stacks': getattr(current_enemy, 'blood_stacks', 0)
+                    'blood_stacks': getattr(current_enemy, 'blood_stacks', 0),
+                    'quote': ''  # Fala típica - pode ser adicionada aos templates depois
                 }
                 print(f"🎯 Carregando inimigo genérico: {current_enemy.name}")
             else:
