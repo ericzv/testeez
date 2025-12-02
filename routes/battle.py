@@ -2341,7 +2341,6 @@ def get_available_enemies():
                 'hp': enemy.hp,
                 'max_hp': enemy.max_hp,
                 'damage': enemy.damage,
-                'posture': enemy.posture,
                 'block_percentage': enemy.block_percentage,
                 'rounds_remaining': enemy.rounds_remaining,
                 'initial_rounds': enemy.initial_rounds,
