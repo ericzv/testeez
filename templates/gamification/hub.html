@@ -3062,7 +3062,8 @@ async function handleCurrentNodeClick(node) {
       if (hasBattleActive) {
         window.location.href = '/gamification/battle';
       } else {
-        showBossSelection();
+        // Ir direto para batalha com inimigo fixo dos templates
+        window.location.href = '/map/battle/start';
       }
       break;
     case 'elite':

@@ -412,12 +412,10 @@ def get_enemy_template_by_progression(enemy_number):
         print(f"❌ Nenhum template disponível!")
         return None
 
-    # Selecionar inimigo dentro do grupo baseado no enemy_number
-    # Usa módulo para ciclar através dos inimigos do grupo
-    template_idx = (enemy_number - 1) % len(group)
-    template = group[template_idx]
+    # Selecionar inimigo ALEATORIAMENTE dentro do grupo
+    template = random.choice(group)
 
-    print(f"🎯 Enemy #{enemy_number} → Grupo {group_idx+1} → {template['name']} (tier {template['total_tier']})")
+    print(f"🎯 Enemy #{enemy_number} → Grupo {group_idx+1} → {template['name']} (tier {template['total_tier']}) [ALEATÓRIO]")
 
     return template
 
