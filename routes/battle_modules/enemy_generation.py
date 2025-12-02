@@ -449,6 +449,9 @@ def get_enemy_template_by_progression(enemy_number):
     # Selecionar inimigo ALEATORIAMENTE dentro do grupo
     template = random.choice(group)
 
+    # Adicionar informação de grupo ao template para uso posterior
+    template['group_index'] = group_idx
+
     print(f"🎯 Enemy #{enemy_number} → Grupo {group_idx+1} → {template['name']} (tier {template['total_tier']}) [ALEATÓRIO]")
 
     return template
@@ -464,6 +467,10 @@ def get_infernal_challenger_template():
         return None
 
     template = random.choice(infernal_group)
+
+    # Adicionar informação de grupo (Grupo 7 = índice 6)
+    template['group_index'] = 6
+
     print(f"🔥 Desafiante Infernal selecionado: {template['name']} (tier {template['total_tier']})")
 
     return template
@@ -550,8 +557,18 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
     }
     reward_type, reward_icon = reward_mappings.get(rarity, ('gold', '💰'))
 
-    # Hit animation
-    hit_animation = "shake"
+    # Hit animation baseado no grupo
+    group_idx = template.get('group_index', 0)  # Default para grupo 0 se não especificado
+    if group_idx in [0, 1]:  # Grupos 1 e 2
+        hit_animation = "hit1.png"
+    elif group_idx in [2, 3]:  # Grupos 3 e 4
+        hit_animation = "hit2.png"
+    elif group_idx in [4, 5]:  # Grupos 5 e 6
+        hit_animation = "hit3.png"
+    else:  # Grupo 7 (índice 6)
+        hit_animation = "blackhit-32-32-5f-160x32.png"
+
+    print(f"🎨 Animação de hit: {hit_animation} (Grupo {group_idx+1})")
 
     # Gerar skills baseado nos equipamentos
     selected_skills, skill_cooldown_reductions = generate_enemy_skills(enemy_number, rarity, sprite_layers)

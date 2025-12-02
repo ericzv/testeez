@@ -65,6 +65,13 @@ def start_battle():
             flash('Erro ao criar inimigo.', 'error')
             return redirect(url_for('map.map_view'))
 
+        # GERAR INTENÇÕES INICIAIS DO TURNO 1
+        from .battle_modules.battle_turns import get_next_actions
+        next_turn_data = get_next_actions(enemy)
+        next_intentions = next_turn_data['actions']
+        enemy.next_intentions_cached = json.dumps(next_intentions)
+        print(f"🔮 Intenções do Turno 1 pré-calculadas: {[a.get('type') for a in next_intentions]}")
+
         # Associar inimigo ao nó
         current_node.enemy_id = enemy.id
 
@@ -120,6 +127,13 @@ def start_elite_battle(boss_id):
         if not enemy:
             flash('Erro ao criar Desafiante Infernal.', 'error')
             return redirect(url_for('map.map_view'))
+
+        # GERAR INTENÇÕES INICIAIS DO TURNO 1
+        from .battle_modules.battle_turns import get_next_actions
+        next_turn_data = get_next_actions(enemy)
+        next_intentions = next_turn_data['actions']
+        enemy.next_intentions_cached = json.dumps(next_intentions)
+        print(f"🔮 Intenções do Turno 1 (Elite) pré-calculadas: {[a.get('type') for a in next_intentions]}")
 
         # Atualizar progresso
         progress = PlayerProgress.query.filter_by(player_id=player.id).first()
