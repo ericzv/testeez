@@ -535,6 +535,7 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
     hp_tier = template.get('hp_tier', 5)
     damage_tier = template.get('damage_tier', 3)
     behavior_pattern = template.get('behavior_pattern', 'default')
+    typical_phrase = template.get('typical_phrase', '')  # Fala típica do inimigo
 
     # Sprites
     sprite_body = sprite_layers.get('body', 'body1.png')
@@ -611,6 +612,9 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
             for key, value in modifiers.items():
                 if key not in ['tier', 'total_points'] and isinstance(value, (int, float)):
                     total_modifier_sum += value
+
+    # Adicionar fala típica aos modifiers (para recuperar depois)
+    equipment_modifiers['_typical_phrase'] = typical_phrase
 
     # Equipment rank
     equipment_rank = get_rank_from_total_modifiers(total_modifier_sum)

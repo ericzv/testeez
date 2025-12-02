@@ -436,6 +436,14 @@ def get_battle_data():
             current_enemy = GenericEnemy.query.get(progress.selected_enemy_id)
             
             if current_enemy and current_enemy.is_available:
+                # Extrair fala típica dos equipment_modifiers
+                typical_phrase = ''
+                try:
+                    equipment_mods = json.loads(current_enemy.equipment_modifiers_applied or '{}')
+                    typical_phrase = equipment_mods.get('_typical_phrase', '')
+                except:
+                    pass
+
                 # Usar dados do inimigo genérico (SEU CÓDIGO EXISTENTE)
                 boss_data = {
                     'id': current_enemy.id,
@@ -453,7 +461,7 @@ def get_battle_data():
                     'is_boss': False,
                     'boss_type': 'generic',
                     'blood_stacks': getattr(current_enemy, 'blood_stacks', 0),
-                    'quote': ''  # Fala típica - pode ser adicionada aos templates depois
+                    'quote': typical_phrase  # Fala típica do template
                 }
                 print(f"🎯 Carregando inimigo genérico: {current_enemy.name}")
             else:
