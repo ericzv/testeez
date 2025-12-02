@@ -301,12 +301,12 @@ def load_enemy_names_config():
         try:
             config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'static', 'game.data', 'enemy_names_config.json')
             print(f"🔍 Tentando carregar arquivo de nomes de: {config_path}")
-            
+
             if not os.path.exists(config_path):
                 print(f"❌ Arquivo de nomes não encontrado em: {config_path}")
                 _enemy_names_config = {}
                 return _enemy_names_config
-                
+
             with open(config_path, 'r', encoding='utf-8') as f:
                 _enemy_names_config = json.load(f)
             print("✅ Configuração de nomes carregada com sucesso")
@@ -314,6 +314,264 @@ def load_enemy_names_config():
             print(f"❌ Erro ao carregar configuração de nomes: {e}")
             _enemy_names_config = {}
     return _enemy_names_config
+
+# Cache para templates de inimigos
+_enemy_templates = None
+_enemy_templates_by_group = None
+
+def load_enemy_templates():
+    """Carrega templates fixos de inimigos do JSON"""
+    global _enemy_templates, _enemy_templates_by_group
+
+    if _enemy_templates is None:
+        try:
+            templates_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'static', 'game.data', 'enemy_templates.json')
+            print(f"🔍 Carregando templates de inimigos de: {templates_path}")
+
+            if not os.path.exists(templates_path):
+                print(f"❌ Arquivo de templates não encontrado em: {templates_path}")
+                _enemy_templates = []
+                _enemy_templates_by_group = [[] for _ in range(7)]
+                return _enemy_templates
+
+            with open(templates_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+
+            templates = data.get('templates', [])
+
+            # Calcular tier total e organizar por grupos
+            for t in templates:
+                tiers = t.get('equipment_tiers', {})
+                t['total_tier'] = tiers.get('body', 0) + tiers.get('head', 0) + tiers.get('weapon', 0)
+
+            # Ordenar por tier total
+            templates.sort(key=lambda x: x['total_tier'])
+
+            # Organizar em 7 grupos
+            groups = [[] for _ in range(7)]
+            for i, t in enumerate(templates):
+                manual_group = t.get('manual_group')
+                if manual_group is not None and 0 <= manual_group <= 6:
+                    groups[manual_group].append(t)
+                else:
+                    # Distribuir automaticamente baseado em posição no ranking
+                    group_idx = min(6, int((i / len(templates)) * 7))
+                    groups[group_idx].append(t)
+
+            _enemy_templates = templates
+            _enemy_templates_by_group = groups
+
+            print(f"✅ {len(templates)} templates carregados em 7 grupos:")
+            for i, group in enumerate(groups):
+                print(f"   Grupo {i+1}: {len(group)} inimigos")
+
+        except Exception as e:
+            print(f"❌ Erro ao carregar templates: {e}")
+            import traceback
+            traceback.print_exc()
+            _enemy_templates = []
+            _enemy_templates_by_group = [[] for _ in range(7)]
+
+    return _enemy_templates
+
+def get_enemy_template_by_progression(enemy_number):
+    """
+    Seleciona um template de inimigo baseado no progresso (enemy_number).
+
+    Mapeamento:
+    - enemy_number 1-16  → Grupo 0 (Ato 1 - 1ª Metade)
+    - enemy_number 17-33 → Grupo 1 (Ato 1 - 2ª Metade)
+    - enemy_number 34-50 → Grupo 2 (Ato 2 - 1ª Metade)
+    - enemy_number 51-66 → Grupo 3 (Ato 2 - 2ª Metade)
+    - enemy_number 67-83 → Grupo 4 (Ato 3 - 1ª Metade)
+    - enemy_number 84+   → Grupo 5 (Ato 3 - 2ª Metade)
+    """
+    load_enemy_templates()
+
+    # Mapear enemy_number para grupo
+    if enemy_number <= 16:
+        group_idx = 0
+    elif enemy_number <= 33:
+        group_idx = 1
+    elif enemy_number <= 50:
+        group_idx = 2
+    elif enemy_number <= 66:
+        group_idx = 3
+    elif enemy_number <= 83:
+        group_idx = 4
+    else:
+        group_idx = 5
+
+    group = _enemy_templates_by_group[group_idx]
+
+    if not group:
+        print(f"⚠️ Grupo {group_idx} vazio! Usando grupo 0 como fallback")
+        group = _enemy_templates_by_group[0]
+
+    if not group:
+        print(f"❌ Nenhum template disponível!")
+        return None
+
+    # Selecionar inimigo dentro do grupo baseado no enemy_number
+    # Usa módulo para ciclar através dos inimigos do grupo
+    template_idx = (enemy_number - 1) % len(group)
+    template = group[template_idx]
+
+    print(f"🎯 Enemy #{enemy_number} → Grupo {group_idx+1} → {template['name']} (tier {template['total_tier']})")
+
+    return template
+
+def get_infernal_challenger_template():
+    """Retorna um Desafiante Infernal aleatório do Grupo 7"""
+    load_enemy_templates()
+
+    infernal_group = _enemy_templates_by_group[6]  # Grupo 7 = índice 6
+
+    if not infernal_group:
+        print("⚠️ Nenhum Desafiante Infernal disponível!")
+        return None
+
+    template = random.choice(infernal_group)
+    print(f"🔥 Desafiante Infernal selecionado: {template['name']} (tier {template['total_tier']})")
+
+    return template
+
+def create_enemy_from_template(template, enemy_number, player_id=None):
+    """
+    Cria um GenericEnemy a partir de um template fixo.
+
+    Args:
+        template: Dicionário com dados do template
+        enemy_number: Número do inimigo (para tracking)
+        player_id: ID do jogador (opcional)
+
+    Returns:
+        GenericEnemy instance
+    """
+    print(f"\n🎭 Criando inimigo a partir do template: {template['name']}")
+
+    # Carregar configurações necessárias
+    config = load_enemy_themes_config()
+    if not config:
+        print("❌ Configuração de temas não encontrada")
+        return None
+
+    sprite_modifiers = config.get('sprite_modifiers', {})
+
+    # Extrair dados do template
+    name = template['name']
+    rarity = template.get('rarity', 2)
+    sprite_layers = template.get('sprite_layers', {})
+    equipment_tiers = template.get('equipment_tiers', {})
+    hp_tier = template.get('hp_tier', 5)
+    damage_tier = template.get('damage_tier', 3)
+    behavior_pattern = template.get('behavior_pattern', 'default')
+
+    # Sprites
+    sprite_body = sprite_layers.get('body', 'body1.png')
+    sprite_head = sprite_layers.get('head', 'head1.png')
+    sprite_weapon = sprite_layers.get('weapon', 'weapon1.png')
+    sprite_back = sprite_layers.get('back') or None
+
+    # Calcular stats baseado nos tiers
+    # HP baseado em hp_tier (body + head + back)
+    base_hp = 50
+    hp_per_tier = 30
+    final_hp = base_hp + (hp_tier * hp_per_tier)
+
+    # Damage baseado em damage_tier (weapon)
+    base_damage = 5
+    damage_per_tier = 5
+    final_damage = base_damage + (damage_tier * damage_per_tier)
+
+    # Block percentage baseado na raridade
+    block_percentage = 5 + (rarity * 2)
+
+    # Calcular modifiers dos equipamentos
+    equipment_modifiers = {}
+    total_modifier_sum = 0
+
+    for equip_type in ['body', 'head', 'weapon', 'back']:
+        sprite_file = sprite_layers.get(equip_type)
+        if sprite_file and sprite_file in sprite_modifiers:
+            modifiers = sprite_modifiers[sprite_file]
+            equipment_modifiers[sprite_file] = modifiers
+            # Somar todos os modificadores exceto 'tier' e 'total_points'
+            for key, value in modifiers.items():
+                if key not in ['tier', 'total_points'] and isinstance(value, (int, float)):
+                    total_modifier_sum += value
+
+    # Equipment rank
+    equipment_rank = get_rank_from_total_modifiers(total_modifier_sum)
+
+    # Calcular rounds baseado em enemy_number
+    initial_rounds = 3 + min(enemy_number // 10, 7)  # 3-10 rounds
+
+    # Reward type e icon baseado em raridade
+    reward_mappings = {
+        1: ('gold', '💰'),
+        2: ('weapon', '⚔️'),
+        3: ('armor', '🛡️'),
+        4: ('special', '✨')
+    }
+    reward_type, reward_icon = reward_mappings.get(rarity, ('gold', '💰'))
+
+    # Hit animation
+    hit_animation = "shake"
+
+    # Gerar skills baseado nos equipamentos
+    enemy_skills = generate_enemy_skills(enemy_number, rarity, sprite_layers)
+    enemy_skills_json = json.dumps(enemy_skills)
+
+    # Gerar action pattern (usar o behavior_pattern do template se disponível)
+    # Por enquanto, usar padrão default
+    action_pattern = generate_action_pattern(behavior_pattern, enemy_skills_json)
+    action_pattern_json = json.dumps(action_pattern)
+
+    # Calcular probabilidades de ações por turno
+    actions_probability = calculate_actions_per_turn_probability(enemy_number)
+    actions_probability_json = json.dumps(actions_probability)
+
+    # Criar o inimigo
+    enemy = GenericEnemy(
+        enemy_number=enemy_number,
+        name=name,
+        theme_id=1,  # Usar tema genérico
+        rarity=rarity,
+        hp=final_hp,
+        max_hp=final_hp,
+        damage=final_damage,
+        block_percentage=block_percentage,
+        rounds_remaining=initial_rounds,
+        initial_rounds=initial_rounds,
+        sprite_back=sprite_back,
+        sprite_body=sprite_body,
+        sprite_head=sprite_head,
+        sprite_weapon=sprite_weapon,
+        equipment_modifiers_applied=json.dumps(equipment_modifiers),
+        reward_bonus_percentage=total_modifier_sum,
+        equipment_rank=equipment_rank,
+        is_new=True,
+        reward_type=reward_type,
+        reward_icon=reward_icon,
+        hit_animation=hit_animation,
+        attack_sfx=None,
+        attack_charges_count=0,
+        action_queue='[]',
+        enemy_skills=enemy_skills_json,
+        buff_debuff_queue='[]',
+        action_pattern=action_pattern_json,
+        current_action_index=0,
+        actions_per_turn_probability=actions_probability_json,
+        attack_skill_rotation_index=0
+    )
+
+    db.session.add(enemy)
+    db.session.commit()
+
+    print(f"✅ Inimigo criado: {name} (HP: {final_hp}, Dano: {final_damage}, Rank: {equipment_rank})")
+
+    return enemy
 
 def update_json_with_tiers():
     """EXECUTAR UMA VEZ para atualizar o JSON com tiers"""
