@@ -458,16 +458,15 @@ def get_enemy_template_by_progression(enemy_number):
 
 def get_infernal_challenger_template(act_number=1):
     """
-    Retorna um Desafiante Infernal aleatório do Grupo 7,
-    filtrado por ato para balanceamento.
+    Retorna um Desafiante Infernal específico por ato.
 
     Args:
         act_number: Ato atual (1, 2 ou 3)
 
-    Desafiantes Infernais são divididos por força:
-    - Ato 1: 1/3 mais fracos
-    - Ato 2: 1/3 médios
-    - Ato 3: 1/3 mais fortes
+    Desafiantes Infernais por Ato:
+    - Ato 1: Diabo Verde, Sanguinolato
+    - Ato 2: Redline, Brasa, Maldade Rubra
+    - Ato 3: Réprobo, Inquirido, Cremado
     """
     load_enemy_templates()
 
@@ -477,37 +476,32 @@ def get_infernal_challenger_template(act_number=1):
         print("⚠️ Nenhum Desafiante Infernal disponível!")
         return None
 
-    # Ordenar por total_tier para dividir em sub-grupos
-    sorted_infernals = sorted(infernal_group, key=lambda x: x.get('total_tier', 0))
+    # Definir quais Infernais por ato (por nome)
+    infernal_names_by_act = {
+        1: ["Diabo Verde", "Sanguinolato"],
+        2: ["Redline", "Brasa", "Maldade Rubra"],
+        3: ["Réprobo", "Inquirido", "Cremado"]
+    }
 
-    # Dividir em 3 partes iguais
-    total_count = len(sorted_infernals)
-    third = total_count // 3
+    # Selecionar inimigos do ato
+    valid_names = infernal_names_by_act.get(act_number, infernal_names_by_act[1])
 
-    # Selecionar sub-grupo baseado no ato
-    if act_number == 1:
-        # Ato 1: mais fracos
-        available = sorted_infernals[:third] if third > 0 else sorted_infernals[:1]
-        tier_desc = "Fracos"
-    elif act_number == 2:
-        # Ato 2: médios
-        available = sorted_infernals[third:third*2] if third > 0 else sorted_infernals[:1]
-        tier_desc = "Médios"
-    else:
-        # Ato 3: mais fortes
-        available = sorted_infernals[third*2:] if third > 0 else sorted_infernals[-1:]
-        tier_desc = "Fortes"
+    # Filtrar inimigos por nome
+    available = [t for t in infernal_group if t['name'] in valid_names]
 
     if not available:
-        print(f"⚠️ Nenhum Infernal disponível para Ato {act_number}!")
-        available = [sorted_infernals[0]]  # Fallback
+        print(f"⚠️ Nenhum Infernal com nomes válidos encontrado para Ato {act_number}!")
+        print(f"   Buscando: {valid_names}")
+        print(f"   Disponíveis: {[t['name'] for t in infernal_group]}")
+        # Fallback: usar qualquer do grupo
+        available = infernal_group
 
     template = random.choice(available)
 
     # Adicionar informação de grupo (Grupo 7 = índice 6)
     template['group_index'] = 6
 
-    print(f"🔥 Desafiante Infernal ({tier_desc}, Ato {act_number}): {template['name']} (tier {template['total_tier']})")
+    print(f"🔥 Desafiante Infernal (Ato {act_number}): {template['name']}")
 
     return template
 
@@ -551,34 +545,55 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
     # ========================================
     # STATS BASEADOS EM GRUPO (NÃO EM TIERS)
     # ========================================
-    # Ranges de stats por grupo - HP: 32-144, Dano: 8-36
     group_idx = template.get('group_index', 0)
 
-    group_stat_ranges = {
-        0: {'hp': (32, 48),   'damage': (8, 12)},   # Grupo 1
-        1: {'hp': (48, 64),   'damage': (12, 16)},  # Grupo 2
-        2: {'hp': (64, 80),   'damage': (16, 20)},  # Grupo 3
-        3: {'hp': (80, 96),   'damage': (20, 24)},  # Grupo 4
-        4: {'hp': (96, 112),  'damage': (24, 28)},  # Grupo 5
-        5: {'hp': (112, 128), 'damage': (28, 32)},  # Grupo 6
-        6: {'hp': (128, 144), 'damage': (32, 36)}   # Grupo 7 (Infernais)
+    # STATS FIXOS para Desafiantes Infernais específicos
+    infernal_fixed_stats = {
+        # Ato 1
+        "Diabo Verde": {'hp': 85, 'damage': 22},
+        "Sanguinolato": {'hp': 87, 'damage': 21},
+        # Ato 2
+        "Redline": {'hp': 123, 'damage': 32},
+        "Brasa": {'hp': 125, 'damage': 33},
+        "Maldade Rubra": {'hp': 127, 'damage': 31},
+        # Ato 3
+        "Réprobo": {'hp': 163, 'damage': 37},
+        "Inquirido": {'hp': 165, 'damage': 38},
+        "Cremado": {'hp': 168, 'damage': 36}
     }
 
-    stat_range = group_stat_ranges.get(group_idx, group_stat_ranges[0])
+    # Verificar se é um Desafiante Infernal com stats fixos
+    if name in infernal_fixed_stats:
+        final_hp = infernal_fixed_stats[name]['hp']
+        final_damage = infernal_fixed_stats[name]['damage']
+        print(f"🔥 Desafiante Infernal com stats fixos: HP={final_hp}, Dano={final_damage}")
+    else:
+        # Stats baseados em ranges por grupo para inimigos normais
+        group_stat_ranges = {
+            0: {'hp': (32, 48),   'damage': (8, 12)},   # Grupo 1
+            1: {'hp': (48, 64),   'damage': (12, 16)},  # Grupo 2
+            2: {'hp': (64, 80),   'damage': (16, 20)},  # Grupo 3
+            3: {'hp': (80, 96),   'damage': (20, 24)},  # Grupo 4
+            4: {'hp': (96, 112),  'damage': (24, 28)},  # Grupo 5
+            5: {'hp': (112, 128), 'damage': (28, 32)},  # Grupo 6
+            6: {'hp': (128, 144), 'damage': (32, 36)}   # Grupo 7 (outros Infernais)
+        }
 
-    # Usar ID do template para determinar posição dentro do range (fixo e consistente)
-    template_id = template.get('id', 0)
-    # Normalizar ID para 0-1 usando módulo e divisão
-    position_in_range = (template_id % 100) / 100.0  # 0.0 a 1.0
+        stat_range = group_stat_ranges.get(group_idx, group_stat_ranges[0])
 
-    # Calcular HP e Dano baseado na posição no range
-    hp_min, hp_max = stat_range['hp']
-    damage_min, damage_max = stat_range['damage']
+        # Usar ID do template para determinar posição dentro do range (fixo e consistente)
+        template_id = template.get('id', 0)
+        # Normalizar ID para 0-1 usando módulo e divisão
+        position_in_range = (template_id % 100) / 100.0  # 0.0 a 1.0
 
-    final_hp = int(hp_min + (hp_max - hp_min) * position_in_range)
-    final_damage = int(damage_min + (damage_max - damage_min) * position_in_range)
+        # Calcular HP e Dano baseado na posição no range
+        hp_min, hp_max = stat_range['hp']
+        damage_min, damage_max = stat_range['damage']
 
-    print(f"📊 Stats: HP={final_hp} ({hp_min}-{hp_max}), Dano={final_damage} ({damage_min}-{damage_max}), Grupo {group_idx+1}")
+        final_hp = int(hp_min + (hp_max - hp_min) * position_in_range)
+        final_damage = int(damage_min + (damage_max - damage_min) * position_in_range)
+
+        print(f"📊 Stats: HP={final_hp} ({hp_min}-{hp_max}), Dano={final_damage} ({damage_min}-{damage_max}), Grupo {group_idx+1}")
 
     # Block percentage baseado na raridade
     block_percentage = 5 + (rarity * 2)
