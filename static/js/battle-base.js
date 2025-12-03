@@ -785,9 +785,9 @@ function loadBattleData() {
                         const bossName = document.querySelector('.boss-name');
                         const bossQuote = document.querySelector('.boss-quote');
                         const bossInfoHp = document.getElementById('boss-info-hp');
-                        
+
                         if (bossName) bossName.textContent = data.boss.name;
-                        if (bossQuote) bossQuote.textContent = data.boss.description;
+                        if (bossQuote) bossQuote.textContent = data.boss.quote || '';  // ← Usa 'quote' ao invés de 'description'
                         if (bossInfoHp) bossInfoHp.textContent = `${data.boss.hp}/${data.boss.max_hp}`;
                     }
                                         
@@ -1222,9 +1222,9 @@ function updateBossInfoPanel() {
     const bossName = document.querySelector('.boss-name');
     const bossQuote = document.querySelector('.boss-quote');
     const bossInfoHp = document.getElementById('boss-info-hp');
-    
+
     if (bossName) bossName.textContent = gameState.boss.name;
-    if (bossQuote) bossQuote.textContent = gameState.boss.description;
+    if (bossQuote) bossQuote.textContent = gameState.boss.quote || '';  // ← Usa 'quote' ao invés de 'description'
     if (bossInfoHp) bossInfoHp.textContent = `${gameState.boss.hp}/${gameState.boss.maxHp}`;
 }
 
