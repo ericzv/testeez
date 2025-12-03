@@ -993,8 +993,13 @@
   .boss-quote {
     font-style: italic;
     text-align: center;
-    margin-top: 20px;
-    color: #aaa;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+    font-size: 13px;
+    line-height: 1.4;
+    min-height: 20px;
   }
   
   .boss-view-background {
