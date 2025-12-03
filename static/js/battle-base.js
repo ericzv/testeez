@@ -762,7 +762,7 @@ function loadBattleData() {
                         gameState.boss.name = data.boss.name;
                         gameState.boss.hp = data.boss.hp;
                         gameState.boss.maxHp = data.boss.max_hp;
-                        gameState.boss.description = data.boss.description;
+                        gameState.boss.quote = data.boss.quote || '';  // ← Adiciona quote ao gameState
                         gameState.boss.bloodStacks = data.boss.blood_stacks || 0;
                         document.getElementById('boss_hp').innerText = data.boss.hp;
                         document.getElementById('boss_max_hp').innerText = data.boss.max_hp;

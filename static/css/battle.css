@@ -401,11 +401,11 @@
     padding: 20px;
     color: white;
     font-family: 'Cinzel', serif;
-    transform: translateY(50px);
-    opacity: 0;
+    transform: translateY(0);
+    opacity: 1;
     transition: all 0.4s ease;
     z-index: 1300;
-    visibility: hidden;
+    visibility: visible;
     backdrop-filter: blur(20px) saturate(180%);
   }
   
