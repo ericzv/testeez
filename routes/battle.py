@@ -934,6 +934,19 @@ def damage_boss():
             'message': f'Energia insuficiente! Você precisa de {cache.energy_cost} energia, mas tem apenas {player.energy}.'
         })
 
+    # ===== VERIFICAR BLOOD STACKS PARA SUPREMA DO VLAD =====
+    if player.character_id and player.character_id.lower() == 'vlad' and skill_id == 53:
+        # Buscar inimigo atual
+        current_enemy_check = get_current_battle_enemy(player.id)
+        if current_enemy_check:
+            blood_stacks = getattr(current_enemy_check, 'blood_stacks', 0) or 0
+            if blood_stacks < 5:
+                return jsonify({
+                    'success': False,
+                    'message': f'Blood Stacks insuficientes! Você precisa de 5 blood stacks, mas o inimigo tem apenas {blood_stacks}.'
+                })
+            print(f"✅ Suprema liberada! Blood stacks: {blood_stacks}/5")
+
     # Consumir recursos
     player.energy -= cache.energy_cost
     
