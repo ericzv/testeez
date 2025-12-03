@@ -1913,6 +1913,9 @@ def finish_study():
 @battle_bp.route('/player/attacks')
 def player_attacks():
     """API simplificada para retornar as habilidades de ataque do jogador"""
+    print("=" * 80)
+    print("🎯 ENDPOINT /player/attacks CHAMADO!")
+    print("=" * 80)
     try:
         player = Player.query.first()
         if not player:
