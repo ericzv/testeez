@@ -460,7 +460,8 @@
     <span>Dano:</span>
     <span id="boss-info-damage">{{ boss_damage or 15 }}</span>
   </div>
-  <div class="boss-quote" id="boss-info-quote">{{ boss_quote or '' }}</div>
+  <div class="boss-quote" id="boss-info-quote">{{ boss_quote }}</div>
+  <!-- DEBUG: boss_quote='{{ boss_quote }}' len={{ boss_quote|length if boss_quote else 0 }} -->
 </div>
 
 
