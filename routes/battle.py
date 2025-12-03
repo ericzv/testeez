@@ -444,14 +444,26 @@ def get_battle_data():
                 except:
                     pass
 
+                # Calcular dano real do ataque básico a partir das intenções
+                basic_attack_damage = current_enemy.damage  # Fallback para o dano base
+                try:
+                    if current_enemy.next_intentions_cached:
+                        intentions = json.loads(current_enemy.next_intentions_cached)
+                        # Buscar primeira ação de ataque nas intenções
+                        for action in intentions:
+                            if action.get('type') == 'attack':
+                                basic_attack_damage = action.get('damage', current_enemy.damage)
+                                break
+                except:
+                    pass
+
                 # Usar dados do inimigo genérico (SEU CÓDIGO EXISTENTE)
                 boss_data = {
                     'id': current_enemy.id,
                     'name': current_enemy.name,
                     'hp': current_enemy.hp,
                     'max_hp': current_enemy.max_hp,
-                    'damage': current_enemy.damage,
-                    'description': f"Inimigo do Tema {current_enemy.theme_id} - Nível {current_enemy.enemy_number}",
+                    'damage': basic_attack_damage,  # Dano real do ataque básico
                     'sprite_layers': {
                         'back': current_enemy.sprite_back,
                         'body': current_enemy.sprite_body,
@@ -461,7 +473,7 @@ def get_battle_data():
                     'is_boss': False,
                     'boss_type': 'generic',
                     'blood_stacks': getattr(current_enemy, 'blood_stacks', 0),
-                    'quote': typical_phrase  # Fala típica do template
+                    'quote': typical_phrase  # Fala típica do template (vazio se não tiver)
                 }
                 print(f"🎯 Carregando inimigo genérico: {current_enemy.name}")
             else:
