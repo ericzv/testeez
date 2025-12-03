@@ -1959,18 +1959,24 @@ def player_attacks():
                         print(f"🔒 Suprema (ID {attack['id']}, Nome: {attack['name']}) DESABILITADA por Última Graça")
 
         # ===== VERIFICAR BLOOD STACKS PARA SUPREMA DO VLAD =====
-        if player.character_id == 'vlad':
+        print(f"🩸 [DEBUG] Verificando blood stacks - character_id: {player.character_id}")
+        if player.character_id and player.character_id.lower() == 'vlad':
             current_enemy = get_current_battle_enemy(player.id)
+            print(f"🩸 [DEBUG] Inimigo atual: {current_enemy}")
             if current_enemy:
                 blood_stacks = getattr(current_enemy, 'blood_stacks', 0) or 0
+                print(f"🩸 [DEBUG] Blood stacks do inimigo: {blood_stacks}")
 
                 for attack in attacks:
+                    print(f"🩸 [DEBUG] Verificando attack ID {attack.get('id')} - Nome: {attack.get('name')}")
                     if attack.get('id') == 53:  # Beijo da Morte (Suprema)
                         if blood_stacks < 5:
                             attack['is_disabled'] = True
                             print(f"🔒 Suprema DESABILITADA - Blood Stacks insuficientes ({blood_stacks}/5)")
                         else:
                             print(f"✅ Suprema HABILITADA - Blood Stacks suficientes ({blood_stacks}/5)")
+            else:
+                print(f"⚠️ [DEBUG] Nenhum inimigo encontrado na batalha")
 
         return jsonify({
             'success': True,
