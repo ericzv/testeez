@@ -438,13 +438,21 @@ def get_battle_data():
             current_boss = LastBoss.query.get(progress.selected_boss_id)
             
             if current_boss and current_boss.is_active:
+                # Extrair fala típica do LastBoss
+                typical_phrase_boss = ''
+                try:
+                    equipment_mods = json.loads(current_boss.equipment_modifiers_applied or '{}')
+                    typical_phrase_boss = equipment_mods.get('_typical_phrase', '')
+                except:
+                    pass
+
                 # Usar dados do boss
                 boss_data = {
                     'id': current_boss.id,
                     'name': current_boss.name,
                     'hp': current_boss.current_hp,
                     'max_hp': current_boss.max_hp,
-                    'description': f"Boss Especial - {current_boss.name}",
+                    'quote': typical_phrase_boss,  # ← Quote ao invés de description
                     'sprite_idle': current_boss.sprite_idle,
                     'sprite_frames': current_boss.sprite_frames,
                     'sprite_size': current_boss.sprite_size,
@@ -453,7 +461,7 @@ def get_battle_data():
                     'blood_stacks': getattr(current_boss, 'blood_stacks', 0)
                 }
                 print(f"👑 Carregando boss: {current_boss.name}")
-                print(f"👑 DEBUG BOSS DATA: {boss_data}")
+                print(f"👑 DEBUG BOSS DATA com quote: {boss_data}")
             else:
                 # Boss selecionado não está mais disponível
                 progress.selected_boss_id = None

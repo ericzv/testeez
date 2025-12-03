@@ -786,8 +786,14 @@ function loadBattleData() {
                         const bossQuote = document.querySelector('.boss-quote');
                         const bossInfoHp = document.getElementById('boss-info-hp');
 
+                        console.log("🔍 DEBUG boss-quote - data.boss.quote:", data.boss.quote);
+                        console.log("🔍 DEBUG boss-quote - elemento existe:", !!bossQuote);
+
                         if (bossName) bossName.textContent = data.boss.name;
-                        if (bossQuote) bossQuote.textContent = data.boss.quote || '';  // ← Usa 'quote' ao invés de 'description'
+                        if (bossQuote) {
+                            bossQuote.textContent = data.boss.quote || '';  // ← Usa 'quote' ao invés de 'description'
+                            console.log("✅ boss-quote atualizado para:", bossQuote.textContent);
+                        }
                         if (bossInfoHp) bossInfoHp.textContent = `${data.boss.hp}/${data.boss.max_hp}`;
                     }
                                         
