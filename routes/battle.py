@@ -310,7 +310,32 @@ def battle():
         except:
             attack_skills = []
             special_skills = []
-        
+
+        # Calcular dados do boss para o painel de informações
+        boss_name = current_enemy.name
+        boss_quote = ''
+        boss_damage = current_enemy.damage  # Fallback
+
+        # Extrair fala típica dos equipment_modifiers
+        try:
+            equipment_mods = json.loads(current_enemy.equipment_modifiers_applied or '{}')
+            boss_quote = equipment_mods.get('_typical_phrase', '')
+        except:
+            pass
+
+        # Calcular dano real do ataque básico a partir das intenções
+        try:
+            if current_enemy.next_intentions_cached:
+                intentions = json.loads(current_enemy.next_intentions_cached)
+                for action in intentions:
+                    if action.get('type') == 'attack':
+                        boss_damage = action.get('damage', current_enemy.damage)
+                        break
+        except:
+            pass
+
+        print(f"📊 Boss Info Panel: Nome={boss_name}, HP={current_enemy.hp}/{current_enemy.max_hp}, Dano={boss_damage}, Quote='{boss_quote}'")
+
         # Renderizar template
         return render_template('gamification/battle.html',
             player=player,
@@ -327,6 +352,9 @@ def battle():
             session_points=session.get('session_revision_count', 0),
             boss_hp=current_enemy.hp,
             boss_max_hp=current_enemy.max_hp,
+            boss_name=boss_name,
+            boss_damage=boss_damage,
+            boss_quote=boss_quote,
             player_strength=player.strength,
             player_damage_bonus=player.damage_bonus,
             player_luck=player.luck,

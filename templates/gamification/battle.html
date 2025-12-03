@@ -451,16 +451,16 @@
 </div>
 <!-- Boss Info Panel -->
 <div class="boss-info-panel" id="boss-info-panel">
-  <div class="boss-name" id="boss-info-name">Inimigo</div>
+  <div class="boss-name" id="boss-info-name">{{ boss_name or 'Inimigo' }}</div>
   <div class="boss-stat">
     <span>Vida:</span>
-    <span id="boss-info-hp">100/100</span>
+    <span id="boss-info-hp">{{ boss_hp or 100 }}/{{ boss_max_hp or 100 }}</span>
   </div>
   <div class="boss-stat">
     <span>Dano:</span>
-    <span id="boss-info-damage">15</span>
+    <span id="boss-info-damage">{{ boss_damage or 15 }}</span>
   </div>
-  <div class="boss-quote" id="boss-info-quote"></div>
+  <div class="boss-quote" id="boss-info-quote">{{ boss_quote or '' }}</div>
 </div>
 
 
