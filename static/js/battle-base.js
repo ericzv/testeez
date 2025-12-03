@@ -762,7 +762,7 @@ function loadBattleData() {
                         gameState.boss.name = data.boss.name;
                         gameState.boss.hp = data.boss.hp;
                         gameState.boss.maxHp = data.boss.max_hp;
-                        gameState.boss.description = data.boss.description;
+                        gameState.boss.quote = data.boss.quote || '';  // ← Adiciona quote ao gameState
                         gameState.boss.bloodStacks = data.boss.blood_stacks || 0;
                         document.getElementById('boss_hp').innerText = data.boss.hp;
                         document.getElementById('boss_max_hp').innerText = data.boss.max_hp;
@@ -785,9 +785,15 @@ function loadBattleData() {
                         const bossName = document.querySelector('.boss-name');
                         const bossQuote = document.querySelector('.boss-quote');
                         const bossInfoHp = document.getElementById('boss-info-hp');
-                        
+
+                        console.log("🔍 DEBUG boss-quote - data.boss.quote:", data.boss.quote);
+                        console.log("🔍 DEBUG boss-quote - elemento existe:", !!bossQuote);
+
                         if (bossName) bossName.textContent = data.boss.name;
-                        if (bossQuote) bossQuote.textContent = data.boss.description;
+                        if (bossQuote) {
+                            bossQuote.textContent = data.boss.quote || '';  // ← Usa 'quote' ao invés de 'description'
+                            console.log("✅ boss-quote atualizado para:", bossQuote.textContent);
+                        }
                         if (bossInfoHp) bossInfoHp.textContent = `${data.boss.hp}/${data.boss.max_hp}`;
                     }
                                         
@@ -1222,9 +1228,9 @@ function updateBossInfoPanel() {
     const bossName = document.querySelector('.boss-name');
     const bossQuote = document.querySelector('.boss-quote');
     const bossInfoHp = document.getElementById('boss-info-hp');
-    
+
     if (bossName) bossName.textContent = gameState.boss.name;
-    if (bossQuote) bossQuote.textContent = gameState.boss.description;
+    if (bossQuote) bossQuote.textContent = gameState.boss.quote || '';  // ← Usa 'quote' ao invés de 'description'
     if (bossInfoHp) bossInfoHp.textContent = `${gameState.boss.hp}/${gameState.boss.maxHp}`;
 }
 

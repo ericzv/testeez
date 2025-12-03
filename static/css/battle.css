@@ -401,11 +401,11 @@
     padding: 20px;
     color: white;
     font-family: 'Cinzel', serif;
-    transform: translateY(50px);
-    opacity: 0;
+    transform: translateY(0);
+    opacity: 1;
     transition: all 0.4s ease;
     z-index: 1300;
-    visibility: hidden;
+    visibility: visible;
     backdrop-filter: blur(20px) saturate(180%);
   }
   
@@ -415,7 +415,13 @@
     visibility: visible;
   }
 
-  
+  .boss-view .boss-quote {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+
   .buff-tooltip {
     position: absolute;
     bottom: 100%;
@@ -993,8 +999,19 @@
   .boss-quote {
     font-style: italic;
     text-align: center;
-    margin-top: 20px;
-    color: #aaa;
+    margin-top: 15px;
+    padding: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff !important;
+    font-size: 14px !important;
+    line-height: 1.5;
+    min-height: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    font-family: 'Cinzel', serif !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
   
   .boss-view-background {

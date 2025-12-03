@@ -310,7 +310,32 @@ def battle():
         except:
             attack_skills = []
             special_skills = []
-        
+
+        # Calcular dados do boss para o painel de informações
+        boss_name = current_enemy.name
+        boss_quote = ''
+        boss_damage = current_enemy.damage  # Fallback
+
+        # Extrair fala típica dos equipment_modifiers
+        try:
+            equipment_mods = json.loads(current_enemy.equipment_modifiers_applied or '{}')
+            boss_quote = equipment_mods.get('_typical_phrase', '')
+        except:
+            pass
+
+        # Calcular dano real do ataque básico a partir das intenções
+        try:
+            if current_enemy.next_intentions_cached:
+                intentions = json.loads(current_enemy.next_intentions_cached)
+                for action in intentions:
+                    if action.get('type') == 'attack':
+                        boss_damage = action.get('damage', current_enemy.damage)
+                        break
+        except:
+            pass
+
+        print(f"📊 Boss Info Panel: Nome={boss_name}, HP={current_enemy.hp}/{current_enemy.max_hp}, Dano={boss_damage}, Quote='{boss_quote}'")
+
         # Renderizar template
         return render_template('gamification/battle.html',
             player=player,
@@ -327,6 +352,9 @@ def battle():
             session_points=session.get('session_revision_count', 0),
             boss_hp=current_enemy.hp,
             boss_max_hp=current_enemy.max_hp,
+            boss_name=boss_name,
+            boss_damage=boss_damage,
+            boss_quote=boss_quote,
             player_strength=player.strength,
             player_damage_bonus=player.damage_bonus,
             player_luck=player.luck,
@@ -410,13 +438,21 @@ def get_battle_data():
             current_boss = LastBoss.query.get(progress.selected_boss_id)
             
             if current_boss and current_boss.is_active:
+                # Extrair fala típica do LastBoss
+                typical_phrase_boss = ''
+                try:
+                    equipment_mods = json.loads(current_boss.equipment_modifiers_applied or '{}')
+                    typical_phrase_boss = equipment_mods.get('_typical_phrase', '')
+                except:
+                    pass
+
                 # Usar dados do boss
                 boss_data = {
                     'id': current_boss.id,
                     'name': current_boss.name,
                     'hp': current_boss.current_hp,
                     'max_hp': current_boss.max_hp,
-                    'description': f"Boss Especial - {current_boss.name}",
+                    'quote': typical_phrase_boss,  # ← Quote ao invés de description
                     'sprite_idle': current_boss.sprite_idle,
                     'sprite_frames': current_boss.sprite_frames,
                     'sprite_size': current_boss.sprite_size,
@@ -425,7 +461,7 @@ def get_battle_data():
                     'blood_stacks': getattr(current_boss, 'blood_stacks', 0)
                 }
                 print(f"👑 Carregando boss: {current_boss.name}")
-                print(f"👑 DEBUG BOSS DATA: {boss_data}")
+                print(f"👑 DEBUG BOSS DATA com quote: {boss_data}")
             else:
                 # Boss selecionado não está mais disponível
                 progress.selected_boss_id = None
@@ -436,13 +472,34 @@ def get_battle_data():
             current_enemy = GenericEnemy.query.get(progress.selected_enemy_id)
             
             if current_enemy and current_enemy.is_available:
+                # Extrair fala típica dos equipment_modifiers
+                typical_phrase = ''
+                try:
+                    equipment_mods = json.loads(current_enemy.equipment_modifiers_applied or '{}')
+                    typical_phrase = equipment_mods.get('_typical_phrase', '')
+                except:
+                    pass
+
+                # Calcular dano real do ataque básico a partir das intenções
+                basic_attack_damage = current_enemy.damage  # Fallback para o dano base
+                try:
+                    if current_enemy.next_intentions_cached:
+                        intentions = json.loads(current_enemy.next_intentions_cached)
+                        # Buscar primeira ação de ataque nas intenções
+                        for action in intentions:
+                            if action.get('type') == 'attack':
+                                basic_attack_damage = action.get('damage', current_enemy.damage)
+                                break
+                except:
+                    pass
+
                 # Usar dados do inimigo genérico (SEU CÓDIGO EXISTENTE)
                 boss_data = {
                     'id': current_enemy.id,
                     'name': current_enemy.name,
                     'hp': current_enemy.hp,
                     'max_hp': current_enemy.max_hp,
-                    'description': f"Inimigo do Tema {current_enemy.theme_id} - Nível {current_enemy.enemy_number}",
+                    'damage': basic_attack_damage,  # Dano real do ataque básico
                     'sprite_layers': {
                         'back': current_enemy.sprite_back,
                         'body': current_enemy.sprite_body,
@@ -451,7 +508,8 @@ def get_battle_data():
                     },
                     'is_boss': False,
                     'boss_type': 'generic',
-                    'blood_stacks': getattr(current_enemy, 'blood_stacks', 0)
+                    'blood_stacks': getattr(current_enemy, 'blood_stacks', 0),
+                    'quote': typical_phrase  # Fala típica do template (vazio se não tiver)
                 }
                 print(f"🎯 Carregando inimigo genérico: {current_enemy.name}")
             else:
@@ -2341,7 +2399,6 @@ def get_available_enemies():
                 'hp': enemy.hp,
                 'max_hp': enemy.max_hp,
                 'damage': enemy.damage,
-                'posture': enemy.posture,
                 'block_percentage': enemy.block_percentage,
                 'rounds_remaining': enemy.rounds_remaining,
                 'initial_rounds': enemy.initial_rounds,

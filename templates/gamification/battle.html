@@ -451,20 +451,17 @@
 </div>
 <!-- Boss Info Panel -->
 <div class="boss-info-panel" id="boss-info-panel">
-  <div class="boss-name">Boss da Ignorância</div>
-  <div class="boss-tags">
-    <span class="boss-tag">Nível 10</span>
-    <span class="boss-tag">Escuridão</span>
-  </div>
+  <div class="boss-name" id="boss-info-name">{{ boss_name or 'Inimigo' }}</div>
   <div class="boss-stat">
     <span>Vida:</span>
-    <span id="boss-info-hp">500/500</span>
+    <span id="boss-info-hp">{{ boss_hp or 100 }}/{{ boss_max_hp or 100 }}</span>
   </div>
   <div class="boss-stat">
     <span>Dano:</span>
-    <span>25-35</span>
+    <span id="boss-info-damage">{{ boss_damage or 15 }}</span>
   </div>
-  <div class="boss-quote">"O conhecimento é a minha maior fraqueza."</div>
+  <div class="boss-quote" id="boss-info-quote">{{ boss_quote }}</div>
+  <!-- DEBUG: boss_quote='{{ boss_quote }}' len={{ boss_quote|length if boss_quote else 0 }} -->
 </div>
 
 
