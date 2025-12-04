@@ -2,6 +2,103 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/hub.css') }}">
+<style>
+/* Estilos dos botões principais */
+.main-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+/* Efeitos de hover para cada botão */
+.talents-btn:hover {
+  transform: translateX(-50%) scale(1.1) !important;
+  box-shadow: 0 0 40px rgba(147, 51, 234, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.map-btn:hover {
+  transform: translate(-50%, -50%) scale(1.15) rotate(2deg) !important;
+  box-shadow: 0 0 60px rgba(255, 215, 0, 1) !important;
+  animation: pulse 1s infinite;
+}
+
+.skills-btn:hover {
+  transform: translateX(-50%) scale(1.1) !important;
+  box-shadow: 0 0 40px rgba(220, 38, 38, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 60px rgba(255, 215, 0, 1);
+  }
+  50% {
+    box-shadow: 0 0 80px rgba(255, 215, 0, 1), 0 0 120px rgba(255, 215, 0, 0.5);
+  }
+}
+
+/* Animação de clique */
+.main-btn:active {
+  transform: translateX(-50%) scale(0.95) !important;
+}
+
+.map-btn:active {
+  transform: translate(-50%, -50%) scale(0.95) !important;
+}
+
+/* Brilho periódico nos botões */
+@keyframes glow {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.2);
+  }
+}
+
+.talents-btn {
+  animation: glow 3s ease-in-out infinite;
+}
+
+.skills-btn {
+  animation: glow 3.5s ease-in-out infinite;
+}
+
+/* Efeito de partículas ao redor do mapa */
+@keyframes float {
+  0%, 100% {
+    transform: translate(-50%, -50%) translateY(0px);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-10px);
+  }
+}
+
+.map-btn {
+  animation: float 3s ease-in-out infinite;
+}
+
+.map-btn:hover {
+  animation: float 3s ease-in-out infinite, pulse 1s infinite;
+}
+</style>
 {% endblock %}
 
 {% block game_content %}
@@ -52,56 +149,24 @@
 
 <div class="menu-container">
 
-<!-- Botões ao redor - 7 botões com posição de Perfil e Flashcards invertidas -->
-<!-- Botões ao redor - 10 botões com posição homogênea -->
-{% set menu = [
-  ('index', '📚', 'Flashcards'),
-  ('attributes', '✨', 'Atributos'),
-  ('game_inventory', '🎒', 'Inventário'),
-  ('items.shop', '🪙', 'Loja'),
-  ('bestiary', '📘', 'Bestiário'), 
-  ('battle.battle', '⚔️', 'Batalha'),
-  ('game_profile', '🧙‍♂️', 'Perfil'),
-  ('battle.skills', '🔥', 'Habilidades'),
-  ('talents', '🌟', 'Talentos'),
-] %}
+<!-- Menu Principal: Talentos (acima), Mapa (centro), Habilidades (abaixo) -->
 
-<!-- Posicionamento dos botões equidistantes -->
-
-<a href="{{ url_for(menu[1][0]) }}" class="menu-btn btn-1">
-  <span class="menu-icon">{{ menu[1][1] }}</span>
-  <span class="menu-text">{{ menu[1][2] }}</span>
+<!-- Botão Talentos (acima do mapa) -->
+<a href="{{ url_for('talents.talents') }}" class="menu-btn main-btn talents-btn" style="position: fixed; top: 20%; left: 50%; transform: translateX(-50%); z-index: 999; background: linear-gradient(135deg, #9333ea, #6b21a8); color: #fff; padding: 18px 35px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 18px; box-shadow: 0 0 25px rgba(147, 51, 234, 0.6); border: 3px solid rgba(255, 255, 255, 0.3); transition: all 0.3s ease;">
+  <span class="menu-icon" style="font-size: 24px; margin-right: 8px;">🌟</span>
+  <span class="menu-text">TALENTOS</span>
 </a>
 
-<a href="{{ url_for(menu[3][0]) }}" class="menu-btn btn-3">
-  <span class="menu-icon">{{ menu[3][1] }}</span>
-  <span class="menu-text">{{ menu[3][2] }}</span>
-</a>
-
-<a href="#" class="menu-btn btn-5 battle-btn" onclick="goToBattle(event)">
-  <span class="menu-icon">{{ menu[5][1] }}</span>
-  <span class="menu-text">{{ menu[5][2] }}</span>
-</a>
-
-<a href="{{ url_for(menu[6][0]) }}" class="menu-btn btn-6">
-  <span class="menu-icon">{{ menu[6][1] }}</span>
-  <span class="menu-text">{{ menu[6][2] }}</span>
-</a>
-
-<a href="{{ url_for(menu[7][0]) }}" class="menu-btn btn-7">
-  <span class="menu-icon">{{ menu[7][1] }}</span>
-  <span class="menu-text">{{ menu[7][2] }}</span>
-</a>
-
-<a href="{{ url_for('talents.talents') }}" class="menu-btn btn-8">
-  <span class="menu-icon">🌟</span>
-  <span class="menu-text">Talentos</span>
-</a>
-
-<!-- Botão do Mapa Procedural -->
-<a href="#" onclick="openMapPopup(); return false;" class="menu-btn btn-9" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; padding: 20px 40px; border-radius: 15px; text-decoration: none; font-weight: bold; font-size: 20px; box-shadow: 0 0 30px rgba(255, 215, 0, 0.7); border: 3px solid #fff;">
-  <span class="menu-icon">🗺️</span>
+<!-- Botão do Mapa (centro) -->
+<a href="#" onclick="openMapPopup(); return false;" class="menu-btn main-btn map-btn" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; padding: 25px 45px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 24px; box-shadow: 0 0 40px rgba(255, 215, 0, 0.8); border: 4px solid #fff; transition: all 0.3s ease;">
+  <span class="menu-icon" style="font-size: 32px; margin-right: 10px;">🗺️</span>
   <span class="menu-text">MAPA</span>
+</a>
+
+<!-- Botão Habilidades (abaixo do mapa) -->
+<a href="{{ url_for('battle.skills') }}" class="menu-btn main-btn skills-btn" style="position: fixed; top: 80%; left: 50%; transform: translateX(-50%); z-index: 999; background: linear-gradient(135deg, #dc2626, #991b1b); color: #fff; padding: 18px 35px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 18px; box-shadow: 0 0 25px rgba(220, 38, 38, 0.6); border: 3px solid rgba(255, 255, 255, 0.3); transition: all 0.3s ease;">
+  <span class="menu-icon" style="font-size: 24px; margin-right: 8px;">🔥</span>
+  <span class="menu-text">HABILIDADES</span>
 </a>
 
 <!-- Notification Bell Icon -->
@@ -2380,83 +2445,20 @@
           document.body.appendChild(milestonePopup);
       }
       
-      // Event listener para botão de batalha
-      const battleBtn = document.querySelector('.battle-btn');
-      if (battleBtn) {
-        console.log("🔵 Event listener adicionado ao botão batalha");
-        
-        battleBtn.addEventListener('click', function(e) {
-          e.preventDefault();
-          console.log("🔴 CLIQUE INTERCEPTADO!");
-          
-          // Verificar se já tem inimigo selecionado
-          fetch('/gamification/get_available_enemies')
-            .then(response => response.json())
-            .then(data => {
-              console.log("📊 Dados dos inimigos:", data);
-              console.log("🔍 DEBUG selected_enemy_id:", data.selected_enemy_id);
-              console.log("🔍 DEBUG selected_boss_id:", data.selected_boss_id);
-              console.log("🔍 DEBUG is_boss_fight:", data.is_boss_fight);
-              
-              if (data.success) {
-                if (data.selected_enemy_id || data.selected_boss_id) {
-                  console.log("✅ Inimigo/Boss já selecionado, indo para batalha");
-                  window.location.href = '/gamification/battle';
-                } else {
-                  console.log("⚡ Nenhum inimigo selecionado, abrindo mapa");
-                  // Sistema novo: abrir mapa ao invés de seleção procedural
-                  openMapPopup();
-                }
-              }
-            })
-            .catch(error => {
-              console.error('❌ Erro:', error);
-              window.location.href = '/gamification/battle';
-            });
-        });
-      } else {
-        console.error("❌ Botão .battle-btn não encontrado!");
-      }
+      // Botão de batalha removido - sistema de mapa procedural substituiu navegação
       
       // Inicializar polling de vitória
       startVictoryPolling();
 
   });  // FIM CORRETO do DOMContentLoaded
 
-  // Função para ir para batalha com verificação de inimigo selecionado
-  function goToBattle(event) {
-      event.preventDefault();
-
-      console.log("🎯 Tentando ir para batalha...");
-
-      // Verificar se há inimigo selecionado
-      fetch('/gamification/get_battle_data')
-          .then(response => response.json())
-          .then(data => {
-              console.log("📊 Battle data:", data);
-
-              if (data.success && (data.enemy || data.boss)) {
-                  // Há inimigo selecionado, pode ir para batalha
-                  console.log("✅ Inimigo selecionado, indo para batalha");
-                  window.location.href = '/gamification/battle';
-              } else {
-                  // Não há inimigo selecionado, abrir pop-up de seleção
-                  console.log("⚠️ Nenhum inimigo selecionado, abrindo pop-up de seleção");
-                  openBossSelection();
-              }
-          })
-          .catch(error => {
-              console.error('❌ Erro ao verificar inimigo:', error);
-              // Se houver erro, abrir pop-up de seleção
-              openBossSelection();
-          });
-  }
+  // Função goToBattle removida - navegação agora é feita pelo mapa procedural
 
 </script>
 
 <!-- Pop-up do Mapa Procedural -->
 <div id="map-popup" class="ui-dialog" style="display:none">
-  <div class="ui-panel map-popup-panel" style="width: 90vw; height: 85vh; max-width: 1400px; padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+  <div class="ui-panel map-popup-panel" style="width: 50vw; height: 85vh; padding: 0; overflow: hidden; display: flex; flex-direction: column;">
     <button class="close-popup-btn" onclick="closeMapPopup()" style="position: absolute; top: 15px; right: 15px; z-index: 1001;">✕</button>
 
     <!-- Header do Mapa -->
@@ -2469,7 +2471,7 @@
       <!-- Canvas do Mapa (tamanho dinâmico baseado nos nós) -->
       <div id="map-canvas" style="position: relative; min-height: 100%; width: 100%;">
         <!-- Background que acompanha os nós -->
-        <div id="map-background" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('/static/game.data/map/map.png'); background-size: 100% auto; background-repeat: repeat-y; background-position: top center;"></div>
+        <div id="map-background" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('/static/game.data/map/map1.webp'), url('/static/game.data/map/map1.png'); background-size: 100% auto; background-repeat: repeat-y; background-position: top center;">
         <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.3); pointer-events: none;"></div>
 
         <!-- Conexões SVG -->

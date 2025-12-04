@@ -281,30 +281,7 @@ def add_attribute_point(self, attribute, points=1):
 
 # ----- ROTAS -----
 
-@app.route('/gamification/attributes')
-def attributes():
-    player = Player.query.first()
-    
-    if not player:
-        flash("Personagem não encontrado.", "danger")
-        return redirect(url_for('battle.gamification'))
-    
-    # Buscar as habilidades do jogador ou criar uma lista vazia se não houver
-    skills = {
-        'attack_skills': [],
-        'special_skills': []
-    }
-        
-    return render_template(
-        'gamification/attributes.html', 
-        player=player, 
-        skills=skills,
-        calculate_strength_damage=calculate_strength_damage,
-        calculate_vitality_regeneration=calculate_vitality_regeneration,
-        calculate_resistance_block=calculate_resistance_block,
-        calculate_max_hp=calculate_max_hp,
-        get_exp_for_next_level=get_exp_for_next_level
-    )
+# Rota /gamification/attributes removida - sistema de atributos desabilitado
 
 @app.route('/gamification/add_talent_points', methods=['POST'])
 def add_talent_points():
@@ -581,75 +558,7 @@ def check_shop_refresh_hook():
     check_shop_refresh()
 
 
-@app.route('/reset_player_attributes')
-def reset_player_attributes():
-    """Reinicia os atributos do personagem para poder testar os talentos novamente"""
-    try:
-        player = Player.query.first()
-        if not player:
-            return "Jogador não encontrado!"
-        
-        # Salvar estado anterior
-        old_level = player.level
-        old_xp = player.experience
-        old_crystals = player.crystals
-        
-        # Reiniciar atributos básicos
-        player.strength = 0
-        player.vitality = 0
-        player.resistance = 0
-        player.luck = 0
-        
-        # Reiniciar valores derivados
-        player.max_hp = 100
-        player.hp = 100
-        player.damage_bonus = 0.0
-        player.damage_multiplier = 1.0
-        
-        # Reiniciar bônus de crítico
-        if hasattr(player, 'critical_chance_bonus'):
-            player.critical_chance_bonus = 0
-        if hasattr(player, 'critical_damage_bonus'):
-            player.critical_damage_bonus = 0
-        
-        # Adicionar alguns pontos de talento para testar
-        player.talent_points = 20
-        
-        # Remover todos os talentos do jogador
-        PlayerTalent.query.filter_by(player_id=player.id).delete()
-        
-        # Manter classe, nível e outros progressos
-        player.level = old_level
-        player.experience = old_xp
-        player.crystals = old_crystals
-        
-        db.session.commit()
-        
-        return """
-        <html>
-        <head>
-            <title>Atributos Reiniciados</title>
-            <style>
-                body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-                .box { background-color: #f8f9fa; border-radius: 5px; padding: 20px; margin: 20px auto; max-width: 600px; }
-                .success { color: #28a745; font-weight: bold; }
-                .button { background-color: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 20px; }
-            </style>
-        </head>
-        <body>
-            <div class="box">
-                <h2 class="success">Atributos do personagem reiniciados!</h2>
-                <p>Todos os atributos foram zerados e os talentos foram removidos.</p>
-                <p>Você recebeu 20 pontos de talento para testar os efeitos novamente.</p>
-                <p>O nível, classe e outras progressões foram mantidos.</p>
-                <a href="/gamification/talents" class="button">Ir para Talentos</a>
-            </div>
-        </body>
-        </html>
-        """
-    except Exception as e:
-        db.session.rollback()
-        return f"Erro ao reiniciar atributos: {str(e)}"
+# Rota /reset_player_attributes removida - sistema de atributos desabilitado
 
 @app.route('/dev_level_up/<int:levels>', methods=['POST'])
 def dev_level_up(levels):
@@ -727,32 +636,7 @@ def update_attribute():
     else:
         return jsonify({'success': False, 'message': message})
 
-@app.route('/gamification/profile')
-def game_profile():
-    """Player profile with achievements and stats."""
-    player = Player.query.first()
-    if not player:
-        return redirect(url_for('battle.gamification'))
-    
-    achievements = PlayerAchievement.query.filter_by(player_id=player.id).all()
-    
-    # Get player's inventory
-    inventory = PlayerItem.query.filter_by(player_id=player.id).all()
-    
-    # Get current boss for profile display
-    current_boss = db.session.get(Boss, player.current_boss_id)
-    
-    return render_template('gamification/profile.html', 
-                          player=player,
-                          calculate_strength_damage=calculate_strength_damage,
-                          calculate_resistance_block=calculate_resistance_block,
-                          calculate_critical_chance=calculate_critical_chance,
-                          calculate_critical_bonus=calculate_critical_bonus,
-                          calculate_dodge_chance=calculate_dodge_chance, 
-                          achievements=achievements,
-                          inventory=inventory,
-                          boss=current_boss,
-                          get_exp_for_next_level=get_exp_for_next_level)
+# Rota /gamification/profile removida - perfil do jogador desabilitado
 
 
 # Rota para adicionar pontos de atributo

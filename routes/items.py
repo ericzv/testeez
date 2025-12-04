@@ -513,31 +513,32 @@ def get_archmage_quote(player):
 
 # ----- ROTAS DE ITENS E LOJA -----
 
-@items_bp.route('/gamification/shop')
-def shop():
-    """Loja principal com verificação de itens."""
-    # Check if player exists, create if not
-    player = Player.query.first()
-    if not player:
-        return redirect(url_for('gamification'))
-    
-    # Obter itens do Viajante do Tempo
-    time_traveler_items = Item.query.filter_by(vendor="time_traveler").all()
-    
-    # Obter itens do Mestre dos Arquimagos
-    archmage_items = Item.query.filter_by(vendor="archmage").all()
-    
-    # Obter frases dos NPCs
-    time_traveler_quote = get_time_traveler_quote()
-    archmage_quote = get_archmage_quote(player)
-    
-    return render_template('gamification/shop_new.html', 
-                          player=player,
-                          time_traveler_items=time_traveler_items,
-                          archmage_items=archmage_items,
-                          time_traveler_quote=time_traveler_quote,
-                          archmage_quote=archmage_quote,
-                          get_exp_for_next_level=get_exp_for_next_level)
+# Rota /gamification/shop desabilitada - sistema de loja removido
+# @items_bp.route('/gamification/shop')
+# def shop():
+#     """Loja principal com verificação de itens."""
+#     # Check if player exists, create if not
+#     player = Player.query.first()
+#     if not player:
+#         return redirect(url_for('gamification'))
+#
+#     # Obter itens do Viajante do Tempo
+#     time_traveler_items = Item.query.filter_by(vendor="time_traveler").all()
+#
+#     # Obter itens do Mestre dos Arquimagos
+#     archmage_items = Item.query.filter_by(vendor="archmage").all()
+#
+#     # Obter frases dos NPCs
+#     time_traveler_quote = get_time_traveler_quote()
+#     archmage_quote = get_archmage_quote(player)
+#
+#     return render_template('gamification/shop_new.html',
+#                           player=player,
+#                           time_traveler_items=time_traveler_items,
+#                           archmage_items=archmage_items,
+#                           time_traveler_quote=time_traveler_quote,
+#                           archmage_quote=archmage_quote,
+#                           get_exp_for_next_level=get_exp_for_next_level)
 
 @items_bp.route('/gamification/buy_item/<int:item_id>', methods=['POST'])
 def buy_item(item_id):
