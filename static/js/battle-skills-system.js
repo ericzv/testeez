@@ -1297,23 +1297,51 @@ function applySpecialSkillVisualEffect(animationData) {
         // Remover camadas anteriores
         document.querySelectorAll('.skill-fx-layer').forEach(el => el.remove());
 
-        // Extrair informações do nome do arquivo (ex: autofagia300-300-7f.png)
+        // Extrair informações do nome do arquivo
+        // Suporta múltiplos formatos:
+        // 1. autofagia-300-300-7f.png (WIDTH-HEIGHT-FRAMESf)
+        // 2. blood-blade-128x128px-12f.png (WIDTHxHEIGHTpx-FRAMESf)
+        // 3. regeneration-16f-64x64.png (FRAMESf-WIDTHxHEIGHT)
         const filename = imageUrl.split('/').pop();
-        const match = filename.match(/(\d+)-(\d+)-(\d+)f/);
 
         let frameWidth = 300;
         let frameHeight = 300;
         let frameCount = 7;
+        let animationDuration = 0.8; // duração padrão em segundos
 
+        // Tentar formato: WIDTHxHEIGHTpx-FRAMESf (ex: 128x128px-12f)
+        let match = filename.match(/(\d+)x(\d+)px-(\d+)f/);
         if (match) {
             frameWidth = parseInt(match[1]);
             frameHeight = parseInt(match[2]);
             frameCount = parseInt(match[3]);
-            console.log(`📏 Sprite detectado: ${frameWidth}x${frameHeight}, ${frameCount} frames`);
+            console.log(`📏 Sprite detectado (formato WxHpx-Ff): ${frameWidth}x${frameHeight}px, ${frameCount} frames`);
+        } else {
+            // Tentar formato: FRAMESf-WIDTHxHEIGHT (ex: 16f-64x64)
+            match = filename.match(/(\d+)f-(\d+)x(\d+)/);
+            if (match) {
+                frameCount = parseInt(match[1]);
+                frameWidth = parseInt(match[2]);
+                frameHeight = parseInt(match[3]);
+                console.log(`📏 Sprite detectado (formato Ff-WxH): ${frameWidth}x${frameHeight}px, ${frameCount} frames`);
+            } else {
+                // Tentar formato antigo: WIDTH-HEIGHT-FRAMESf (ex: 300-300-7f)
+                match = filename.match(/(\d+)-(\d+)-(\d+)f/);
+                if (match) {
+                    frameWidth = parseInt(match[1]);
+                    frameHeight = parseInt(match[2]);
+                    frameCount = parseInt(match[3]);
+                    console.log(`📏 Sprite detectado (formato W-H-Ff): ${frameWidth}x${frameHeight}px, ${frameCount} frames`);
+                } else {
+                    console.warn(`⚠️ Formato de sprite não reconhecido: ${filename}, usando valores padrão`);
+                }
+            }
         }
 
         const totalWidth = frameWidth * frameCount;
-        const animationDuration = frameCount * 0.1; // 100ms por frame
+
+        // Usar duração padrão de 0.8s conforme especificado
+        console.log(`⏱️ Duração da animação: ${animationDuration}s`);
 
         // Criar keyframes dinamicamente
         const keyframeId = `skill-fx-${Date.now()}`;
