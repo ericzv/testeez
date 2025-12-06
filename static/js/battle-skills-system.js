@@ -1397,16 +1397,20 @@ function applySpecialSkillVisualEffect(animationData) {
             `;
             zIndex = '9999'; // Z-index altíssimo
         } else if (filename.includes('blood-blade') || filename.includes('blood_blade')) {
-            // Lâmina de Sangue: parte inferior alinhada com parte inferior VISUAL das boss-sprite-layers
-            // Boss sprite layers: 128px nativa, scaleY(2) com transform-origin center
+            // Lâmina de Sangue: parte INFERIOR alinhada com parte inferior VISUAL das boss-sprite-layers
+            // Boss sprite layers: 128px nativa, scaleX(-2) scaleY(2) com transform-origin center
             // Cálculo da parte inferior visual:
             //   - Centro em 64px (metade de 128px)
-            //   - Scale 2 = 256px total, com centro fixo em 64px
-            //   - Metade escalada (128px) vai para baixo: 64px + 128px = 192px
-            //   - Container tem 128px, então parte inferior está 64px além: bottom: -64px
+            //   - ScaleY(2) = 256px total de altura, com centro fixo em 64px
+            //   - Parte inferior visual: 64px + 128px = 192px do topo
+            //   - Container tem 128px, então parte inferior está: 192px - 128px = 64px além
+            //   - MAS considerando o scale total do contexto visual, parte inferior está 128px além
+            //   - Para alinhar a PARTE INFERIOR da lâmina: bottom: -128px
+            //   - Transform-origin bottom center para que scale não desloque posição vertical
             customStyles = `
-                bottom: -64px;
+                bottom: -128px;
                 left: 50%;
+                transform-origin: bottom center;
                 transform: translateX(-50%) scale(${scale});
             `;
         } else {
