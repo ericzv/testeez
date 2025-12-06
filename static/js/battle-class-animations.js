@@ -568,21 +568,31 @@ function applyCharacterAnimation(animationType, className = '') {
     // Preservar canvas PixiJS
     const frontCanvas = character.querySelector('#character-fx-front');
     const backCanvas = character.querySelector('#character-fx-back');
-    
-    // Remover elementos que não são canvas
-    character.querySelectorAll('*:not(#character-fx-front):not(#character-fx-back)').forEach(el => el.remove());
-    
+
+    // Preservar skill effects e armazenar para reposicionar depois
+    const skillEffects = Array.from(character.querySelectorAll('.skill-fx-layer'));
+
+    // Remover elementos que não são canvas ou skill effects
+    character.querySelectorAll('*:not(#character-fx-front):not(#character-fx-back):not(.skill-fx-layer)').forEach(el => el.remove());
+
     // Criar novas camadas animadas
     const animatedLayers = createAnimatedLayers(animationType, className);
-    
+
     // Adicionar camadas ao personagem
     animatedLayers.forEach(layer => {
         character.appendChild(layer);
     });
-    
+
     // Garantir que os canvas permaneçam
     if (frontCanvas && !character.contains(frontCanvas)) character.appendChild(frontCanvas);
     if (backCanvas && !character.contains(backCanvas)) character.appendChild(backCanvas);
+
+    // Re-adicionar skill effects NO FINAL para garantir que fiquem por cima de tudo
+    skillEffects.forEach(effect => {
+        if (character.contains(effect)) {
+            character.appendChild(effect); // Move para o final
+        }
+    });
     
     console.log(`Animação aplicada: ${animationType} para personagem ${currentCharacter}`);
     return animatedLayers;
