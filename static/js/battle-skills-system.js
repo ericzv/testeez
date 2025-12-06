@@ -1034,14 +1034,21 @@ function useSpecialSkill(skillId, skillName) {
                             console.log(`🧛 Aplicando animação do Vlad para skill ${skillId}: ${skillAnimation}`);
                             applyCharacterAnimation(skillAnimation, 'special-skill-anim');
 
-                            // Restaurar idle após a animação terminar
+                            // Restaurar idle após AMBAS as animações terminarem
+                            // Animação do Vlad: variável conforme skill (autofagia = 1.5s)
+                            // Sprite visual: removida automaticamente após sua duração
                             const animConfig = getCharacterAnimation(skillAnimation);
                             if (animConfig && animConfig.duration) {
-                                const duration = parseFloat(animConfig.duration) * 1000;
+                                const characterAnimDuration = parseFloat(animConfig.duration) * 1000;
+                                // Adicionar delay extra para garantir que sprite visual também termine
+                                // Sprite autofagia: 0.5s + 200ms buffer + delay de aplicação
+                                const extraDelay = 1000; // Buffer generoso
+                                const totalDuration = characterAnimDuration + extraDelay;
+
                                 setTimeout(() => {
-                                    console.log(`🎭 Restaurando idle após ${duration}ms`);
+                                    console.log(`🎭 Restaurando idle após ${totalDuration}ms`);
                                     restoreCharacterIdle();
-                                }, duration);
+                                }, totalDuration);
                             }
                         }
 
@@ -1116,14 +1123,21 @@ function useSpecialSkill(skillId, skillName) {
                             console.log(`🧛 Aplicando animação do Vlad para skill ${skillId}: ${skillAnimation}`);
                             applyCharacterAnimation(skillAnimation, 'special-skill-anim');
 
-                            // Restaurar idle após a animação terminar
+                            // Restaurar idle após AMBAS as animações terminarem
+                            // Animação do Vlad: variável conforme skill (autofagia = 1.5s)
+                            // Sprite visual: removida automaticamente após sua duração
                             const animConfig = getCharacterAnimation(skillAnimation);
                             if (animConfig && animConfig.duration) {
-                                const duration = parseFloat(animConfig.duration) * 1000;
+                                const characterAnimDuration = parseFloat(animConfig.duration) * 1000;
+                                // Adicionar delay extra para garantir que sprite visual também termine
+                                // Sprite autofagia: 0.5s + 200ms buffer + delay de aplicação
+                                const extraDelay = 1000; // Buffer generoso
+                                const totalDuration = characterAnimDuration + extraDelay;
+
                                 setTimeout(() => {
-                                    console.log(`🎭 Restaurando idle após ${duration}ms`);
+                                    console.log(`🎭 Restaurando idle após ${totalDuration}ms`);
                                     restoreCharacterIdle();
-                                }, duration);
+                                }, totalDuration);
                             }
                         }
 
