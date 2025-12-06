@@ -320,11 +320,11 @@ VLAD_SPECIAL_SKILLS_DATA = [
         "negative_effect_value": None,
         "duration_type": "instant",
         "duration_value": 0,
-        "animation_activate_1": "/static/game.data/fx/blood_barrier.png",
+        "animation_activate_1": "/static/game.data/fx/blood_barrier-24f-48x64.png",
         "animation_activate_2": "",
         "icon": "/static/game.data/icons/sk3.png",
         "sound_prep_1": "",
-        "sound_effect_1": "/static/game.data/sounds/blood_barrier.mp3"
+        "sound_effect_1": "/static/game.data/sounds/blood-barrier.mp3"
     },
     {
         "id": 141,
@@ -338,11 +338,11 @@ VLAD_SPECIAL_SKILLS_DATA = [
         "negative_effect_value": None,
         "duration_type": "instant",
         "duration_value": 0,
-        "animation_activate_1": "/static/game.data/fx/regeneration-16f-64x64.png",
+        "animation_activate_1": "/static/game.data/fx/regeneration-24f-48x64.png",
         "animation_activate_2": "",
         "icon": "/static/game.data/icons/sk3.png",
         "sound_prep_1": "",
-        "sound_effect_1": "/static/game.data/sounds/regen.mp3"
+        "sound_effect_1": "/static/game.data/sounds/vlad-regen.mp3"
     }
 ]
 
