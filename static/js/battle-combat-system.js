@@ -3411,7 +3411,7 @@ function performAttack(skill) {
             spriteLayer.className = 'boss-sprite-fx-layer';
             spriteLayer.style.cssText = `
                 position: absolute;
-                bottom: 0;
+                top: 0;
                 left: 50%;
                 transform: translateX(-50%);
                 width: ${frameWidth}px;
