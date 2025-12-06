@@ -1026,6 +1026,15 @@ function useSpecialSkill(skillId, skillName) {
 
                     if (data.details && data.details.animation) {
                         console.log("🎬 [VISUAL FX DEBUG] Usando animation data da API:", data.details.animation);
+
+                        // APLICAR ANIMAÇÃO DO PERSONAGEM (para Vlad usar animação específica da skill)
+                        const currentCharacter = getCurrentPlayerCharacter();
+                        if (currentCharacter === 'Vlad' || currentCharacter === 'vlad') {
+                            const skillAnimation = getSkillAnimation(skillId, 'idle');
+                            console.log(`🧛 Aplicando animação do Vlad para skill ${skillId}: ${skillAnimation}`);
+                            applyCharacterAnimation(skillAnimation, 'special-skill-anim');
+                        }
+
                         applySpecialSkillVisualEffect(data.details.animation);
 
                         // APLICAR DANO APÓS ANIMAÇÃO (delay para view swap + som + efeito)
@@ -1089,6 +1098,15 @@ function useSpecialSkill(skillId, skillName) {
                         }
                     } else if (data.details && data.details.effect_type) {
                         console.log("🎬 [VISUAL FX DEBUG] Construindo animation data de effect_type:", data.details.effect_type);
+
+                        // APLICAR ANIMAÇÃO DO PERSONAGEM (para Vlad usar animação específica da skill)
+                        const currentCharacter = getCurrentPlayerCharacter();
+                        if (currentCharacter === 'Vlad' || currentCharacter === 'vlad') {
+                            const skillAnimation = getSkillAnimation(skillId, 'idle');
+                            console.log(`🧛 Aplicando animação do Vlad para skill ${skillId}: ${skillAnimation}`);
+                            applyCharacterAnimation(skillAnimation, 'special-skill-anim');
+                        }
+
                         // Converter o tipo de efeito em dados de animação
                         const animationData = {
                             animation_activate_1: `/static/game.data/activation/${data.details.effect_type}_a.png`,
