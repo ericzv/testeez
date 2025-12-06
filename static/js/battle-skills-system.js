@@ -1351,6 +1351,14 @@ function applySpecialSkillVisualEffect(animationData) {
         } else if (filename.includes('blood-blade') || filename.includes('blood_blade')) {
             scale = 1.5; // Lâmina de Sangue: 1.5x
             console.log(`🔍 Detectada Lâmina de Sangue - aplicando scale ${scale}x`);
+        } else if (filename.includes('autofagia')) {
+            scale = 0.5; // Autofagia: 0.5x (metade do tamanho)
+            animationDuration = 0.5; // Mais rápido (era 0.8s)
+            console.log(`🔍 Detectada Autofagia - aplicando scale ${scale}x e duração ${animationDuration}s`);
+        } else if (filename.includes('regeneration')) {
+            scale = 2.5; // Regeneração: 2.5x
+            animationDuration = 1.2; // Mais lento (era 0.8s)
+            console.log(`🔍 Detectada Regeneração - aplicando scale ${scale}x e duração ${animationDuration}s`);
         }
 
         // Criar keyframes dinamicamente
