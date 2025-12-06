@@ -1033,6 +1033,16 @@ function useSpecialSkill(skillId, skillName) {
                             const skillAnimation = getSkillAnimation(skillId, 'idle');
                             console.log(`🧛 Aplicando animação do Vlad para skill ${skillId}: ${skillAnimation}`);
                             applyCharacterAnimation(skillAnimation, 'special-skill-anim');
+
+                            // Restaurar idle após a animação terminar
+                            const animConfig = getCharacterAnimation(skillAnimation);
+                            if (animConfig && animConfig.duration) {
+                                const duration = parseFloat(animConfig.duration) * 1000;
+                                setTimeout(() => {
+                                    console.log(`🎭 Restaurando idle após ${duration}ms`);
+                                    restoreCharacterIdle();
+                                }, duration);
+                            }
                         }
 
                         applySpecialSkillVisualEffect(data.details.animation);
@@ -1105,6 +1115,16 @@ function useSpecialSkill(skillId, skillName) {
                             const skillAnimation = getSkillAnimation(skillId, 'idle');
                             console.log(`🧛 Aplicando animação do Vlad para skill ${skillId}: ${skillAnimation}`);
                             applyCharacterAnimation(skillAnimation, 'special-skill-anim');
+
+                            // Restaurar idle após a animação terminar
+                            const animConfig = getCharacterAnimation(skillAnimation);
+                            if (animConfig && animConfig.duration) {
+                                const duration = parseFloat(animConfig.duration) * 1000;
+                                setTimeout(() => {
+                                    console.log(`🎭 Restaurando idle após ${duration}ms`);
+                                    restoreCharacterIdle();
+                                }, duration);
+                            }
                         }
 
                         // Converter o tipo de efeito em dados de animação
