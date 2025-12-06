@@ -1343,6 +1343,16 @@ function applySpecialSkillVisualEffect(animationData) {
         // Usar duração padrão de 0.8s conforme especificado
         console.log(`⏱️ Duração da animação: ${animationDuration}s`);
 
+        // Determinar scale baseado na skill
+        let scale = 1.0; // scale padrão
+        if (filename.includes('blood_barrier') || filename.includes('blood-barrier')) {
+            scale = 3.0; // Barreira de Sangue: 3x
+            console.log(`🔍 Detectada Barreira de Sangue - aplicando scale ${scale}x`);
+        } else if (filename.includes('blood-blade') || filename.includes('blood_blade')) {
+            scale = 1.5; // Lâmina de Sangue: 1.5x
+            console.log(`🔍 Detectada Lâmina de Sangue - aplicando scale ${scale}x`);
+        }
+
         // Criar keyframes dinamicamente
         const keyframeId = `skill-fx-${Date.now()}`;
         const styleEl = document.createElement('style');
@@ -1362,7 +1372,7 @@ function applySpecialSkillVisualEffect(animationData) {
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%) scale(${scale});
             width: ${frameWidth}px;
             height: ${frameHeight}px;
             background-image: url("${imageUrl}");
@@ -1372,6 +1382,7 @@ function applySpecialSkillVisualEffect(animationData) {
             opacity: 1;
             pointer-events: none;
             z-index: ${layer === 'front' ? '100' : '8'};
+            image-rendering: pixelated;
             animation: ${keyframeId} ${animationDuration}s steps(${frameCount}) forwards;
         `;
 
