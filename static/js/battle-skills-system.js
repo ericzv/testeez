@@ -1403,12 +1403,12 @@ function applySpecialSkillVisualEffect(animationData) {
             // Boss-container: 128x128, então 10% = 13px
             // Ajustes finais:
             //   - Base: top: 192px (parte inferior visual)
-            //   - 10% mais para cima: 192px - 13px = 179px
-            //   - 10% mais para direita: translateX(-50% + 13px)
+            //   - 20% mais para cima: 192px - 26px = 166px
+            //   - 20% mais para direita: translateX(-50% + 26px)
             customStyles = `
-                top: 179px;
+                top: 166px;
                 left: 50%;
-                transform: translateX(calc(-50% + 13px)) translateY(-100%) scale(${scale});
+                transform: translateX(calc(-50% + 26px)) translateY(-100%) scale(${scale});
             `;
         } else {
             // Padrão: centralizado
