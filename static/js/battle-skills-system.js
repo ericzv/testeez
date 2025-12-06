@@ -1398,20 +1398,18 @@ function applySpecialSkillVisualEffect(animationData) {
             zIndex = '9999'; // Z-index altíssimo
         } else if (filename.includes('blood-blade') || filename.includes('blood_blade')) {
             // Lâmina de Sangue: parte INFERIOR alinhada com parte inferior VISUAL das boss-sprite-layers
-            // Boss sprite layers: 128px nativa, scaleX(-2) scaleY(2) com transform-origin center
-            // Cálculo da parte inferior visual:
-            //   - Centro em 64px (metade de 128px)
-            //   - ScaleY(2) = 256px total de altura, com centro fixo em 64px
-            //   - Parte inferior visual: 64px + 128px = 192px do topo
-            //   - Container tem 128px, então parte inferior está: 192px - 128px = 64px além
-            //   - MAS considerando o scale total do contexto visual, parte inferior está 128px além
-            //   - Para alinhar a PARTE INFERIOR da lâmina: bottom: -128px
-            //   - Transform-origin bottom center para que scale não desloque posição vertical
+            // Usando mesma abordagem do especial (que funcionou!)
+            // Boss-sprite-layers: 256x256 CENTRALIZADAS no boss-container 128x128
+            // Cálculo:
+            //   - Topo visual: -64px (metade de (256-128))
+            //   - Parte inferior visual: -64px + 256px = 192px do topo do container
+            // Para alinhar PARTE INFERIOR da lâmina com isso:
+            //   - top: 192px (onde está a parte inferior visual)
+            //   - translateY(-100%) move a sprite toda para cima, colando sua parte inferior no ponto
             customStyles = `
-                bottom: -128px;
+                top: 192px;
                 left: 50%;
-                transform-origin: bottom center;
-                transform: translateX(-50%) scale(${scale});
+                transform: translateX(-50%) translateY(-100%) scale(${scale});
             `;
         } else {
             // Padrão: centralizado
