@@ -255,29 +255,6 @@ const CHARACTER_ANIMATIONS = {
         },
         special: {
             layers: {
-                fx2: "/static/game.data/character/vlad/special/special-fx2.png",
-                hairback: "/static/game.data/character/vlad/special/special-hairback.png",
-                cape: "/static/game.data/character/vlad/special/special-cape.png",
-                backarm: "/static/game.data/character/vlad/special/special-backarm.png",
-                body: "/static/game.data/character/vlad/special/special-body.png",
-                arms: "/static/game.data/character/vlad/special/special-arms.png",
-                head: "/static/game.data/character/vlad/special/special-head.png",
-                hair: "/static/game.data/character/vlad/special/special-hair.png",
-                ear: "/static/game.data/character/vlad/special/special-ear.png",
-                robe: "/static/game.data/character/vlad/special/special-robe.png",
-                ombreira: "/static/game.data/character/vlad/special/special-ombreira.png",
-                hairfront: "/static/game.data/character/vlad/special/special-hairfront.png",
-                fx1: "/static/game.data/character/vlad/special/special-fx1.png"
-            },
-            frames: 32,
-            totalWidth: 4096,
-            duration: "2.2s",
-            steps: 32,
-            scale: 1.0,
-            loop: "forwards"
-        },
-        ultimate: {
-            layers: {
                 fx2: "/static/game.data/character/vlad/ultimate/ultimate-fx2.png",
                 hairback: "/static/game.data/character/vlad/ultimate/ultimate-hairback.png",
                 cape: "/static/game.data/character/vlad/ultimate/ultimate-cape.png",
@@ -296,6 +273,29 @@ const CHARACTER_ANIMATIONS = {
             totalWidth: 3584,
             duration: "1.4s",
             steps: 28,
+            scale: 1.0,
+            loop: "forwards"
+        },
+        ultimate: {
+            layers: {
+                fx2: "/static/game.data/character/vlad/special/special-fx2.png",
+                hairback: "/static/game.data/character/vlad/special/special-hairback.png",
+                cape: "/static/game.data/character/vlad/special/special-cape.png",
+                backarm: "/static/game.data/character/vlad/special/special-backarm.png",
+                body: "/static/game.data/character/vlad/special/special-body.png",
+                arms: "/static/game.data/character/vlad/special/special-arms.png",
+                head: "/static/game.data/character/vlad/special/special-head.png",
+                hair: "/static/game.data/character/vlad/special/special-hair.png",
+                ear: "/static/game.data/character/vlad/special/special-ear.png",
+                robe: "/static/game.data/character/vlad/special/special-robe.png",
+                ombreira: "/static/game.data/character/vlad/special/special-ombreira.png",
+                hairfront: "/static/game.data/character/vlad/special/special-hairfront.png",
+                fx1: "/static/game.data/character/vlad/special/special-fx1.png"
+            },
+            frames: 32,
+            totalWidth: 4096,
+            duration: "2.2s",
+            steps: 32,
             scale: 1.0,
             loop: "forwards"
         },
