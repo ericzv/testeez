@@ -1400,16 +1400,15 @@ function applySpecialSkillVisualEffect(animationData) {
             // Lâmina de Sangue: parte INFERIOR alinhada com parte inferior VISUAL das boss-sprite-layers
             // Usando mesma abordagem do especial (que funcionou!)
             // Boss-sprite-layers: 256x256 CENTRALIZADAS no boss-container 128x128
-            // Cálculo:
-            //   - Topo visual: -64px (metade de (256-128))
-            //   - Parte inferior visual: -64px + 256px = 192px do topo do container
-            // Para alinhar PARTE INFERIOR da lâmina com isso:
-            //   - top: 192px (onde está a parte inferior visual)
-            //   - translateY(-100%) move a sprite toda para cima, colando sua parte inferior no ponto
+            // Boss-container: 128x128, então 10% = 13px
+            // Ajustes finais:
+            //   - Base: top: 192px (parte inferior visual)
+            //   - 10% mais para cima: 192px - 13px = 179px
+            //   - 10% mais para direita: translateX(-50% + 13px)
             customStyles = `
-                top: 192px;
+                top: 179px;
                 left: 50%;
-                transform: translateX(-50%) translateY(-100%) scale(${scale});
+                transform: translateX(calc(-50% + 13px)) translateY(-100%) scale(${scale});
             `;
         } else {
             // Padrão: centralizado
