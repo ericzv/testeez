@@ -3411,9 +3411,9 @@ function performAttack(skill) {
             spriteLayer.className = 'boss-sprite-fx-layer';
             spriteLayer.style.cssText = `
                 position: absolute;
-                top: 50%;
-                left: 55%;
-                transform: translate(-50%, -50%);
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
                 width: ${frameWidth}px;
                 height: ${frameHeight}px;
                 background-image: url("${imageUrl}");
@@ -3744,7 +3744,7 @@ function createDeathImpactAnimation() {
     deathImpact.style.cssText = `
         position: fixed;
         left: ${centerX - 45}px;
-        top: ${centerY - 47.25}px;
+        top: ${centerY + 10}px;
         width: 90px;
         height: 94.5px;
         background-image: url('/static/game.data/fx/death-impact.png');
@@ -3753,7 +3753,7 @@ function createDeathImpactAnimation() {
         background-repeat: no-repeat;
         z-index: 9001;
         pointer-events: none;
-        transform: scale(2.0);
+        transform: scale(1.7);
         transform-origin: center center;
         image-rendering: pixelated;
         animation: death-impact-frames-scaled 1.2s steps(60) forwards;

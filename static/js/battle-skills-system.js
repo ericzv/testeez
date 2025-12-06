@@ -1376,11 +1376,38 @@ function applySpecialSkillVisualEffect(animationData) {
         const fxLayer = document.createElement('div');
         fxLayer.className = `skill-fx-layer skill-fx-${layer}`;
 
+        // Ajustes específicos por skill
+        let customStyles = '';
+        let zIndex = layer === 'front' ? '1000' : '8';
+
+        if (filename.includes('autofagia')) {
+            // Autofagia: parte inferior esquerda do sprite alinhada ao centro do Vlad
+            customStyles = `
+                top: 50%;
+                left: 50%;
+                transform-origin: bottom left;
+                transform: translate(0, -100%) scale(${scale});
+            `;
+        } else if (filename.includes('regeneration')) {
+            // Regeneração: z-index super alto para ficar na frente de TODAS as camadas do Vlad
+            customStyles = `
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) scale(${scale});
+            `;
+            zIndex = '9999'; // Z-index altíssimo
+        } else {
+            // Padrão: centralizado
+            customStyles = `
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) scale(${scale});
+            `;
+        }
+
         fxLayer.style.cssText = `
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(${scale});
+            ${customStyles}
             width: ${frameWidth}px;
             height: ${frameHeight}px;
             background-image: url("${imageUrl}");
@@ -1389,7 +1416,7 @@ function applySpecialSkillVisualEffect(animationData) {
             background-size: ${totalWidth}px ${frameHeight}px;
             opacity: 1;
             pointer-events: none;
-            z-index: ${layer === 'front' ? '100' : '8'};
+            z-index: ${zIndex};
             image-rendering: pixelated;
             animation: ${keyframeId} ${animationDuration}s steps(${frameCount}) forwards;
         `;
