@@ -237,37 +237,37 @@ VLAD_ATTACK_SKILLS_DATA = [
     {
         "id": 52,
         "name": "Abraço da Escuridão",
-        "description": "Feixe sombrio que envolve o inimigo",
+        "description": "Execução sanguinária que atinge o inimigo",
         "effect_type": "crit_chance",
         "effect_value": 0.20,
-        "animation_fx_a": "abraco_escuridao_front",
-        "animation_fx_b": "abraco_escuridao_back",
+        "animation_fx_a": "",
+        "animation_fx_b": "",
         "animation_attack": "",
-        "boss_damage_overlay": "darkness_embrace_distant",
+        "boss_damage_overlay": "/static/game.data/fx/blood-execution-111x186px-16f.png",
         "icon": "/static/game.data/icons/icon2.png",
         "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
         "sound_prep_2": "",
-        "sound_effect_1": "/static/game.data/sounds/sfx2.mp3",
+        "sound_effect_1": "/static/game.data/sounds/execution.mp3",
         "sound_effect_2": "",
-        "attack_sequence": "ranged_beam",
-        "beam_type": "dark_beam"
+        "attack_sequence": "ranged_distant"
     },
     {
         "id": 53,
         "name": "Beijo da Morte",
-        "description": "O ultimate vampírico que drena toda essência vital",
+        "description": "O ultimate vampírico - feixe sombrio que drena toda essência vital",
         "effect_type": "",
         "effect_value": 0.0,
         "animation_fx_a": "beijo_morte_front",
         "animation_fx_b": "beijo_morte_back",
         "animation_attack": "",
         "icon": "/static/game.data/icons/icon2.png",
-        "boss_damage_overlay": "blood_damage",
+        "boss_damage_overlay": "darkness_embrace_distant",
         "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
         "sound_prep_2": "",
         "sound_effect_1": "/static/game.data/sounds/sfx2.mp3",
         "sound_effect_2": "",
-        "attack_sequence": "ranged_distant"
+        "attack_sequence": "ranged_beam",
+        "beam_type": "dark_beam"
     }
 ]
 

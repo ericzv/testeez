@@ -3349,6 +3349,94 @@ function performAttack(skill) {
 
         applyBossDamageEffect() {
             // Sistema PixiJS removido - função vazia
+            // NOVO: Detectar sprite animations PNG para aplicar sobre o boss
+            if (!this.currentSkill || !this.currentSkill.boss_damage_overlay) {
+                return;
+            }
+
+            const overlayPath = this.currentSkill.boss_damage_overlay;
+
+            // Detectar se é um arquivo PNG (sprite animation)
+            if (overlayPath.endsWith('.png')) {
+                console.log("🎬 Aplicando sprite animation sobre o boss:", overlayPath);
+                this.applyBossSpriteAnimation(overlayPath);
+            } else {
+                // Shaders de cor ou outros efeitos (futuro)
+                console.log("🎨 Aplicando shader/efeito sobre o boss:", overlayPath);
+            }
+        }
+
+        applyBossSpriteAnimation(imageUrl) {
+            const boss = document.getElementById('boss');
+            if (!boss) {
+                console.error("Boss element not found");
+                return;
+            }
+
+            // Extrair informações do nome do arquivo
+            // Formato esperado: nome-WIDTHxHEIGHTpx-FRAMESf.png
+            // Exemplo: blood-execution-111x186px-16f.png
+            const filename = imageUrl.split('/').pop();
+            const match = filename.match(/(\d+)x(\d+)px-(\d+)f/);
+
+            let frameWidth = 111;
+            let frameHeight = 186;
+            let frameCount = 16;
+            let duration = 1.0; // duração padrão em segundos
+
+            if (match) {
+                frameWidth = parseInt(match[1]);
+                frameHeight = parseInt(match[2]);
+                frameCount = parseInt(match[3]);
+                console.log(`📏 Sprite detectado: ${frameWidth}x${frameHeight}px, ${frameCount} frames`);
+            }
+
+            const totalWidth = frameWidth * frameCount;
+            const animationDuration = duration; // usar duração especificada
+
+            // Criar keyframes dinamicamente
+            const keyframeId = `boss-sprite-fx-${Date.now()}`;
+            const styleEl = document.createElement('style');
+            styleEl.id = keyframeId;
+            styleEl.textContent = `
+                @keyframes ${keyframeId} {
+                    from { background-position: 0 0; }
+                    to { background-position: -${totalWidth}px 0; }
+                }
+            `;
+            document.head.appendChild(styleEl);
+
+            // Criar elemento da sprite animation
+            const spriteLayer = document.createElement('div');
+            spriteLayer.className = 'boss-sprite-fx-layer';
+            spriteLayer.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: ${frameWidth}px;
+                height: ${frameHeight}px;
+                background-image: url("${imageUrl}");
+                background-repeat: no-repeat;
+                background-position: 0 0;
+                background-size: ${totalWidth}px ${frameHeight}px;
+                opacity: 1;
+                pointer-events: none;
+                z-index: 100;
+                image-rendering: pixelated;
+                animation: ${keyframeId} ${animationDuration}s steps(${frameCount}) forwards;
+            `;
+
+            boss.appendChild(spriteLayer);
+            console.log(`✅ Sprite FX adicionado ao boss`);
+
+            // Remover após animação
+            setTimeout(() => {
+                spriteLayer.remove();
+                const keyframeStyle = document.getElementById(keyframeId);
+                if (keyframeStyle) keyframeStyle.remove();
+                console.log(`🗑️ Sprite FX do boss removido após ${animationDuration}s`);
+            }, animationDuration * 1000 + 200);
         }
         
         createProjectileEffect() {
