@@ -363,6 +363,11 @@
     z-index: 10; /* Para aparecer sobre o personagem */
   }
 
+  /* Garantir que skill effects apareçam SEMPRE acima das camadas do Vlad */
+  .character-container[data-character="vlad"] .skill-fx-layer {
+    z-index: 9999 !important; /* Maior que layer-fx1 (13) */
+  }
+
 
   /* Boss View Styles */
   .boss-view .background-default,
@@ -1769,7 +1774,7 @@
 
   /* Vlad - Autofagia */
   .character-container[data-character="vlad"] .character-sprite-layer.autofagia-anim {
-      animation: vlad-autofagia-animation 3.1s steps(31) forwards;
+      animation: vlad-autofagia-animation 3.5s steps(31) forwards;
   }
 
   /* Vlad - DeathDamage */

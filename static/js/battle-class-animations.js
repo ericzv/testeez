@@ -255,29 +255,6 @@ const CHARACTER_ANIMATIONS = {
         },
         special: {
             layers: {
-                fx2: "/static/game.data/character/vlad/special/special-fx2.png",
-                hairback: "/static/game.data/character/vlad/special/special-hairback.png",
-                cape: "/static/game.data/character/vlad/special/special-cape.png",
-                backarm: "/static/game.data/character/vlad/special/special-backarm.png",
-                body: "/static/game.data/character/vlad/special/special-body.png",
-                arms: "/static/game.data/character/vlad/special/special-arms.png",
-                head: "/static/game.data/character/vlad/special/special-head.png",
-                hair: "/static/game.data/character/vlad/special/special-hair.png",
-                ear: "/static/game.data/character/vlad/special/special-ear.png",
-                robe: "/static/game.data/character/vlad/special/special-robe.png",
-                ombreira: "/static/game.data/character/vlad/special/special-ombreira.png",
-                hairfront: "/static/game.data/character/vlad/special/special-hairfront.png",
-                fx1: "/static/game.data/character/vlad/special/special-fx1.png"
-            },
-            frames: 32,
-            totalWidth: 4096,
-            duration: "2.2s",
-            steps: 32,
-            scale: 1.0,
-            loop: "forwards"
-        },
-        ultimate: {
-            layers: {
                 fx2: "/static/game.data/character/vlad/ultimate/ultimate-fx2.png",
                 hairback: "/static/game.data/character/vlad/ultimate/ultimate-hairback.png",
                 cape: "/static/game.data/character/vlad/ultimate/ultimate-cape.png",
@@ -296,6 +273,29 @@ const CHARACTER_ANIMATIONS = {
             totalWidth: 3584,
             duration: "1.4s",
             steps: 28,
+            scale: 1.0,
+            loop: "forwards"
+        },
+        ultimate: {
+            layers: {
+                fx2: "/static/game.data/character/vlad/special/special-fx2.png",
+                hairback: "/static/game.data/character/vlad/special/special-hairback.png",
+                cape: "/static/game.data/character/vlad/special/special-cape.png",
+                backarm: "/static/game.data/character/vlad/special/special-backarm.png",
+                body: "/static/game.data/character/vlad/special/special-body.png",
+                arms: "/static/game.data/character/vlad/special/special-arms.png",
+                head: "/static/game.data/character/vlad/special/special-head.png",
+                hair: "/static/game.data/character/vlad/special/special-hair.png",
+                ear: "/static/game.data/character/vlad/special/special-ear.png",
+                robe: "/static/game.data/character/vlad/special/special-robe.png",
+                ombreira: "/static/game.data/character/vlad/special/special-ombreira.png",
+                hairfront: "/static/game.data/character/vlad/special/special-hairfront.png",
+                fx1: "/static/game.data/character/vlad/special/special-fx1.png"
+            },
+            frames: 32,
+            totalWidth: 4096,
+            duration: "2.2s",
+            steps: 32,
             scale: 1.0,
             loop: "forwards"
         },
@@ -340,7 +340,7 @@ const CHARACTER_ANIMATIONS = {
             },
             frames: 31,
             totalWidth: 3968,
-            duration: "1.5s",
+            duration: "3.5s",
             steps: 31,
             scale: 1.0,
             loop: "forwards"
@@ -568,21 +568,31 @@ function applyCharacterAnimation(animationType, className = '') {
     // Preservar canvas PixiJS
     const frontCanvas = character.querySelector('#character-fx-front');
     const backCanvas = character.querySelector('#character-fx-back');
-    
-    // Remover elementos que não são canvas
-    character.querySelectorAll('*:not(#character-fx-front):not(#character-fx-back)').forEach(el => el.remove());
-    
+
+    // Preservar skill effects e armazenar para reposicionar depois
+    const skillEffects = Array.from(character.querySelectorAll('.skill-fx-layer'));
+
+    // Remover elementos que não são canvas ou skill effects
+    character.querySelectorAll('*:not(#character-fx-front):not(#character-fx-back):not(.skill-fx-layer)').forEach(el => el.remove());
+
     // Criar novas camadas animadas
     const animatedLayers = createAnimatedLayers(animationType, className);
-    
+
     // Adicionar camadas ao personagem
     animatedLayers.forEach(layer => {
         character.appendChild(layer);
     });
-    
+
     // Garantir que os canvas permaneçam
     if (frontCanvas && !character.contains(frontCanvas)) character.appendChild(frontCanvas);
     if (backCanvas && !character.contains(backCanvas)) character.appendChild(backCanvas);
+
+    // Re-adicionar skill effects NO FINAL para garantir que fiquem por cima de tudo
+    skillEffects.forEach(effect => {
+        if (character.contains(effect)) {
+            character.appendChild(effect); // Move para o final
+        }
+    });
     
     console.log(`Animação aplicada: ${animationType} para personagem ${currentCharacter}`);
     return animatedLayers;

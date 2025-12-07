@@ -237,37 +237,37 @@ VLAD_ATTACK_SKILLS_DATA = [
     {
         "id": 52,
         "name": "Abraço da Escuridão",
-        "description": "Feixe sombrio que envolve o inimigo",
+        "description": "Execução sanguinária que atinge o inimigo",
         "effect_type": "crit_chance",
         "effect_value": 0.20,
-        "animation_fx_a": "abraco_escuridao_front",
-        "animation_fx_b": "abraco_escuridao_back",
+        "animation_fx_a": "",
+        "animation_fx_b": "",
         "animation_attack": "",
-        "boss_damage_overlay": "darkness_embrace_distant",
+        "boss_damage_overlay": "/static/game.data/fx/blood-execution-111x186px-16f.png",
         "icon": "/static/game.data/icons/icon2.png",
         "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
         "sound_prep_2": "",
-        "sound_effect_1": "/static/game.data/sounds/sfx2.mp3",
+        "sound_effect_1": "/static/game.data/sounds/execution.mp3",
         "sound_effect_2": "",
-        "attack_sequence": "ranged_beam",
-        "beam_type": "dark_beam"
+        "attack_sequence": "ranged_distant"
     },
     {
         "id": 53,
         "name": "Beijo da Morte",
-        "description": "O ultimate vampírico que drena toda essência vital",
+        "description": "O ultimate vampírico - feixe sombrio que drena toda essência vital",
         "effect_type": "",
         "effect_value": 0.0,
         "animation_fx_a": "beijo_morte_front",
         "animation_fx_b": "beijo_morte_back",
         "animation_attack": "",
         "icon": "/static/game.data/icons/icon2.png",
-        "boss_damage_overlay": "blood_damage",
+        "boss_damage_overlay": "darkness_embrace_distant",
         "sound_prep_1": "/static/game.data/sounds/sfx1.mp3",
         "sound_prep_2": "",
         "sound_effect_1": "/static/game.data/sounds/sfx2.mp3",
         "sound_effect_2": "",
-        "attack_sequence": "ranged_distant"
+        "attack_sequence": "ranged_beam",
+        "beam_type": "dark_beam"
     }
 ]
 
@@ -284,7 +284,7 @@ VLAD_SPECIAL_SKILLS_DATA = [
         "negative_effect_value": None,
         "duration_type": "attacks",
         "duration_value": 1,  # Bônus de dano válido por 1 ataque
-        "animation_activate_1": "/static/game.data/fx/autofagia300-300-7f.png",
+        "animation_activate_1": "",
         "animation_activate_2": "",
         "icon": "/static/game.data/icons/sk1.png",
         "sound_prep_1": "",
@@ -302,7 +302,7 @@ VLAD_SPECIAL_SKILLS_DATA = [
         "negative_effect_value": None,
         "duration_type": "instant",
         "duration_value": 0,
-        "animation_activate_1": "/static/game.data/fx/autofagia300-300-7f.png",
+        "animation_activate_1": "/static/game.data/fx/blood-blade-128x128px-12f.png",
         "animation_activate_2": "",
         "icon": "/static/game.data/icons/sk2.png",
         "sound_prep_1": "",
@@ -320,11 +320,11 @@ VLAD_SPECIAL_SKILLS_DATA = [
         "negative_effect_value": None,
         "duration_type": "instant",
         "duration_value": 0,
-        "animation_activate_1": "/static/game.data/fx/blood_barrier.png",
+        "animation_activate_1": "/static/game.data/fx/blood_barrier-24f-48x64.png",
         "animation_activate_2": "",
         "icon": "/static/game.data/icons/sk3.png",
         "sound_prep_1": "",
-        "sound_effect_1": "/static/game.data/sounds/blood_barrier.mp3"
+        "sound_effect_1": "/static/game.data/sounds/blood-barrier.mp3"
     },
     {
         "id": 141,
@@ -338,11 +338,11 @@ VLAD_SPECIAL_SKILLS_DATA = [
         "negative_effect_value": None,
         "duration_type": "instant",
         "duration_value": 0,
-        "animation_activate_1": "/static/game.data/fx/regen.png",
+        "animation_activate_1": "/static/game.data/fx/regeneration-24f-48x64.png",
         "animation_activate_2": "",
         "icon": "/static/game.data/icons/sk3.png",
         "sound_prep_1": "",
-        "sound_effect_1": "/static/game.data/sounds/regen.mp3"
+        "sound_effect_1": "/static/game.data/sounds/vlad-regen.mp3"
     }
 ]
 

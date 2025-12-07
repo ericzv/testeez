@@ -1026,6 +1026,29 @@ function useSpecialSkill(skillId, skillName) {
 
                     if (data.details && data.details.animation) {
                         console.log("🎬 [VISUAL FX DEBUG] Usando animation data da API:", data.details.animation);
+
+                        // APLICAR ANIMAÇÃO DO PERSONAGEM (para Vlad usar animação específica da skill)
+                        const currentCharacter = getCurrentPlayerCharacter();
+                        if (currentCharacter === 'Vlad' || currentCharacter === 'vlad') {
+                            const skillAnimation = getSkillAnimation(skillId, 'idle');
+                            console.log(`🧛 Aplicando animação do Vlad para skill ${skillId}: ${skillAnimation}`);
+                            applyCharacterAnimation(skillAnimation, 'special-skill-anim');
+
+                            // Restaurar idle imediatamente após animação terminar (transição fluida)
+                            const animConfig = getCharacterAnimation(skillAnimation);
+                            if (animConfig && animConfig.duration) {
+                                const characterAnimDuration = parseFloat(animConfig.duration) * 1000;
+                                // Começar transição para idle ligeiramente ANTES do fim para suavidade
+                                const earlyTransition = -50; // 50ms antes do final
+                                const totalDuration = characterAnimDuration + earlyTransition;
+
+                                setTimeout(() => {
+                                    console.log(`🎭 Restaurando idle após ${totalDuration}ms (transição fluida)`);
+                                    restoreCharacterIdle();
+                                }, totalDuration);
+                            }
+                        }
+
                         applySpecialSkillVisualEffect(data.details.animation);
 
                         // APLICAR DANO APÓS ANIMAÇÃO (delay para view swap + som + efeito)
@@ -1089,6 +1112,29 @@ function useSpecialSkill(skillId, skillName) {
                         }
                     } else if (data.details && data.details.effect_type) {
                         console.log("🎬 [VISUAL FX DEBUG] Construindo animation data de effect_type:", data.details.effect_type);
+
+                        // APLICAR ANIMAÇÃO DO PERSONAGEM (para Vlad usar animação específica da skill)
+                        const currentCharacter = getCurrentPlayerCharacter();
+                        if (currentCharacter === 'Vlad' || currentCharacter === 'vlad') {
+                            const skillAnimation = getSkillAnimation(skillId, 'idle');
+                            console.log(`🧛 Aplicando animação do Vlad para skill ${skillId}: ${skillAnimation}`);
+                            applyCharacterAnimation(skillAnimation, 'special-skill-anim');
+
+                            // Restaurar idle imediatamente após animação terminar (transição fluida)
+                            const animConfig = getCharacterAnimation(skillAnimation);
+                            if (animConfig && animConfig.duration) {
+                                const characterAnimDuration = parseFloat(animConfig.duration) * 1000;
+                                // Começar transição para idle ligeiramente ANTES do fim para suavidade
+                                const earlyTransition = -50; // 50ms antes do final
+                                const totalDuration = characterAnimDuration + earlyTransition;
+
+                                setTimeout(() => {
+                                    console.log(`🎭 Restaurando idle após ${totalDuration}ms (transição fluida)`);
+                                    restoreCharacterIdle();
+                                }, totalDuration);
+                            }
+                        }
+
                         // Converter o tipo de efeito em dados de animação
                         const animationData = {
                             animation_activate_1: `/static/game.data/activation/${data.details.effect_type}_a.png`,
@@ -1268,9 +1314,10 @@ function applySpecialSkillVisualEffect(animationData) {
         if (hasVisualEffect1) {
             console.log("🖼️ Aplicando sprite activate_1:", hasVisualEffect1, "no target:", targetElement?.id);
             // Usar sistema existente de sprites - agora com TARGET correto
+            // delay * 1 = 500ms (1.5 segundos antes do original delay * 3 = 1500ms)
             setTimeout(() => {
                 createSpriteAnimationLayers(hasVisualEffect1, 'front', targetElement);
-            }, delay * 3);
+            }, delay * 1);
         }
 
         // ANIMATION_ACTIVATE_2 - Efeito traseiro
@@ -1297,23 +1344,69 @@ function applySpecialSkillVisualEffect(animationData) {
         // Remover camadas anteriores
         document.querySelectorAll('.skill-fx-layer').forEach(el => el.remove());
 
-        // Extrair informações do nome do arquivo (ex: autofagia300-300-7f.png)
+        // Extrair informações do nome do arquivo
+        // Suporta múltiplos formatos:
+        // 1. autofagia-300-300-7f.png (WIDTH-HEIGHT-FRAMESf)
+        // 2. blood-blade-128x128px-12f.png (WIDTHxHEIGHTpx-FRAMESf)
+        // 3. regeneration-16f-64x64.png (FRAMESf-WIDTHxHEIGHT)
         const filename = imageUrl.split('/').pop();
-        const match = filename.match(/(\d+)-(\d+)-(\d+)f/);
 
         let frameWidth = 300;
         let frameHeight = 300;
         let frameCount = 7;
+        let animationDuration = 0.8; // duração padrão em segundos
 
+        // Tentar formato: WIDTHxHEIGHTpx-FRAMESf (ex: 128x128px-12f)
+        let match = filename.match(/(\d+)x(\d+)px-(\d+)f/);
         if (match) {
             frameWidth = parseInt(match[1]);
             frameHeight = parseInt(match[2]);
             frameCount = parseInt(match[3]);
-            console.log(`📏 Sprite detectado: ${frameWidth}x${frameHeight}, ${frameCount} frames`);
+            console.log(`📏 Sprite detectado (formato WxHpx-Ff): ${frameWidth}x${frameHeight}px, ${frameCount} frames`);
+        } else {
+            // Tentar formato: FRAMESf-WIDTHxHEIGHT (ex: 16f-64x64)
+            match = filename.match(/(\d+)f-(\d+)x(\d+)/);
+            if (match) {
+                frameCount = parseInt(match[1]);
+                frameWidth = parseInt(match[2]);
+                frameHeight = parseInt(match[3]);
+                console.log(`📏 Sprite detectado (formato Ff-WxH): ${frameWidth}x${frameHeight}px, ${frameCount} frames`);
+            } else {
+                // Tentar formato antigo: WIDTH-HEIGHT-FRAMESf (ex: 300-300-7f)
+                match = filename.match(/(\d+)-(\d+)-(\d+)f/);
+                if (match) {
+                    frameWidth = parseInt(match[1]);
+                    frameHeight = parseInt(match[2]);
+                    frameCount = parseInt(match[3]);
+                    console.log(`📏 Sprite detectado (formato W-H-Ff): ${frameWidth}x${frameHeight}px, ${frameCount} frames`);
+                } else {
+                    console.warn(`⚠️ Formato de sprite não reconhecido: ${filename}, usando valores padrão`);
+                }
+            }
         }
 
         const totalWidth = frameWidth * frameCount;
-        const animationDuration = frameCount * 0.1; // 100ms por frame
+
+        // Usar duração padrão de 0.8s conforme especificado
+        console.log(`⏱️ Duração da animação: ${animationDuration}s`);
+
+        // Determinar scale baseado na skill
+        let scale = 1.0; // scale padrão
+        if (filename.includes('blood_barrier') || filename.includes('blood-barrier')) {
+            scale = 3.0; // Barreira de Sangue: 3x
+            console.log(`🔍 Detectada Barreira de Sangue - aplicando scale ${scale}x`);
+        } else if (filename.includes('blood-blade') || filename.includes('blood_blade')) {
+            scale = 1.5; // Lâmina de Sangue: 1.5x
+            console.log(`🔍 Detectada Lâmina de Sangue - aplicando scale ${scale}x`);
+        } else if (filename.includes('autofagia')) {
+            scale = 0.3; // Autofagia: 0.3x (20% menor que 0.375x)
+            animationDuration = 0.5; // Mais rápido (era 0.8s)
+            console.log(`🔍 Detectada Autofagia - aplicando scale ${scale}x e duração ${animationDuration}s`);
+        } else if (filename.includes('regeneration')) {
+            scale = 2.5; // Regeneração: 2.5x
+            animationDuration = 1.2; // Mais lento (era 0.8s)
+            console.log(`🔍 Detectada Regeneração - aplicando scale ${scale}x e duração ${animationDuration}s`);
+        }
 
         // Criar keyframes dinamicamente
         const keyframeId = `skill-fx-${Date.now()}`;
@@ -1330,11 +1423,53 @@ function applySpecialSkillVisualEffect(animationData) {
         const fxLayer = document.createElement('div');
         fxLayer.className = `skill-fx-layer skill-fx-${layer}`;
 
+        // Ajustes específicos por skill
+        let customStyles = '';
+        let zIndex = layer === 'front' ? '1000' : '8';
+
+        if (filename.includes('autofagia')) {
+            // Autofagia: parte inferior esquerda do sprite alinhada ao centro do Vlad
+            // Ajustes: +25px para baixo (13px + 12px), +20px para direita
+            customStyles = `
+                top: calc(50% + 25px);
+                left: 50%;
+                transform-origin: bottom left;
+                transform: translate(20px, -100%) scale(${scale});
+            `;
+        } else if (filename.includes('regeneration')) {
+            // Regeneração: z-index super alto para ficar na frente de TODAS as camadas do Vlad
+            customStyles = `
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) scale(${scale});
+            `;
+            zIndex = '9999'; // Z-index altíssimo
+        } else if (filename.includes('blood-blade') || filename.includes('blood_blade')) {
+            // Lâmina de Sangue: parte INFERIOR alinhada com parte inferior VISUAL das boss-sprite-layers
+            // Usando mesma abordagem do especial (que funcionou!)
+            // Boss-sprite-layers: 256x256 CENTRALIZADAS no boss-container 128x128
+            // Boss-container: 128x128, então 10% = 13px
+            // Ajustes finais:
+            //   - Base: top: 192px (parte inferior visual)
+            //   - 20% mais para cima: 192px - 26px = 166px
+            //   - 20% mais para direita: translateX(-50% + 26px)
+            customStyles = `
+                top: 166px;
+                left: 50%;
+                transform: translateX(calc(-50% + 26px)) translateY(-100%) scale(${scale});
+            `;
+        } else {
+            // Padrão: centralizado
+            customStyles = `
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) scale(${scale});
+            `;
+        }
+
         fxLayer.style.cssText = `
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            ${customStyles}
             width: ${frameWidth}px;
             height: ${frameHeight}px;
             background-image: url("${imageUrl}");
@@ -1343,7 +1478,8 @@ function applySpecialSkillVisualEffect(animationData) {
             background-size: ${totalWidth}px ${frameHeight}px;
             opacity: 1;
             pointer-events: none;
-            z-index: ${layer === 'front' ? '100' : '8'};
+            z-index: ${zIndex};
+            image-rendering: pixelated;
             animation: ${keyframeId} ${animationDuration}s steps(${frameCount}) forwards;
         `;
 
