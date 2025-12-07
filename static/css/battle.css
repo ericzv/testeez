@@ -1774,7 +1774,7 @@
 
   /* Vlad - Autofagia */
   .character-container[data-character="vlad"] .character-sprite-layer.autofagia-anim {
-      animation: vlad-autofagia-animation 3.1s steps(31) forwards;
+      animation: vlad-autofagia-animation 3.5s steps(31) forwards;
   }
 
   /* Vlad - DeathDamage */
