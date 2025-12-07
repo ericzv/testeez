@@ -86,6 +86,22 @@
         box-shadow:
             0 0 30px rgba(0, 0, 0, 0.8),
             inset 0 0 40px rgba(0, 0, 0, 0.5);
+        animation: containerFloat 6s ease-in-out infinite;
+    }
+
+    @keyframes containerFloat {
+        0%, 100% {
+            transform: translateY(0px) rotate(0deg);
+        }
+        25% {
+            transform: translateY(-8px) rotate(1deg);
+        }
+        50% {
+            transform: translateY(-12px) rotate(0deg);
+        }
+        75% {
+            transform: translateY(-8px) rotate(-1deg);
+        }
     }
 
     /* Efeitos de brilho baseados no tipo de evento */
@@ -241,20 +257,31 @@
     }
 
     .event-image {
-        width: auto;
-        height: 100%;
-        min-width: 100%;
+        width: 85%;
+        height: auto;
+        min-height: 100%;
         object-fit: cover;
         object-position: center;
-        animation: imagePan 20s ease-in-out infinite;
+        animation: imagePanAndFloat 18s ease-in-out infinite;
+        transform-origin: center;
     }
 
-    @keyframes imagePan {
+    @keyframes imagePanAndFloat {
         0%, 100% {
-            object-position: 40% center;
+            object-position: 35% center;
+            transform: scale(1) rotate(0deg);
+        }
+        25% {
+            object-position: 50% center;
+            transform: scale(1.05) rotate(1deg);
         }
         50% {
-            object-position: 60% center;
+            object-position: 65% center;
+            transform: scale(1.08) rotate(0deg);
+        }
+        75% {
+            object-position: 50% center;
+            transform: scale(1.05) rotate(-1deg);
         }
     }
 
