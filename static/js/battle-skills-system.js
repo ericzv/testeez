@@ -1320,9 +1320,10 @@ function applySpecialSkillVisualEffect(animationData) {
         if (hasVisualEffect1) {
             console.log("🖼️ Aplicando sprite activate_1:", hasVisualEffect1, "no target:", targetElement?.id);
             // Usar sistema existente de sprites - agora com TARGET correto
+            // delay * 2 = 1000ms (1 segundo antes do original delay * 3 = 1500ms)
             setTimeout(() => {
                 createSpriteAnimationLayers(hasVisualEffect1, 'front', targetElement);
-            }, delay * 3);
+            }, delay * 2);
         }
 
         // ANIMATION_ACTIVATE_2 - Efeito traseiro
@@ -1404,7 +1405,7 @@ function applySpecialSkillVisualEffect(animationData) {
             scale = 1.5; // Lâmina de Sangue: 1.5x
             console.log(`🔍 Detectada Lâmina de Sangue - aplicando scale ${scale}x`);
         } else if (filename.includes('autofagia')) {
-            scale = 0.5; // Autofagia: 0.5x (metade do tamanho)
+            scale = 0.375; // Autofagia: 0.375x (25% menor que 0.5x)
             animationDuration = 0.5; // Mais rápido (era 0.8s)
             console.log(`🔍 Detectada Autofagia - aplicando scale ${scale}x e duração ${animationDuration}s`);
         } else if (filename.includes('regeneration')) {
@@ -1434,8 +1435,9 @@ function applySpecialSkillVisualEffect(animationData) {
 
         if (filename.includes('autofagia')) {
             // Autofagia: parte inferior esquerda do sprite alinhada ao centro do Vlad
+            // Ajustes: 10% mais para baixo (character container ~128px, 10% = 13px)
             customStyles = `
-                top: 50%;
+                top: calc(50% + 13px);
                 left: 50%;
                 transform-origin: bottom left;
                 transform: translate(0, -100%) scale(${scale});
