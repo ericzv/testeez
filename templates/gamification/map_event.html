@@ -806,16 +806,29 @@
 <div class="event-overlay">
     <div class="event-popup">
         <div class="event-header">
-            <h1 class="event-title">{{ event.name }}</h1>
+            <h1 class="event-title">
+                {% if event.icon %}
+                    <img src="/static/game.data/events/icons/{{ event.icon }}"
+                         alt="{{ event.name }}"
+                         style="width: 48px; height: 48px; vertical-align: middle; margin-right: 12px; border-radius: 8px;"
+                         onerror="this.style.display='none';">
+                {% endif %}
+                {{ event.name }}
+            </h1>
         </div>
 
         <div class="event-content">
             <div class="event-image-container">
                 {% if event.image %}
-                    <img src="/static/game.data/events/icons/{{ event.image }}"
-                         alt="{{ event.name }}"
-                         class="event-image"
-                         onerror="this.style.display='none'; this.parentElement.querySelector('.event-image-placeholder').style.display='block';">
+                    <picture>
+                        <!-- Tentar carregar WebP primeiro (menor) -->
+                        <source srcset="/static/game.data/events/images/{{ event.image.replace('.png', '.webp') }}" type="image/webp">
+                        <!-- Fallback para PNG -->
+                        <img src="/static/game.data/events/images/{{ event.image }}"
+                             alt="{{ event.name }}"
+                             class="event-image"
+                             onerror="this.style.display='none'; this.parentElement.querySelector('.event-image-placeholder').style.display='block';">
+                    </picture>
                     <div class="event-image-placeholder" style="display: none;">❓</div>
                 {% else %}
                     <div class="event-image-placeholder">❓</div>
