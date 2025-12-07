@@ -1034,16 +1034,16 @@ function useSpecialSkill(skillId, skillName) {
                             console.log(`🧛 Aplicando animação do Vlad para skill ${skillId}: ${skillAnimation}`);
                             applyCharacterAnimation(skillAnimation, 'special-skill-anim');
 
-                            // Restaurar idle após animação do personagem terminar
+                            // Restaurar idle imediatamente após animação terminar (transição fluida)
                             const animConfig = getCharacterAnimation(skillAnimation);
                             if (animConfig && animConfig.duration) {
                                 const characterAnimDuration = parseFloat(animConfig.duration) * 1000;
-                                // Buffer mínimo apenas para garantir que a animação termine
-                                const extraDelay = 100; // 100ms de segurança
-                                const totalDuration = characterAnimDuration + extraDelay;
+                                // Começar transição para idle ligeiramente ANTES do fim para suavidade
+                                const earlyTransition = -50; // 50ms antes do final
+                                const totalDuration = characterAnimDuration + earlyTransition;
 
                                 setTimeout(() => {
-                                    console.log(`🎭 Restaurando idle após ${totalDuration}ms`);
+                                    console.log(`🎭 Restaurando idle após ${totalDuration}ms (transição fluida)`);
                                     restoreCharacterIdle();
                                 }, totalDuration);
                             }
@@ -1120,16 +1120,16 @@ function useSpecialSkill(skillId, skillName) {
                             console.log(`🧛 Aplicando animação do Vlad para skill ${skillId}: ${skillAnimation}`);
                             applyCharacterAnimation(skillAnimation, 'special-skill-anim');
 
-                            // Restaurar idle após animação do personagem terminar
+                            // Restaurar idle imediatamente após animação terminar (transição fluida)
                             const animConfig = getCharacterAnimation(skillAnimation);
                             if (animConfig && animConfig.duration) {
                                 const characterAnimDuration = parseFloat(animConfig.duration) * 1000;
-                                // Buffer mínimo apenas para garantir que a animação termine
-                                const extraDelay = 100; // 100ms de segurança
-                                const totalDuration = characterAnimDuration + extraDelay;
+                                // Começar transição para idle ligeiramente ANTES do fim para suavidade
+                                const earlyTransition = -50; // 50ms antes do final
+                                const totalDuration = characterAnimDuration + earlyTransition;
 
                                 setTimeout(() => {
-                                    console.log(`🎭 Restaurando idle após ${totalDuration}ms`);
+                                    console.log(`🎭 Restaurando idle após ${totalDuration}ms (transição fluida)`);
                                     restoreCharacterIdle();
                                 }, totalDuration);
                             }
