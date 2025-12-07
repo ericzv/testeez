@@ -1320,10 +1320,10 @@ function applySpecialSkillVisualEffect(animationData) {
         if (hasVisualEffect1) {
             console.log("🖼️ Aplicando sprite activate_1:", hasVisualEffect1, "no target:", targetElement?.id);
             // Usar sistema existente de sprites - agora com TARGET correto
-            // delay * 2 = 1000ms (1 segundo antes do original delay * 3 = 1500ms)
+            // delay * 1 = 500ms (1.5 segundos antes do original delay * 3 = 1500ms)
             setTimeout(() => {
                 createSpriteAnimationLayers(hasVisualEffect1, 'front', targetElement);
-            }, delay * 2);
+            }, delay * 1);
         }
 
         // ANIMATION_ACTIVATE_2 - Efeito traseiro
@@ -1405,7 +1405,7 @@ function applySpecialSkillVisualEffect(animationData) {
             scale = 1.5; // Lâmina de Sangue: 1.5x
             console.log(`🔍 Detectada Lâmina de Sangue - aplicando scale ${scale}x`);
         } else if (filename.includes('autofagia')) {
-            scale = 0.375; // Autofagia: 0.375x (25% menor que 0.5x)
+            scale = 0.3; // Autofagia: 0.3x (20% menor que 0.375x)
             animationDuration = 0.5; // Mais rápido (era 0.8s)
             console.log(`🔍 Detectada Autofagia - aplicando scale ${scale}x e duração ${animationDuration}s`);
         } else if (filename.includes('regeneration')) {
@@ -1435,12 +1435,12 @@ function applySpecialSkillVisualEffect(animationData) {
 
         if (filename.includes('autofagia')) {
             // Autofagia: parte inferior esquerda do sprite alinhada ao centro do Vlad
-            // Ajustes: 10% mais para baixo (character container ~128px, 10% = 13px)
+            // Ajustes: +25px para baixo (13px + 12px), +20px para direita
             customStyles = `
-                top: calc(50% + 13px);
+                top: calc(50% + 25px);
                 left: 50%;
                 transform-origin: bottom left;
-                transform: translate(0, -100%) scale(${scale});
+                transform: translate(20px, -100%) scale(${scale});
             `;
         } else if (filename.includes('regeneration')) {
             // Regeneração: z-index super alto para ficar na frente de TODAS as camadas do Vlad
