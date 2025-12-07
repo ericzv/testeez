@@ -1034,15 +1034,12 @@ function useSpecialSkill(skillId, skillName) {
                             console.log(`🧛 Aplicando animação do Vlad para skill ${skillId}: ${skillAnimation}`);
                             applyCharacterAnimation(skillAnimation, 'special-skill-anim');
 
-                            // Restaurar idle após AMBAS as animações terminarem
-                            // Animação do Vlad: variável conforme skill (autofagia = 1.5s)
-                            // Sprite visual: removida automaticamente após sua duração
+                            // Restaurar idle após animação do personagem terminar
                             const animConfig = getCharacterAnimation(skillAnimation);
                             if (animConfig && animConfig.duration) {
                                 const characterAnimDuration = parseFloat(animConfig.duration) * 1000;
-                                // Adicionar delay extra para garantir que sprite visual também termine
-                                // Sprite autofagia: 0.5s + 200ms buffer + delay de aplicação
-                                const extraDelay = 1000; // Buffer generoso
+                                // Buffer mínimo apenas para garantir que a animação termine
+                                const extraDelay = 100; // 100ms de segurança
                                 const totalDuration = characterAnimDuration + extraDelay;
 
                                 setTimeout(() => {
@@ -1123,15 +1120,12 @@ function useSpecialSkill(skillId, skillName) {
                             console.log(`🧛 Aplicando animação do Vlad para skill ${skillId}: ${skillAnimation}`);
                             applyCharacterAnimation(skillAnimation, 'special-skill-anim');
 
-                            // Restaurar idle após AMBAS as animações terminarem
-                            // Animação do Vlad: variável conforme skill (autofagia = 1.5s)
-                            // Sprite visual: removida automaticamente após sua duração
+                            // Restaurar idle após animação do personagem terminar
                             const animConfig = getCharacterAnimation(skillAnimation);
                             if (animConfig && animConfig.duration) {
                                 const characterAnimDuration = parseFloat(animConfig.duration) * 1000;
-                                // Adicionar delay extra para garantir que sprite visual também termine
-                                // Sprite autofagia: 0.5s + 200ms buffer + delay de aplicação
-                                const extraDelay = 1000; // Buffer generoso
+                                // Buffer mínimo apenas para garantir que a animação termine
+                                const extraDelay = 100; // 100ms de segurança
                                 const totalDuration = characterAnimDuration + extraDelay;
 
                                 setTimeout(() => {

@@ -284,7 +284,7 @@ VLAD_SPECIAL_SKILLS_DATA = [
         "negative_effect_value": None,
         "duration_type": "attacks",
         "duration_value": 1,  # Bônus de dano válido por 1 ataque
-        "animation_activate_1": "/static/game.data/fx/autofagia300-300-7f.png",
+        "animation_activate_1": "",
         "animation_activate_2": "",
         "icon": "/static/game.data/icons/sk1.png",
         "sound_prep_1": "",
