@@ -96,75 +96,9 @@ def start_battle():
         return redirect(url_for('map.map_view'))
 
 
-@map_battle_bp.route('/elite/<int:boss_id>')
-def start_elite_battle(boss_id):
-    """
-    Inicia uma batalha contra Desafiante Infernal (sub-boss).
-    NOVO SISTEMA: Usa templates do Grupo 6 (Desafiantes Infernais).
-    IMPORTANTE: Ignora boss_id antigo e sempre usa templates do Grupo 6.
-    """
-    player = Player.query.first()
-    if not player:
-        flash('Jogador não encontrado.', 'error')
-        return redirect(url_for('battle.gamification'))
-
-    try:
-        print(f"🔥 ELITE BATTLE: Recebido boss_id={boss_id} (IGNORADO - usando Grupo 6)")
-
-        # Determinar ato atual para balanceamento de Infernais
-        from models_map import PlayerMapProgress
-        map_progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
-        current_act = map_progress.current_act if map_progress else 1
-
-        # NOVO SISTEMA: Selecionar Desafiante Infernal do Grupo 6 (filtrado por ato)
-        # IGNORA o boss_id recebido (pode ser antigo: 2=Heresiarca, 3=Alma Negra)
-        template = get_infernal_challenger_template(act_number=current_act)
-
-        if not template:
-            flash('Erro ao carregar Desafiante Infernal.', 'error')
-            return redirect(url_for('map.map_view'))
-
-        # Criar inimigo a partir do template (enemy_number alto para ser forte)
-        enemy_number = 90  # Número alto para refletir dificuldade de elite
-        enemy = create_enemy_from_template(
-            template=template,
-            enemy_number=enemy_number,
-            player_id=player.id
-        )
-
-        if not enemy:
-            flash('Erro ao criar Desafiante Infernal.', 'error')
-            return redirect(url_for('map.map_view'))
-
-        # GERAR INTENÇÕES INICIAIS DO TURNO 1
-        from .battle_modules.battle_turns import get_next_actions
-        next_turn_data = get_next_actions(enemy)
-        next_intentions = next_turn_data['actions']
-        enemy.next_intentions_cached = json.dumps(next_intentions)
-        print(f"🔮 Intenções do Turno 1 (Elite) pré-calculadas: {[a.get('type') for a in next_intentions]}")
-
-        # Atualizar progresso
-        progress = PlayerProgress.query.filter_by(player_id=player.id).first()
-        if not progress:
-            progress = PlayerProgress(player_id=player.id)
-            db.session.add(progress)
-
-        progress.selected_enemy_id = enemy.id
-        progress.selected_boss_id = None  # Agora é um enemy genérico, não LastBoss
-
-        db.session.commit()
-
-        print(f"🔥 MAP ELITE: Iniciando batalha contra Desafiante Infernal {enemy.name}")
-
-        # Redirecionar para batalha
-        return redirect(url_for('battle.battle'))
-
-    except Exception as e:
-        print(f"❌ Erro ao iniciar batalha elite: {e}")
-        import traceback
-        traceback.print_exc()
-        flash(f'Erro ao iniciar batalha: {str(e)}', 'error')
-        return redirect(url_for('map.map_view'))
+# ROTA REMOVIDA: Elite battles agora usam o sistema antigo com LastBoss (Heresiarca/Alma Negra)
+# Ver routes/map.py:elite_battle() para a implementação atual
+# O Grupo 6 dos templates ficará sem uso por enquanto
 
 
 @map_battle_bp.route('/boss/<int:boss_id>')
