@@ -2628,18 +2628,15 @@ def ensure_minimum_enemies(progress, minimum=None):
     return generated
 
 def get_boss_for_milestone(boss_number):
-    """
-    Retorna o nome do boss para um milestone específico.
-    ATUALIZADO: Heresiarca e Alma Negra removidos - agora são elites do Grupo 6.
-    """
+    """Retorna o nome do boss para um milestone específico"""
     boss_progression = {
-        1: "purassombra",    # 1º boss - Ato 1 (após 20 inimigos)
-        2: "formofagus",     # 2º boss - Ato 2 (após 40 inimigos) - ANTES era Heresiarca
-        3: "nefasto",        # 3º boss - Ato 3 (após 60 inimigos) - ANTES era Alma Negra
-        4: "formofagus",     # 4º boss - repete Formofagus
-        5: "nefasto"         # 5º boss - repete Nefasto
+        1: "purassombra",    # 1º boss (após 20 inimigos)
+        2: "heresiarca",     # 2º boss (após 40 inimigos)
+        3: "alma_negra",     # 3º boss (após 60 inimigos)
+        4: "formofagus",     # 4º boss (após 80 inimigos)
+        5: "nefasto"         # 5º boss (após 100 inimigos)
     }
-
+    
     return boss_progression.get(boss_number, "nefasto")  # Fallback para último boss
 
 def initialize_enemy_themes():
