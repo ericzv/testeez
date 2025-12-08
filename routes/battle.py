@@ -2335,12 +2335,11 @@ def _create_default_boss(boss_id):
     from routes.battle_modules.enemy_generation import create_boss_by_name
 
     # Mapeamento de ID para nome do boss (usado no BOSS_DATA)
+    # IDs 2 e 3 (Heresiarca e Alma Negra) REMOVIDOS - agora são elites do Grupo 6
     BOSS_ID_TO_NAME = {
-        1: 'purassombra',
-        2: 'heresiarca',
-        3: 'alma_negra',
-        4: 'formofagus',
-        5: 'nefasto'
+        1: 'purassombra',   # Ato 1
+        4: 'formofagus',    # Ato 2
+        5: 'nefasto'        # Ato 3
     }
 
     if boss_id not in BOSS_ID_TO_NAME:
@@ -3289,12 +3288,14 @@ def dev_force_boss_milestone():
         GenericEnemy.query.filter_by(is_available=True).update({'is_available': False})
         
         # Mapear milestone para nome do boss
+        # ATUALIZADO: Milestones 2 e 3 agora pulam direto para Formofagus e Nefasto
+        # (Heresiarca e Alma Negra agora são elites do Grupo 6, não bosses)
         boss_names = {
-            1: "purassombra",
-            2: "heresiarca", 
-            3: "alma_negra",
-            4: "formofagus",
-            5: "nefasto"
+            1: "purassombra",   # Milestone 1 (20 inimigos)
+            2: "formofagus",    # Milestone 2 (40 inimigos) - ANTES era Heresiarca
+            3: "nefasto",       # Milestone 3 (60 inimigos) - ANTES era Alma Negra
+            4: "formofagus",    # Milestone 4 mantém Formofagus
+            5: "nefasto"        # Milestone 5 mantém Nefasto
         }
         
         boss_name = boss_names[milestone]

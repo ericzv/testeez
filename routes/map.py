@@ -148,13 +148,12 @@ def boss_battle(boss_id):
     if not player:
         return redirect(url_for('battle.gamification'))
 
-    # Mapeamento de ID para nome do boss
+    # Mapeamento de ID para nome do boss (APENAS BOSSES FINAIS)
+    # IDs 2 e 3 (Heresiarca e Alma Negra) foram REMOVIDOS - agora são elites do Grupo 6
     BOSS_ID_TO_NAME = {
-        1: 'purassombra',
-        2: 'heresiarca',
-        3: 'alma_negra',
-        4: 'formofagus',
-        5: 'nefasto'
+        1: 'purassombra',   # Ato 1
+        4: 'formofagus',    # Ato 2
+        5: 'nefasto'        # Ato 3
     }
 
     # Verificar se o boss existe
