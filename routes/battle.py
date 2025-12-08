@@ -1997,6 +1997,7 @@ def player_attacks():
                     if is_ultimate:
                         attack['is_disabled'] = True
                         attack['disabled_reason'] = 'Última Graça já foi usada nesta batalha'
+                        attack['disabled_by_relic_id'] = 24
                         print(f"🔒 Suprema (ID {attack['id']}, Nome: {attack['name']}) DESABILITADA por Última Graça")
 
         # ===== VERIFICAR BLOOD STACKS PARA SUPREMA DO VLAD =====
@@ -2013,6 +2014,8 @@ def player_attacks():
                     if attack.get('id') == 53:  # Beijo da Morte (Suprema)
                         if blood_stacks < 5:
                             attack['is_disabled'] = True
+                            attack['disabled_reason'] = f'Requer 5 Blood Stacks ({blood_stacks}/5)'
+                            attack['disabled_by_relic_id'] = None  # Não é por relíquia
                             print(f"🔒 Suprema DESABILITADA - Blood Stacks insuficientes ({blood_stacks}/5)")
                         else:
                             print(f"✅ Suprema HABILITADA - Blood Stacks suficientes ({blood_stacks}/5)")

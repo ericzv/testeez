@@ -265,11 +265,13 @@ class FastBattleMode {
           btn.style.setProperty('--icon-url', `url('${item.icon}')`);
         }
 
-        // Verificar se skill foi desabilitada por relíquia (ex: Última Graça)
+        // Verificar se skill foi desabilitada
         if (type === 'attacks' && item.is_disabled) {
           btn.classList.add('disabled');
-          btn.classList.add('relic-disabled');
-          btn.title = item.disabled_reason || 'Desabilitada por relíquia';
+          if (item.disabled_by_relic_id) {
+            btn.classList.add('relic-disabled');
+          }
+          btn.title = item.disabled_reason || 'Desabilitada';
           console.log(`🔒 Skill ${item.name} desabilitada no modo rápido: ${item.disabled_reason}`);
         }
 
