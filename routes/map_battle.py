@@ -100,7 +100,8 @@ def start_battle():
 def start_elite_battle(boss_id):
     """
     Inicia uma batalha contra Desafiante Infernal (sub-boss).
-    NOVO SISTEMA: Usa templates do Grupo 7 (Desafiantes Infernais).
+    NOVO SISTEMA: Usa templates do Grupo 6 (Desafiantes Infernais).
+    IMPORTANTE: Ignora boss_id antigo e sempre usa templates do Grupo 6.
     """
     player = Player.query.first()
     if not player:
@@ -108,12 +109,15 @@ def start_elite_battle(boss_id):
         return redirect(url_for('battle.gamification'))
 
     try:
+        print(f"🔥 ELITE BATTLE: Recebido boss_id={boss_id} (IGNORADO - usando Grupo 6)")
+
         # Determinar ato atual para balanceamento de Infernais
         from models_map import PlayerMapProgress
         map_progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
         current_act = map_progress.current_act if map_progress else 1
 
-        # NOVO SISTEMA: Selecionar Desafiante Infernal do Grupo 7 (filtrado por ato)
+        # NOVO SISTEMA: Selecionar Desafiante Infernal do Grupo 6 (filtrado por ato)
+        # IGNORA o boss_id recebido (pode ser antigo: 2=Heresiarca, 3=Alma Negra)
         template = get_infernal_challenger_template(act_number=current_act)
 
         if not template:
