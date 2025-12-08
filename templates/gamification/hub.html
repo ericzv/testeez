@@ -1648,37 +1648,70 @@
   }
 
 
-  function checkForRecentVictory() {
+  async function checkForRecentVictory() {
       // Evitar processamento duplicado
       if (window.victoryProcessed) {
           return;
       }
-      
+
       // Só verificar se estamos no hub
       if (window.location.pathname === '/gamification' || window.location.pathname === '/gamification/') {
+          // PASSO 1: Verificar se há recompensas pendentes no banco de dados
+          // Isso garante que mesmo se a página for atualizada, as recompensas não serão perdidas
+          try {
+              const pendingResponse = await fetch('/gamification/check_pending_rewards');
+              const pendingData = await pendingResponse.json();
+
+              if (pendingData.success && pendingData.has_pending_rewards) {
+                  console.log("🎁 Recompensas pendentes encontradas no banco!");
+
+                  // Marcar como processado
+                  window.victoryProcessed = true;
+                  window.processingVictory = true;
+
+                  // Tirar snapshot
+                  window.__preRewardSnapshots = {
+                      currencies: snapshotHudValues(document.getElementById('currencies-hud')),
+                      buffs: snapshotHudValues(document.getElementById('run-buffs-hud'))
+                  };
+
+                  // Verificar se há memória pendente
+                  const memoryResponse = await fetch('/gamification/check_memory_reward');
+                  const memoryData = await memoryResponse.json();
+                  window.__pendingMemoryPopup = memoryData.success && memoryData.has_memory_reward;
+
+                  // Mostrar pop-up com dados do banco
+                  showVictoryRewards({ enemies_defeated: 1 }, pendingData.reward_data);
+                  return;  // Sair da função
+              }
+          } catch (error) {
+              console.log("ℹ️ Nenhuma recompensa pendente no banco:", error);
+          }
+
+          // PASSO 2: Verificar localStorage (fluxo normal de vitória recente)
           const lastVictory = localStorage.getItem('lastVictoryTime');
           const victoryData = localStorage.getItem('victoryData');
-          
+
           if (lastVictory && victoryData) {
               const now = Date.now();
               const victoryTime = parseInt(lastVictory);
-              
+
               // Se a vitória foi nos últimos 10 segundos
               if (now - victoryTime < 10000) {
                   console.log("🎉 Vitória recente detectada!");
-                  
+
                   // LIMPAR IMEDIATAMENTE para evitar processamento duplicado
                   localStorage.removeItem('lastVictoryTime');
                   localStorage.removeItem('victoryData');
-                  
+
                   // Marcar como processado para evitar repetições
                   window.victoryProcessed = true;
                   window.processingVictory = true;
-                  
+
                   // Processar dados da vitória
                   const parsedVictoryData = JSON.parse(victoryData);
                   console.log("🏆 DADOS DA VITÓRIA:", parsedVictoryData);
-                  
+
                   // Verificar se há recompensas pendentes no servidor
                   fetch('/gamification/boss_defeated', {
                       method: 'POST',
@@ -1687,20 +1720,20 @@
                   .then(response => response.json())
                   .then(progressData => {
                       console.log("📊 Dados de progresso:", progressData);
-                      
+
                       // Tirar snapshot ANTES de mostrar o pop-up
                       window.__preRewardSnapshots = {
                           currencies: snapshotHudValues(document.getElementById('currencies-hud')),
                           buffs: snapshotHudValues(document.getElementById('run-buffs-hud'))
                       };
                       console.log("📸 Snapshot tirado:", window.__preRewardSnapshots);
-                      
+
                       // NOVO: Verificar diretamente no servidor se há recompensa de memória
                       fetch('/gamification/check_memory_reward')
                           .then(response => response.json())
                           .then(memoryData => {
                               console.log("🧠 DEBUG: Resposta do check_memory_reward:", memoryData);
-                              
+
                               if (memoryData.success && memoryData.has_memory_reward) {
                                   window.__pendingMemoryPopup = true;
                                   console.log("🧠 DEBUG: Marcando recompensa de memória para após pop-up");
@@ -1714,7 +1747,7 @@
                               window.__pendingMemoryPopup = false;
                               showVictoryRewards(progressData, parsedVictoryData);
                           });
-                      
+
                       // Mostrar pop-up de recompensa
                       showVictoryRewards(progressData, parsedVictoryData);
                   })
@@ -1727,7 +1760,7 @@
                       };
                       showVictoryRewards({ enemies_defeated: 1 }, parsedVictoryData);
                   });
-                  
+
               }
           }
       }

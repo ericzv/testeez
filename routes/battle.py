@@ -2569,14 +2569,56 @@ def get_player_currencies():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
     
-@battle_bp.route('/apply_victory_rewards', methods=['POST'])
-def apply_victory_rewards():
-    """Aplica as recompensas de vitória armazenadas na sessão"""
-    try:        
+@battle_bp.route('/check_pending_rewards')
+def check_pending_rewards():
+    """Verifica se há recompensas pendentes no banco de dados"""
+    try:
         player = Player.query.first()
         if not player:
             return jsonify({'success': False, 'message': 'Jogador não encontrado'})
-        
+
+        # Obter recompensas pendentes do banco
+        from models import PendingReward
+        pending_reward = PendingReward.query.filter_by(player_id=player.id).order_by(PendingReward.created_at.desc()).first()
+
+        if not pending_reward:
+            return jsonify({
+                'success': True,
+                'has_pending_rewards': False
+            })
+
+        # Construir dados da recompensa para o frontend
+        reward_data = {
+            'enemyName': pending_reward.enemy_name,
+            'damageDealt': pending_reward.damage_dealt,
+            'damageTaken': pending_reward.damage_taken,
+            'crystalsGained': pending_reward.crystals_gained,
+            'goldGained': pending_reward.gold_gained,
+            'hourglassesGained': pending_reward.hourglasses_gained,
+            'potionDrop': pending_reward.potion_drop,
+            'rewardType': pending_reward.reward_type,
+            'rewardIcon': pending_reward.reward_icon,
+            'relic_bonus_messages': pending_reward.relic_bonus_messages
+        }
+
+        return jsonify({
+            'success': True,
+            'has_pending_rewards': True,
+            'reward_data': reward_data
+        })
+
+    except Exception as e:
+        print(f"Erro ao verificar recompensas pendentes: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@battle_bp.route('/apply_victory_rewards', methods=['POST'])
+def apply_victory_rewards():
+    """Aplica as recompensas de vitória armazenadas na sessão"""
+    try:
+        player = Player.query.first()
+        if not player:
+            return jsonify({'success': False, 'message': 'Jogador não encontrado'})
+
         # Obter recompensas pendentes do banco
         from models import PendingReward
         pending_reward = PendingReward.query.filter_by(player_id=player.id).order_by(PendingReward.created_at.desc()).first()
