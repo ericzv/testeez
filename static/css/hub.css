@@ -3475,6 +3475,16 @@ body.gamification-page {
   object-fit: contain;
   flex-shrink: 0;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  animation: float-reward 3s ease-in-out infinite;
+}
+
+@keyframes float-reward {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
 }
 
 .reward-item-text {
