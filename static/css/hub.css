@@ -3425,3 +3425,78 @@ body.gamification-page {
 #enemy-grid {
   transition: opacity 0.5s ease-out;
 }
+
+/* ============================================== */
+/* SISTEMA DE LISTA DE RECOMPENSAS */
+/* ============================================== */
+
+.rewards-section-list {
+  margin: 20px 0;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.rewards-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #fbbf24;
+  text-align: center;
+  margin-bottom: 12px;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+}
+
+.rewards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reward-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.reward-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.reward-item-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+.reward-item-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  flex-grow: 1;
+}
+
+.reward-item-text.crystals-gained {
+  color: #60a5fa;
+}
+
+.reward-item-text.gold-gained {
+  color: #fbbf24;
+}
+
+.reward-item-text.hourglasses-gained {
+  color: #a78bfa;
+}
+
+.reward-item-text.potion-dropped {
+  color: #34d399;
+}

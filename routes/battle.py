@@ -1387,23 +1387,36 @@ def damage_boss():
                 final_exp += int(final_exp * (player.perfect_exp_bonus / 100))
             
             exp_reward = final_exp
-            
-            # Calcular recompensa específica
-            reward_type = current_enemy.reward_type or 'crystals'
-            
-            if reward_type == 'crystals':
-                base_crystals = random.randint(30 + (current_enemy.enemy_number * 5), 50 + (current_enemy.enemy_number * 8))
-                crystals_gained = int(base_crystals * rarity_multiplier * (1 + equipment_bonus_percent / 100))
-                
+
+            # ===== USAR RECOMPENSAS FIXAS DO TEMPLATE =====
+            # Obter recompensas do equipment_modifiers
+            try:
+                import json
+                equipment_modifiers = json.loads(current_enemy.equipment_modifiers_applied or '{}')
+                fixed_rewards = equipment_modifiers.get('_rewards', {})
+
+                # Recompensas base fixas do template
+                base_crystals = fixed_rewards.get('memory_crystals', 10)
+                base_gold = fixed_rewards.get('gold', 5)
+                potion_drop = fixed_rewards.get('potion', None)  # Nome da poção ou None
+
+                print(f"💰 RECOMPENSAS FIXAS DO TEMPLATE:")
+                print(f"   Cristais base: {base_crystals}")
+                print(f"   Ouro base: {base_gold}")
+                print(f"   Poção: {potion_drop}")
+
+                # Cristais são sempre dados (sistema principal)
+                crystals_gained = base_crystals
+                gold_gained = base_gold
+                reward_type = 'mixed'  # Novo tipo para indicar múltiplas recompensas
+
+                # Aplicar chance de dobrar cristais
                 if hasattr(player, 'crystal_double_chance') and player.crystal_double_chance > 0:
                     if random.random() < player.crystal_double_chance:
                         crystals_gained *= 2
-            
-            elif reward_type == 'gold':
-                # Função já existente
-                gold_gained = calculate_gold_reward(current_enemy.enemy_number, current_enemy.rarity, equipment_bonus_percent)
+                        print(f"💎 Cristais dobrados! {base_crystals} → {crystals_gained}")
 
-                # ===== APLICAR BÔNUS PERCENTUAL DE OURO DOS TALENTOS =====
+                # Aplicar bônus de ouro de talentos
                 try:
                     from routes.talents import calculate_gold_bonus_percent
                     gold_bonus_percent = calculate_gold_bonus_percent(player.id)
@@ -1413,10 +1426,14 @@ def damage_boss():
                         print(f"💰 Bônus de ouro de talentos: +{bonus_gold} ({gold_bonus_percent*100:.0f}%)")
                 except Exception as e:
                     print(f"⚠️ Erro ao calcular bônus de ouro: {e}")
-            
-            elif reward_type == 'hourglasses':
-                # Função já existente
-                hourglasses_gained = calculate_hourglass_reward(current_enemy.rarity)
+
+            except Exception as e:
+                print(f"⚠️ Erro ao ler recompensas fixas: {e}")
+                # Fallback para sistema antigo
+                reward_type = current_enemy.reward_type or 'crystals'
+                base_crystals = random.randint(30 + (current_enemy.enemy_number * 5), 50 + (current_enemy.enemy_number * 8))
+                crystals_gained = int(base_crystals * rarity_multiplier * (1 + equipment_bonus_percent / 100))
+                potion_drop = None
             
             # Marcar inimigo como derrotado
             current_enemy.is_available = False
@@ -1517,7 +1534,8 @@ def damage_boss():
             enemy_name=target_name,
             damage_dealt=actual_damage_applied,
             damage_taken=0 if not took_damage else 1,
-            relic_bonus_messages='\n'.join(relic_bonus_messages)  # ← ADICIONAR
+            relic_bonus_messages='\n'.join(relic_bonus_messages),
+            potion_drop=potion_drop if not is_boss_fight else None  # Adicionar poção
         )
         db.session.add(pending_reward)
 
@@ -1595,6 +1613,7 @@ def damage_boss():
         'gold_base': original_rewards.get('gold', 0) if target_defeated else 0,
         'hourglasses_gained': hourglasses_gained if target_defeated else 0,
         'hourglasses_base': original_rewards.get('hourglasses', 0) if target_defeated else 0,
+        'potion_drop': potion_drop if target_defeated and not is_boss_fight else None,
         'heal_amount': heal_amount,
         'relic_bonus_messages': '\n'.join(relic_bonus_messages) if target_defeated else '',
         'should_refresh_skills': True,
