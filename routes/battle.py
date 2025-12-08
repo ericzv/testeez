@@ -1964,17 +1964,23 @@ def player_attacks():
         # ===== VERIFICAR RELÍQUIA ID 24 (ÚLTIMA GRAÇA) =====
         from models import PlayerRelic
         import json
-        
+
+        # DEBUG: Verificar todas as relíquias do jogador
+        all_relics = PlayerRelic.query.filter_by(player_id=player.id).all()
+        print(f"🔍 DEBUG: Total de relíquias no banco para player {player.id}: {len(all_relics)}")
+        for relic in all_relics:
+            print(f"   - Relic ID: {relic.relic_id}, Active: {relic.is_active}")
+
         ultima_graca = PlayerRelic.query.filter_by(
             player_id=player.id,
             relic_id='24',
             is_active=True
         ).first()
-        
+
         if ultima_graca:
             state_data = json.loads(ultima_graca.state_data or '{}')
             suprema_used = state_data.get('used_this_battle', False)
-            
+
             print(f"🔍 Relíquia Última Graça encontrada. Já usada? {suprema_used}")
             
             if suprema_used:

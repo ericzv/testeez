@@ -1383,15 +1383,7 @@
         <div class="ui-panel victory-content-new">
             <h2 class="title">${realVictoryData.enemyName || 'Inimigo'} derrotado!</h2>
 
-            <div class="battle-stats-compact">
-                <div class="damage-stats-row">
-                    <span class="damage-stat-left">DANO CAUSADO: <span class="stat-value damage-dealt">${realVictoryData.damageDealt ?? 0}</span></span>
-                    <span class="damage-stat-right">DANO RECEBIDO: <span class="stat-value damage-taken">${realVictoryData.damageTaken ?? 0}</span></span>
-                </div>
-            </div>
-
             <div class="rewards-section-list">
-                <h3 class="rewards-title">Recompensas Obtidas</h3>
                 <div class="rewards-list">
                     ${rewardsListHtml}
                 </div>
@@ -1664,6 +1656,10 @@
 
               if (pendingData.success && pendingData.has_pending_rewards) {
                   console.log("🎁 Recompensas pendentes encontradas no banco!");
+
+                  // LIMPAR localStorage para evitar duplo processamento
+                  localStorage.removeItem('lastVictoryTime');
+                  localStorage.removeItem('victoryData');
 
                   // Marcar como processado
                   window.victoryProcessed = true;
