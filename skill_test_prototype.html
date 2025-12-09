@@ -49,56 +49,35 @@
         }
 
         .power-bar {
-            display: flex;
-            gap: 4px;
-            height: 60px;
+            height: 35px;
             position: relative;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 5px;
-            border-radius: 10px;
-        }
-
-        .bar-segment {
-            flex: 1;
-            position: relative;
-            border-radius: 5px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 18px;
-            transition: all 0.1s;
-        }
-
-        /* Cores dos segmentos baseadas no valor */
-        .bar-segment[data-value="1"] { background: #8b0000; } /* Miss - vermelho escuro */
-        .bar-segment[data-value="2"],
-        .bar-segment[data-value="3"],
-        .bar-segment[data-value="4"] { background: #d32f2f; } /* -10% - vermelho */
-        .bar-segment[data-value="5"],
-        .bar-segment[data-value="6"] { background: #ff6f00; } /* -5% - laranja */
-        .bar-segment[data-value="7"] { background: #757575; } /* Normal - cinza */
-        .bar-segment[data-value="8"] { background: #43a047; } /* +5% - verde */
-        .bar-segment[data-value="9"] { background: #1e88e5; } /* +10% - azul */
-        .bar-segment[data-value="10"] { background: #9c27b0; } /* +10%+5 barreira - roxo */
-
-        .bar-segment.active {
-            transform: scale(1.1);
-            box-shadow: 0 0 20px currentColor;
-            border-color: #fff;
-            z-index: 2;
+            background: linear-gradient(to right,
+                #4a0000 0%,      /* Miss - vermelho muito escuro */
+                #6b1111 10%,     /* Fraco início */
+                #8b2222 30%,     /* Fraco */
+                #994d33 40%,     /* Abaixo início */
+                #664d33 50%,     /* Abaixo */
+                #4d4d4d 60%,     /* Normal - cinza escuro */
+                #3d5d3d 70%,     /* Bom - verde escuro */
+                #2d4d6d 80%,     /* Ótimo - azul escuro */
+                #4d3d6d 90%,     /* Perfeito início - roxo escuro */
+                #5d2d7d 100%     /* Perfeito - roxo mais saturado */
+            );
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            cursor: pointer;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
         }
 
         .marker {
             position: absolute;
-            top: -15px;
+            top: -18px;
             width: 0;
             height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 20px solid #e94560;
-            filter: drop-shadow(0 0 10px #e94560);
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 18px solid #e94560;
+            filter: drop-shadow(0 0 8px #e94560);
             transition: left 0.05s linear;
             z-index: 10;
             pointer-events: none;
@@ -141,38 +120,6 @@
         .result-positive { color: #00e676; }
         .result-perfect { color: #e040fb; }
 
-        .legend {
-            margin-top: 30px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-        }
-
-        .legend-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        .legend-items {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .legend-color {
-            width: 30px;
-            height: 30px;
-            border-radius: 5px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
 
         button {
             background: #e94560;
@@ -241,18 +188,7 @@
 
             <div class="power-bar-container">
                 <div class="marker" id="marker"></div>
-                <div class="power-bar" id="powerBar">
-                    <div class="bar-segment" data-value="1">1</div>
-                    <div class="bar-segment" data-value="2">2</div>
-                    <div class="bar-segment" data-value="3">3</div>
-                    <div class="bar-segment" data-value="4">4</div>
-                    <div class="bar-segment" data-value="5">5</div>
-                    <div class="bar-segment" data-value="6">6</div>
-                    <div class="bar-segment" data-value="7">7</div>
-                    <div class="bar-segment" data-value="8">8</div>
-                    <div class="bar-segment" data-value="9">9</div>
-                    <div class="bar-segment" data-value="10">10</div>
-                </div>
+                <div class="power-bar" id="powerBar"></div>
             </div>
 
             <div class="result-display" id="resultDisplay">
@@ -277,40 +213,6 @@
                 </div>
             </div>
         </div>
-
-        <div class="legend">
-            <div class="legend-title">📊 Tabela de Bônus</div>
-            <div class="legend-items">
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #8b0000;"></div>
-                    <span><strong>1:</strong> MISS (sem dano)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #d32f2f;"></div>
-                    <span><strong>2-4:</strong> -10% dano</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #ff6f00;"></div>
-                    <span><strong>5-6:</strong> -5% dano</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #757575;"></div>
-                    <span><strong>7:</strong> Normal (0%)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #43a047;"></div>
-                    <span><strong>8:</strong> +5% dano</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #1e88e5;"></div>
-                    <span><strong>9:</strong> +10% dano + 2 barreira</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #9c27b0;"></div>
-                    <span><strong>10:</strong> +10% dano + 5 barreira</span>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -328,14 +230,15 @@
         const ANIMATION_DURATION = 1000; // 1 segundo para ciclo completo
         const SEGMENTS = 10;
 
-        // Função de easing para aceleração (0 -> 10)
-        function easeInQuad(t) {
-            return t * t;
+        // Função de easing para aceleração FORTE (0 -> 10)
+        // Usa potência cúbica para acelerar muito mais perto do 10
+        function easeInCubic(t) {
+            return t * t * t;
         }
 
         // Função de easing para desaceleração (10 -> 0)
-        function easeOutQuad(t) {
-            return t * (2 - t);
+        function easeOutCubic(t) {
+            return 1 - Math.pow(1 - t, 3);
         }
 
         // Calcula o valor atual baseado no tempo
@@ -347,13 +250,13 @@
 
             let value;
             if (progress < 0.5) {
-                // Primeira metade: 0 -> 10 (acelerando)
+                // Primeira metade: 0 -> 10 (acelerando MUITO - cúbico)
                 const t = progress * 2; // normaliza para 0-1
-                value = easeInQuad(t) * 10;
+                value = easeInCubic(t) * 10;
             } else {
-                // Segunda metade: 10 -> 0 (desacelerando)
+                // Segunda metade: 10 -> 0 (desacelerando - cúbico)
                 const t = (progress - 0.5) * 2; // normaliza para 0-1
-                value = 10 - (easeOutQuad(t) * 10);
+                value = 10 - (easeOutCubic(t) * 10);
             }
 
             return value;
@@ -367,19 +270,11 @@
 
             // Calcula a posição (0-10 mapeado para a largura da barra)
             const percentage = value / 10;
-            const position = (barWidth * percentage) - 15; // -15 para centralizar o triângulo
+            const position = (barWidth * percentage) - 12; // -12 para centralizar o triângulo menor
 
             marker.style.left = `${position}px`;
 
-            // Atualiza segmento ativo
-            const segments = document.querySelectorAll('.bar-segment');
-            const activeSegment = Math.ceil(value);
-
-            segments.forEach((seg, idx) => {
-                seg.classList.toggle('active', idx + 1 === activeSegment);
-            });
-
-            return activeSegment;
+            return Math.ceil(value);
         }
 
         // Loop de animação
