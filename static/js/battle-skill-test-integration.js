@@ -7,6 +7,17 @@
 (function() {
     console.log('🎯 Carregando integração de Skill Test...');
 
+    // Verifica se o modal existe
+    setTimeout(() => {
+        const modal = document.getElementById('skill-test-modal');
+        console.log('🔍 Modal de skill test encontrado:', modal ? 'SIM' : 'NÃO');
+        if (modal) {
+            console.log('✅ Modal HTML presente no DOM');
+        } else {
+            console.error('❌ ERRO: Modal não encontrado no DOM!');
+        }
+    }, 1000);
+
     // Aguarda o DOM estar pronto e o performAttack estar disponível
     function initSkillTestIntegration() {
         if (typeof window.performAttack !== 'function') {
@@ -21,13 +32,21 @@
         // Wrappeia a função performAttack
         window.performAttack = function(skill) {
             console.log('🔍 performAttack interceptado:', skill);
+            console.log('🔍 Skill completo:', JSON.stringify(skill, null, 2));
+            console.log('🔍 skill.id:', skill?.id);
+            console.log('🔍 skill.skill_id:', skill?.skill_id);
+            console.log('🔍 window.currentCharacterId:', window.currentCharacterId);
 
             // Verifica se é o Power Attack do Vlad (skill_id 50 - "Energia Escura")
             const isPowerAttack = skill && (skill.id === 50 || skill.skill_id === 50);
-            const isVlad = window.currentCharacterId === 3; // Vlad = character_id 3
+            const isVlad = window.currentCharacterId === 3 || window.currentCharacterId === '3'; // Vlad = character_id 3
 
-            if (isPowerAttack && isVlad) {
-                console.log('⚔️ Power Attack do Vlad detectado! Mostrando skill test...');
+            console.log('🔍 isPowerAttack:', isPowerAttack);
+            console.log('🔍 isVlad:', isVlad);
+
+            // TESTE: Força skill test para QUALQUER Power Attack (remover depois)
+            if (isPowerAttack) {
+                console.log('⚔️ Power Attack detectado! Mostrando skill test (MODO DEBUG)...');
 
                 // Armazena a skill para uso posterior
                 window.skillTestSystem.pendingSkill = skill;
