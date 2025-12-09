@@ -6,11 +6,11 @@ import math
 import random
 from game_formulas import calculate_strength_damage, calculate_critical_chance, calculate_critical_bonus
 
-def calculate_total_damage(player, skill, damage_points, active_buffs=None, run_buffs=None, is_critical=None, attack_type=None, is_first_attack=False):
+def calculate_total_damage(player, skill, damage_points, active_buffs=None, run_buffs=None, is_critical=None, attack_type=None, is_first_attack=False, skill_test_modifier=None):
     """
     Sistema centralizado de cálculo de dano.
 
-    Fórmula: DANO_FINAL = damage_points × (1 + total_bonus_percentage) × critical_multiplier + flat_bonus
+    Fórmula: DANO_FINAL = damage_points × (1 + total_bonus_percentage) × skill_test_modifier × critical_multiplier + flat_bonus
 
     Args:
         player: Objeto do jogador
@@ -21,6 +21,7 @@ def calculate_total_damage(player, skill, damage_points, active_buffs=None, run_
         is_critical: Se deve ser crítico (None = calcular automaticamente)
         attack_type: Tipo de ataque ("basic", "power", "special", "ultimate") para bônus flat
         is_first_attack: Se é o primeiro ataque da batalha
+        skill_test_modifier: Multiplicador do skill test (0.0-1.10, None = 1.0)
 
     Returns:
         dict: {
@@ -54,7 +55,9 @@ def calculate_total_damage(player, skill, damage_points, active_buffs=None, run_
         'critical_damage_breakdown': {},
         'final_damage': 0,
         # BÔNUS FLAT DE TALENTOS (novo sistema)
-        'talent_flat_bonus': 0
+        'talent_flat_bonus': 0,
+        # SKILL TEST MODIFIER
+        'skill_test_modifier': skill_test_modifier if skill_test_modifier is not None else 1.0
     }
     
     # BÔNUS DE FORÇA (sempre aplicado)
@@ -127,7 +130,9 @@ def calculate_total_damage(player, skill, damage_points, active_buffs=None, run_
     
     # 3. CALCULAR DANO ANTES DO CRÍTICO
     breakdown['total_bonus_percentage'] = total_bonus
-    damage_before_crit = int(base_damage * (1.0 + total_bonus))
+    # Aplica skill test modifier (se houver)
+    skill_test_mult = breakdown['skill_test_modifier']
+    damage_before_crit = int(base_damage * (1.0 + total_bonus) * skill_test_mult)
     breakdown['damage_before_crit'] = damage_before_crit
     
     # 4. CALCULAR SISTEMA DE CRÍTICO DETALHADO

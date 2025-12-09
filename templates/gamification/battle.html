@@ -19,6 +19,7 @@
 <link rel="stylesheet" href="/static/css/battle.css">
 <link rel="stylesheet" href="/static/css/battle-turns.css">
 <link rel="stylesheet" href="/static/css/fast-battle-mode.css">
+<link rel="stylesheet" href="/static/css/battle-skill-test.css">
 
 <style>
 /* ============================================
@@ -1091,6 +1092,50 @@ console.log('✅ Sistema de poções carregado!');
 
 <!-- Fast Battle Mode -->
 <script src="/static/js/fast-battle-mode.js"></script>
+
+<!-- Skill Test Modal -->
+<div id="skill-test-modal" class="skill-test-modal">
+    <div class="skill-test-overlay"></div>
+    <div class="skill-test-content">
+        <div class="skill-test-header">
+            <h2>⚔️ POWER ATTACK - ENERGIA ESCURA</h2>
+            <div id="skill-test-difficulty" class="skill-test-difficulty difficulty-1">Dificuldade: Normal</div>
+        </div>
+
+        <div class="skill-test-instructions">
+            Pressione ESPAÇO, ENTER ou CLIQUE quando as barras estiverem no máximo!
+        </div>
+
+        <div class="skill-test-bar-container">
+            <div id="skill-test-power-bar" class="skill-test-power-bar">
+                <div class="skill-test-light-bar" data-value="1"></div>
+                <div class="skill-test-light-bar" data-value="2"></div>
+                <div class="skill-test-light-bar" data-value="3"></div>
+                <div class="skill-test-light-bar" data-value="4"></div>
+                <div class="skill-test-light-bar" data-value="5"></div>
+                <div class="skill-test-light-bar" data-value="6"></div>
+                <div class="skill-test-light-bar" data-value="7"></div>
+                <div class="skill-test-light-bar" data-value="8"></div>
+                <div class="skill-test-light-bar" data-value="9"></div>
+                <div class="skill-test-light-bar" data-value="10"></div>
+            </div>
+        </div>
+
+        <div class="skill-test-legend">
+            <span class="legend-item legend-miss">1: MISS</span>
+            <span class="legend-item legend-weak">2-4: -10%</span>
+            <span class="legend-item legend-below">5-6: -5%</span>
+            <span class="legend-item legend-normal">7: Normal</span>
+            <span class="legend-item legend-good">8: +5%</span>
+            <span class="legend-item legend-great">9: +10% +2🛡️</span>
+            <span class="legend-item legend-perfect">10: +10% +5🛡️</span>
+        </div>
+    </div>
+</div>
+
+<!-- Skill Test System -->
+<script src="/static/js/battle-skill-test.js"></script>
+<script src="/static/js/battle-skill-test-integration.js"></script>
 
                 </body>
             </html>
