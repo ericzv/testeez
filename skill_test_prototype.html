@@ -49,38 +49,54 @@
         }
 
         .power-bar {
+            display: flex;
+            gap: 6px;
             height: 35px;
-            position: relative;
-            background: linear-gradient(to right,
-                #4a0000 0%,      /* Miss - vermelho muito escuro */
-                #6b1111 10%,     /* Fraco início */
-                #8b2222 30%,     /* Fraco */
-                #994d33 40%,     /* Abaixo início */
-                #664d33 50%,     /* Abaixo */
-                #4d4d4d 60%,     /* Normal - cinza escuro */
-                #3d5d3d 70%,     /* Bom - verde escuro */
-                #2d4d6d 80%,     /* Ótimo - azul escuro */
-                #4d3d6d 90%,     /* Perfeito início - roxo escuro */
-                #5d2d7d 100%     /* Perfeito - roxo mais saturado */
-            );
-            border-radius: 8px;
-            border: 2px solid rgba(255, 255, 255, 0.15);
             cursor: pointer;
-            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
         }
 
-        .marker {
+        .light-bar {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.1s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .light-bar::before {
+            content: '';
             position: absolute;
-            top: -18px;
-            width: 0;
-            height: 0;
-            border-left: 12px solid transparent;
-            border-right: 12px solid transparent;
-            border-top: 18px solid #e94560;
-            filter: drop-shadow(0 0 8px #e94560);
-            transition: left 0.05s linear;
-            z-index: 10;
-            pointer-events: none;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: inherit;
+            opacity: 0;
+            transition: opacity 0.1s;
+        }
+
+        /* Cores das barrinhas baseadas na posição */
+        .light-bar[data-value="1"] { --bar-color: #6b0000; } /* Miss */
+        .light-bar[data-value="2"] { --bar-color: #7b1111; } /* Fraco */
+        .light-bar[data-value="3"] { --bar-color: #8b2222; }
+        .light-bar[data-value="4"] { --bar-color: #9b3333; }
+        .light-bar[data-value="5"] { --bar-color: #8b5533; } /* Abaixo */
+        .light-bar[data-value="6"] { --bar-color: #7b6633; }
+        .light-bar[data-value="7"] { --bar-color: #5d5d5d; } /* Normal */
+        .light-bar[data-value="8"] { --bar-color: #3d6d3d; } /* Bom */
+        .light-bar[data-value="9"] { --bar-color: #2d5d7d; } /* Ótimo */
+        .light-bar[data-value="10"] { --bar-color: #5d2d8d; } /* Perfeito */
+
+        .light-bar.lit {
+            background: var(--bar-color);
+            border-color: var(--bar-color);
+            box-shadow: 0 0 10px var(--bar-color), inset 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .light-bar.lit::before {
+            opacity: 1;
         }
 
         .instructions {
@@ -187,8 +203,18 @@
             </div>
 
             <div class="power-bar-container">
-                <div class="marker" id="marker"></div>
-                <div class="power-bar" id="powerBar"></div>
+                <div class="power-bar" id="powerBar">
+                    <div class="light-bar" data-value="1"></div>
+                    <div class="light-bar" data-value="2"></div>
+                    <div class="light-bar" data-value="3"></div>
+                    <div class="light-bar" data-value="4"></div>
+                    <div class="light-bar" data-value="5"></div>
+                    <div class="light-bar" data-value="6"></div>
+                    <div class="light-bar" data-value="7"></div>
+                    <div class="light-bar" data-value="8"></div>
+                    <div class="light-bar" data-value="9"></div>
+                    <div class="light-bar" data-value="10"></div>
+                </div>
             </div>
 
             <div class="result-display" id="resultDisplay">
@@ -262,26 +288,29 @@
             return value;
         }
 
-        // Atualiza a posição do marcador
-        function updateMarker(value) {
-            const marker = document.getElementById('marker');
-            const powerBar = document.getElementById('powerBar');
-            const barWidth = powerBar.offsetWidth;
+        // Atualiza as barrinhas de luz
+        function updateLightBars(value) {
+            const lightBars = document.querySelectorAll('.light-bar');
+            const activeLevel = Math.ceil(value);
 
-            // Calcula a posição (0-10 mapeado para a largura da barra)
-            const percentage = value / 10;
-            const position = (barWidth * percentage) - 12; // -12 para centralizar o triângulo menor
+            lightBars.forEach((bar, idx) => {
+                const barValue = idx + 1;
+                // Acende todas as barras até o nível atual
+                if (barValue <= activeLevel) {
+                    bar.classList.add('lit');
+                } else {
+                    bar.classList.remove('lit');
+                }
+            });
 
-            marker.style.left = `${position}px`;
-
-            return Math.ceil(value);
+            return activeLevel;
         }
 
         // Loop de animação
         function animate(timestamp) {
             if (isActive) {
                 currentValue = calculateCurrentValue(timestamp);
-                updateMarker(currentValue);
+                updateLightBars(currentValue);
                 requestAnimationFrame(animate);
             }
         }
