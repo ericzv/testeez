@@ -140,17 +140,21 @@ function activateSkillTest() {
     const st = window.skillTestSystem;
     if (!st.isActive) return;
 
+    // CAPTURA O VALOR IMEDIATAMENTE (anti-lag)
+    // Usa o valor atual NO MOMENTO DO CLIQUE, não no próximo frame
+    const capturedValue = st.currentValue;
+    const value = Math.ceil(capturedValue);
+
     // Inicializa áudio no primeiro clique
     initSkillTestAudio();
 
     st.isActive = false;
-    const value = Math.ceil(st.currentValue);
 
     // Incrementa usos no turno
     st.usesThisTurn++;
     st.currentDifficulty = st.usesThisTurn;
 
-    console.log(`⚔️ Skill Test ativado! Valor: ${value}, Dificuldade: ${st.currentDifficulty}`);
+    console.log(`⚔️ Skill Test ativado! Valor capturado: ${capturedValue.toFixed(2)} → ${value}, Dificuldade: ${st.currentDifficulty}`);
 
     // Fecha o modal
     closeSkillTestModal();

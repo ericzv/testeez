@@ -72,15 +72,11 @@
                 // Armazena a skill para uso posterior
                 window.skillTestSystem.pendingSkill = skill;
 
-                // PAUSA A ANIMAÇÃO NO FRAME 4 E FAZ LOOP ATÉ FRAME 16
-                pauseVladPowerAnimation();
+                // NÃO PAUSA ANIMAÇÃO - estava quebrando os sprites
 
                 // Mostra o modal de skill test
                 window.showSkillTestModal(skill, function(result) {
                     console.log('✅ Skill Test completado:', result);
-
-                    // CONTINUA A ANIMAÇÃO DE ONDE PAROU
-                    resumeVladPowerAnimation();
 
                     // APLICA O MODIFICADOR DE DANO NA SKILL
                     // O backend vai usar isso no calculate_total_damage
