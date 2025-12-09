@@ -31,32 +31,43 @@
 
         // Wrappeia a função performAttack
         window.performAttack = function(skill) {
-            console.log('🔍 performAttack interceptado:', skill);
-            console.log('🔍 Skill completo:', JSON.stringify(skill, null, 2));
+            console.log('🔍 ========================================');
+            console.log('🔍 performAttack CHAMADO!');
+            console.log('🔍 ========================================');
+            console.log('🔍 Skill object:', skill);
             console.log('🔍 skill.id:', skill?.id);
             console.log('🔍 skill.skill_id:', skill?.skill_id);
+            console.log('🔍 skill.name:', skill?.name);
+            console.log('🔍 skill.skill_type:', skill?.skill_type);
+            console.log('🔍 ========================================');
+            console.log('🔍 CHECANDO VARIÁVEIS GLOBAIS:');
             console.log('🔍 window.currentCharacterId:', window.currentCharacterId);
+            console.log('🔍 window.gameState:', window.gameState);
+            console.log('🔍 window.gameState?.player:', window.gameState?.player);
             console.log('🔍 window.gameState?.player?.character_id:', window.gameState?.player?.character_id);
+            console.log('🔍 window.gameState?.player?.characterId:', window.gameState?.player?.characterId);
+            console.log('🔍 window.playerData:', window.playerData);
+            console.log('🔍 ========================================');
 
-            // Verifica se é o Power Attack do Vlad (skill_id 50 - "Energia Escura")
-            const isPowerAttack = skill && (skill.id === 50 || skill.skill_id === 50);
-
-            // DETECÇÃO MELHORADA DO VLAD - aceita múltiplos formatos
-            const isVlad =
-                window.currentCharacterId === 3 ||
-                window.currentCharacterId === '3' ||
-                window.currentCharacterId === 'vlad' ||
-                window.currentCharacterId === 'Vlad' ||
-                window.gameState?.player?.character_id === 3 ||
-                window.gameState?.player?.character_id === '3' ||
-                window.gameState?.player?.character_id === 'vlad' ||
-                window.gameState?.player?.character_id === 'Vlad';
+            // Verifica se é o Power Attack (skill_id 50 - "Energia Escura")
+            const isPowerAttack = skill && (
+                skill.id === 50 ||
+                skill.skill_id === 50 ||
+                (skill.name && skill.name.toLowerCase().includes('energia escura')) ||
+                (skill.skill_type === 'power')
+            );
 
             console.log('🔍 isPowerAttack:', isPowerAttack);
-            console.log('🔍 isVlad:', isVlad);
 
-            if (isPowerAttack && isVlad) {
-                console.log('⚔️ Power Attack do Vlad detectado! Mostrando skill test...');
+            // ============================================
+            // MODO DEBUG: FORÇA SKILL TEST PARA POWER
+            // Remove isso depois de funcionar!
+            // ============================================
+            if (isPowerAttack) {
+                console.log('⚔️ ========================================');
+                console.log('⚔️ POWER ATTACK DETECTADO!');
+                console.log('⚔️ FORÇANDO SKILL TEST (MODO DEBUG)');
+                console.log('⚔️ ========================================');
 
                 // Armazena a skill para uso posterior
                 window.skillTestSystem.pendingSkill = skill;
