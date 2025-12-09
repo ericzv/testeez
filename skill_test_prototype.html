@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skill Test Prototype - Vlad Power Attack</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #e94560;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+        }
+
+        .skill-test-wrapper {
+            background: rgba(15, 15, 35, 0.8);
+            border: 2px solid #e94560;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
+        }
+
+        .power-bar-container {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .power-bar {
+            display: flex;
+            gap: 4px;
+            height: 60px;
+            position: relative;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px;
+            border-radius: 10px;
+        }
+
+        .bar-segment {
+            flex: 1;
+            position: relative;
+            border-radius: 5px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            transition: all 0.1s;
+        }
+
+        /* Cores dos segmentos baseadas no valor */
+        .bar-segment[data-value="1"] { background: #8b0000; } /* Miss - vermelho escuro */
+        .bar-segment[data-value="2"],
+        .bar-segment[data-value="3"],
+        .bar-segment[data-value="4"] { background: #d32f2f; } /* -10% - vermelho */
+        .bar-segment[data-value="5"],
+        .bar-segment[data-value="6"] { background: #ff6f00; } /* -5% - laranja */
+        .bar-segment[data-value="7"] { background: #757575; } /* Normal - cinza */
+        .bar-segment[data-value="8"] { background: #43a047; } /* +5% - verde */
+        .bar-segment[data-value="9"] { background: #1e88e5; } /* +10% - azul */
+        .bar-segment[data-value="10"] { background: #9c27b0; } /* +10%+5 barreira - roxo */
+
+        .bar-segment.active {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px currentColor;
+            border-color: #fff;
+            z-index: 2;
+        }
+
+        .marker {
+            position: absolute;
+            top: -15px;
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 20px solid #e94560;
+            filter: drop-shadow(0 0 10px #e94560);
+            transition: left 0.05s linear;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .instructions {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: #ffd700;
+        }
+
+        .instructions.inactive {
+            color: #666;
+        }
+
+        .result-display {
+            min-height: 100px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .result-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .result-details {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+
+        .result-miss { color: #ff1744; }
+        .result-negative { color: #ff6f00; }
+        .result-normal { color: #9e9e9e; }
+        .result-positive { color: #00e676; }
+        .result-perfect { color: #e040fb; }
+
+        .legend {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        .legend-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .legend-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        button {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #ff5770;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(233, 69, 96, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stats {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e94560;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚔️ SKILL TEST - VLAD POWER ATTACK ⚔️</h1>
+
+        <div class="skill-test-wrapper">
+            <div class="instructions" id="instructions">
+                Pressione ESPAÇO, ENTER ou CLIQUE para ativar!
+            </div>
+
+            <div class="power-bar-container">
+                <div class="marker" id="marker"></div>
+                <div class="power-bar" id="powerBar">
+                    <div class="bar-segment" data-value="1">1</div>
+                    <div class="bar-segment" data-value="2">2</div>
+                    <div class="bar-segment" data-value="3">3</div>
+                    <div class="bar-segment" data-value="4">4</div>
+                    <div class="bar-segment" data-value="5">5</div>
+                    <div class="bar-segment" data-value="6">6</div>
+                    <div class="bar-segment" data-value="7">7</div>
+                    <div class="bar-segment" data-value="8">8</div>
+                    <div class="bar-segment" data-value="9">9</div>
+                    <div class="bar-segment" data-value="10">10</div>
+                </div>
+            </div>
+
+            <div class="result-display" id="resultDisplay">
+                <div class="result-title">Aguardando ativação...</div>
+                <div class="result-details">O marcador está se movendo. Escolha o momento certo!</div>
+            </div>
+
+            <button onclick="resetTest()" id="resetBtn">🔄 Resetar Teste</button>
+
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="totalTests">0</div>
+                    <div class="stat-label">Total de Testes</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="avgValue">0.0</div>
+                    <div class="stat-label">Média de Valores</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="perfectCount">0</div>
+                    <div class="stat-label">Acertos (7+)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-title">📊 Tabela de Bônus</div>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #8b0000;"></div>
+                    <span><strong>1:</strong> MISS (sem dano)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #d32f2f;"></div>
+                    <span><strong>2-4:</strong> -10% dano</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff6f00;"></div>
+                    <span><strong>5-6:</strong> -5% dano</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #757575;"></div>
+                    <span><strong>7:</strong> Normal (0%)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #43a047;"></div>
+                    <span><strong>8:</strong> +5% dano</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #1e88e5;"></div>
+                    <span><strong>9:</strong> +10% dano + 2 barreira</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #9c27b0;"></div>
+                    <span><strong>10:</strong> +10% dano + 5 barreira</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estado do jogo
+        let isActive = true;
+        let animationStartTime = null;
+        let currentValue = 0;
+        let stats = {
+            total: 0,
+            sum: 0,
+            perfect: 0
+        };
+
+        // Constantes
+        const ANIMATION_DURATION = 1000; // 1 segundo para ciclo completo
+        const SEGMENTS = 10;
+
+        // Função de easing para aceleração (0 -> 10)
+        function easeInQuad(t) {
+            return t * t;
+        }
+
+        // Função de easing para desaceleração (10 -> 0)
+        function easeOutQuad(t) {
+            return t * (2 - t);
+        }
+
+        // Calcula o valor atual baseado no tempo
+        function calculateCurrentValue(timestamp) {
+            if (!animationStartTime) animationStartTime = timestamp;
+
+            const elapsed = (timestamp - animationStartTime) % ANIMATION_DURATION;
+            const progress = elapsed / ANIMATION_DURATION;
+
+            let value;
+            if (progress < 0.5) {
+                // Primeira metade: 0 -> 10 (acelerando)
+                const t = progress * 2; // normaliza para 0-1
+                value = easeInQuad(t) * 10;
+            } else {
+                // Segunda metade: 10 -> 0 (desacelerando)
+                const t = (progress - 0.5) * 2; // normaliza para 0-1
+                value = 10 - (easeOutQuad(t) * 10);
+            }
+
+            return value;
+        }
+
+        // Atualiza a posição do marcador
+        function updateMarker(value) {
+            const marker = document.getElementById('marker');
+            const powerBar = document.getElementById('powerBar');
+            const barWidth = powerBar.offsetWidth;
+
+            // Calcula a posição (0-10 mapeado para a largura da barra)
+            const percentage = value / 10;
+            const position = (barWidth * percentage) - 15; // -15 para centralizar o triângulo
+
+            marker.style.left = `${position}px`;
+
+            // Atualiza segmento ativo
+            const segments = document.querySelectorAll('.bar-segment');
+            const activeSegment = Math.ceil(value);
+
+            segments.forEach((seg, idx) => {
+                seg.classList.toggle('active', idx + 1 === activeSegment);
+            });
+
+            return activeSegment;
+        }
+
+        // Loop de animação
+        function animate(timestamp) {
+            if (isActive) {
+                currentValue = calculateCurrentValue(timestamp);
+                updateMarker(currentValue);
+                requestAnimationFrame(animate);
+            }
+        }
+
+        // Ativa o skill test
+        function activateSkillTest() {
+            if (!isActive) return;
+
+            isActive = false;
+            const value = Math.ceil(currentValue);
+
+            // Atualiza instruções
+            document.getElementById('instructions').textContent = 'Teste concluído!';
+            document.getElementById('instructions').classList.add('inactive');
+
+            // Calcula resultado
+            const result = calculateResult(value);
+            displayResult(value, result);
+
+            // Atualiza estatísticas
+            updateStats(value);
+        }
+
+        // Calcula o resultado baseado no valor
+        function calculateResult(value) {
+            if (value === 1) {
+                return {
+                    damage: 0,
+                    modifier: 0,
+                    barrier: 0,
+                    text: 'MISS!',
+                    description: 'O ataque falhou completamente!',
+                    class: 'result-miss'
+                };
+            } else if (value >= 2 && value <= 4) {
+                return {
+                    damage: -10,
+                    modifier: 0.9,
+                    barrier: 0,
+                    text: 'FRACO',
+                    description: '-10% de dano',
+                    class: 'result-negative'
+                };
+            } else if (value >= 5 && value <= 6) {
+                return {
+                    damage: -5,
+                    modifier: 0.95,
+                    barrier: 0,
+                    text: 'ABAIXO',
+                    description: '-5% de dano',
+                    class: 'result-negative'
+                };
+            } else if (value === 7) {
+                return {
+                    damage: 0,
+                    modifier: 1.0,
+                    barrier: 0,
+                    text: 'NORMAL',
+                    description: 'Dano normal, sem modificadores',
+                    class: 'result-normal'
+                };
+            } else if (value === 8) {
+                return {
+                    damage: 5,
+                    modifier: 1.05,
+                    barrier: 0,
+                    text: 'BOM!',
+                    description: '+5% de dano',
+                    class: 'result-positive'
+                };
+            } else if (value === 9) {
+                return {
+                    damage: 10,
+                    modifier: 1.10,
+                    barrier: 2,
+                    text: 'ÓTIMO!',
+                    description: '+10% de dano + 2 de barreira',
+                    class: 'result-positive'
+                };
+            } else if (value === 10) {
+                return {
+                    damage: 10,
+                    modifier: 1.10,
+                    barrier: 5,
+                    text: 'PERFEITO!',
+                    description: '+10% de dano + 5 de barreira',
+                    class: 'result-perfect'
+                };
+            }
+        }
+
+        // Exibe o resultado
+        function displayResult(value, result) {
+            const display = document.getElementById('resultDisplay');
+
+            let html = `
+                <div class="result-title ${result.class}">
+                    Valor ${value}: ${result.text}
+                </div>
+                <div class="result-details">
+                    ${result.description}
+                    ${result.barrier > 0 ? `<br><strong>🛡️ Barreira: +${result.barrier}</strong>` : ''}
+                </div>
+            `;
+
+            display.innerHTML = html;
+        }
+
+        // Atualiza estatísticas
+        function updateStats(value) {
+            stats.total++;
+            stats.sum += value;
+            if (value >= 7) stats.perfect++;
+
+            document.getElementById('totalTests').textContent = stats.total;
+            document.getElementById('avgValue').textContent = (stats.sum / stats.total).toFixed(1);
+            document.getElementById('perfectCount').textContent = stats.perfect;
+        }
+
+        // Reseta o teste
+        function resetTest() {
+            isActive = true;
+            animationStartTime = null;
+            currentValue = 0;
+
+            document.getElementById('instructions').textContent = 'Pressione ESPAÇO, ENTER ou CLIQUE para ativar!';
+            document.getElementById('instructions').classList.remove('inactive');
+
+            document.getElementById('resultDisplay').innerHTML = `
+                <div class="result-title">Aguardando ativação...</div>
+                <div class="result-details">O marcador está se movendo. Escolha o momento certo!</div>
+            `;
+
+            requestAnimationFrame(animate);
+        }
+
+        // Event listeners
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'Enter') {
+                e.preventDefault();
+                activateSkillTest();
+            }
+        });
+
+        document.getElementById('powerBar').addEventListener('click', () => {
+            activateSkillTest();
+        });
+
+        // Inicia a animação
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>
