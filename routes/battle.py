@@ -1387,23 +1387,36 @@ def damage_boss():
                 final_exp += int(final_exp * (player.perfect_exp_bonus / 100))
             
             exp_reward = final_exp
-            
-            # Calcular recompensa específica
-            reward_type = current_enemy.reward_type or 'crystals'
-            
-            if reward_type == 'crystals':
-                base_crystals = random.randint(30 + (current_enemy.enemy_number * 5), 50 + (current_enemy.enemy_number * 8))
-                crystals_gained = int(base_crystals * rarity_multiplier * (1 + equipment_bonus_percent / 100))
-                
+
+            # ===== USAR RECOMPENSAS FIXAS DO TEMPLATE =====
+            # Obter recompensas do equipment_modifiers
+            try:
+                import json
+                equipment_modifiers = json.loads(current_enemy.equipment_modifiers_applied or '{}')
+                fixed_rewards = equipment_modifiers.get('_rewards', {})
+
+                # Recompensas base fixas do template
+                base_crystals = fixed_rewards.get('memory_crystals', 10)
+                base_gold = fixed_rewards.get('gold', 5)
+                potion_drop = fixed_rewards.get('potion', None)  # Nome da poção ou None
+
+                print(f"💰 RECOMPENSAS FIXAS DO TEMPLATE:")
+                print(f"   Cristais base: {base_crystals}")
+                print(f"   Ouro base: {base_gold}")
+                print(f"   Poção: {potion_drop}")
+
+                # Cristais são sempre dados (sistema principal)
+                crystals_gained = base_crystals
+                gold_gained = base_gold
+                reward_type = 'mixed'  # Novo tipo para indicar múltiplas recompensas
+
+                # Aplicar chance de dobrar cristais
                 if hasattr(player, 'crystal_double_chance') and player.crystal_double_chance > 0:
                     if random.random() < player.crystal_double_chance:
                         crystals_gained *= 2
-            
-            elif reward_type == 'gold':
-                # Função já existente
-                gold_gained = calculate_gold_reward(current_enemy.enemy_number, current_enemy.rarity, equipment_bonus_percent)
+                        print(f"💎 Cristais dobrados! {base_crystals} → {crystals_gained}")
 
-                # ===== APLICAR BÔNUS PERCENTUAL DE OURO DOS TALENTOS =====
+                # Aplicar bônus de ouro de talentos
                 try:
                     from routes.talents import calculate_gold_bonus_percent
                     gold_bonus_percent = calculate_gold_bonus_percent(player.id)
@@ -1413,10 +1426,14 @@ def damage_boss():
                         print(f"💰 Bônus de ouro de talentos: +{bonus_gold} ({gold_bonus_percent*100:.0f}%)")
                 except Exception as e:
                     print(f"⚠️ Erro ao calcular bônus de ouro: {e}")
-            
-            elif reward_type == 'hourglasses':
-                # Função já existente
-                hourglasses_gained = calculate_hourglass_reward(current_enemy.rarity)
+
+            except Exception as e:
+                print(f"⚠️ Erro ao ler recompensas fixas: {e}")
+                # Fallback para sistema antigo
+                reward_type = current_enemy.reward_type or 'crystals'
+                base_crystals = random.randint(30 + (current_enemy.enemy_number * 5), 50 + (current_enemy.enemy_number * 8))
+                crystals_gained = int(base_crystals * rarity_multiplier * (1 + equipment_bonus_percent / 100))
+                potion_drop = None
             
             # Marcar inimigo como derrotado
             current_enemy.is_available = False
@@ -1517,7 +1534,8 @@ def damage_boss():
             enemy_name=target_name,
             damage_dealt=actual_damage_applied,
             damage_taken=0 if not took_damage else 1,
-            relic_bonus_messages='\n'.join(relic_bonus_messages)  # ← ADICIONAR
+            relic_bonus_messages='\n'.join(relic_bonus_messages),
+            potion_drop=potion_drop if not is_boss_fight else None  # Adicionar poção
         )
         db.session.add(pending_reward)
 
@@ -1595,6 +1613,7 @@ def damage_boss():
         'gold_base': original_rewards.get('gold', 0) if target_defeated else 0,
         'hourglasses_gained': hourglasses_gained if target_defeated else 0,
         'hourglasses_base': original_rewards.get('hourglasses', 0) if target_defeated else 0,
+        'potion_drop': potion_drop if target_defeated and not is_boss_fight else None,
         'heal_amount': heal_amount,
         'relic_bonus_messages': '\n'.join(relic_bonus_messages) if target_defeated else '',
         'should_refresh_skills': True,
@@ -1945,17 +1964,23 @@ def player_attacks():
         # ===== VERIFICAR RELÍQUIA ID 24 (ÚLTIMA GRAÇA) =====
         from models import PlayerRelic
         import json
-        
+
+        # DEBUG: Verificar todas as relíquias do jogador
+        all_relics = PlayerRelic.query.filter_by(player_id=player.id).all()
+        print(f"🔍 DEBUG: Total de relíquias no banco para player {player.id}: {len(all_relics)}")
+        for relic in all_relics:
+            print(f"   - Relic ID: {relic.relic_id}, Active: {relic.is_active}")
+
         ultima_graca = PlayerRelic.query.filter_by(
             player_id=player.id,
             relic_id='24',
             is_active=True
         ).first()
-        
+
         if ultima_graca:
             state_data = json.loads(ultima_graca.state_data or '{}')
             suprema_used = state_data.get('used_this_battle', False)
-            
+
             print(f"🔍 Relíquia Última Graça encontrada. Já usada? {suprema_used}")
             
             if suprema_used:
@@ -1972,6 +1997,7 @@ def player_attacks():
                     if is_ultimate:
                         attack['is_disabled'] = True
                         attack['disabled_reason'] = 'Última Graça já foi usada nesta batalha'
+                        attack['disabled_by_relic_id'] = 24
                         print(f"🔒 Suprema (ID {attack['id']}, Nome: {attack['name']}) DESABILITADA por Última Graça")
 
         # ===== VERIFICAR BLOOD STACKS PARA SUPREMA DO VLAD =====
@@ -1988,6 +2014,8 @@ def player_attacks():
                     if attack.get('id') == 53:  # Beijo da Morte (Suprema)
                         if blood_stacks < 5:
                             attack['is_disabled'] = True
+                            attack['disabled_reason'] = f'Requer 5 Blood Stacks ({blood_stacks}/5)'
+                            attack['disabled_by_relic_id'] = None  # Não é por relíquia
                             print(f"🔒 Suprema DESABILITADA - Blood Stacks insuficientes ({blood_stacks}/5)")
                         else:
                             print(f"✅ Suprema HABILITADA - Blood Stacks suficientes ({blood_stacks}/5)")
@@ -2550,14 +2578,56 @@ def get_player_currencies():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
     
-@battle_bp.route('/apply_victory_rewards', methods=['POST'])
-def apply_victory_rewards():
-    """Aplica as recompensas de vitória armazenadas na sessão"""
-    try:        
+@battle_bp.route('/check_pending_rewards')
+def check_pending_rewards():
+    """Verifica se há recompensas pendentes no banco de dados"""
+    try:
         player = Player.query.first()
         if not player:
             return jsonify({'success': False, 'message': 'Jogador não encontrado'})
-        
+
+        # Obter recompensas pendentes do banco
+        from models import PendingReward
+        pending_reward = PendingReward.query.filter_by(player_id=player.id).order_by(PendingReward.created_at.desc()).first()
+
+        if not pending_reward:
+            return jsonify({
+                'success': True,
+                'has_pending_rewards': False
+            })
+
+        # Construir dados da recompensa para o frontend
+        reward_data = {
+            'enemyName': pending_reward.enemy_name,
+            'damageDealt': pending_reward.damage_dealt,
+            'damageTaken': pending_reward.damage_taken,
+            'crystalsGained': pending_reward.crystals_gained,
+            'goldGained': pending_reward.gold_gained,
+            'hourglassesGained': pending_reward.hourglasses_gained,
+            'potionDrop': pending_reward.potion_drop,
+            'rewardType': pending_reward.reward_type,
+            'rewardIcon': pending_reward.reward_icon,
+            'relic_bonus_messages': pending_reward.relic_bonus_messages
+        }
+
+        return jsonify({
+            'success': True,
+            'has_pending_rewards': True,
+            'reward_data': reward_data
+        })
+
+    except Exception as e:
+        print(f"Erro ao verificar recompensas pendentes: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@battle_bp.route('/apply_victory_rewards', methods=['POST'])
+def apply_victory_rewards():
+    """Aplica as recompensas de vitória armazenadas na sessão"""
+    try:
+        player = Player.query.first()
+        if not player:
+            return jsonify({'success': False, 'message': 'Jogador não encontrado'})
+
         # Obter recompensas pendentes do banco
         from models import PendingReward
         pending_reward = PendingReward.query.filter_by(player_id=player.id).order_by(PendingReward.created_at.desc()).first()

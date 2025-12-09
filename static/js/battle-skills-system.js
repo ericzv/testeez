@@ -199,16 +199,18 @@ function populateAttackOptions() {
                     // ===== VERIFICAR SE FOI DESABILITADA POR RELÍQUIA =====
                     if (skill.is_disabled) {
                         disabled = true;
-                        disableReason += skill.disabled_reason || "Desabilitada por relíquia. ";
-                        button.classList.add('relic-disabled');
-                        
-                        // ===== ADICIONAR ÍCONE DA RELÍQUIA NO BOTÃO =====
-                        const relicIcon = document.createElement('img');
-                        relicIcon.src = '/static/game.data/relics/relic_24.png';
-                        relicIcon.classList.add('relic-lock-icon');
-                        relicIcon.alt = 'Relíquia Última Graça';
-                        button.appendChild(relicIcon);
-                        
+                        disableReason += skill.disabled_reason || "Desabilitada. ";
+
+                        // ===== ADICIONAR ÍCONE DA RELÍQUIA APENAS SE FOR POR RELÍQUIA =====
+                        if (skill.disabled_by_relic_id) {
+                            button.classList.add('relic-disabled');
+                            const relicIcon = document.createElement('img');
+                            relicIcon.src = `/static/game.data/relics/relic_${skill.disabled_by_relic_id}.png`;
+                            relicIcon.classList.add('relic-lock-icon');
+                            relicIcon.alt = 'Bloqueada por relíquia';
+                            button.appendChild(relicIcon);
+                        }
+
                         console.log(`🔒 Skill ${skill.name} desabilitada: ${skill.disabled_reason}`);
                     }
 

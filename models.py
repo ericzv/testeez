@@ -616,10 +616,11 @@ class PendingReward(db.Model):
     damage_taken = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     relic_bonus_messages = db.Column(db.Text, nullable=True, default='')
-    
+    potion_drop = db.Column(db.String(50), nullable=True)  # Nome da poção dropada (ex: 'health_potion')
+
     # Relacionamento
     player = db.relationship('Player', backref='pending_rewards')
-    
+
     def to_dict(self):
         return {
             'exp_reward': self.exp_reward,
@@ -632,7 +633,8 @@ class PendingReward(db.Model):
             'enemy_name': self.enemy_name,
             'damage_dealt': self.damage_dealt,
             'damage_taken': self.damage_taken,
-            'relic_bonus_messages': self.relic_bonus_messages
+            'relic_bonus_messages': self.relic_bonus_messages,
+            'potion_drop': self.potion_drop
         }
     
 class PlayerAttackCache(db.Model):

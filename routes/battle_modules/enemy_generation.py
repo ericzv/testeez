@@ -563,38 +563,13 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
         "Cremado": {'hp': 168, 'damage': 36}
     }
 
-    # Verificar se é um Desafiante Infernal com stats fixos
-    if name in infernal_fixed_stats:
-        final_hp = infernal_fixed_stats[name]['hp']
-        final_damage = infernal_fixed_stats[name]['damage']
-        print(f"🔥 Desafiante Infernal com stats fixos: HP={final_hp}, Dano={final_damage}")
-    else:
-        # Stats baseados em ranges por grupo para inimigos normais
-        group_stat_ranges = {
-            0: {'hp': (32, 48),   'damage': (8, 12)},   # Grupo 1
-            1: {'hp': (48, 64),   'damage': (12, 16)},  # Grupo 2
-            2: {'hp': (64, 80),   'damage': (16, 20)},  # Grupo 3
-            3: {'hp': (80, 96),   'damage': (20, 24)},  # Grupo 4
-            4: {'hp': (96, 112),  'damage': (24, 28)},  # Grupo 5
-            5: {'hp': (112, 128), 'damage': (28, 32)},  # Grupo 6
-            6: {'hp': (128, 144), 'damage': (32, 36)}   # Grupo 7 (outros Infernais)
-        }
+    # ========================================
+    # LER STATS FIXOS DO TEMPLATE
+    # ========================================
+    final_hp = template.get('fixed_hp', 50)  # Fallback para 50 se não tiver
+    final_damage = template.get('fixed_damage', 10)  # Fallback para 10 se não tiver
 
-        stat_range = group_stat_ranges.get(group_idx, group_stat_ranges[0])
-
-        # Usar ID do template para determinar posição dentro do range (fixo e consistente)
-        template_id = template.get('id', 0)
-        # Normalizar ID para 0-1 usando módulo e divisão
-        position_in_range = (template_id % 100) / 100.0  # 0.0 a 1.0
-
-        # Calcular HP e Dano baseado na posição no range
-        hp_min, hp_max = stat_range['hp']
-        damage_min, damage_max = stat_range['damage']
-
-        final_hp = int(hp_min + (hp_max - hp_min) * position_in_range)
-        final_damage = int(damage_min + (damage_max - damage_min) * position_in_range)
-
-        print(f"📊 Stats: HP={final_hp} ({hp_min}-{hp_max}), Dano={final_damage} ({damage_min}-{damage_max}), Grupo {group_idx+1}")
+    print(f"📊 Stats FIXOS: HP={final_hp}, Dano={final_damage}, Grupo {group_idx+1}")
 
     # Block percentage baseado na raridade
     block_percentage = 5 + (rarity * 2)
@@ -616,13 +591,25 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
     # Adicionar fala típica aos modifiers (para recuperar depois)
     equipment_modifiers['_typical_phrase'] = typical_phrase
 
+    # ========================================
+    # LER RECOMPENSAS FIXAS DO TEMPLATE
+    # ========================================
+    rewards = template.get('rewards', {
+        'memory_crystals': 10,
+        'gold': 5,
+        'potion': None,
+        'potion_chance': 0
+    })
+    equipment_modifiers['_rewards'] = rewards
+    print(f"💰 Recompensas FIXAS: {rewards['memory_crystals']} cristais, {rewards['gold']} ouro, Poção: {rewards.get('potion', 'Nenhuma')}")
+
     # Equipment rank
     equipment_rank = get_rank_from_total_modifiers(total_modifier_sum)
 
     # Calcular rounds baseado em enemy_number
     initial_rounds = 3 + min(enemy_number // 10, 7)  # 3-10 rounds
 
-    # Reward type e icon baseado em raridade
+    # Reward type e icon baseado em raridade (manter por compatibilidade)
     reward_mappings = {
         1: ('gold', '💰'),
         2: ('weapon', '⚔️'),
@@ -651,13 +638,16 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
     enemy_skills = convert_skills_to_list_format(selected_skills, skill_cooldown_reductions)
     enemy_skills_json = json.dumps(enemy_skills)
 
-    # Gerar action pattern (usar o behavior_pattern do template se disponível)
-    # Por enquanto, usar padrão default
-    action_pattern = generate_action_pattern(behavior_pattern, enemy_skills_json)
+    # ========================================
+    # LER ACTION PATTERN FIXO DO TEMPLATE
+    # ========================================
+    action_pattern = template.get('action_pattern', ['attack', 'attack', 'attack'])
     action_pattern_json = json.dumps(action_pattern)
+    print(f"⚔️ Padrão de ações FIXO: {' → '.join(action_pattern)}")
 
-    # Calcular probabilidades de ações por turno
-    actions_probability = calculate_actions_per_turn_probability(enemy_number)
+    # Ações por turno são sempre 1 (o pattern define o que acontece)
+    # Não usamos mais probabilidades de múltiplas ações
+    actions_probability = {"1": 1.0, "2": 0.0, "3": 0.0}
     actions_probability_json = json.dumps(actions_probability)
 
     # Criar o inimigo

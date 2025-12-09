@@ -2,121 +2,38 @@
   "templates": [
     {
       "behavior_pattern": "default",
-      "damage_tier": 2,
-      "enemy_number": 25,
-      "equipment_tiers": {
-        "body": 3,
-        "head": 4,
-        "weapon": 2,
-        "back": 2
-      },
-      "hp_tier": 9,
-      "id": 2,
-      "name": "Sentinela",
-      "rarity": 4,
-      "rarity_name": "Lendário",
-      "seed": 877548,
-      "sprite_layers": {
-        "back": "back8.png",
-        "body": "body48.png",
-        "head": "head24.png",
-        "weapon": "weapon13.png"
-      },
-      "theme_id": 1,
-      "theme_name": "Guerreiro azul",
-      "typical_phrase": "Finalmente um desafiante adequado."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 3,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 2,
-        "head": 2,
-        "weapon": 3
-      },
-      "hp_tier": 4,
-      "name": "Serpentino",
-      "rarity": 1,
-      "rarity_name": "Comum",
-      "seed": 107800,
-      "sprite_layers": {
-        "back": null,
-        "body": "body36.png",
-        "head": "head53.png",
-        "weapon": "weapon73.png"
-      },
-      "typical_phrase": "Passa o ouro, mané",
-      "id": 5
-    },
-    {
-      "behavior_pattern": "default",
       "damage_tier": 1,
       "equipment_tiers": {
-        "body": 2,
-        "head": 4,
+        "body": 1,
+        "head": 1,
         "weapon": 1,
         "back": 0
       },
-      "hp_tier": 6,
-      "name": "Fura-Bucho",
-      "rarity": 4,
-      "rarity_name": "Lendário",
-      "seed": 582252,
+      "hp_tier": 2,
+      "id": 78,
+      "name": "Desolado",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
       "sprite_layers": {
         "back": "",
-        "body": "body2.png",
-        "head": "head25.png",
-        "weapon": "weapon69.png"
+        "body": "body59.png",
+        "head": "head59.png",
+        "weapon": "weapon86.png"
       },
-      "typical_phrase": "Chegue mais perto, quero conferir uma coisa...",
-      "id": 9
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 3,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 4,
-        "head": 3,
-        "weapon": 3
-      },
-      "hp_tier": 7,
-      "id": 10,
-      "name": "Tubarão",
-      "rarity": 3,
-      "rarity_name": "Épico",
-      "seed": 37074,
-      "sprite_layers": {
-        "back": "",
-        "body": "body45.png",
-        "head": "head35.png",
-        "weapon": "weapon72.png"
-      },
-      "typical_phrase": "Áspero e cortante. Mas vai ser rápido."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 4,
-      "equipment_tiers": {
-        "back": 5,
-        "body": 3,
-        "head": 1,
-        "weapon": 4
-      },
-      "hp_tier": 9,
-      "id": 11,
-      "name": "Nobre Maximus",
-      "rarity": 3,
-      "rarity_name": "Épico",
-      "seed": 589433,
-      "sprite_layers": {
-        "back": "back18.png",
-        "body": "body39.png",
-        "head": "head20.png",
-        "weapon": "weapon65.png"
-      },
-      "typical_phrase": "Plebeu! Nojento!"
+      "typical_phrase": "",
+      "total_tier": 3,
+      "fixed_hp": 32,
+      "fixed_damage": 8,
+      "action_pattern": [
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 8,
+        "gold": 4,
+        "potion": null,
+        "potion_chance": 5
+      }
     },
     {
       "behavior_pattern": "default",
@@ -139,7 +56,20 @@
         "weapon": "weapon38.png"
       },
       "typical_phrase": "Passa tudo.",
-      "id": 12
+      "id": 12,
+      "total_tier": 4,
+      "fixed_hp": 33,
+      "fixed_damage": 8,
+      "action_pattern": [
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 10,
+        "gold": 4,
+        "potion": null,
+        "potion_chance": 5
+      }
     },
     {
       "behavior_pattern": "default",
@@ -162,588 +92,56 @@
         "weapon": "weapon39.png"
       },
       "typical_phrase": "Quem devo matar? Esqueci. Deve ser você aí.",
-      "id": 13
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 5,
-      "equipment_tiers": {
-        "body": 6,
-        "head": 6,
-        "weapon": 5,
-        "back": 5
-      },
-      "hp_tier": 17,
-      "name": "Maldade Rubra",
-      "rarity": 4,
-      "rarity_name": "Lendário",
-      "seed": 329737,
-      "sprite_layers": {
-        "back": "back18.png",
-        "body": "body21.png",
-        "head": "head8.png",
-        "weapon": "weapon102.png"
-      },
-      "typical_phrase": "",
-      "id": 14
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 2,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 5,
-        "head": 2,
-        "weapon": 2
-      },
-      "hp_tier": 7,
-      "id": 15,
-      "name": "Gancho",
-      "rarity": 4,
-      "rarity_name": "Lendário",
-      "seed": 544474,
-      "sprite_layers": {
-        "back": "",
-        "body": "body46.png",
-        "head": "head9.png",
-        "weapon": "weapon92.png"
-      },
-      "typical_phrase": "Sua vida acaba aqui..."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 4,
-      "equipment_tiers": {
-        "body": 5,
-        "head": 2,
-        "weapon": 4,
-        "back": 5
-      },
-      "hp_tier": 12,
-      "id": 16,
-      "name": "Mestre do Aço",
-      "rarity": 1,
-      "rarity_name": "Comum",
-      "seed": 346593,
-      "sprite_layers": {
-        "back": "back13.png",
-        "body": "body9.png",
-        "head": "head40.png",
-        "weapon": "weapon50.png"
-      },
-      "typical_phrase": "Finda aqui a tua história."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 4,
-      "equipment_tiers": {
-        "back": 3,
-        "body": 1,
-        "head": 4,
-        "weapon": 4
-      },
-      "hp_tier": 8,
-      "id": 17,
-      "name": "Cavaleiro Sombrio",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 105710,
-      "sprite_layers": {
-        "back": "back3.png",
-        "body": "body7.png",
-        "head": "head25.png",
-        "weapon": "weapon8.png"
-      },
-      "typical_phrase": "Você é um deles? Eu não irei voltar."
+      "id": 13,
+      "total_tier": 4,
+      "fixed_hp": 34,
+      "fixed_damage": 8,
+      "action_pattern": [
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 11,
+        "gold": 5,
+        "potion": null,
+        "potion_chance": 5
+      }
     },
     {
       "behavior_pattern": "default",
       "damage_tier": 1,
       "equipment_tiers": {
         "back": 0,
-        "body": 4,
-        "head": 3,
+        "body": 1,
+        "head": 2,
         "weapon": 1
       },
-      "hp_tier": 7,
-      "id": 19,
-      "name": "Ronnin",
-      "rarity": 4,
-      "rarity_name": "Lendário",
-      "seed": 952163,
+      "hp_tier": 3,
+      "id": 80,
+      "name": "Apostador",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
       "sprite_layers": {
         "back": "",
-        "body": "body56.png",
-        "head": "head44.png",
+        "body": "body60.png",
+        "head": "head58.png",
         "weapon": "weapon87.png"
       },
-      "typical_phrase": "Pega leve, estou aprendendo."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 3,
-      "equipment_tiers": {
-        "body": 2,
-        "head": 4,
-        "weapon": 3,
-        "back": 3
-      },
-      "hp_tier": 9,
-      "name": "Ursino",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 37543,
-      "sprite_layers": {
-        "back": "back25.png",
-        "body": "body10.png",
-        "head": "head61.png",
-        "weapon": "weapon1.png"
-      },
-      "typical_phrase": "Mais uma mosca no meu caminho.",
-      "id": 21
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 3,
-      "equipment_tiers": {
-        "body": 4,
-        "head": 1,
-        "weapon": 3,
-        "back": 2
-      },
-      "hp_tier": 7,
-      "id": 22,
-      "name": "Alabardeiro",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 37543,
-      "sprite_layers": {
-        "back": "back26.png",
-        "body": "body11.png",
-        "head": "head12.png",
-        "weapon": "weapon103.png"
-      },
-      "typical_phrase": "Lute como homem."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 4,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 4,
-        "head": 1,
-        "weapon": 4
-      },
-      "hp_tier": 5,
-      "id": 23,
-      "name": "Gaius",
-      "rarity": 4,
-      "rarity_name": "Lendário",
-      "seed": 652493,
-      "sprite_layers": {
-        "back": "",
-        "body": "body12.png",
-        "head": "head20.png",
-        "weapon": "weapon77.png"
-      },
-      "typical_phrase": "Pelo meu dever."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 2,
-      "equipment_tiers": {
-        "back": 1,
-        "body": 4,
-        "head": 3,
-        "weapon": 2
-      },
-      "hp_tier": 8,
-      "id": 24,
-      "name": "Bravateiro",
-      "rarity": 4,
-      "rarity_name": "Lendário",
-      "seed": 917372,
-      "sprite_layers": {
-        "back": "back9.png",
-        "body": "body13.png",
-        "head": "head54.png",
-        "weapon": "weapon79.png"
-      },
-      "typical_phrase": "É impossível você me derrotar.",
-      "manual_group": 2
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 4,
-      "equipment_tiers": {
-        "back": 2,
-        "body": 5,
-        "head": 6,
-        "weapon": 4
-      },
-      "hp_tier": 13,
-      "id": 25,
-      "name": "Miasma",
-      "rarity": 4,
-      "rarity_name": "Lendário",
-      "seed": 917372,
-      "sprite_layers": {
-        "back": "back7.png",
-        "body": "body14.png",
-        "head": "head8.png",
-        "weapon": "weapon37.png"
-      },
-      "typical_phrase": ""
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 3,
-      "equipment_tiers": {
-        "body": 4,
-        "head": 5,
-        "weapon": 3,
-        "back": 2
-      },
-      "hp_tier": 11,
-      "name": "Assassino",
-      "rarity": 4,
-      "rarity_name": "Lendário",
-      "seed": 917372,
-      "sprite_layers": {
-        "back": "back2.png",
-        "body": "body45.png",
-        "head": "head48.png",
-        "weapon": "weapon45.png"
-      },
-      "typical_phrase": "",
-      "id": 26
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 5,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 2,
-        "head": 5,
-        "weapon": 5
-      },
-      "hp_tier": 7,
-      "id": 30,
-      "name": "Diabo Verde",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body18.png",
-        "head": "head17.png",
-        "weapon": "weapon6.png"
-      },
-      "typical_phrase": "",
-      "manual_group": 6
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 4,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 2,
-        "head": 6,
-        "weapon": 4
-      },
-      "hp_tier": 8,
-      "id": 31,
-      "name": "Caveira Negra",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body19.png",
-        "head": "head16.png",
-        "weapon": "weapon83.png"
-      },
-      "typical_phrase": ""
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 1,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 2,
-        "head": 4,
-        "weapon": 1
-      },
-      "hp_tier": 6,
-      "id": 32,
-      "name": "Espartano",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body2.png",
-        "head": "head21.png",
-        "weapon": "weapon84.png"
-      },
-      "typical_phrase": "Serei seu último oponente."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 5,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 6,
-        "head": 4,
-        "weapon": 5
-      },
-      "hp_tier": 10,
-      "id": 34,
-      "name": "Redline",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body21.png",
-        "head": "head23.png",
-        "weapon": "weapon70.png"
-      },
-      "typical_phrase": "",
-      "manual_group": 6
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 3,
-      "equipment_tiers": {
-        "body": 6,
-        "head": 6,
-        "weapon": 3,
-        "back": 0
-      },
-      "hp_tier": 12,
-      "name": "Sanguis",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body23.png",
-        "head": "head2.png",
-        "weapon": "weapon110.png"
-      },
-      "typical_phrase": "",
-      "id": 36
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 6,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 6,
-        "head": 3,
-        "weapon": 6
-      },
-      "hp_tier": 9,
-      "id": 37,
-      "name": "Brasa",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body24.png",
-        "head": "head26.png",
-        "weapon": "weapon81.png"
-      },
-      "typical_phrase": "",
-      "manual_group": 6
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 4,
-      "equipment_tiers": {
-        "body": 5,
-        "head": 2,
-        "weapon": 4,
-        "back": 1
-      },
-      "hp_tier": 8,
-      "name": "Kazuma",
-      "rarity": 3,
-      "rarity_name": "Épico",
-      "seed": 81516,
-      "sprite_layers": {
-        "back": "back4.png",
-        "body": "body26.png",
-        "head": "head55.png",
-        "weapon": "weapon100.png"
-      },
-      "typical_phrase": "",
-      "id": 39
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 6,
-      "equipment_tiers": {
-        "body": 4,
-        "head": 5,
-        "weapon": 6,
-        "back": 1
-      },
-      "hp_tier": 10,
-      "name": "Guts",
-      "rarity": 3,
-      "rarity_name": "Épico",
-      "seed": 81516,
-      "sprite_layers": {
-        "back": "back4.png",
-        "body": "body27.png",
-        "head": "head48.png",
-        "weapon": "weapon107.png"
-      },
-      "typical_phrase": "",
-      "id": 40
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 6,
-      "equipment_tiers": {
-        "back": 1,
-        "body": 6,
-        "head": 6,
-        "weapon": 6
-      },
-      "hp_tier": 13,
-      "id": 41,
-      "name": "Polar",
-      "rarity": 3,
-      "rarity_name": "Épico",
-      "seed": 81516,
-      "sprite_layers": {
-        "back": "back17.png",
-        "body": "body28.png",
-        "head": "head62.png",
-        "weapon": "weapon101.png"
-      },
-      "typical_phrase": "",
-      "manual_group": 5
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 6,
-      "equipment_tiers": {
-        "back": 5,
-        "body": 5,
-        "head": 4,
-        "weapon": 6
-      },
-      "hp_tier": 14,
-      "id": 42,
-      "name": "Lord Z",
-      "rarity": 3,
-      "rarity_name": "Épico",
-      "seed": 81516,
-      "sprite_layers": {
-        "back": "back18.png",
-        "body": "body29.png",
-        "head": "head6.png",
-        "weapon": "weapon10.png"
-      },
-      "typical_phrase": "",
-      "manual_group": 5
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 3,
-      "equipment_tiers": {
-        "back": 5,
-        "body": 3,
-        "head": 2,
-        "weapon": 3
-      },
-      "hp_tier": 10,
-      "id": 44,
-      "name": "Saqueador",
-      "rarity": 3,
-      "rarity_name": "Épico",
-      "seed": 81516,
-      "sprite_layers": {
-        "back": "back14.png",
-        "body": "body31.png",
-        "head": "head58.png",
-        "weapon": "weapon15.png"
-      },
-      "typical_phrase": "Foi mal, vou pegar isso pra mim."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 3,
-      "equipment_tiers": {
-        "back": 3,
-        "body": 3,
-        "head": 1,
-        "weapon": 3
-      },
-      "hp_tier": 7,
-      "id": 45,
-      "name": "Mercenário",
-      "rarity": 3,
-      "rarity_name": "Épico",
-      "seed": 81516,
-      "sprite_layers": {
-        "back": "back15.png",
-        "body": "body32.png",
-        "head": "head12.png",
-        "weapon": "weapon16.png"
-      },
-      "typical_phrase": "Colabore, morra calado."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 4,
-      "equipment_tiers": {
-        "back": 5,
-        "body": 4,
-        "head": 3,
-        "weapon": 4
-      },
-      "hp_tier": 12,
-      "id": 46,
-      "name": "Pesadinho",
-      "rarity": 3,
-      "rarity_name": "Épico",
-      "seed": 81516,
-      "sprite_layers": {
-        "back": "back22.png",
-        "body": "body33.png",
-        "head": "head36.png",
-        "weapon": "weapon2.png"
-      },
-      "typical_phrase": "Quantas dessa você aguenta?"
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 4,
-      "equipment_tiers": {
-        "back": 5,
-        "body": 2,
-        "head": 2,
-        "weapon": 4
-      },
-      "hp_tier": 9,
-      "id": 47,
-      "name": "Velado",
-      "rarity": 3,
-      "rarity_name": "Épico",
-      "seed": 81516,
-      "sprite_layers": {
-        "back": "back22.png",
-        "body": "body34.png",
-        "head": "head9.png",
-        "weapon": "weapon20.png"
-      },
-      "typical_phrase": "Até a morte."
+      "typical_phrase": "Preciso do seu dinheiro.",
+      "total_tier": 4,
+      "fixed_hp": 36,
+      "fixed_damage": 9,
+      "action_pattern": [
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 11,
+        "gold": 5,
+        "potion": null,
+        "potion_chance": 5
+      }
     },
     {
       "behavior_pattern": "default",
@@ -767,30 +165,22 @@
         "weapon": "weapon104.png"
       },
       "typical_phrase": "Tudo pelo meu mestre.",
-      "manual_group": 1
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 3,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 2,
-        "head": 1,
-        "weapon": 3
-      },
-      "hp_tier": 3,
-      "id": 49,
-      "name": "Leão Marinho",
-      "rarity": 3,
-      "rarity_name": "Épico",
-      "seed": 81516,
-      "sprite_layers": {
-        "back": "",
-        "body": "body36.png",
-        "head": "head41.png",
-        "weapon": "weapon36.png"
-      },
-      "typical_phrase": "Espada brilhante? Polida com vísceras de tubarão."
+      "manual_group": 1,
+      "total_tier": 5,
+      "group": 1,
+      "fixed_hp": 62,
+      "fixed_damage": 15,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 14,
+        "gold": 8,
+        "potion": null,
+        "potion_chance": 8
+      }
     },
     {
       "behavior_pattern": "default",
@@ -813,262 +203,20 @@
         "head": "head42.png",
         "weapon": "weapon67.png"
       },
-      "typical_phrase": "Você não vai escapar."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 1,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 2,
-        "head": 3,
-        "weapon": 1
-      },
-      "hp_tier": 5,
-      "id": 52,
-      "name": "Gaudium Mortibus",
-      "rarity": 3,
-      "rarity_name": "Épico",
-      "seed": 81516,
-      "sprite_layers": {
-        "back": "",
-        "body": "body40.png",
-        "head": "head22.png",
-        "weapon": "weapon47.png"
-      },
-      "typical_phrase": "Morte. Morte. Morte."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 2,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 4,
-        "head": 1,
-        "weapon": 2
-      },
-      "hp_tier": 5,
-      "id": 54,
-      "name": "Campeão",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body41.png",
-        "head": "head14.png",
-        "weapon": "weapon48.png"
-      },
-      "typical_phrase": "Nunca fui derrotado nesta run."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 4,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 2,
-        "head": 4,
-        "weapon": 4
-      },
-      "hp_tier": 6,
-      "id": 55,
-      "name": "Desafiante",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body42.png",
-        "head": "head21.png",
-        "weapon": "weapon65.png"
-      },
-      "typical_phrase": "Você não vai sair vivo dessa."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 3,
-      "equipment_tiers": {
-        "back": 3,
-        "body": 2,
-        "head": 1,
-        "weapon": 3
-      },
-      "hp_tier": 6,
-      "id": 56,
-      "name": "Remo",
-      "rarity": 4,
-      "rarity_name": "Lendário",
-      "seed": 572321,
-      "sprite_layers": {
-        "back": "back3.png",
-        "body": "body43.png",
-        "head": "head20.png",
-        "weapon": "weapon94.png"
-      },
-      "typical_phrase": ""
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 2,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 2,
-        "head": 4,
-        "weapon": 2
-      },
-      "hp_tier": 6,
-      "id": 57,
-      "name": "Romanvs",
-      "rarity": 4,
-      "rarity_name": "Lendário",
-      "seed": 572321,
-      "sprite_layers": {
-        "back": "",
-        "body": "body43.png",
-        "head": "head21.png",
-        "weapon": "weapon95.png"
-      },
-      "typical_phrase": "Bela será sua morte. Eterno será seu descanso."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 3,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 2,
-        "head": 4,
-        "weapon": 3
-      },
-      "hp_tier": 6,
-      "id": 58,
-      "name": "Ceifador",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body17.png",
-        "head": "head29.png",
-        "weapon": "weapon49.png"
-      },
-      "typical_phrase": "É o fim."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 4,
-      "equipment_tiers": {
-        "back": 2,
-        "body": 4,
-        "head": 2,
-        "weapon": 4
-      },
-      "hp_tier": 8,
-      "id": 60,
-      "name": "Nimbus",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "back2.png",
-        "body": "body45.png",
-        "head": "head10.png",
-        "weapon": "weapon96.png"
-      },
-      "typical_phrase": "Que a chuva enterre seu corpo."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 6,
-      "equipment_tiers": {
-        "body": 5,
-        "head": 5,
-        "weapon": 6,
-        "back": 2
-      },
-      "hp_tier": 12,
-      "id": 61,
-      "name": "Inquirido",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "back2.png",
-        "body": "body46.png",
-        "head": "head5.png",
-        "weapon": "weapon29.png"
-      },
-      "typical_phrase": ""
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 5,
-      "equipment_tiers": {
-        "body": 3,
-        "head": 3,
-        "weapon": 5,
-        "back": 2
-      },
-      "hp_tier": 8,
-      "id": 62,
-      "name": "Manaoag",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "back2.png",
-        "body": "body47.png",
-        "head": "head46.png",
-        "weapon": "weapon32.png"
-      },
-      "typical_phrase": "",
-      "manual_group": 4
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 1,
-      "equipment_tiers": {
-        "back": 6,
-        "body": 3,
-        "head": 4,
-        "weapon": 1
-      },
-      "hp_tier": 13,
-      "id": 63,
-      "name": "Lumino",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "back43.png",
-        "body": "body48.png",
-        "head": "head28.png",
-        "weapon": "weapon89.png"
-      },
-      "typical_phrase": "Sim, são vagalumes."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 5,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 5,
-        "head": 5,
-        "weapon": 5
-      },
-      "hp_tier": 10,
-      "id": 64,
-      "name": "Dragão Cinzento",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body49.png",
-        "head": "head3.png",
-        "weapon": "weapon9.png"
-      },
-      "typical_phrase": "",
-      "manual_group": 4
+      "typical_phrase": "Você não vai escapar.",
+      "total_tier": 5,
+      "fixed_hp": 37,
+      "fixed_damage": 9,
+      "action_pattern": [
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 10,
+        "gold": 6,
+        "potion": null,
+        "potion_chance": 5
+      }
     },
     {
       "behavior_pattern": "default",
@@ -1091,7 +239,19 @@
         "head": "head54.png",
         "weapon": "weapon39.png"
       },
-      "typical_phrase": "Onde está aquele carrasco maluco?"
+      "typical_phrase": "Onde está aquele carrasco maluco?",
+      "total_tier": 5,
+      "fixed_hp": 39,
+      "fixed_damage": 9,
+      "action_pattern": [
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 11,
+        "gold": 6,
+        "potion": null,
+        "potion_chance": 5
+      }
     },
     {
       "behavior_pattern": "default",
@@ -1114,7 +274,419 @@
         "head": "head55.png",
         "weapon": "weapon105.png"
       },
-      "typical_phrase": "Sofrereis com a minha Empaladora."
+      "typical_phrase": "Sofrereis com a minha Empaladora.",
+      "total_tier": 5,
+      "fixed_hp": 40,
+      "fixed_damage": 10,
+      "action_pattern": [
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 8,
+        "gold": 5,
+        "potion": null,
+        "potion_chance": 5
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 1,
+      "equipment_tiers": {
+        "back": 4,
+        "body": 2,
+        "head": 2,
+        "weapon": 1
+      },
+      "hp_tier": 8,
+      "id": 109,
+      "name": "Bastonista Rude",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "back45.png",
+        "body": "body51.png",
+        "head": "head56.png",
+        "weapon": "weapon40.png"
+      },
+      "typical_phrase": "Sofra com meus três bastões dourados.",
+      "total_tier": 5,
+      "fixed_hp": 42,
+      "fixed_damage": 10,
+      "action_pattern": [
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 11,
+        "gold": 3,
+        "potion": null,
+        "potion_chance": 5
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 3,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 2,
+        "head": 1,
+        "weapon": 3
+      },
+      "hp_tier": 3,
+      "id": 49,
+      "name": "Leão Marinho",
+      "rarity": 3,
+      "rarity_name": "Épico",
+      "seed": 81516,
+      "sprite_layers": {
+        "back": "",
+        "body": "body36.png",
+        "head": "head41.png",
+        "weapon": "weapon36.png"
+      },
+      "typical_phrase": "Espada brilhante? Polida com vísceras de tubarão.",
+      "total_tier": 6,
+      "fixed_hp": 43,
+      "fixed_damage": 10,
+      "action_pattern": [
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 12,
+        "gold": 6,
+        "potion": null,
+        "potion_chance": 5
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 1,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 2,
+        "head": 3,
+        "weapon": 1
+      },
+      "hp_tier": 5,
+      "id": 52,
+      "name": "Gaudium Mortibus",
+      "rarity": 3,
+      "rarity_name": "Épico",
+      "seed": 81516,
+      "sprite_layers": {
+        "back": "",
+        "body": "body40.png",
+        "head": "head22.png",
+        "weapon": "weapon47.png"
+      },
+      "typical_phrase": "Morte. Morte. Morte.",
+      "total_tier": 6,
+      "fixed_hp": 45,
+      "fixed_damage": 11,
+      "action_pattern": [
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 9,
+        "gold": 3,
+        "potion": null,
+        "potion_chance": 5
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 3,
+      "equipment_tiers": {
+        "back": 3,
+        "body": 2,
+        "head": 1,
+        "weapon": 3
+      },
+      "hp_tier": 6,
+      "id": 56,
+      "name": "Remo",
+      "rarity": 4,
+      "rarity_name": "Lendário",
+      "seed": 572321,
+      "sprite_layers": {
+        "back": "back3.png",
+        "body": "body43.png",
+        "head": "head20.png",
+        "weapon": "weapon94.png"
+      },
+      "typical_phrase": "",
+      "total_tier": 6,
+      "fixed_hp": 46,
+      "fixed_damage": 11,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 8,
+        "gold": 4,
+        "potion": null,
+        "potion_chance": 5
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 4,
+      "equipment_tiers": {
+        "body": 1,
+        "head": 1,
+        "weapon": 4,
+        "back": 0
+      },
+      "hp_tier": 2,
+      "id": 83,
+      "name": "Romulo",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body8.png",
+        "head": "head19.png",
+        "weapon": "weapon77.png"
+      },
+      "typical_phrase": "",
+      "total_tier": 6,
+      "fixed_hp": 48,
+      "fixed_damage": 12,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 13,
+        "gold": 8,
+        "potion": null,
+        "potion_chance": 8
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 1,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 3,
+        "head": 2,
+        "weapon": 1
+      },
+      "hp_tier": 5,
+      "id": 108,
+      "name": "Malandrim",
+      "rarity": 3,
+      "rarity_name": "Épico",
+      "seed": 81516,
+      "sprite_layers": {
+        "back": "",
+        "body": "body39.png",
+        "head": "head57.png",
+        "weapon": "weapon35.png"
+      },
+      "typical_phrase": "Se a vida me dá cabeças, eu faço suco.",
+      "total_tier": 6,
+      "fixed_hp": 49,
+      "fixed_damage": 12,
+      "action_pattern": [
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 13,
+        "gold": 10,
+        "potion": null,
+        "potion_chance": 8
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 3,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 2,
+        "head": 2,
+        "weapon": 3
+      },
+      "hp_tier": 4,
+      "name": "Serpentino",
+      "rarity": 1,
+      "rarity_name": "Comum",
+      "seed": 107800,
+      "sprite_layers": {
+        "back": null,
+        "body": "body36.png",
+        "head": "head53.png",
+        "weapon": "weapon73.png"
+      },
+      "typical_phrase": "Passa o ouro, mané",
+      "id": 5,
+      "total_tier": 7,
+      "fixed_hp": 50,
+      "fixed_damage": 12,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 15,
+        "gold": 9,
+        "potion": null,
+        "potion_chance": 8
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 1,
+      "equipment_tiers": {
+        "body": 2,
+        "head": 4,
+        "weapon": 1,
+        "back": 0
+      },
+      "hp_tier": 6,
+      "name": "Fura-Bucho",
+      "rarity": 4,
+      "rarity_name": "Lendário",
+      "seed": 582252,
+      "sprite_layers": {
+        "back": "",
+        "body": "body2.png",
+        "head": "head25.png",
+        "weapon": "weapon69.png"
+      },
+      "typical_phrase": "Chegue mais perto, quero conferir uma coisa...",
+      "id": 9,
+      "total_tier": 7,
+      "fixed_hp": 52,
+      "fixed_damage": 13,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 13,
+        "gold": 6,
+        "potion": null,
+        "potion_chance": 8
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 1,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 2,
+        "head": 4,
+        "weapon": 1
+      },
+      "hp_tier": 6,
+      "id": 32,
+      "name": "Espartano",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body2.png",
+        "head": "head21.png",
+        "weapon": "weapon84.png"
+      },
+      "typical_phrase": "Serei seu último oponente.",
+      "total_tier": 7,
+      "fixed_hp": 53,
+      "fixed_damage": 13,
+      "action_pattern": [
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 15,
+        "gold": 10,
+        "potion": null,
+        "potion_chance": 8
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 3,
+      "equipment_tiers": {
+        "back": 3,
+        "body": 3,
+        "head": 1,
+        "weapon": 3
+      },
+      "hp_tier": 7,
+      "id": 45,
+      "name": "Mercenário",
+      "rarity": 3,
+      "rarity_name": "Épico",
+      "seed": 81516,
+      "sprite_layers": {
+        "back": "back15.png",
+        "body": "body32.png",
+        "head": "head12.png",
+        "weapon": "weapon16.png"
+      },
+      "typical_phrase": "Colabore, morra calado.",
+      "total_tier": 7,
+      "fixed_hp": 54,
+      "fixed_damage": 13,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 17,
+        "gold": 6,
+        "potion": null,
+        "potion_chance": 8
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 2,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 4,
+        "head": 1,
+        "weapon": 2
+      },
+      "hp_tier": 5,
+      "id": 54,
+      "name": "Campeão",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body41.png",
+        "head": "head14.png",
+        "weapon": "weapon48.png"
+      },
+      "typical_phrase": "Nunca fui derrotado nesta run.",
+      "total_tier": 7,
+      "fixed_hp": 56,
+      "fixed_damage": 14,
+      "action_pattern": [
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 12,
+        "gold": 10,
+        "potion": "mana_potion",
+        "potion_chance": 8
+      }
     },
     {
       "behavior_pattern": "default",
@@ -1137,7 +709,21 @@
         "head": "head57.png",
         "weapon": "weapon44.png"
       },
-      "typical_phrase": "Eu tenho cabelo sim."
+      "typical_phrase": "Eu tenho cabelo sim.",
+      "total_tier": 7,
+      "fixed_hp": 57,
+      "fixed_damage": 14,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 15,
+        "gold": 9,
+        "potion": null,
+        "potion_chance": 8
+      }
     },
     {
       "behavior_pattern": "default",
@@ -1161,239 +747,22 @@
         "weapon": "weapon88.png"
       },
       "typical_phrase": "Morra cheiroso.",
-      "manual_group": 0
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 4,
-      "equipment_tiers": {
-        "body": 3,
-        "head": 3,
-        "weapon": 4,
-        "back": 0
-      },
-      "hp_tier": 6,
-      "id": 70,
-      "name": "Jotaro",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body54.png",
-        "head": "head52.png",
-        "weapon": "weapon97.png"
-      },
-      "typical_phrase": "Pereça sob a técnica do meu mestre."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 1,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 3,
-        "head": 5,
-        "weapon": 1
-      },
-      "hp_tier": 8,
-      "id": 71,
-      "name": "Dragão Pacífico",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body55.png",
-        "head": "head4.png",
-        "weapon": "weapon85.png"
-      },
-      "typical_phrase": "Não me faça matar você.",
-      "manual_group": 1
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 3,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 2,
-        "head": 3,
-        "weapon": 3
-      },
-      "hp_tier": 5,
-      "id": 73,
-      "name": "Ninja Negro",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body57.png",
-        "head": "head34.png",
-        "weapon": "weapon21.png"
-      },
-      "typical_phrase": "..."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 5,
-      "equipment_tiers": {
-        "body": 2,
-        "head": 3,
-        "weapon": 5,
-        "back": 0
-      },
-      "hp_tier": 5,
-      "id": 74,
-      "name": "Ninja",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body57.png",
-        "head": "head34.png",
-        "weapon": "weapon52.png"
-      },
-      "typical_phrase": ""
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 5,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 2,
-        "head": 3,
-        "weapon": 5
-      },
-      "hp_tier": 5,
-      "id": 76,
-      "name": "Serrador",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body57.png",
-        "head": "head46.png",
-        "weapon": "weapon98.png"
-      },
-      "typical_phrase": "Vai doer um pouquinho..."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 4,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 1,
-        "head": 3,
-        "weapon": 4
-      },
-      "hp_tier": 4,
-      "id": 77,
-      "name": "Ninja Verde",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body58.png",
-        "head": "head36.png",
-        "weapon": "weapon51.png"
-      },
-      "typical_phrase": "..."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 1,
-      "equipment_tiers": {
-        "body": 1,
-        "head": 1,
-        "weapon": 1,
-        "back": 0
-      },
-      "hp_tier": 2,
-      "id": 78,
-      "name": "Desolado",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body59.png",
-        "head": "head59.png",
-        "weapon": "weapon86.png"
-      },
-      "typical_phrase": ""
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 5,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 6,
-        "head": 3,
-        "weapon": 5
-      },
-      "hp_tier": 9,
-      "id": 79,
-      "name": "Xogum",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body6.png",
-        "head": "head26.png",
-        "weapon": "weapon99.png"
-      },
-      "typical_phrase": "",
-      "manual_group": 4
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 1,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 1,
-        "head": 2,
-        "weapon": 1
-      },
-      "hp_tier": 3,
-      "id": 80,
-      "name": "Apostador",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body60.png",
-        "head": "head58.png",
-        "weapon": "weapon87.png"
-      },
-      "typical_phrase": "Preciso do seu dinheiro."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 4,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 2,
-        "head": 2,
-        "weapon": 4
-      },
-      "hp_tier": 4,
-      "id": 81,
-      "name": "Sectário",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body61.png",
-        "head": "head50.png",
-        "weapon": "weapon83.png"
-      },
-      "typical_phrase": "Preciso seguir minhas ordens."
+      "manual_group": 0,
+      "total_tier": 7,
+      "group": 0,
+      "fixed_hp": 48,
+      "fixed_damage": 12,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 10,
+        "gold": 4,
+        "potion": null,
+        "potion_chance": 5
+      }
     },
     {
       "behavior_pattern": "default",
@@ -1416,171 +785,20 @@
         "head": "head49.png",
         "weapon": "weapon83.png"
       },
-      "typical_phrase": "Sua vidá será um bom sacrifício."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 4,
-      "equipment_tiers": {
-        "body": 1,
-        "head": 1,
-        "weapon": 4,
-        "back": 0
-      },
-      "hp_tier": 2,
-      "id": 83,
-      "name": "Romulo",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body8.png",
-        "head": "head19.png",
-        "weapon": "weapon77.png"
-      },
-      "typical_phrase": ""
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 5,
-      "equipment_tiers": {
-        "body": 5,
-        "head": 5,
-        "weapon": 5,
-        "back": 0
-      },
-      "hp_tier": 10,
-      "id": 84,
-      "name": "Réprobo",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body9.png",
-        "head": "head18.png",
-        "weapon": "weapon7.png"
-      },
-      "typical_phrase": ""
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 6,
-      "equipment_tiers": {
-        "body": 5,
-        "head": 3,
-        "weapon": 6,
-        "back": 0
-      },
-      "hp_tier": 8,
-      "id": 85,
-      "name": "Nequício",
-      "rarity": 1,
-      "rarity_name": "Comum",
-      "seed": 666409,
-      "sprite_layers": {
-        "back": "",
-        "body": "body29.png",
-        "head": "head34.png",
-        "weapon": "weapon26.png"
-      },
-      "typical_phrase": ""
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 4,
-      "equipment_tiers": {
-        "body": 4,
-        "head": 4,
-        "weapon": 4,
-        "back": 0
-      },
-      "hp_tier": 8,
-      "id": 86,
-      "manual_group": 2,
-      "name": "Yokai",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body56.png",
-        "head": "head30.png",
-        "weapon": "weapon106.png"
-      },
-      "typical_phrase": ""
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 2,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 3,
-        "head": 3,
-        "weapon": 2
-      },
-      "hp_tier": 6,
-      "id": 88,
-      "name": "Esgrimista",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 934168,
-      "sprite_layers": {
-        "back": "",
-        "body": "body15.png",
-        "head": "head39.png",
-        "weapon": "weapon14.png"
-      },
-      "typical_phrase": "Vamos duelar."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 4,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 5,
-        "head": 4,
-        "weapon": 4
-      },
-      "hp_tier": 9,
-      "id": 89,
-      "name": "Xin Shon",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": "5415",
-      "sprite_layers": {
-        "back": "",
-        "body": "body1.png",
-        "head": "head45.png",
-        "weapon": "weapon96.png"
-      },
-      "typical_phrase": "",
-      "manual_group": 4
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 4,
-      "equipment_tiers": {
-        "back": 5,
-        "body": 6,
-        "head": 5,
-        "weapon": 4
-      },
-      "hp_tier": 16,
-      "id": 91,
-      "manual_group": 5,
-      "name": "Aqua",
-      "rarity": 1,
-      "rarity_name": "Comum",
-      "seed": 534687,
-      "sprite_layers": {
-        "back": "back22.png",
-        "body": "body4.png",
-        "head": "head7.png",
-        "weapon": "weapon43.png"
-      },
-      "typical_phrase": ""
+      "typical_phrase": "Sua vidá será um bom sacrifício.",
+      "total_tier": 7,
+      "fixed_hp": 58,
+      "fixed_damage": 14,
+      "action_pattern": [
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 13,
+        "gold": 10,
+        "potion": null,
+        "potion_chance": 8
+      }
     },
     {
       "behavior_pattern": "default",
@@ -1603,170 +821,503 @@
         "head": "head36.png",
         "weapon": "weapon109.png"
       },
-      "typical_phrase": "Tem comida aí?"
+      "typical_phrase": "Tem comida aí?",
+      "total_tier": 7,
+      "fixed_hp": 60,
+      "fixed_damage": 15,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 16,
+        "gold": 10,
+        "potion": null,
+        "potion_chance": 8
+      }
     },
     {
       "behavior_pattern": "default",
-      "damage_tier": 6,
+      "damage_tier": 3,
       "equipment_tiers": {
-        "body": 5,
-        "head": 3,
-        "weapon": 6,
+        "body": 2,
+        "head": 2,
+        "weapon": 3,
         "back": 0
       },
-      "hp_tier": 8,
-      "id": 93,
-      "name": "Celestino",
+      "hp_tier": 4,
+      "id": 110,
+      "name": "Homem Morte",
       "rarity": 2,
       "rarity_name": "Raro",
       "seed": 185181,
       "sprite_layers": {
         "back": "",
-        "body": "body5.png",
-        "head": "head34.png",
-        "weapon": "weapon111.png"
+        "body": "body34.png",
+        "head": "head9.png",
+        "weapon": "weapon41.png"
       },
-      "typical_phrase": ""
+      "typical_phrase": "Chegou a sua hora.",
+      "total_tier": 7,
+      "fixed_hp": 61,
+      "fixed_damage": 15,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 15,
+        "gold": 7,
+        "potion": null,
+        "potion_chance": 8
+      }
     },
     {
       "behavior_pattern": "default",
-      "damage_tier": 5,
+      "damage_tier": 2,
       "equipment_tiers": {
         "back": 0,
-        "body": 6,
-        "head": 6,
-        "weapon": 5
+        "body": 3,
+        "head": 2,
+        "weapon": 2
       },
-      "hp_tier": 12,
-      "id": 94,
-      "name": "Epifanius",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 934168,
+      "hp_tier": 5,
+      "id": 115,
+      "name": "Cinzento",
+      "rarity": 4,
+      "rarity_name": "Lendário",
+      "seed": 917372,
       "sprite_layers": {
         "back": "",
-        "body": "body3.png",
-        "head": "head33.png",
-        "weapon": "weapon17.png"
+        "body": "body15.png",
+        "head": "head10.png",
+        "weapon": "weapon56.png"
       },
-      "typical_phrase": "",
-      "manual_group": 5
+      "typical_phrase": "Calma. Não te deixarei agonizando.",
+      "total_tier": 7,
+      "fixed_hp": 64,
+      "fixed_damage": 16,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 22,
+        "gold": 12,
+        "potion": "health_potion",
+        "potion_chance": 10
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 4,
+      "equipment_tiers": {
+        "back": 5,
+        "body": 3,
+        "head": 1,
+        "weapon": 4
+      },
+      "hp_tier": 9,
+      "id": 11,
+      "name": "Nobre Maximus",
+      "rarity": 3,
+      "rarity_name": "Épico",
+      "seed": 589433,
+      "sprite_layers": {
+        "back": "back18.png",
+        "body": "body39.png",
+        "head": "head20.png",
+        "weapon": "weapon65.png"
+      },
+      "typical_phrase": "Plebeu! Nojento!",
+      "total_tier": 8,
+      "fixed_hp": 65,
+      "fixed_damage": 16,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 23,
+        "gold": 12,
+        "potion": "defense_potion",
+        "potion_chance": 10
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 1,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 4,
+        "head": 3,
+        "weapon": 1
+      },
+      "hp_tier": 7,
+      "id": 19,
+      "name": "Ronnin",
+      "rarity": 4,
+      "rarity_name": "Lendário",
+      "seed": 952163,
+      "sprite_layers": {
+        "back": "",
+        "body": "body56.png",
+        "head": "head44.png",
+        "weapon": "weapon87.png"
+      },
+      "typical_phrase": "Pega leve, estou aprendendo.",
+      "total_tier": 8,
+      "fixed_hp": 66,
+      "fixed_damage": 16,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 18,
+        "gold": 12,
+        "potion": null,
+        "potion_chance": 10
+      }
     },
     {
       "behavior_pattern": "default",
       "damage_tier": 3,
       "equipment_tiers": {
         "body": 4,
-        "head": 5,
+        "head": 1,
         "weapon": 3,
-        "back": 4
+        "back": 2
       },
-      "hp_tier": 13,
-      "id": 95,
-      "name": "Vain",
+      "hp_tier": 7,
+      "id": 22,
+      "name": "Alabardeiro",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 37543,
+      "sprite_layers": {
+        "back": "back26.png",
+        "body": "body11.png",
+        "head": "head12.png",
+        "weapon": "weapon103.png"
+      },
+      "typical_phrase": "Lute como homem.",
+      "total_tier": 8,
+      "fixed_hp": 68,
+      "fixed_damage": 17,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 20,
+        "gold": 13,
+        "potion": null,
+        "potion_chance": 10
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 3,
+      "equipment_tiers": {
+        "back": 5,
+        "body": 3,
+        "head": 2,
+        "weapon": 3
+      },
+      "hp_tier": 10,
+      "id": 44,
+      "name": "Saqueador",
       "rarity": 3,
       "rarity_name": "Épico",
       "seed": 81516,
       "sprite_layers": {
-        "back": "back24.png",
-        "body": "body25.png",
-        "head": "head1.png",
-        "weapon": "weapon11.png"
+        "back": "back14.png",
+        "body": "body31.png",
+        "head": "head58.png",
+        "weapon": "weapon15.png"
       },
-      "typical_phrase": ""
+      "typical_phrase": "Foi mal, vou pegar isso pra mim.",
+      "total_tier": 8,
+      "fixed_hp": 69,
+      "fixed_damage": 17,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 21,
+        "gold": 12,
+        "potion": null,
+        "potion_chance": 10
+      }
     },
     {
       "behavior_pattern": "default",
-      "damage_tier": 5,
+      "damage_tier": 4,
+      "equipment_tiers": {
+        "back": 5,
+        "body": 2,
+        "head": 2,
+        "weapon": 4
+      },
+      "hp_tier": 9,
+      "id": 47,
+      "name": "Velado",
+      "rarity": 3,
+      "rarity_name": "Épico",
+      "seed": 81516,
+      "sprite_layers": {
+        "back": "back22.png",
+        "body": "body34.png",
+        "head": "head9.png",
+        "weapon": "weapon20.png"
+      },
+      "typical_phrase": "Até a morte.",
+      "total_tier": 8,
+      "fixed_hp": 70,
+      "fixed_damage": 17,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 19,
+        "gold": 12,
+        "potion": null,
+        "potion_chance": 10
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 2,
       "equipment_tiers": {
         "back": 0,
-        "body": 3,
-        "head": 1,
-        "weapon": 5
+        "body": 2,
+        "head": 4,
+        "weapon": 2
       },
-      "hp_tier": 4,
-      "id": 96,
-      "name": "Arruaceiro",
+      "hp_tier": 6,
+      "id": 57,
+      "name": "Romanvs",
       "rarity": 4,
       "rarity_name": "Lendário",
-      "seed": 917372,
+      "seed": 572321,
       "sprite_layers": {
         "back": "",
-        "body": "body16.png",
-        "head": "head60.png",
-        "weapon": "weapon18.png"
+        "body": "body43.png",
+        "head": "head21.png",
+        "weapon": "weapon95.png"
       },
-      "typical_phrase": "Que azar o seu!"
+      "typical_phrase": "Bela será sua morte. Eterno será seu descanso.",
+      "total_tier": 8,
+      "fixed_hp": 72,
+      "fixed_damage": 18,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 20,
+        "gold": 13,
+        "potion": null,
+        "potion_chance": 10
+      }
     },
     {
       "behavior_pattern": "default",
-      "damage_tier": 6,
+      "damage_tier": 1,
+      "equipment_tiers": {
+        "back": 6,
+        "body": 3,
+        "head": 4,
+        "weapon": 1
+      },
+      "hp_tier": 13,
+      "id": 63,
+      "name": "Lumino",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "back43.png",
+        "body": "body48.png",
+        "head": "head28.png",
+        "weapon": "weapon89.png"
+      },
+      "typical_phrase": "Sim, são vagalumes.",
+      "total_tier": 8,
+      "fixed_hp": 73,
+      "fixed_damage": 18,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 21,
+        "gold": 11,
+        "potion": null,
+        "potion_chance": 10
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 3,
       "equipment_tiers": {
         "back": 0,
-        "body": 5,
-        "head": 5,
-        "weapon": 6
+        "body": 2,
+        "head": 3,
+        "weapon": 3
       },
-      "hp_tier": 10,
-      "id": 99,
-      "name": "Muralha",
+      "hp_tier": 5,
+      "id": 73,
+      "name": "Ninja Negro",
       "rarity": 2,
       "rarity_name": "Raro",
       "seed": 185181,
       "sprite_layers": {
         "back": "",
-        "body": "body20.png",
-        "head": "head32.png",
-        "weapon": "weapon76.png"
+        "body": "body57.png",
+        "head": "head34.png",
+        "weapon": "weapon21.png"
       },
-      "typical_phrase": "",
-      "manual_group": 5
+      "typical_phrase": "...",
+      "total_tier": 8,
+      "fixed_hp": 74,
+      "fixed_damage": 18,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 23,
+        "gold": 15,
+        "potion": "strength_potion",
+        "potion_chance": 10
+      }
     },
     {
       "behavior_pattern": "default",
-      "damage_tier": 5,
+      "damage_tier": 4,
       "equipment_tiers": {
-        "back": 5,
-        "body": 5,
-        "head": 4,
-        "weapon": 5
+        "back": 0,
+        "body": 1,
+        "head": 3,
+        "weapon": 4
       },
-      "hp_tier": 14,
-      "id": 100,
-      "name": "Edo",
-      "rarity": 1,
-      "rarity_name": "Comum",
-      "seed": 893396,
+      "hp_tier": 4,
+      "id": 77,
+      "name": "Ninja Verde",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
       "sprite_layers": {
-        "back": "back14.png",
-        "body": "body29.png",
-        "head": "head27.png",
-        "weapon": "weapon23.png"
+        "back": "",
+        "body": "body58.png",
+        "head": "head36.png",
+        "weapon": "weapon51.png"
       },
-      "typical_phrase": ""
+      "typical_phrase": "...",
+      "total_tier": 8,
+      "fixed_hp": 76,
+      "fixed_damage": 19,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 18,
+        "gold": 11,
+        "potion": null,
+        "potion_chance": 10
+      }
     },
     {
       "behavior_pattern": "default",
-      "damage_tier": 5,
+      "damage_tier": 4,
       "equipment_tiers": {
-        "back": 5,
-        "body": 5,
-        "head": 6,
-        "weapon": 5
+        "back": 0,
+        "body": 2,
+        "head": 2,
+        "weapon": 4
       },
-      "hp_tier": 16,
-      "id": 101,
-      "name": "Sanguinolato",
-      "rarity": 3,
-      "rarity_name": "Épico",
-      "seed": 81516,
+      "hp_tier": 4,
+      "id": 81,
+      "name": "Sectário",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
       "sprite_layers": {
-        "back": "back18.png",
-        "body": "body30.png",
-        "head": "head8.png",
-        "weapon": "weapon25.png"
+        "back": "",
+        "body": "body61.png",
+        "head": "head50.png",
+        "weapon": "weapon83.png"
       },
-      "typical_phrase": ""
+      "typical_phrase": "Preciso seguir minhas ordens.",
+      "total_tier": 8,
+      "fixed_hp": 77,
+      "fixed_damage": 19,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 25,
+        "gold": 12,
+        "potion": null,
+        "potion_chance": 10
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 2,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 3,
+        "head": 3,
+        "weapon": 2
+      },
+      "hp_tier": 6,
+      "id": 88,
+      "name": "Esgrimista",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 934168,
+      "sprite_layers": {
+        "back": "",
+        "body": "body15.png",
+        "head": "head39.png",
+        "weapon": "weapon14.png"
+      },
+      "typical_phrase": "Vamos duelar.",
+      "total_tier": 8,
+      "fixed_hp": 80,
+      "fixed_damage": 20,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "skill",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 33,
+        "gold": 22,
+        "potion": null,
+        "potion_chance": 12
+      }
     },
     {
       "behavior_pattern": "default",
@@ -1790,7 +1341,873 @@
         "weapon": "weapon27.png"
       },
       "typical_phrase": "Estou morto por dentro. Matarei todos também.",
-      "manual_group": 3
+      "manual_group": 3,
+      "total_tier": 8,
+      "group": 3,
+      "fixed_hp": 93,
+      "fixed_damage": 23,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 30,
+        "gold": 17,
+        "potion": null,
+        "potion_chance": 12
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 2,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 2,
+        "head": 4,
+        "weapon": 2
+      },
+      "hp_tier": 6,
+      "id": 111,
+      "name": "Selvagem",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body2.png",
+        "head": "head61.png",
+        "weapon": "weapon42.png"
+      },
+      "typical_phrase": "Uga!",
+      "total_tier": 8,
+      "fixed_hp": 81,
+      "fixed_damage": 20,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 28,
+        "gold": 18,
+        "potion": null,
+        "potion_chance": 12
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 2,
+      "enemy_number": 25,
+      "equipment_tiers": {
+        "body": 3,
+        "head": 4,
+        "weapon": 2,
+        "back": 2
+      },
+      "hp_tier": 9,
+      "id": 2,
+      "name": "Sentinela",
+      "rarity": 4,
+      "rarity_name": "Lendário",
+      "seed": 877548,
+      "sprite_layers": {
+        "back": "back8.png",
+        "body": "body48.png",
+        "head": "head24.png",
+        "weapon": "weapon13.png"
+      },
+      "theme_id": 1,
+      "theme_name": "Guerreiro azul",
+      "typical_phrase": "Finalmente um desafiante adequado.",
+      "total_tier": 9,
+      "fixed_hp": 82,
+      "fixed_damage": 20,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 33,
+        "gold": 21,
+        "potion": null,
+        "potion_chance": 12
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 2,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 5,
+        "head": 2,
+        "weapon": 2
+      },
+      "hp_tier": 7,
+      "id": 15,
+      "name": "Gancho",
+      "rarity": 4,
+      "rarity_name": "Lendário",
+      "seed": 544474,
+      "sprite_layers": {
+        "back": "",
+        "body": "body46.png",
+        "head": "head9.png",
+        "weapon": "weapon92.png"
+      },
+      "typical_phrase": "Sua vida acaba aqui...",
+      "total_tier": 9,
+      "fixed_hp": 83,
+      "fixed_damage": 20,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 26,
+        "gold": 19,
+        "potion": null,
+        "potion_chance": 12
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 4,
+      "equipment_tiers": {
+        "back": 3,
+        "body": 1,
+        "head": 4,
+        "weapon": 4
+      },
+      "hp_tier": 8,
+      "id": 17,
+      "name": "Cavaleiro Sombrio",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 105710,
+      "sprite_layers": {
+        "back": "back3.png",
+        "body": "body7.png",
+        "head": "head25.png",
+        "weapon": "weapon8.png"
+      },
+      "typical_phrase": "Você é um deles? Eu não irei voltar.",
+      "total_tier": 9,
+      "fixed_hp": 84,
+      "fixed_damage": 21,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 32,
+        "gold": 21,
+        "potion": null,
+        "potion_chance": 12
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 3,
+      "equipment_tiers": {
+        "body": 2,
+        "head": 4,
+        "weapon": 3,
+        "back": 3
+      },
+      "hp_tier": 9,
+      "name": "Ursino",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 37543,
+      "sprite_layers": {
+        "back": "back25.png",
+        "body": "body10.png",
+        "head": "head61.png",
+        "weapon": "weapon1.png"
+      },
+      "typical_phrase": "Mais uma mosca no meu caminho.",
+      "id": 21,
+      "total_tier": 9,
+      "fixed_hp": 86,
+      "fixed_damage": 21,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 33,
+        "gold": 17,
+        "potion": null,
+        "potion_chance": 12
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 4,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 4,
+        "head": 1,
+        "weapon": 4
+      },
+      "hp_tier": 5,
+      "id": 23,
+      "name": "Gaius",
+      "rarity": 4,
+      "rarity_name": "Lendário",
+      "seed": 652493,
+      "sprite_layers": {
+        "back": "",
+        "body": "body12.png",
+        "head": "head20.png",
+        "weapon": "weapon77.png"
+      },
+      "typical_phrase": "Pelo meu dever.",
+      "total_tier": 9,
+      "fixed_hp": 87,
+      "fixed_damage": 21,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "skill",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 32,
+        "gold": 22,
+        "potion": null,
+        "potion_chance": 12
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 2,
+      "equipment_tiers": {
+        "back": 1,
+        "body": 4,
+        "head": 3,
+        "weapon": 2
+      },
+      "hp_tier": 8,
+      "id": 24,
+      "name": "Bravateiro",
+      "rarity": 4,
+      "rarity_name": "Lendário",
+      "seed": 917372,
+      "sprite_layers": {
+        "back": "back9.png",
+        "body": "body13.png",
+        "head": "head54.png",
+        "weapon": "weapon79.png"
+      },
+      "typical_phrase": "É impossível você me derrotar.",
+      "manual_group": 2,
+      "total_tier": 9,
+      "group": 2,
+      "fixed_hp": 78,
+      "fixed_damage": 19,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 18,
+        "gold": 13,
+        "potion": null,
+        "potion_chance": 10
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 3,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 2,
+        "head": 4,
+        "weapon": 3
+      },
+      "hp_tier": 6,
+      "id": 58,
+      "name": "Ceifador",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body17.png",
+        "head": "head29.png",
+        "weapon": "weapon49.png"
+      },
+      "typical_phrase": "É o fim.",
+      "total_tier": 9,
+      "fixed_hp": 88,
+      "fixed_damage": 22,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 29,
+        "gold": 17,
+        "potion": null,
+        "potion_chance": 12
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 1,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 3,
+        "head": 5,
+        "weapon": 1
+      },
+      "hp_tier": 8,
+      "id": 71,
+      "name": "Dragão Pacífico",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body55.png",
+        "head": "head4.png",
+        "weapon": "weapon85.png"
+      },
+      "typical_phrase": "Não me faça matar você.",
+      "manual_group": 1,
+      "total_tier": 9,
+      "group": 1,
+      "fixed_hp": 64,
+      "fixed_damage": 16,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 12,
+        "gold": 9,
+        "potion": null,
+        "potion_chance": 8
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 5,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 3,
+        "head": 1,
+        "weapon": 5
+      },
+      "hp_tier": 4,
+      "id": 96,
+      "name": "Arruaceiro",
+      "rarity": 4,
+      "rarity_name": "Lendário",
+      "seed": 917372,
+      "sprite_layers": {
+        "back": "",
+        "body": "body16.png",
+        "head": "head60.png",
+        "weapon": "weapon18.png"
+      },
+      "typical_phrase": "Que azar o seu!",
+      "total_tier": 9,
+      "fixed_hp": 89,
+      "fixed_damage": 22,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "skill",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 35,
+        "gold": 21,
+        "potion": null,
+        "potion_chance": 12
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 3,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 4,
+        "head": 3,
+        "weapon": 3
+      },
+      "hp_tier": 7,
+      "id": 10,
+      "name": "Tubarão",
+      "rarity": 3,
+      "rarity_name": "Épico",
+      "seed": 37074,
+      "sprite_layers": {
+        "back": "",
+        "body": "body45.png",
+        "head": "head35.png",
+        "weapon": "weapon72.png"
+      },
+      "typical_phrase": "Áspero e cortante. Mas vai ser rápido.",
+      "total_tier": 10,
+      "fixed_hp": 91,
+      "fixed_damage": 22,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 35,
+        "gold": 18,
+        "potion": null,
+        "potion_chance": 12
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 4,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 2,
+        "head": 4,
+        "weapon": 4
+      },
+      "hp_tier": 6,
+      "id": 55,
+      "name": "Desafiante",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body42.png",
+        "head": "head21.png",
+        "weapon": "weapon65.png"
+      },
+      "typical_phrase": "Você não vai sair vivo dessa.",
+      "total_tier": 10,
+      "fixed_hp": 92,
+      "fixed_damage": 23,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 26,
+        "gold": 16,
+        "potion": null,
+        "potion_chance": 12
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 4,
+      "equipment_tiers": {
+        "back": 2,
+        "body": 4,
+        "head": 2,
+        "weapon": 4
+      },
+      "hp_tier": 8,
+      "id": 60,
+      "name": "Nimbus",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "back2.png",
+        "body": "body45.png",
+        "head": "head10.png",
+        "weapon": "weapon96.png"
+      },
+      "typical_phrase": "Que a chuva enterre seu corpo.",
+      "total_tier": 10,
+      "fixed_hp": 96,
+      "fixed_damage": 24,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 38,
+        "gold": 25,
+        "potion": "health_potion",
+        "potion_chance": 15
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 4,
+      "equipment_tiers": {
+        "body": 3,
+        "head": 3,
+        "weapon": 4,
+        "back": 0
+      },
+      "hp_tier": 6,
+      "id": 70,
+      "name": "Jotaro",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body54.png",
+        "head": "head52.png",
+        "weapon": "weapon97.png"
+      },
+      "typical_phrase": "Pereça sob a técnica do meu mestre.",
+      "total_tier": 10,
+      "fixed_hp": 97,
+      "fixed_damage": 24,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "skill",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 40,
+        "gold": 23,
+        "potion": null,
+        "potion_chance": 15
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 5,
+      "equipment_tiers": {
+        "body": 2,
+        "head": 3,
+        "weapon": 5,
+        "back": 0
+      },
+      "hp_tier": 5,
+      "id": 74,
+      "name": "Ninja",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body57.png",
+        "head": "head34.png",
+        "weapon": "weapon52.png"
+      },
+      "typical_phrase": "",
+      "total_tier": 10,
+      "fixed_hp": 98,
+      "fixed_damage": 24,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 45,
+        "gold": 28,
+        "potion": null,
+        "potion_chance": 15
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 5,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 2,
+        "head": 3,
+        "weapon": 5
+      },
+      "hp_tier": 5,
+      "id": 76,
+      "name": "Serrador",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body57.png",
+        "head": "head46.png",
+        "weapon": "weapon98.png"
+      },
+      "typical_phrase": "Vai doer um pouquinho...",
+      "total_tier": 10,
+      "fixed_hp": 99,
+      "fixed_damage": 24,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 40,
+        "gold": 24,
+        "potion": "defense_potion",
+        "potion_chance": 15
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 3,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 4,
+        "head": 3,
+        "weapon": 3
+      },
+      "hp_tier": 7,
+      "id": 114,
+      "name": "Lanceiro",
+      "rarity": 4,
+      "rarity_name": "Lendário",
+      "seed": 952163,
+      "sprite_layers": {
+        "back": "",
+        "body": "body56.png",
+        "head": "head43.png",
+        "weapon": "weapon54.png"
+      },
+      "typical_phrase": "Vamos! Preciso aprimorar a minha técnica.",
+      "manual_group": 3,
+      "total_tier": 10,
+      "group": 3,
+      "fixed_hp": 94,
+      "fixed_damage": 23,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 33,
+        "gold": 19,
+        "potion": null,
+        "potion_chance": 12
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 4,
+      "equipment_tiers": {
+        "back": 2,
+        "body": 4,
+        "head": 2,
+        "weapon": 4
+      },
+      "hp_tier": 8,
+      "id": 119,
+      "name": "Cumulus",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "back2.png",
+        "body": "body45.png",
+        "head": "head10.png",
+        "weapon": "weapon90.png"
+      },
+      "typical_phrase": "Que dia cinzento. Lindo.",
+      "total_tier": 10,
+      "fixed_hp": 100,
+      "fixed_damage": 25,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 35,
+        "gold": 30,
+        "potion": null,
+        "potion_chance": 15
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 4,
+      "equipment_tiers": {
+        "body": 5,
+        "head": 2,
+        "weapon": 4,
+        "back": 5
+      },
+      "hp_tier": 12,
+      "id": 16,
+      "name": "Mestre do Aço",
+      "rarity": 1,
+      "rarity_name": "Comum",
+      "seed": 346593,
+      "sprite_layers": {
+        "back": "back13.png",
+        "body": "body9.png",
+        "head": "head40.png",
+        "weapon": "weapon50.png"
+      },
+      "typical_phrase": "Finda aqui a tua história.",
+      "total_tier": 11,
+      "fixed_hp": 101,
+      "fixed_damage": 25,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 40,
+        "gold": 28,
+        "potion": null,
+        "potion_chance": 15
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 4,
+      "equipment_tiers": {
+        "body": 5,
+        "head": 2,
+        "weapon": 4,
+        "back": 1
+      },
+      "hp_tier": 8,
+      "name": "Kazuma",
+      "rarity": 3,
+      "rarity_name": "Épico",
+      "seed": 81516,
+      "sprite_layers": {
+        "back": "back4.png",
+        "body": "body26.png",
+        "head": "head55.png",
+        "weapon": "weapon100.png"
+      },
+      "typical_phrase": "",
+      "id": 39,
+      "total_tier": 11,
+      "fixed_hp": 102,
+      "fixed_damage": 25,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "skill",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 45,
+        "gold": 24,
+        "potion": null,
+        "potion_chance": 15
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 4,
+      "equipment_tiers": {
+        "back": 5,
+        "body": 4,
+        "head": 3,
+        "weapon": 4
+      },
+      "hp_tier": 12,
+      "id": 46,
+      "name": "Pesadinho",
+      "rarity": 3,
+      "rarity_name": "Épico",
+      "seed": 81516,
+      "sprite_layers": {
+        "back": "back22.png",
+        "body": "body33.png",
+        "head": "head36.png",
+        "weapon": "weapon2.png"
+      },
+      "typical_phrase": "Quantas dessa você aguenta?",
+      "total_tier": 11,
+      "fixed_hp": 104,
+      "fixed_damage": 26,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "skill",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 42,
+        "gold": 29,
+        "potion": "strength_potion",
+        "potion_chance": 15
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 5,
+      "equipment_tiers": {
+        "body": 3,
+        "head": 3,
+        "weapon": 5,
+        "back": 2
+      },
+      "hp_tier": 8,
+      "id": 62,
+      "name": "Manaoag",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "back2.png",
+        "body": "body47.png",
+        "head": "head46.png",
+        "weapon": "weapon32.png"
+      },
+      "typical_phrase": "",
+      "manual_group": 4,
+      "total_tier": 11,
+      "group": 4,
+      "fixed_hp": 107,
+      "fixed_damage": 26,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 36,
+        "gold": 25,
+        "potion": null,
+        "potion_chance": 15
+      }
     },
     {
       "behavior_pattern": "default",
@@ -1813,30 +2230,259 @@
         "head": "head14.png",
         "weapon": "weapon28.png"
       },
-      "typical_phrase": ""
+      "typical_phrase": "",
+      "total_tier": 11,
+      "fixed_hp": 105,
+      "fixed_damage": 26,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 41,
+        "gold": 29,
+        "potion": null,
+        "potion_chance": 15
+      }
     },
     {
       "behavior_pattern": "default",
-      "damage_tier": 6,
+      "damage_tier": 5,
       "equipment_tiers": {
-        "body": 5,
-        "head": 6,
-        "weapon": 6,
-        "back": 0
+        "back": 5,
+        "body": 1,
+        "head": 5,
+        "weapon": 5
       },
       "hp_tier": 11,
-      "id": 105,
-      "name": "Cremado",
-      "rarity": 1,
-      "rarity_name": "Comum",
-      "seed": 534687,
+      "id": 120,
+      "name": "Kobra",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "back22.png",
+        "body": "body58.png",
+        "head": "head4.png",
+        "weapon": "weapon5.png"
+      },
+      "typical_phrase": "",
+      "total_tier": 11,
+      "fixed_hp": 106,
+      "fixed_damage": 26,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 44,
+        "gold": 23,
+        "potion": null,
+        "potion_chance": 15
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 3,
+      "equipment_tiers": {
+        "body": 4,
+        "head": 5,
+        "weapon": 3,
+        "back": 2
+      },
+      "hp_tier": 11,
+      "name": "Assassino",
+      "rarity": 4,
+      "rarity_name": "Lendário",
+      "seed": 917372,
+      "sprite_layers": {
+        "back": "back2.png",
+        "body": "body45.png",
+        "head": "head48.png",
+        "weapon": "weapon45.png"
+      },
+      "typical_phrase": "",
+      "id": 26,
+      "total_tier": 12,
+      "fixed_hp": 112,
+      "fixed_damage": 28,
+      "action_pattern": [
+        "skill",
+        "attack",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 45,
+        "gold": 37,
+        "potion": null,
+        "potion_chance": 18
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 5,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 2,
+        "head": 5,
+        "weapon": 5
+      },
+      "hp_tier": 7,
+      "id": 30,
+      "name": "Diabo Verde",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
       "sprite_layers": {
         "back": "",
-        "body": "body1.png",
-        "head": "head16.png",
-        "weapon": "weapon31.png"
+        "body": "body18.png",
+        "head": "head17.png",
+        "weapon": "weapon6.png"
       },
-      "typical_phrase": ""
+      "typical_phrase": "",
+      "manual_group": 6,
+      "total_tier": 12,
+      "group": 6,
+      "fixed_hp": 128,
+      "fixed_damage": 32,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "skill",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 61,
+        "gold": 53,
+        "potion": null,
+        "potion_chance": 25
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 4,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 2,
+        "head": 6,
+        "weapon": 4
+      },
+      "hp_tier": 8,
+      "id": 31,
+      "name": "Caveira Negra",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body19.png",
+        "head": "head16.png",
+        "weapon": "weapon83.png"
+      },
+      "typical_phrase": "",
+      "total_tier": 12,
+      "fixed_hp": 113,
+      "fixed_damage": 28,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "skill",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 46,
+        "gold": 30,
+        "potion": null,
+        "potion_chance": 18
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 4,
+      "equipment_tiers": {
+        "body": 4,
+        "head": 4,
+        "weapon": 4,
+        "back": 0
+      },
+      "hp_tier": 8,
+      "id": 86,
+      "manual_group": 2,
+      "name": "Yokai",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body56.png",
+        "head": "head30.png",
+        "weapon": "weapon106.png"
+      },
+      "typical_phrase": "",
+      "total_tier": 12,
+      "group": 2,
+      "fixed_hp": 80,
+      "fixed_damage": 20,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 24,
+        "gold": 12,
+        "potion": null,
+        "potion_chance": 10
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 3,
+      "equipment_tiers": {
+        "body": 4,
+        "head": 5,
+        "weapon": 3,
+        "back": 4
+      },
+      "hp_tier": 13,
+      "id": 95,
+      "name": "Vain",
+      "rarity": 3,
+      "rarity_name": "Épico",
+      "seed": 81516,
+      "sprite_layers": {
+        "back": "back24.png",
+        "body": "body25.png",
+        "head": "head1.png",
+        "weapon": "weapon11.png"
+      },
+      "typical_phrase": "",
+      "total_tier": 12,
+      "fixed_hp": 114,
+      "fixed_damage": 28,
+      "action_pattern": [
+        "skill",
+        "attack",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 51,
+        "gold": 33,
+        "potion": "mana_potion",
+        "potion_chance": 18
+      }
     },
     {
       "behavior_pattern": "default",
@@ -1863,170 +2509,24 @@
       "theme_id": 1,
       "theme_name": "Guerreiro azul",
       "typical_phrase": "",
-      "manual_group": 4
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 6,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 6,
-        "head": 5,
-        "weapon": 6
-      },
-      "hp_tier": 11,
-      "id": 107,
-      "name": "Iceberg",
-      "rarity": 1,
-      "rarity_name": "Comum",
-      "seed": 534687,
-      "sprite_layers": {
-        "back": "",
-        "body": "body4.png",
-        "head": "head32.png",
-        "weapon": "weapon3.png"
-      },
-      "typical_phrase": "",
-      "manual_group": 5
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 1,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 3,
-        "head": 2,
-        "weapon": 1
-      },
-      "hp_tier": 5,
-      "id": 108,
-      "name": "Malandrim",
-      "rarity": 3,
-      "rarity_name": "Épico",
-      "seed": 81516,
-      "sprite_layers": {
-        "back": "",
-        "body": "body39.png",
-        "head": "head57.png",
-        "weapon": "weapon35.png"
-      },
-      "typical_phrase": "Se a vida me dá cabeças, eu faço suco."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 1,
-      "equipment_tiers": {
-        "back": 4,
-        "body": 2,
-        "head": 2,
-        "weapon": 1
-      },
-      "hp_tier": 8,
-      "id": 109,
-      "name": "Bastonista Rude",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "back45.png",
-        "body": "body51.png",
-        "head": "head56.png",
-        "weapon": "weapon40.png"
-      },
-      "typical_phrase": "Sofra com meus três bastões dourados."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 3,
-      "equipment_tiers": {
-        "body": 2,
-        "head": 2,
-        "weapon": 3,
-        "back": 0
-      },
-      "hp_tier": 4,
-      "id": 110,
-      "name": "Homem Morte",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body34.png",
-        "head": "head9.png",
-        "weapon": "weapon41.png"
-      },
-      "typical_phrase": "Chegou a sua hora."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 2,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 2,
-        "head": 4,
-        "weapon": 2
-      },
-      "hp_tier": 6,
-      "id": 111,
-      "name": "Selvagem",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "",
-        "body": "body2.png",
-        "head": "head61.png",
-        "weapon": "weapon42.png"
-      },
-      "typical_phrase": "Uga!"
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 3,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 4,
-        "head": 3,
-        "weapon": 3
-      },
-      "hp_tier": 7,
-      "id": 114,
-      "name": "Lanceiro",
-      "rarity": 4,
-      "rarity_name": "Lendário",
-      "seed": 952163,
-      "sprite_layers": {
-        "back": "",
-        "body": "body56.png",
-        "head": "head43.png",
-        "weapon": "weapon54.png"
-      },
-      "typical_phrase": "Vamos! Preciso aprimorar a minha técnica.",
-      "manual_group": 3
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 2,
-      "equipment_tiers": {
-        "back": 0,
-        "body": 3,
-        "head": 2,
-        "weapon": 2
-      },
-      "hp_tier": 5,
-      "id": 115,
-      "name": "Cinzento",
-      "rarity": 4,
-      "rarity_name": "Lendário",
-      "seed": 917372,
-      "sprite_layers": {
-        "back": "",
-        "body": "body15.png",
-        "head": "head10.png",
-        "weapon": "weapon56.png"
-      },
-      "typical_phrase": "Calma. Não te deixarei agonizando."
+      "manual_group": 4,
+      "total_tier": 12,
+      "group": 4,
+      "fixed_hp": 108,
+      "fixed_damage": 27,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 42,
+        "gold": 28,
+        "potion": null,
+        "potion_chance": 15
+      }
     },
     {
       "behavior_pattern": "default",
@@ -2050,7 +2550,23 @@
         "weapon": "weapon68.png"
       },
       "typical_phrase": "",
-      "manual_group": 3
+      "manual_group": 3,
+      "total_tier": 12,
+      "group": 3,
+      "fixed_hp": 96,
+      "fixed_damage": 24,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 34,
+        "gold": 21,
+        "potion": null,
+        "potion_chance": 12
+      }
     },
     {
       "behavior_pattern": "default",
@@ -2073,7 +2589,871 @@
         "head": "head47.png",
         "weapon": "weapon71.png"
       },
-      "typical_phrase": "Arrancarei seus olho e darei aos corvos."
+      "typical_phrase": "Arrancarei seus olho e darei aos corvos.",
+      "total_tier": 12,
+      "fixed_hp": 115,
+      "fixed_damage": 28,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "skill",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 59,
+        "gold": 38,
+        "potion": "strength_potion",
+        "potion_chance": 18
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 4,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 5,
+        "head": 4,
+        "weapon": 4
+      },
+      "hp_tier": 9,
+      "id": 89,
+      "name": "Xin Shon",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": "5415",
+      "sprite_layers": {
+        "back": "",
+        "body": "body1.png",
+        "head": "head45.png",
+        "weapon": "weapon96.png"
+      },
+      "typical_phrase": "",
+      "manual_group": 4,
+      "total_tier": 13,
+      "group": 4,
+      "fixed_hp": 109,
+      "fixed_damage": 27,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "skill",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 40,
+        "gold": 29,
+        "potion": null,
+        "potion_chance": 15
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 5,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 6,
+        "head": 3,
+        "weapon": 5
+      },
+      "hp_tier": 9,
+      "id": 79,
+      "name": "Xogum",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body6.png",
+        "head": "head26.png",
+        "weapon": "weapon99.png"
+      },
+      "typical_phrase": "",
+      "manual_group": 4,
+      "total_tier": 14,
+      "group": 4,
+      "fixed_hp": 110,
+      "fixed_damage": 27,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "skill",
+        "attack",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 43,
+        "gold": 29,
+        "potion": "mana_potion",
+        "potion_chance": 15
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 6,
+      "equipment_tiers": {
+        "body": 5,
+        "head": 3,
+        "weapon": 6,
+        "back": 0
+      },
+      "hp_tier": 8,
+      "id": 85,
+      "name": "Nequício",
+      "rarity": 1,
+      "rarity_name": "Comum",
+      "seed": 666409,
+      "sprite_layers": {
+        "back": "",
+        "body": "body29.png",
+        "head": "head34.png",
+        "weapon": "weapon26.png"
+      },
+      "typical_phrase": "",
+      "total_tier": 14,
+      "fixed_hp": 116,
+      "fixed_damage": 29,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "skill",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 54,
+        "gold": 39,
+        "potion": "health_potion",
+        "potion_chance": 18
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 6,
+      "equipment_tiers": {
+        "body": 5,
+        "head": 3,
+        "weapon": 6,
+        "back": 0
+      },
+      "hp_tier": 8,
+      "id": 93,
+      "name": "Celestino",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body5.png",
+        "head": "head34.png",
+        "weapon": "weapon111.png"
+      },
+      "typical_phrase": "",
+      "total_tier": 14,
+      "fixed_hp": 117,
+      "fixed_damage": 29,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 55,
+        "gold": 40,
+        "potion": null,
+        "potion_chance": 18
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 5,
+      "equipment_tiers": {
+        "back": 5,
+        "body": 5,
+        "head": 4,
+        "weapon": 5
+      },
+      "hp_tier": 14,
+      "id": 100,
+      "name": "Edo",
+      "rarity": 1,
+      "rarity_name": "Comum",
+      "seed": 893396,
+      "sprite_layers": {
+        "back": "back14.png",
+        "body": "body29.png",
+        "head": "head27.png",
+        "weapon": "weapon23.png"
+      },
+      "typical_phrase": "",
+      "total_tier": 14,
+      "fixed_hp": 118,
+      "fixed_damage": 29,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "skill",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 45,
+        "gold": 33,
+        "potion": null,
+        "potion_chance": 18
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 4,
+      "equipment_tiers": {
+        "back": 2,
+        "body": 5,
+        "head": 6,
+        "weapon": 4
+      },
+      "hp_tier": 13,
+      "id": 25,
+      "name": "Miasma",
+      "rarity": 4,
+      "rarity_name": "Lendário",
+      "seed": 917372,
+      "sprite_layers": {
+        "back": "back7.png",
+        "body": "body14.png",
+        "head": "head8.png",
+        "weapon": "weapon37.png"
+      },
+      "typical_phrase": "",
+      "total_tier": 15,
+      "fixed_hp": 119,
+      "fixed_damage": 29,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 51,
+        "gold": 30,
+        "potion": "mana_potion",
+        "potion_chance": 18
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 5,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 6,
+        "head": 4,
+        "weapon": 5
+      },
+      "hp_tier": 10,
+      "id": 34,
+      "name": "Redline",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body21.png",
+        "head": "head23.png",
+        "weapon": "weapon70.png"
+      },
+      "typical_phrase": "",
+      "manual_group": 6,
+      "total_tier": 15,
+      "group": 6,
+      "fixed_hp": 130,
+      "fixed_damage": 32,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "skill",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 61,
+        "gold": 42,
+        "potion": "health_potion",
+        "potion_chance": 25
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 3,
+      "equipment_tiers": {
+        "body": 6,
+        "head": 6,
+        "weapon": 3,
+        "back": 0
+      },
+      "hp_tier": 12,
+      "name": "Sanguis",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body23.png",
+        "head": "head2.png",
+        "weapon": "weapon110.png"
+      },
+      "typical_phrase": "",
+      "id": 36,
+      "total_tier": 15,
+      "fixed_hp": 120,
+      "fixed_damage": 30,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 58,
+        "gold": 40,
+        "potion": "health_potion",
+        "potion_chance": 18
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 6,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 6,
+        "head": 3,
+        "weapon": 6
+      },
+      "hp_tier": 9,
+      "id": 37,
+      "name": "Brasa",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body24.png",
+        "head": "head26.png",
+        "weapon": "weapon81.png"
+      },
+      "typical_phrase": "",
+      "manual_group": 6,
+      "total_tier": 15,
+      "group": 6,
+      "fixed_hp": 132,
+      "fixed_damage": 33,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "skill",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 62,
+        "gold": 54,
+        "potion": null,
+        "potion_chance": 25
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 6,
+      "equipment_tiers": {
+        "body": 4,
+        "head": 5,
+        "weapon": 6,
+        "back": 1
+      },
+      "hp_tier": 10,
+      "name": "Guts",
+      "rarity": 3,
+      "rarity_name": "Épico",
+      "seed": 81516,
+      "sprite_layers": {
+        "back": "back4.png",
+        "body": "body27.png",
+        "head": "head48.png",
+        "weapon": "weapon107.png"
+      },
+      "typical_phrase": "",
+      "id": 40,
+      "total_tier": 15,
+      "fixed_hp": 121,
+      "fixed_damage": 30,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 54,
+        "gold": 32,
+        "potion": null,
+        "potion_chance": 18
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 6,
+      "equipment_tiers": {
+        "back": 5,
+        "body": 5,
+        "head": 4,
+        "weapon": 6
+      },
+      "hp_tier": 14,
+      "id": 42,
+      "name": "Lord Z",
+      "rarity": 3,
+      "rarity_name": "Épico",
+      "seed": 81516,
+      "sprite_layers": {
+        "back": "back18.png",
+        "body": "body29.png",
+        "head": "head6.png",
+        "weapon": "weapon10.png"
+      },
+      "typical_phrase": "",
+      "manual_group": 5,
+      "total_tier": 15,
+      "group": 5,
+      "fixed_hp": 122,
+      "fixed_damage": 30,
+      "action_pattern": [
+        "skill",
+        "attack",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 52,
+        "gold": 32,
+        "potion": null,
+        "potion_chance": 18
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 5,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 5,
+        "head": 5,
+        "weapon": 5
+      },
+      "hp_tier": 10,
+      "id": 64,
+      "name": "Dragão Cinzento",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body49.png",
+        "head": "head3.png",
+        "weapon": "weapon9.png"
+      },
+      "typical_phrase": "",
+      "manual_group": 4,
+      "total_tier": 15,
+      "group": 4,
+      "fixed_hp": 112,
+      "fixed_damage": 28,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 38,
+        "gold": 22,
+        "potion": null,
+        "potion_chance": 15
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 5,
+      "equipment_tiers": {
+        "body": 5,
+        "head": 5,
+        "weapon": 5,
+        "back": 0
+      },
+      "hp_tier": 10,
+      "id": 84,
+      "name": "Réprobo",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body9.png",
+        "head": "head18.png",
+        "weapon": "weapon7.png"
+      },
+      "typical_phrase": "",
+      "total_tier": 15,
+      "fixed_hp": 134,
+      "fixed_damage": 33,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "skill",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 80,
+        "gold": 41,
+        "potion": null,
+        "potion_chance": 25
+      },
+      "manual_group": 6,
+      "group": 6
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 4,
+      "equipment_tiers": {
+        "back": 5,
+        "body": 6,
+        "head": 5,
+        "weapon": 4
+      },
+      "hp_tier": 16,
+      "id": 91,
+      "manual_group": 5,
+      "name": "Aqua",
+      "rarity": 1,
+      "rarity_name": "Comum",
+      "seed": 534687,
+      "sprite_layers": {
+        "back": "back22.png",
+        "body": "body4.png",
+        "head": "head7.png",
+        "weapon": "weapon43.png"
+      },
+      "typical_phrase": "",
+      "total_tier": 15,
+      "group": 5,
+      "fixed_hp": 123,
+      "fixed_damage": 30,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "skill",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 56,
+        "gold": 30,
+        "potion": null,
+        "potion_chance": 18
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 6,
+      "equipment_tiers": {
+        "body": 5,
+        "head": 5,
+        "weapon": 6,
+        "back": 2
+      },
+      "hp_tier": 12,
+      "id": 61,
+      "name": "Inquirido",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "back2.png",
+        "body": "body46.png",
+        "head": "head5.png",
+        "weapon": "weapon29.png"
+      },
+      "typical_phrase": "",
+      "total_tier": 16,
+      "fixed_hp": 137,
+      "fixed_damage": 34,
+      "action_pattern": [
+        "skill",
+        "attack",
+        "attack",
+        "skill",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 77,
+        "gold": 50,
+        "potion": null,
+        "potion_chance": 25
+      },
+      "manual_group": 6,
+      "group": 6
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 6,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 5,
+        "head": 5,
+        "weapon": 6
+      },
+      "hp_tier": 10,
+      "id": 99,
+      "name": "Muralha",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 185181,
+      "sprite_layers": {
+        "back": "",
+        "body": "body20.png",
+        "head": "head32.png",
+        "weapon": "weapon76.png"
+      },
+      "typical_phrase": "",
+      "manual_group": 5,
+      "total_tier": 16,
+      "group": 5,
+      "fixed_hp": 124,
+      "fixed_damage": 31,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 57,
+        "gold": 33,
+        "potion": null,
+        "potion_chance": 18
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 5,
+      "equipment_tiers": {
+        "back": 5,
+        "body": 5,
+        "head": 6,
+        "weapon": 5
+      },
+      "hp_tier": 16,
+      "id": 101,
+      "name": "Sanguinolato",
+      "rarity": 3,
+      "rarity_name": "Épico",
+      "seed": 81516,
+      "sprite_layers": {
+        "back": "back18.png",
+        "body": "body30.png",
+        "head": "head8.png",
+        "weapon": "weapon25.png"
+      },
+      "typical_phrase": "",
+      "total_tier": 16,
+      "fixed_hp": 139,
+      "fixed_damage": 34,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "skill",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 71,
+        "gold": 53,
+        "potion": null,
+        "potion_chance": 25
+      },
+      "manual_group": 6,
+      "group": 6
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 5,
+      "equipment_tiers": {
+        "body": 6,
+        "head": 6,
+        "weapon": 5,
+        "back": 5
+      },
+      "hp_tier": 17,
+      "name": "Maldade Rubra",
+      "rarity": 4,
+      "rarity_name": "Lendário",
+      "seed": 329737,
+      "sprite_layers": {
+        "back": "back18.png",
+        "body": "body21.png",
+        "head": "head8.png",
+        "weapon": "weapon102.png"
+      },
+      "typical_phrase": "",
+      "id": 14,
+      "total_tier": 17,
+      "fixed_hp": 141,
+      "fixed_damage": 35,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "skill",
+        "skill",
+        "attack"
+      ],
+      "rewards": {
+        "memory_crystals": 76,
+        "gold": 40,
+        "potion": null,
+        "potion_chance": 25
+      },
+      "manual_group": 6,
+      "group": 6
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 5,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 6,
+        "head": 6,
+        "weapon": 5
+      },
+      "hp_tier": 12,
+      "id": 94,
+      "name": "Epifanius",
+      "rarity": 2,
+      "rarity_name": "Raro",
+      "seed": 934168,
+      "sprite_layers": {
+        "back": "",
+        "body": "body3.png",
+        "head": "head33.png",
+        "weapon": "weapon17.png"
+      },
+      "typical_phrase": "",
+      "manual_group": 5,
+      "total_tier": 17,
+      "group": 5,
+      "fixed_hp": 125,
+      "fixed_damage": 31,
+      "action_pattern": [
+        "skill",
+        "attack",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 56,
+        "gold": 40,
+        "potion": null,
+        "potion_chance": 18
+      }
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 6,
+      "equipment_tiers": {
+        "body": 5,
+        "head": 6,
+        "weapon": 6,
+        "back": 0
+      },
+      "hp_tier": 11,
+      "id": 105,
+      "name": "Cremado",
+      "rarity": 1,
+      "rarity_name": "Comum",
+      "seed": 534687,
+      "sprite_layers": {
+        "back": "",
+        "body": "body1.png",
+        "head": "head16.png",
+        "weapon": "weapon31.png"
+      },
+      "typical_phrase": "",
+      "total_tier": 17,
+      "fixed_hp": 144,
+      "fixed_damage": 36,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "skill",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 60,
+        "gold": 42,
+        "potion": null,
+        "potion_chance": 25
+      },
+      "manual_group": 6,
+      "group": 6
+    },
+    {
+      "behavior_pattern": "default",
+      "damage_tier": 6,
+      "equipment_tiers": {
+        "back": 0,
+        "body": 6,
+        "head": 5,
+        "weapon": 6
+      },
+      "hp_tier": 11,
+      "id": 107,
+      "name": "Iceberg",
+      "rarity": 1,
+      "rarity_name": "Comum",
+      "seed": 534687,
+      "sprite_layers": {
+        "back": "",
+        "body": "body4.png",
+        "head": "head32.png",
+        "weapon": "weapon3.png"
+      },
+      "typical_phrase": "",
+      "manual_group": 5,
+      "total_tier": 17,
+      "group": 5,
+      "fixed_hp": 126,
+      "fixed_damage": 31,
+      "action_pattern": [
+        "attack",
+        "attack",
+        "skill",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 49,
+        "gold": 36,
+        "potion": null,
+        "potion_chance": 18
+      }
     },
     {
       "behavior_pattern": "default",
@@ -2097,53 +3477,65 @@
         "weapon": "weapon80.png"
       },
       "typical_phrase": "",
-      "manual_group": 5
+      "manual_group": 5,
+      "total_tier": 17,
+      "group": 5,
+      "fixed_hp": 127,
+      "fixed_damage": 31,
+      "action_pattern": [
+        "skill",
+        "attack",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 52,
+        "gold": 39,
+        "potion": null,
+        "potion_chance": 18
+      }
     },
     {
       "behavior_pattern": "default",
-      "damage_tier": 4,
+      "damage_tier": 6,
       "equipment_tiers": {
-        "back": 2,
-        "body": 4,
-        "head": 2,
-        "weapon": 4
+        "back": 1,
+        "body": 6,
+        "head": 6,
+        "weapon": 6
       },
-      "hp_tier": 8,
-      "id": 119,
-      "name": "Cumulus",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
+      "hp_tier": 13,
+      "id": 41,
+      "name": "Polar",
+      "rarity": 3,
+      "rarity_name": "Épico",
+      "seed": 81516,
       "sprite_layers": {
-        "back": "back2.png",
-        "body": "body45.png",
-        "head": "head10.png",
-        "weapon": "weapon90.png"
+        "back": "back17.png",
+        "body": "body28.png",
+        "head": "head62.png",
+        "weapon": "weapon101.png"
       },
-      "typical_phrase": "Que dia cinzento. Lindo."
-    },
-    {
-      "behavior_pattern": "default",
-      "damage_tier": 5,
-      "equipment_tiers": {
-        "back": 5,
-        "body": 1,
-        "head": 5,
-        "weapon": 5
-      },
-      "hp_tier": 11,
-      "id": 120,
-      "name": "Kobra",
-      "rarity": 2,
-      "rarity_name": "Raro",
-      "seed": 185181,
-      "sprite_layers": {
-        "back": "back22.png",
-        "body": "body58.png",
-        "head": "head4.png",
-        "weapon": "weapon5.png"
-      },
-      "typical_phrase": ""
+      "typical_phrase": "",
+      "manual_group": 5,
+      "total_tier": 18,
+      "group": 5,
+      "fixed_hp": 128,
+      "fixed_damage": 32,
+      "action_pattern": [
+        "attack",
+        "skill",
+        "attack",
+        "attack",
+        "skill"
+      ],
+      "rewards": {
+        "memory_crystals": 59,
+        "gold": 32,
+        "potion": null,
+        "potion_chance": 18
+      }
     }
   ]
 }
