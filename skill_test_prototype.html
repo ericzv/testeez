@@ -110,6 +110,36 @@
             color: #666;
         }
 
+        .difficulty-indicator {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .difficulty-level {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .difficulty-1 { color: #4caf50; } /* Verde - Fácil */
+        .difficulty-2 { color: #ff9800; } /* Laranja - Médio */
+        .difficulty-3 { color: #f44336; } /* Vermelho - Difícil */
+        .difficulty-4 { color: #9c27b0; } /* Roxo - Muito Difícil */
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .button-group button {
+            margin: 0;
+        }
+
         .result-display {
             min-height: 100px;
             background: rgba(0, 0, 0, 0.4);
@@ -198,6 +228,11 @@
         <h1>⚔️ SKILL TEST - VLAD POWER ATTACK ⚔️</h1>
 
         <div class="skill-test-wrapper">
+            <div class="difficulty-indicator">
+                <div>Usos neste turno: <span id="usesThisTurn">0</span></div>
+                <div class="difficulty-level" id="difficultyLevel">Dificuldade: Normal</div>
+            </div>
+
             <div class="instructions" id="instructions">
                 Pressione ESPAÇO, ENTER ou CLIQUE para ativar!
             </div>
@@ -222,7 +257,10 @@
                 <div class="result-details">O marcador está se movendo. Escolha o momento certo!</div>
             </div>
 
-            <button onclick="resetTest()" id="resetBtn">🔄 Resetar Teste</button>
+            <div class="button-group">
+                <button onclick="resetTest()" id="resetBtn">🔄 Resetar Teste</button>
+                <button onclick="nextTurn()" id="nextTurnBtn">⏭️ Próximo Turno</button>
+            </div>
 
             <div class="stats">
                 <div class="stat-box">
@@ -242,10 +280,59 @@
     </div>
 
     <script>
-        // Estado do jogo
+        // ============================================
+        // SISTEMA DE ÁUDIO - Web Audio API
+        // ============================================
+        let audioContext = null;
+        let audioEnabled = false;
+
+        // Inicializa Web Audio API (só após primeiro clique do usuário)
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                audioEnabled = true;
+                console.log('🔊 Sistema de áudio inicializado');
+            }
+        }
+
+        // Toca um beep sintetizado com pitch variável
+        function playBeep(barValue) {
+            if (!audioEnabled || !audioContext) return;
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            // Conecta oscillator -> gain -> output
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            // Frequências crescentes (220 Hz = A3 até ~880 Hz = A5)
+            // Bar 1 = 220 Hz, Bar 10 = 880 Hz (2 oitavas)
+            const baseFreq = 220; // A3
+            const frequency = baseFreq + (barValue - 1) * 73.33; // Escala linear
+            oscillator.frequency.value = frequency;
+
+            // Tipo de onda (sine = suave, square = 8-bit, triangle = meio termo)
+            oscillator.type = 'sine';
+
+            // Envelope: Volume começa em 0.3, cai rapidamente para 0
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+
+            // Toca por 50ms
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.05);
+        }
+
+        // ============================================
+        // ESTADO DO JOGO
+        // ============================================
         let isActive = true;
         let animationStartTime = null;
         let currentValue = 0;
+        let lastPlayedBar = 0; // Última barra que tocou som
+        let usesThisTurn = 0; // Contador de usos no turno atual
+        let currentDifficulty = 1; // 1 = normal, 2 = médio, 3 = difícil, 4+ = muito difícil
         let stats = {
             total: 0,
             sum: 0,
@@ -256,18 +343,24 @@
         const ANIMATION_DURATION = 1000; // 1 segundo para ciclo completo
         const SEGMENTS = 10;
 
-        // Função de easing para aceleração FORTE (0 -> 10)
-        // Usa potência cúbica para acelerar muito mais perto do 10
-        function easeInCubic(t) {
-            return t * t * t;
+        // ============================================
+        // FUNÇÕES DE EASING COM DIFICULDADE AJUSTÁVEL
+        // ============================================
+
+        // Aceleração com dificuldade progressiva
+        // difficulty 1 = cúbico (x³), 2 = quártico (x⁴), 3 = quíntico (x⁵), etc
+        function easeInScaled(t, difficulty) {
+            const exponent = 2 + difficulty; // 3, 4, 5, 6...
+            return Math.pow(t, exponent);
         }
 
-        // Função de easing para desaceleração (10 -> 0)
-        function easeOutCubic(t) {
-            return 1 - Math.pow(1 - t, 3);
+        // Desaceleração com dificuldade progressiva
+        function easeOutScaled(t, difficulty) {
+            const exponent = 2 + difficulty;
+            return 1 - Math.pow(1 - t, exponent);
         }
 
-        // Calcula o valor atual baseado no tempo
+        // Calcula o valor atual baseado no tempo e dificuldade
         function calculateCurrentValue(timestamp) {
             if (!animationStartTime) animationStartTime = timestamp;
 
@@ -276,13 +369,13 @@
 
             let value;
             if (progress < 0.5) {
-                // Primeira metade: 0 -> 10 (acelerando MUITO - cúbico)
+                // Primeira metade: 0 -> 10 (acelerando - dificuldade afeta velocidade)
                 const t = progress * 2; // normaliza para 0-1
-                value = easeInCubic(t) * 10;
+                value = easeInScaled(t, currentDifficulty) * 10;
             } else {
-                // Segunda metade: 10 -> 0 (desacelerando - cúbico)
+                // Segunda metade: 10 -> 0 (desacelerando - dificuldade afeta velocidade)
                 const t = (progress - 0.5) * 2; // normaliza para 0-1
-                value = 10 - (easeOutCubic(t) * 10);
+                value = 10 - (easeOutScaled(t, currentDifficulty) * 10);
             }
 
             return value;
@@ -292,6 +385,12 @@
         function updateLightBars(value) {
             const lightBars = document.querySelectorAll('.light-bar');
             const activeLevel = Math.ceil(value);
+
+            // Toca som quando mudar de barra
+            if (activeLevel !== lastPlayedBar && activeLevel > 0 && activeLevel <= 10) {
+                playBeep(activeLevel);
+                lastPlayedBar = activeLevel;
+            }
 
             lightBars.forEach((bar, idx) => {
                 const barValue = idx + 1;
@@ -319,8 +418,16 @@
         function activateSkillTest() {
             if (!isActive) return;
 
+            // Inicializa áudio no primeiro clique (navegadores exigem interação do usuário)
+            initAudio();
+
             isActive = false;
             const value = Math.ceil(currentValue);
+
+            // Incrementa usos no turno e calcula nova dificuldade
+            usesThisTurn++;
+            currentDifficulty = usesThisTurn; // 1ª vez = 1, 2ª vez = 2, 3ª vez = 3...
+            updateDifficultyDisplay();
 
             // Atualiza instruções
             document.getElementById('instructions').textContent = 'Teste concluído!';
@@ -332,6 +439,44 @@
 
             // Atualiza estatísticas
             updateStats(value);
+        }
+
+        // Atualiza o display de dificuldade
+        function updateDifficultyDisplay() {
+            document.getElementById('usesThisTurn').textContent = usesThisTurn;
+
+            const difficultyEl = document.getElementById('difficultyLevel');
+            let difficultyText = '';
+            let difficultyClass = '';
+
+            if (currentDifficulty === 1) {
+                difficultyText = 'Dificuldade: Normal';
+                difficultyClass = 'difficulty-1';
+            } else if (currentDifficulty === 2) {
+                difficultyText = 'Dificuldade: Médio';
+                difficultyClass = 'difficulty-2';
+            } else if (currentDifficulty === 3) {
+                difficultyText = 'Dificuldade: Difícil';
+                difficultyClass = 'difficulty-3';
+            } else {
+                difficultyText = 'Dificuldade: Muito Difícil';
+                difficultyClass = 'difficulty-4';
+            }
+
+            difficultyEl.textContent = difficultyText;
+            difficultyEl.className = 'difficulty-level ' + difficultyClass;
+        }
+
+        // Avança para o próximo turno (reseta contador de usos)
+        function nextTurn() {
+            usesThisTurn = 0;
+            currentDifficulty = 1;
+            updateDifficultyDisplay();
+
+            // Auto-reset se não estiver ativo
+            if (!isActive) {
+                resetTest();
+            }
         }
 
         // Calcula o resultado baseado no valor
@@ -430,11 +575,12 @@
             document.getElementById('perfectCount').textContent = stats.perfect;
         }
 
-        // Reseta o teste
+        // Reseta o teste (mantém dificuldade do turno atual)
         function resetTest() {
             isActive = true;
             animationStartTime = null;
             currentValue = 0;
+            lastPlayedBar = 0; // Reseta tracking de som
 
             document.getElementById('instructions').textContent = 'Pressione ESPAÇO, ENTER ou CLIQUE para ativar!';
             document.getElementById('instructions').classList.remove('inactive');
