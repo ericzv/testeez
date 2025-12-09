@@ -36,10 +36,21 @@
             console.log('🔍 skill.id:', skill?.id);
             console.log('🔍 skill.skill_id:', skill?.skill_id);
             console.log('🔍 window.currentCharacterId:', window.currentCharacterId);
+            console.log('🔍 window.gameState?.player?.character_id:', window.gameState?.player?.character_id);
 
             // Verifica se é o Power Attack do Vlad (skill_id 50 - "Energia Escura")
             const isPowerAttack = skill && (skill.id === 50 || skill.skill_id === 50);
-            const isVlad = window.currentCharacterId === 3 || window.currentCharacterId === '3'; // Vlad = character_id 3
+
+            // DETECÇÃO MELHORADA DO VLAD - aceita múltiplos formatos
+            const isVlad =
+                window.currentCharacterId === 3 ||
+                window.currentCharacterId === '3' ||
+                window.currentCharacterId === 'vlad' ||
+                window.currentCharacterId === 'Vlad' ||
+                window.gameState?.player?.character_id === 3 ||
+                window.gameState?.player?.character_id === '3' ||
+                window.gameState?.player?.character_id === 'vlad' ||
+                window.gameState?.player?.character_id === 'Vlad';
 
             console.log('🔍 isPowerAttack:', isPowerAttack);
             console.log('🔍 isVlad:', isVlad);
@@ -50,9 +61,15 @@
                 // Armazena a skill para uso posterior
                 window.skillTestSystem.pendingSkill = skill;
 
+                // PAUSA A ANIMAÇÃO NO FRAME 4 E FAZ LOOP ATÉ FRAME 16
+                pauseVladPowerAnimation();
+
                 // Mostra o modal de skill test
                 window.showSkillTestModal(skill, function(result) {
                     console.log('✅ Skill Test completado:', result);
+
+                    // CONTINUA A ANIMAÇÃO DE ONDE PAROU
+                    resumeVladPowerAnimation();
 
                     // APLICA O MODIFICADOR DE DANO NA SKILL
                     // O backend vai usar isso no calculate_total_damage
@@ -206,6 +223,113 @@
             window.resetSkillTestTurn();
         }
     });
+
+    // ============================================
+    // CONTROLE DE ANIMAÇÃO DO VLAD
+    // ============================================
+
+    // Estado da animação
+    let animationState = {
+        paused: false,
+        originalAnimations: new Map(),
+        loopIntervalId: null
+    };
+
+    // Pausa a animação do Vlad no frame 4 e faz loop até frame 16
+    function pauseVladPowerAnimation() {
+        console.log('🎬 Pausando animação do Vlad Power no frame 4...');
+
+        // Busca todas as layers da animação do Vlad
+        const layers = document.querySelectorAll('[class*="character-sprite"]');
+
+        layers.forEach(layer => {
+            // Salva estilo original
+            const computedStyle = window.getComputedStyle(layer);
+            animationState.originalAnimations.set(layer, {
+                animation: layer.style.animation,
+                animationPlayState: layer.style.animationPlayState
+            });
+
+            // Aguarda a animação chegar no frame 4 (~222ms = 3 frames * 74ms)
+            setTimeout(() => {
+                // Pausa a animação
+                layer.style.animationPlayState = 'paused';
+
+                // Cria CSS keyframes para loop dos frames 4-16
+                const styleSheet = document.createElement('style');
+                styleSheet.id = 'vlad-power-loop-keyframes';
+                styleSheet.textContent = `
+                    @keyframes vladPowerLoop {
+                        0% { background-position-x: calc(-176px * 4); }
+                        100% { background-position-x: calc(-176px * 16); }
+                    }
+                `;
+                document.head.appendChild(styleSheet);
+
+                // Aplica a nova animação de loop
+                const duration = (16 - 4) * 74; // 12 frames * 74ms = ~888ms
+                layer.style.animation = `vladPowerLoop ${duration}ms steps(12) infinite`;
+
+                console.log(`🔄 Layer ${layer.className} agora em loop (frames 4-16)`);
+            }, 222); // Tempo para chegar ao frame 4
+        });
+
+        animationState.paused = true;
+    }
+
+    // Resume a animação do Vlad de onde parou
+    function resumeVladPowerAnimation() {
+        console.log('▶️ Resumindo animação do Vlad Power...');
+
+        // Remove o style de loop
+        const loopStyle = document.getElementById('vlad-power-loop-keyframes');
+        if (loopStyle) {
+            loopStyle.remove();
+        }
+
+        // Busca todas as layers
+        const layers = document.querySelectorAll('[class*="character-sprite"]');
+
+        layers.forEach(layer => {
+            // Restaura animação original
+            const original = animationState.originalAnimations.get(layer);
+            if (original) {
+                // Calcula em qual frame estamos (aproximadamente frame 4-16)
+                // E ajusta para continuar dali até o frame 27
+                const remainingFrames = 27 - 16; // 11 frames restantes
+                const remainingDuration = remainingFrames * 74; // ~814ms
+
+                // Remove a animação de loop
+                layer.style.animation = '';
+
+                // Aplica animação dos frames 16-27 (resto da animação)
+                const styleSheet = document.createElement('style');
+                styleSheet.id = 'vlad-power-finish';
+                styleSheet.textContent = `
+                    @keyframes vladPowerFinish {
+                        0% { background-position-x: calc(-176px * 16); }
+                        100% { background-position-x: calc(-176px * 27); }
+                    }
+                `;
+                document.head.appendChild(styleSheet);
+
+                layer.style.animation = `vladPowerFinish ${remainingDuration}ms steps(${remainingFrames}) forwards`;
+
+                // Remove o style temporário após a animação
+                setTimeout(() => {
+                    const finishStyle = document.getElementById('vlad-power-finish');
+                    if (finishStyle) {
+                        finishStyle.remove();
+                    }
+                }, remainingDuration + 100);
+
+                console.log(`▶️ Layer ${layer.className} continuando frames 16-27`);
+            }
+        });
+
+        animationState.paused = false;
+        animationState.originalAnimations.clear();
+    }
 
     // Inicializa quando o DOM estiver pronto
     if (document.readyState === 'loading') {
