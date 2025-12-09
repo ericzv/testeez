@@ -39,13 +39,19 @@
 .skill-test-content {
     position: relative;
     z-index: 10000;
-    background: linear-gradient(135deg, rgba(20, 20, 35, 0.98), rgba(10, 10, 25, 0.98));
-    border: 3px solid rgba(233, 69, 96, 0.8);
+    /* LIQUID GLASS EFFECT */
+    background: linear-gradient(135deg, rgba(20, 20, 35, 0.7), rgba(10, 10, 25, 0.7));
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 3px solid rgba(233, 69, 96, 0.5);
     border-radius: 20px;
     padding: 30px;
     max-width: 700px;
     width: 90%;
-    box-shadow: 0 0 40px rgba(233, 69, 96, 0.5), inset 0 0 20px rgba(0, 0, 0, 0.5);
+    box-shadow:
+        0 8px 32px 0 rgba(233, 69, 96, 0.37),
+        inset 0 0 20px rgba(0, 0, 0, 0.3),
+        0 0 60px rgba(233, 69, 96, 0.2);
     animation: modalAppear 0.3s ease-out;
 }
 

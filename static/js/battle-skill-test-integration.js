@@ -44,9 +44,8 @@
             console.log('🔍 isPowerAttack:', isPowerAttack);
             console.log('🔍 isVlad:', isVlad);
 
-            // TESTE: Força skill test para QUALQUER Power Attack (remover depois)
-            if (isPowerAttack) {
-                console.log('⚔️ Power Attack detectado! Mostrando skill test (MODO DEBUG)...');
+            if (isPowerAttack && isVlad) {
+                console.log('⚔️ Power Attack do Vlad detectado! Mostrando skill test...');
 
                 // Armazena a skill para uso posterior
                 window.skillTestSystem.pendingSkill = skill;
@@ -55,10 +54,13 @@
                 window.showSkillTestModal(skill, function(result) {
                     console.log('✅ Skill Test completado:', result);
 
-                    // Aplica o modificador de dano
+                    // APLICA O MODIFICADOR DE DANO NA SKILL
+                    // O backend vai usar isso no calculate_total_damage
+                    skill.skill_test_modifier = result.damageModifier;
                     skill.skillTestResult = result;
-                    skill.skillTestModifier = result.damageModifier;
                     skill.skillTestBarrier = result.barrier;
+
+                    console.log(`💥 Skill test modifier aplicado: ${result.damageModifier} (${(result.damageModifier * 100).toFixed(0)}%)`);
 
                     // Aplica barreira ao jogador se houver
                     if (result.barrier > 0) {
@@ -70,7 +72,7 @@
 
                     // Aguarda um pouco antes de executar o ataque
                     setTimeout(() => {
-                        // Executa o ataque original
+                        // Executa o ataque original COM O MODIFICADOR
                         originalPerformAttack.call(this, skill);
                     }, 800);
                 });

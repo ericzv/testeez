@@ -1009,6 +1009,13 @@ def damage_boss():
         final_damage = int(final_damage * damage_multiplier)
         print(f"📊 DANO COM MULTIPLICADOR DE RELÍQUIAS: {damage_before_mult} x {damage_multiplier:.2f} = {final_damage}")
 
+    # 4.2. APLICAR SKILL TEST MODIFIER (se presente)
+    skill_test_modifier = data.get('skill_test_modifier')
+    if skill_test_modifier is not None:
+        damage_before_test = final_damage
+        final_damage = int(final_damage * skill_test_modifier)
+        print(f"⚔️ SKILL TEST MODIFIER APLICADO: {damage_before_test} x {skill_test_modifier:.2f} = {final_damage}")
+
     # ===== 4.5. APLICAR BÔNUS DE BATALHA (ID 50) =====
     # Relíquia "Ataque Básico em Batalha" acumula durante a batalha mas reseta depois
     if cache.skill_type == 'attack':

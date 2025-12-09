@@ -3959,13 +3959,19 @@ function saveBossDamage(skill, damage, isCritical) {
     if (skill.damageModifier && !isNaN(parseFloat(skill.damageModifier))) {
         damageModifier = parseFloat(skill.damageModifier);
     }
-    
+
     // Preparar os dados para enviar ao servidor - CORRIGIDO para enviar valores reais
     const requestData = {
         attack_type: 'basic',
         skill_id: skillId,
         damage_modifier: damageModifier,
     };
+
+    // ADICIONA SKILL TEST MODIFIER SE PRESENTE
+    if (skill.skill_test_modifier !== undefined && skill.skill_test_modifier !== null) {
+        requestData.skill_test_modifier = parseFloat(skill.skill_test_modifier);
+        console.log(`⚔️ Skill Test Modifier incluído na requisição: ${requestData.skill_test_modifier}`);
+    }
     
     console.log("🔍 DADOS ENVIADOS PARA API:", requestData)
     console.log("Enviando dados para o servidor:", requestData);

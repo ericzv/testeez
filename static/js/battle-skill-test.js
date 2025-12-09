@@ -244,6 +244,9 @@ function showSkillTestModal(skill, callback) {
     st.currentValue = 0;
     st.lastPlayedBar = 0;
 
+    // INICIALIZA ÁUDIO IMEDIATAMENTE (fix: som na primeira vez)
+    initSkillTestAudio();
+
     // Atualiza UI de dificuldade
     updateSkillTestDifficultyDisplay();
 
@@ -294,7 +297,37 @@ function resetSkillTestTurn() {
     const st = window.skillTestSystem;
     st.usesThisTurn = 0;
     st.currentDifficulty = 1;
-    console.log('🔄 Skill Test - turno resetado');
+    console.log('🔄 Skill Test - turno resetado (dificuldade volta ao normal)');
+}
+
+// Listener para reset automático quando o turno do player começar
+// Isso é chamado quando o turno do inimigo termina
+function setupTurnResetListeners() {
+    // Detecta quando o turno do jogador começa (após turno do inimigo)
+    const originalUpdateTurnUI = window.updateTurnUI;
+    if (originalUpdateTurnUI) {
+        window.updateTurnUI = function(...args) {
+            // Chama a função original
+            const result = originalUpdateTurnUI.apply(this, args);
+
+            // Reseta dificuldade do skill test
+            resetSkillTestTurn();
+
+            return result;
+        };
+        console.log('✅ Listener de reset de turno instalado');
+    }
+
+    // Alternativa: listener via gameState
+    if (window.gameState) {
+        const checkTurnChange = setInterval(() => {
+            if (window.gameState.playerTurn && !window.skillTestSystem.lastKnownTurn) {
+                // Turno do jogador começou
+                resetSkillTestTurn();
+            }
+            window.skillTestSystem.lastKnownTurn = window.gameState.playerTurn;
+        }, 1000);
+    }
 }
 
 // ============================================
@@ -318,6 +351,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    // Instala listeners para reset de turno
+    setTimeout(setupTurnResetListeners, 2000); // Aguarda o jogo carregar
 });
 
 // ============================================
