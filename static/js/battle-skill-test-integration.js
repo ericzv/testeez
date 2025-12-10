@@ -72,7 +72,8 @@
                 // Armazena a skill para uso posterior
                 window.skillTestSystem.pendingSkill = skill;
 
-                // NÃO PAUSA ANIMAÇÃO - estava quebrando os sprites
+                // PAUSA ANIMAÇÃO E FAZ LOOP DOS FRAMES 4-16
+                pauseVladPowerAnimation();
 
                 // Mostra o modal de skill test
                 window.showSkillTestModal(skill, function(result) {
@@ -93,6 +94,9 @@
 
                     // Exibe feedback visual
                     showSkillTestFeedback(result);
+
+                    // RESUME ANIMAÇÃO DO VLAD (continua do frame 16 até 27)
+                    resumeVladPowerAnimation();
 
                     // Aguarda um pouco antes de executar o ataque
                     setTimeout(() => {
@@ -246,40 +250,46 @@
     function pauseVladPowerAnimation() {
         console.log('🎬 Pausando animação do Vlad Power no frame 4...');
 
-        // Busca todas as layers da animação do Vlad
-        const layers = document.querySelectorAll('[class*="character-sprite"]');
+        // Busca o sprite do personagem jogador (Vlad)
+        const playerSprite = document.querySelector('.character-sprite.player');
 
-        layers.forEach(layer => {
-            // Salva estilo original
-            const computedStyle = window.getComputedStyle(layer);
-            animationState.originalAnimations.set(layer, {
-                animation: layer.style.animation,
-                animationPlayState: layer.style.animationPlayState
-            });
+        if (!playerSprite) {
+            console.warn('⚠️ Sprite do jogador não encontrado!');
+            return;
+        }
 
-            // Aguarda a animação chegar no frame 4 (~222ms = 3 frames * 74ms)
-            setTimeout(() => {
-                // Pausa a animação
-                layer.style.animationPlayState = 'paused';
+        console.log('🎯 Sprite do jogador encontrado:', playerSprite);
 
-                // Cria CSS keyframes para loop dos frames 4-16
-                const styleSheet = document.createElement('style');
-                styleSheet.id = 'vlad-power-loop-keyframes';
-                styleSheet.textContent = `
-                    @keyframes vladPowerLoop {
-                        0% { background-position-x: calc(-176px * 4); }
-                        100% { background-position-x: calc(-176px * 16); }
-                    }
-                `;
-                document.head.appendChild(styleSheet);
-
-                // Aplica a nova animação de loop
-                const duration = (16 - 4) * 74; // 12 frames * 74ms = ~888ms
-                layer.style.animation = `vladPowerLoop ${duration}ms steps(12) infinite`;
-
-                console.log(`🔄 Layer ${layer.className} agora em loop (frames 4-16)`);
-            }, 222); // Tempo para chegar ao frame 4
+        // Salva estilo original
+        const computedStyle = window.getComputedStyle(playerSprite);
+        animationState.originalAnimations.set(playerSprite, {
+            animation: playerSprite.style.animation,
+            animationPlayState: playerSprite.style.animationPlayState
         });
+
+        // Aguarda a animação chegar no frame 4 (~222ms = 3 frames * 74ms)
+        setTimeout(() => {
+            // Remove style antigo se existir
+            const oldStyle = document.getElementById('vlad-power-loop-keyframes');
+            if (oldStyle) oldStyle.remove();
+
+            // Cria CSS keyframes para loop dos frames 4-16
+            const styleSheet = document.createElement('style');
+            styleSheet.id = 'vlad-power-loop-keyframes';
+            styleSheet.textContent = `
+                @keyframes vladPowerLoop {
+                    0% { background-position-x: calc(-176px * 4); }
+                    100% { background-position-x: calc(-176px * 16); }
+                }
+            `;
+            document.head.appendChild(styleSheet);
+
+            // Aplica a nova animação de loop
+            const duration = (16 - 4) * 74; // 12 frames * 74ms = ~888ms
+            playerSprite.style.animation = `vladPowerLoop ${duration}ms steps(12) infinite`;
+
+            console.log(`🔄 Sprite do jogador agora em loop (frames 4-16)`);
+        }, 222); // Tempo para chegar ao frame 4
 
         animationState.paused = true;
     }
@@ -294,45 +304,53 @@
             loopStyle.remove();
         }
 
-        // Busca todas as layers
-        const layers = document.querySelectorAll('[class*="character-sprite"]');
+        // Busca o sprite do jogador
+        const playerSprite = document.querySelector('.character-sprite.player');
 
-        layers.forEach(layer => {
-            // Restaura animação original
-            const original = animationState.originalAnimations.get(layer);
-            if (original) {
-                // Calcula em qual frame estamos (aproximadamente frame 4-16)
-                // E ajusta para continuar dali até o frame 27
-                const remainingFrames = 27 - 16; // 11 frames restantes
-                const remainingDuration = remainingFrames * 74; // ~814ms
+        if (!playerSprite) {
+            console.warn('⚠️ Sprite do jogador não encontrado para resumir!');
+            return;
+        }
 
-                // Remove a animação de loop
-                layer.style.animation = '';
+        // Restaura animação original
+        const original = animationState.originalAnimations.get(playerSprite);
+        if (original) {
+            // Calcula em qual frame estamos (aproximadamente frame 16)
+            // E ajusta para continuar dali até o frame 27
+            const remainingFrames = 27 - 16; // 11 frames restantes
+            const remainingDuration = remainingFrames * 74; // ~814ms
 
-                // Aplica animação dos frames 16-27 (resto da animação)
-                const styleSheet = document.createElement('style');
-                styleSheet.id = 'vlad-power-finish';
-                styleSheet.textContent = `
-                    @keyframes vladPowerFinish {
-                        0% { background-position-x: calc(-176px * 16); }
-                        100% { background-position-x: calc(-176px * 27); }
-                    }
-                `;
-                document.head.appendChild(styleSheet);
+            // Remove style antigo se existir
+            const oldFinishStyle = document.getElementById('vlad-power-finish');
+            if (oldFinishStyle) oldFinishStyle.remove();
 
-                layer.style.animation = `vladPowerFinish ${remainingDuration}ms steps(${remainingFrames}) forwards`;
+            // Aplica animação dos frames 16-27 (resto da animação)
+            const styleSheet = document.createElement('style');
+            styleSheet.id = 'vlad-power-finish';
+            styleSheet.textContent = `
+                @keyframes vladPowerFinish {
+                    0% { background-position-x: calc(-176px * 16); }
+                    100% { background-position-x: calc(-176px * 27); }
+                }
+            `;
+            document.head.appendChild(styleSheet);
 
-                // Remove o style temporário após a animação
-                setTimeout(() => {
-                    const finishStyle = document.getElementById('vlad-power-finish');
-                    if (finishStyle) {
-                        finishStyle.remove();
-                    }
-                }, remainingDuration + 100);
+            playerSprite.style.animation = `vladPowerFinish ${remainingDuration}ms steps(${remainingFrames}) forwards`;
 
-                console.log(`▶️ Layer ${layer.className} continuando frames 16-27`);
-            }
-        });
+            // Remove o style temporário após a animação
+            setTimeout(() => {
+                const finishStyle = document.getElementById('vlad-power-finish');
+                if (finishStyle) {
+                    finishStyle.remove();
+                }
+                // Restaura animação original (idle)
+                if (original.animation) {
+                    playerSprite.style.animation = original.animation;
+                }
+            }, remainingDuration + 100);
+
+            console.log(`▶️ Sprite do jogador continuando frames 16-27`);
+        }
 
         animationState.paused = false;
         animationState.originalAnimations.clear();

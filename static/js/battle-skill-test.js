@@ -61,34 +61,27 @@ function playSkillTestBeep(barValue) {
     oscillator.stop(st.audioContext.currentTime + 0.05);
 }
 
-// Som de "lock" quando jogador clica (mais grave e distinto)
-function playLockSound() {
-    const st = window.skillTestSystem;
-    if (!st.audioEnabled || !st.audioContext) return;
+// Som de "lock" quando jogador clica (varia conforme o score)
+function playLockSound(score) {
+    let soundFile;
 
-    // Cria dois osciladores para som mais rico
-    const osc1 = st.audioContext.createOscillator();
-    const osc2 = st.audioContext.createOscillator();
-    const gainNode = st.audioContext.createGain();
+    if (score === 1) {
+        soundFile = 'hit-dull1.mp3';
+    } else if (score >= 2 && score <= 4) {
+        soundFile = 'hit2.mp3';
+    } else if (score >= 5 && score <= 6) {
+        soundFile = 'hit3.mp3';
+    } else if (score === 7) {
+        soundFile = 'hit-magic2.mp3';
+    } else if (score >= 8 && score <= 9) {
+        soundFile = 'hit-magic4.mp3';
+    } else if (score === 10) {
+        soundFile = 'hit-magic3.mp3';
+    }
 
-    osc1.connect(gainNode);
-    osc2.connect(gainNode);
-    gainNode.connect(st.audioContext.destination);
-
-    // Sons em harmonia (fundamental + quinta)
-    osc1.frequency.value = 300; // D4
-    osc2.frequency.value = 450; // A4 (quinta perfeita)
-    osc1.type = 'triangle'; // Som mais encorpado
-    osc2.type = 'sine';
-
-    // Envelope mais longo
-    gainNode.gain.setValueAtTime(0.4, st.audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, st.audioContext.currentTime + 0.15);
-
-    osc1.start(st.audioContext.currentTime);
-    osc2.start(st.audioContext.currentTime);
-    osc1.stop(st.audioContext.currentTime + 0.15);
-    osc2.stop(st.audioContext.currentTime + 0.15);
+    const audio = new Audio(`/static/game.data/sounds/${soundFile}`);
+    audio.volume = 0.6;
+    audio.play().catch(err => console.warn('Erro ao tocar som de lock:', err));
 }
 
 // ============================================
@@ -186,8 +179,8 @@ function activateSkillTest() {
 
     console.log(`⚔️ Skill Test ativado! Valor capturado: ${capturedValue.toFixed(2)} → ${value}, Dificuldade: ${st.currentDifficulty}`);
 
-    // (1) TOCA SOM DE LOCK
-    playLockSound();
+    // (1) TOCA SOM DE LOCK (varia conforme o score)
+    playLockSound(value);
 
     // (2) ADICIONA CLASSE .locked NA BARRA ATIVA
     const lightBars = document.querySelectorAll('.skill-test-light-bar');
