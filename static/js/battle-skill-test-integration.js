@@ -72,10 +72,10 @@
                 // Armazena a skill para uso posterior
                 window.skillTestSystem.pendingSkill = skill;
 
-                // PAUSA ANIMAÇÃO E FAZ LOOP DOS FRAMES 4-16
-                pauseVladPowerAnimation();
+                // DISPARA A ANIMAÇÃO DO PODER IMEDIATAMENTE
+                startVladPowerAnimation();
 
-                // Mostra o modal de skill test
+                // Mostra o modal de skill test (animação já está rodando)
                 window.showSkillTestModal(skill, function(result) {
                     console.log('✅ Skill Test completado:', result);
 
@@ -95,8 +95,8 @@
                     // Exibe feedback visual
                     showSkillTestFeedback(result);
 
-                    // RESUME ANIMAÇÃO DO VLAD (continua do frame 16 até 27)
-                    resumeVladPowerAnimation();
+                    // FINALIZA A ANIMAÇÃO (muda para 1 iteração forwards)
+                    stopVladPowerAnimation();
 
                     // Aguarda um pouco antes de executar o ataque
                     setTimeout(() => {
@@ -246,9 +246,9 @@
         loopIntervalId: null
     };
 
-    // Faz loop da animação do Vlad enquanto canaliza o poder
-    function pauseVladPowerAnimation() {
-        console.log('🎬 Iniciando loop da animação do Vlad Power...');
+    // Inicia a animação do poder com loop infinito
+    function startVladPowerAnimation() {
+        console.log('🎬 Iniciando animação do Vlad Power com loop...');
 
         // Busca o sprite do personagem jogador (Vlad)
         const playerSprite = document.querySelector('.character-sprite.player');
@@ -262,47 +262,60 @@
 
         // Salva a animação atual
         const computedStyle = window.getComputedStyle(playerSprite);
-        const currentAnimation = computedStyle.animation;
 
         animationState.originalAnimations.set(playerSprite, {
             animation: playerSprite.style.animation,
-            iterationCount: playerSprite.style.animationIterationCount
+            backgroundPosition: playerSprite.style.backgroundPosition
         });
 
-        // Força a animação atual a loopear infinitamente
-        // Mantém a animação atual, só muda o iteration-count
-        playerSprite.style.animationIterationCount = 'infinite';
+        // Remove styles de loop anteriores se existirem
+        const oldStyle = document.getElementById('vlad-power-loop-style');
+        if (oldStyle) oldStyle.remove();
 
-        console.log('🔄 Animação do Vlad agora em loop infinito');
-        animationState.paused = true;
+        // Cria animação de poder com 27 frames (spritesheet horizontal)
+        const styleSheet = document.createElement('style');
+        styleSheet.id = 'vlad-power-loop-style';
+        styleSheet.textContent = `
+            @keyframes vladPowerLoop {
+                from { background-position-x: 0px; }
+                to { background-position-x: calc(-176px * 27); }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+
+        // Aplica a animação com loop infinito
+        // 27 frames × 74ms = ~2000ms por ciclo
+        playerSprite.style.animation = 'vladPowerLoop 2s steps(27) infinite';
+
+        console.log('🔄 Animação do Vlad Power iniciada com loop infinito');
+        animationState.paused = false;
     }
 
-    // Resume a animação do Vlad (deixa terminar normalmente)
-    function resumeVladPowerAnimation() {
-        console.log('▶️ Finalizando animação do Vlad Power...');
+    // Para a animação (deixa terminar normalmente)
+    function stopVladPowerAnimation() {
+        console.log('▶️ Finalizando loop da animação do Vlad Power...');
 
-        // Busca o sprite do jogador
         const playerSprite = document.querySelector('.character-sprite.player');
 
         if (!playerSprite) {
-            console.warn('⚠️ Sprite do jogador não encontrado para resumir!');
+            console.warn('⚠️ Sprite do jogador não encontrado para parar!');
             return;
         }
 
-        // Restaura iteration count original (geralmente 1 ou não definido)
-        // A animação vai continuar até o final e parar com forwards
-        const original = animationState.originalAnimations.get(playerSprite);
-        if (original) {
-            if (original.iterationCount) {
-                playerSprite.style.animationIterationCount = original.iterationCount;
-            } else {
-                playerSprite.style.animationIterationCount = '1';
-            }
-            console.log('✅ Animação restaurada para terminar normalmente (forwards)');
-        }
+        // Muda para 1 iteração e forwards (termina a animação atual e para)
+        playerSprite.style.animationIterationCount = '1';
+        playerSprite.style.animationFillMode = 'forwards';
 
-        animationState.paused = false;
-        animationState.originalAnimations.clear();
+        console.log('✅ Animação mudada para terminar (1 iteração + forwards)');
+
+        // Limpa após a animação terminar
+        setTimeout(() => {
+            const styleToRemove = document.getElementById('vlad-power-loop-style');
+            if (styleToRemove) {
+                styleToRemove.remove();
+            }
+            animationState.originalAnimations.clear();
+        }, 2000); // Aguarda a duração da animação
     }
 
     // Inicializa quando o DOM estiver pronto
