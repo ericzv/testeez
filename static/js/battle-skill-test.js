@@ -11,6 +11,7 @@ window.skillTestSystem = {
     isActive: false,
     currentValue: 0,
     animationStartTime: null,
+    animationFrameId: null,  // ID do requestAnimationFrame para cancelar
     lastPlayedBar: 0,
     usesThisTurn: 0,
     currentDifficulty: 1,
@@ -152,7 +153,7 @@ function animateSkillTest(timestamp) {
     if (st.isActive) {
         st.currentValue = calculateSkillTestValue(timestamp);
         updateSkillTestBars(st.currentValue);
-        requestAnimationFrame(animateSkillTest);
+        st.animationFrameId = requestAnimationFrame(animateSkillTest);
     }
 }
 
@@ -163,6 +164,13 @@ function activateSkillTest() {
     const st = window.skillTestSystem;
     if (!st.isActive) return;
 
+    // PARA A ANIMAÇÃO IMEDIATAMENTE (elimina qualquer delay)
+    st.isActive = false;
+    if (st.animationFrameId) {
+        cancelAnimationFrame(st.animationFrameId);
+        st.animationFrameId = null;
+    }
+
     // CAPTURA O VALOR IMEDIATAMENTE (anti-lag)
     // Usa o valor atual NO MOMENTO DO CLIQUE, não no próximo frame
     const capturedValue = st.currentValue;
@@ -170,8 +178,6 @@ function activateSkillTest() {
 
     // Inicializa áudio no primeiro clique
     initSkillTestAudio();
-
-    st.isActive = false;
 
     // Incrementa usos no turno
     st.usesThisTurn++;

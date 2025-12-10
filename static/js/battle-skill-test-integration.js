@@ -246,9 +246,9 @@
         loopIntervalId: null
     };
 
-    // Pausa a animação do Vlad no frame 4 e faz loop até frame 16
+    // Faz loop da animação do Vlad enquanto canaliza o poder
     function pauseVladPowerAnimation() {
-        console.log('🎬 Pausando animação do Vlad Power no frame 4...');
+        console.log('🎬 Iniciando loop da animação do Vlad Power...');
 
         // Busca o sprite do personagem jogador (Vlad)
         const playerSprite = document.querySelector('.character-sprite.player');
@@ -260,49 +260,26 @@
 
         console.log('🎯 Sprite do jogador encontrado:', playerSprite);
 
-        // Salva estilo original
+        // Salva a animação atual
         const computedStyle = window.getComputedStyle(playerSprite);
+        const currentAnimation = computedStyle.animation;
+
         animationState.originalAnimations.set(playerSprite, {
             animation: playerSprite.style.animation,
-            animationPlayState: playerSprite.style.animationPlayState
+            iterationCount: playerSprite.style.animationIterationCount
         });
 
-        // Aguarda a animação chegar no frame 4 (~222ms = 3 frames * 74ms)
-        setTimeout(() => {
-            // Remove style antigo se existir
-            const oldStyle = document.getElementById('vlad-power-loop-keyframes');
-            if (oldStyle) oldStyle.remove();
+        // Força a animação atual a loopear infinitamente
+        // Mantém a animação atual, só muda o iteration-count
+        playerSprite.style.animationIterationCount = 'infinite';
 
-            // Cria CSS keyframes para loop dos frames 4-16
-            const styleSheet = document.createElement('style');
-            styleSheet.id = 'vlad-power-loop-keyframes';
-            styleSheet.textContent = `
-                @keyframes vladPowerLoop {
-                    0% { background-position-x: calc(-176px * 4); }
-                    100% { background-position-x: calc(-176px * 16); }
-                }
-            `;
-            document.head.appendChild(styleSheet);
-
-            // Aplica a nova animação de loop
-            const duration = (16 - 4) * 74; // 12 frames * 74ms = ~888ms
-            playerSprite.style.animation = `vladPowerLoop ${duration}ms steps(12) infinite`;
-
-            console.log(`🔄 Sprite do jogador agora em loop (frames 4-16)`);
-        }, 222); // Tempo para chegar ao frame 4
-
+        console.log('🔄 Animação do Vlad agora em loop infinito');
         animationState.paused = true;
     }
 
-    // Resume a animação do Vlad de onde parou
+    // Resume a animação do Vlad (deixa terminar normalmente)
     function resumeVladPowerAnimation() {
-        console.log('▶️ Resumindo animação do Vlad Power...');
-
-        // Remove o style de loop
-        const loopStyle = document.getElementById('vlad-power-loop-keyframes');
-        if (loopStyle) {
-            loopStyle.remove();
-        }
+        console.log('▶️ Finalizando animação do Vlad Power...');
 
         // Busca o sprite do jogador
         const playerSprite = document.querySelector('.character-sprite.player');
@@ -312,44 +289,16 @@
             return;
         }
 
-        // Restaura animação original
+        // Restaura iteration count original (geralmente 1 ou não definido)
+        // A animação vai continuar até o final e parar com forwards
         const original = animationState.originalAnimations.get(playerSprite);
         if (original) {
-            // Calcula em qual frame estamos (aproximadamente frame 16)
-            // E ajusta para continuar dali até o frame 27
-            const remainingFrames = 27 - 16; // 11 frames restantes
-            const remainingDuration = remainingFrames * 74; // ~814ms
-
-            // Remove style antigo se existir
-            const oldFinishStyle = document.getElementById('vlad-power-finish');
-            if (oldFinishStyle) oldFinishStyle.remove();
-
-            // Aplica animação dos frames 16-27 (resto da animação)
-            const styleSheet = document.createElement('style');
-            styleSheet.id = 'vlad-power-finish';
-            styleSheet.textContent = `
-                @keyframes vladPowerFinish {
-                    0% { background-position-x: calc(-176px * 16); }
-                    100% { background-position-x: calc(-176px * 27); }
-                }
-            `;
-            document.head.appendChild(styleSheet);
-
-            playerSprite.style.animation = `vladPowerFinish ${remainingDuration}ms steps(${remainingFrames}) forwards`;
-
-            // Remove o style temporário após a animação
-            setTimeout(() => {
-                const finishStyle = document.getElementById('vlad-power-finish');
-                if (finishStyle) {
-                    finishStyle.remove();
-                }
-                // Restaura animação original (idle)
-                if (original.animation) {
-                    playerSprite.style.animation = original.animation;
-                }
-            }, remainingDuration + 100);
-
-            console.log(`▶️ Sprite do jogador continuando frames 16-27`);
+            if (original.iterationCount) {
+                playerSprite.style.animationIterationCount = original.iterationCount;
+            } else {
+                playerSprite.style.animationIterationCount = '1';
+            }
+            console.log('✅ Animação restaurada para terminar normalmente (forwards)');
         }
 
         animationState.paused = false;
