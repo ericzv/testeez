@@ -32,8 +32,8 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
 }
 
 .skill-test-content {
@@ -203,6 +203,19 @@
 
 .skill-test-light-bar.lit::before {
     opacity: 1;
+}
+
+.skill-test-light-bar.locked {
+    background: var(--bar-color);
+    border-color: #fff;
+    box-shadow: 0 0 20px var(--bar-color), inset 0 0 20px rgba(255, 255, 255, 0.6);
+    transform: scaleY(1.15);
+    animation: pulse 0.3s ease-out;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scaleY(1.15); }
+    50% { transform: scaleY(1.25); }
 }
 
 /* ============================================

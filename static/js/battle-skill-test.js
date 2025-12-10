@@ -61,6 +61,36 @@ function playSkillTestBeep(barValue) {
     oscillator.stop(st.audioContext.currentTime + 0.05);
 }
 
+// Som de "lock" quando jogador clica (mais grave e distinto)
+function playLockSound() {
+    const st = window.skillTestSystem;
+    if (!st.audioEnabled || !st.audioContext) return;
+
+    // Cria dois osciladores para som mais rico
+    const osc1 = st.audioContext.createOscillator();
+    const osc2 = st.audioContext.createOscillator();
+    const gainNode = st.audioContext.createGain();
+
+    osc1.connect(gainNode);
+    osc2.connect(gainNode);
+    gainNode.connect(st.audioContext.destination);
+
+    // Sons em harmonia (fundamental + quinta)
+    osc1.frequency.value = 300; // D4
+    osc2.frequency.value = 450; // A4 (quinta perfeita)
+    osc1.type = 'triangle'; // Som mais encorpado
+    osc2.type = 'sine';
+
+    // Envelope mais longo
+    gainNode.gain.setValueAtTime(0.4, st.audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, st.audioContext.currentTime + 0.15);
+
+    osc1.start(st.audioContext.currentTime);
+    osc2.start(st.audioContext.currentTime);
+    osc1.stop(st.audioContext.currentTime + 0.15);
+    osc2.stop(st.audioContext.currentTime + 0.15);
+}
+
 // ============================================
 // FUNÇÕES DE EASING
 // ============================================
@@ -156,16 +186,37 @@ function activateSkillTest() {
 
     console.log(`⚔️ Skill Test ativado! Valor capturado: ${capturedValue.toFixed(2)} → ${value}, Dificuldade: ${st.currentDifficulty}`);
 
-    // Fecha o modal
-    closeSkillTestModal();
+    // (1) TOCA SOM DE LOCK
+    playLockSound();
+
+    // (2) ADICIONA CLASSE .locked NA BARRA ATIVA
+    const lightBars = document.querySelectorAll('.skill-test-light-bar');
+    lightBars.forEach((bar, idx) => {
+        const barValue = idx + 1;
+        if (barValue === value) {
+            bar.classList.add('locked');
+        }
+    });
+
+    // (3) AGUARDA 500ms ANTES DE FECHAR O MODAL
+    setTimeout(() => {
+        closeSkillTestModal();
+
+        // Remove classes .locked após fechar
+        lightBars.forEach(bar => {
+            bar.classList.remove('locked');
+        });
+    }, 500);
 
     // Calcula resultado
     const result = calculateSkillTestResult(value);
 
-    // Executa callback com resultado
-    if (st.pendingCallback) {
-        st.pendingCallback(result);
-    }
+    // Executa callback com resultado APÓS o delay visual
+    setTimeout(() => {
+        if (st.pendingCallback) {
+            st.pendingCallback(result);
+        }
+    }, 500);
 }
 
 // ============================================
