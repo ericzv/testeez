@@ -1398,7 +1398,6 @@ def damage_boss():
             # ===== USAR RECOMPENSAS FIXAS DO TEMPLATE =====
             # Obter recompensas do equipment_modifiers
             try:
-                import json
                 equipment_modifiers = json.loads(current_enemy.equipment_modifiers_applied or '{}')
                 fixed_rewards = equipment_modifiers.get('_rewards', {})
 
