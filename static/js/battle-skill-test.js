@@ -270,6 +270,8 @@ function calculateSkillTestResult(value) {
         result.cssClass = 'result-perfect';
     }
 
+    console.log(`🎯 Resultado calculado: valor=${value}, modifier=${result.damageModifier}, barrier=${result.barrier}`);
+
     return result;
 }
 

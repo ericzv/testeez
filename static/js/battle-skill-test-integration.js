@@ -115,6 +115,8 @@
 
     // Função para aplicar barreira ao jogador
     function applySkillTestBarrier(barrierAmount) {
+        console.log(`🛡️ applySkillTestBarrier chamada com: ${barrierAmount}`);
+
         // Busca o elemento de barreira do jogador
         const playerBarrierEl = document.querySelector('.player-barrier-value');
         if (playerBarrierEl) {
@@ -131,10 +133,13 @@
                 }, 600);
             }
 
-            console.log(`🛡️ Barreira aplicada: +${barrierAmount} (total: ${newBarrier})`);
+            console.log(`🛡️ UI atualizada: +${barrierAmount} (total: ${newBarrier})`);
+        } else {
+            console.warn('⚠️ Elemento .player-barrier-value não encontrado!');
         }
 
         // Também atualiza no backend via AJAX
+        console.log('🌐 Enviando barreira ao servidor...');
         fetch('/battle/apply_barrier', {
             method: 'POST',
             headers: {
@@ -143,8 +148,16 @@
             body: JSON.stringify({
                 barrier_amount: barrierAmount
             })
-        }).catch(err => {
-            console.error('Erro ao aplicar barreira no servidor:', err);
+        })
+        .then(response => {
+            console.log('📡 Resposta do servidor:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('✅ Barreira aplicada no backend:', data);
+        })
+        .catch(err => {
+            console.error('❌ Erro ao aplicar barreira no servidor:', err);
         });
     }
 
@@ -250,55 +263,15 @@
     function startVladPowerAnimation() {
         console.log('🎬 Iniciando animação do Vlad Power com loop...');
 
-        // Tenta múltiplos seletores para encontrar o sprite
-        let playerSprite = document.querySelector('.character-sprite.player');
+        // Busca TODAS as layers do personagem (sistema multi-layer)
+        const playerLayers = document.querySelectorAll('.character-sprite-layer');
 
-        if (!playerSprite) {
-            console.log('⚠️ Tentando seletores alternativos...');
-            playerSprite = document.querySelector('.player-character-sprite');
-
-            if (!playerSprite) {
-                playerSprite = document.querySelector('[class*="player"][class*="sprite"]');
-            }
-
-            if (!playerSprite) {
-                playerSprite = document.querySelector('#player-sprite');
-            }
-
-            if (!playerSprite) {
-                // Lista todos os possíveis sprites na página
-                console.log('🔍 Elementos com "sprite" no nome:');
-                document.querySelectorAll('[class*="sprite"]').forEach(el => {
-                    console.log('  -', el.className, el);
-                });
-
-                console.log('🔍 Elementos com "player" no nome:');
-                document.querySelectorAll('[class*="player"]').forEach(el => {
-                    console.log('  -', el.className, el);
-                });
-
-                console.error('❌ Sprite do jogador não encontrado com nenhum seletor!');
-                return;
-            }
+        if (playerLayers.length === 0) {
+            console.error('❌ Nenhuma layer de sprite encontrada!');
+            return;
         }
 
-        console.log('🎯 Sprite do jogador encontrado:', playerSprite);
-        console.log('   Classes:', playerSprite.className);
-        console.log('   ID:', playerSprite.id);
-
-        // Salva a animação atual
-        const computedStyle = window.getComputedStyle(playerSprite);
-
-        console.log('📊 Estado atual do sprite:');
-        console.log('   animation:', computedStyle.animation);
-        console.log('   background:', computedStyle.background);
-        console.log('   backgroundImage:', computedStyle.backgroundImage);
-        console.log('   backgroundPosition:', computedStyle.backgroundPosition);
-
-        animationState.originalAnimations.set(playerSprite, {
-            animation: playerSprite.style.animation,
-            backgroundPosition: playerSprite.style.backgroundPosition
-        });
+        console.log(`🎯 ${playerLayers.length} layers encontradas`);
 
         // Remove styles de loop anteriores se existirem
         const oldStyle = document.getElementById('vlad-power-loop-style');
@@ -315,17 +288,46 @@
                 from { background-position-x: 0px; }
                 to { background-position-x: calc(-176px * 27); }
             }
+
+            .character-sprite-layer.power-anim {
+                animation: vladPowerLoop 2s steps(27) infinite !important;
+            }
         `;
         document.head.appendChild(styleSheet);
         console.log('✅ Keyframe vladPowerLoop criado');
 
-        // Aplica a animação com loop infinito
-        // 27 frames × 74ms = ~2000ms por ciclo
-        playerSprite.style.animation = 'vladPowerLoop 2s steps(27) infinite';
+        // Aplica animação power em cada layer
+        playerLayers.forEach((layer, idx) => {
+            // Salva estado original
+            if (!animationState.originalAnimations.has(layer)) {
+                const currentBg = window.getComputedStyle(layer).backgroundImage;
+                const currentClass = layer.className;
 
-        console.log('🔄 Animação aplicada ao sprite:', playerSprite.style.animation);
-        console.log('   Verificando depois de aplicar:', window.getComputedStyle(playerSprite).animation);
+                animationState.originalAnimations.set(layer, {
+                    backgroundImage: currentBg,
+                    className: currentClass
+                });
 
+                console.log(`📦 Layer ${idx}: ${currentClass}`);
+            }
+
+            // Troca idle por power na imagem
+            const currentBg = layer.style.backgroundImage || window.getComputedStyle(layer).backgroundImage;
+            if (currentBg.includes('idle/')) {
+                const powerBg = currentBg.replace('/idle/', '/power/').replace('idle-', 'power-');
+                layer.style.backgroundImage = powerBg;
+                console.log(`  ✅ Trocou para: ${powerBg.substring(powerBg.lastIndexOf('/') + 1, powerBg.length - 2)}`);
+            }
+
+            // Troca classe idle-anim por power-anim
+            layer.classList.remove('idle-anim');
+            layer.classList.add('power-anim');
+
+            // Reset background position
+            layer.style.backgroundPosition = '0px 0px';
+        });
+
+        console.log('🔄 Animação do Vlad Power iniciada com loop infinito em todas as layers');
         animationState.paused = false;
     }
 
@@ -333,37 +335,57 @@
     function stopVladPowerAnimation() {
         console.log('▶️ Finalizando loop da animação do Vlad Power...');
 
-        // Usa os mesmos seletores alternativos
-        let playerSprite = document.querySelector('.character-sprite.player');
-        if (!playerSprite) {
-            playerSprite = document.querySelector('.player-character-sprite') ||
-                          document.querySelector('[class*="player"][class*="sprite"]') ||
-                          document.querySelector('#player-sprite');
-        }
+        // Busca todas as layers
+        const playerLayers = document.querySelectorAll('.character-sprite-layer');
 
-        if (!playerSprite) {
-            console.warn('⚠️ Sprite do jogador não encontrado para parar!');
+        if (playerLayers.length === 0) {
+            console.warn('⚠️ Nenhuma layer encontrada para parar!');
             return;
         }
 
-        console.log('🎯 Parando animação do sprite:', playerSprite.className);
-        console.log('   Animação atual:', playerSprite.style.animation);
+        console.log(`🎯 Parando animação em ${playerLayers.length} layers`);
 
-        // Muda para 1 iteração e forwards (termina a animação atual e para)
-        playerSprite.style.animationIterationCount = '1';
-        playerSprite.style.animationFillMode = 'forwards';
+        // Atualiza CSS para mudar para 1 iteração + forwards
+        const loopStyle = document.getElementById('vlad-power-loop-style');
+        if (loopStyle) {
+            loopStyle.textContent = `
+                @keyframes vladPowerLoop {
+                    from { background-position-x: 0px; }
+                    to { background-position-x: calc(-176px * 27); }
+                }
 
-        console.log('✅ Animação mudada para terminar');
-        console.log('   iteration-count:', playerSprite.style.animationIterationCount);
-        console.log('   fill-mode:', playerSprite.style.animationFillMode);
+                .character-sprite-layer.power-anim {
+                    animation: vladPowerLoop 2s steps(27) 1 forwards !important;
+                }
+            `;
+            console.log('✅ Animação mudada para terminar (1 iteração + forwards)');
+        }
 
         // Limpa após a animação terminar
         setTimeout(() => {
+            console.log('🧹 Restaurando estado original das layers...');
+
+            playerLayers.forEach((layer, idx) => {
+                const original = animationState.originalAnimations.get(layer);
+                if (original) {
+                    // Restaura imagem original
+                    if (original.backgroundImage) {
+                        layer.style.backgroundImage = original.backgroundImage;
+                    }
+
+                    // Restaura classe original
+                    layer.className = original.className;
+
+                    console.log(`  ✅ Layer ${idx} restaurada`);
+                }
+            });
+
+            // Remove style sheet
             const styleToRemove = document.getElementById('vlad-power-loop-style');
             if (styleToRemove) {
-                console.log('🗑️ Removendo keyframe de loop');
                 styleToRemove.remove();
             }
+
             animationState.originalAnimations.clear();
             console.log('✅ Limpeza concluída');
         }, 2000); // Aguarda a duração da animação
