@@ -4132,6 +4132,38 @@ def player_status():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
+@battle_bp.route('/apply_barrier', methods=['POST'])
+def apply_barrier():
+    """Aplica barreira ao jogador (usado pelo skill test)"""
+    try:
+        player = Player.query.first()
+        if not player:
+            return jsonify({'success': False, 'message': 'Jogador não encontrado'})
+
+        data = request.get_json()
+        barrier_amount = data.get('barrier_amount', 0)
+
+        if barrier_amount > 0:
+            # Aplica barreira (cumulativa)
+            player.barrier = (player.barrier or 0) + barrier_amount
+            db.session.commit()
+
+            print(f"🛡️ Barreira aplicada via skill test: +{barrier_amount} (Total: {player.barrier})")
+
+            return jsonify({
+                'success': True,
+                'barrier_gained': barrier_amount,
+                'total_barrier': player.barrier
+            })
+        else:
+            return jsonify({'success': False, 'message': 'Quantidade de barreira inválida'})
+
+    except Exception as e:
+        print(f"❌ Erro ao aplicar barreira: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
 @battle_bp.route('/player/inventory', methods=['GET'])
 def player_inventory():
     """Retorna inventário do jogador (poções) para o modo rápido"""
