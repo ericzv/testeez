@@ -39,6 +39,7 @@
             console.log('🔍 skill.skill_id:', skill?.skill_id);
             console.log('🔍 skill.name:', skill?.name);
             console.log('🔍 skill.skill_type:', skill?.skill_type);
+            console.log('🔍 skill._skillTestAnimationDone:', skill?._skillTestAnimationDone);
             console.log('🔍 ========================================');
             console.log('🔍 CHECANDO VARIÁVEIS GLOBAIS:');
             console.log('🔍 window.currentCharacterId:', window.currentCharacterId);
@@ -48,6 +49,33 @@
             console.log('🔍 window.gameState?.player?.characterId:', window.gameState?.player?.characterId);
             console.log('🔍 window.playerData:', window.playerData);
             console.log('🔍 ========================================');
+
+            // Se a animação já foi feita pelo skill test, intercepta applyCharacterAnimation
+            if (skill && skill._skillTestAnimationDone) {
+                console.log('⚠️ Animação já foi feita pelo skill test - desabilitando applyCharacterAnimation temporariamente');
+                const originalApplyAnim = window.applyCharacterAnimation;
+
+                // Substitui temporariamente por função que não faz nada para animação 'power'
+                window.applyCharacterAnimation = function(animType, className) {
+                    if (animType === 'power') {
+                        console.log('🚫 applyCharacterAnimation(power) bloqueada - animação já foi feita');
+                        return [];
+                    }
+                    return originalApplyAnim(animType, className);
+                };
+
+                // Chama performAttack original
+                const result = originalPerformAttack.call(this, skill);
+
+                // Restaura função original após um delay
+                setTimeout(() => {
+                    window.applyCharacterAnimation = originalApplyAnim;
+                    console.log('✅ applyCharacterAnimation restaurada');
+                    delete skill._skillTestAnimationDone;
+                }, 100);
+
+                return result;
+            }
 
             // Verifica se é o Power Attack (skill_id 50 - "Energia Escura")
             const isPowerAttack = skill && (
@@ -95,14 +123,17 @@
                     // Exibe feedback visual
                     showSkillTestFeedback(result);
 
-                    // FINALIZA A ANIMAÇÃO (muda para 1 iteração forwards)
+                    // FINALIZA A ANIMAÇÃO (toca frames 16-27)
                     stopVladPowerAnimation();
 
-                    // Aguarda um pouco antes de executar o ataque
+                    // Marca que a animação já foi feita (para performAttack não aplicar de novo)
+                    skill._skillTestAnimationDone = true;
+
+                    // Aguarda a finalização da animação (1.1s) antes de executar o ataque
                     setTimeout(() => {
-                        // Executa o ataque original COM O MODIFICADOR
+                        // Executa o ataque original COM O MODIFICADOR (sem reaplicar animação)
                         originalPerformAttack.call(this, skill);
-                    }, 800);
+                    }, 1100);
                 });
             } else {
                 // Não é Power Attack do Vlad, executa normalmente
@@ -302,20 +333,31 @@
     function stopVladPowerAnimation() {
         console.log('▶️ Finalizando loop da animação do Vlad Power...');
 
-        // Remove o style de loop para que a animação pare
-        const styleToRemove = document.getElementById('vlad-power-loop-style');
-        if (styleToRemove) {
-            styleToRemove.remove();
-            console.log('🗑️ Style de loop removido');
+        // Atualiza CSS para tocar APENAS frames 16-27 (finalização)
+        const loopStyle = document.getElementById('vlad-power-loop-style');
+        if (loopStyle) {
+            loopStyle.textContent = `
+                @keyframes vlad-power-finish {
+                    from { background-position: calc(-176px * 16) 0; }
+                    to { background-position: calc(-176px * 27) 0; }
+                }
+
+                .character-container[data-character="vlad"] .character-sprite-layer.power-anim {
+                    animation: vlad-power-finish 1.1s steps(11) forwards !important;
+                }
+            `;
+            console.log('✅ Animação de finalização criada (frames 16-27, forwards)');
         }
 
-        // Restaura para idle - o performAttack vai aplicar a animação power completa
-        if (typeof window.restoreCharacterIdle === 'function') {
-            window.restoreCharacterIdle();
-            console.log('✅ Personagem restaurado para idle - performAttack fará o resto');
-        }
-
-        animationState.originalAnimations.clear();
+        // Limpa o style após a animação terminar
+        setTimeout(() => {
+            const styleToRemove = document.getElementById('vlad-power-loop-style');
+            if (styleToRemove) {
+                styleToRemove.remove();
+                console.log('🗑️ Style de finalização removido');
+            }
+            animationState.originalAnimations.clear();
+        }, 1100);
     }
 
     // Inicializa quando o DOM estiver pronto
