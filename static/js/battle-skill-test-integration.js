@@ -128,11 +128,10 @@
                     // Marca que a animação já foi feita (para performAttack não aplicar de novo)
                     skill._skillTestAnimationDone = true;
 
-                    // Aguarda a finalização da animação (1.1s) antes de executar o ataque
-                    setTimeout(() => {
-                        // Executa o ataque original COM O MODIFICADOR (sem reaplicar animação)
-                        originalPerformAttack.call(this, skill);
-                    }, 1100);
+                    // Executa o ataque original COM O MODIFICADOR IMEDIATAMENTE
+                    // A animação de finalização (frames 16-27) continua rodando em paralelo
+                    // O projétil vai sair no timing correto da sequência (durante frames 16-27)
+                    originalPerformAttack.call(this, skill);
                 });
             } else {
                 // Não é Power Attack do Vlad, executa normalmente
