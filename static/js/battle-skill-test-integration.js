@@ -263,16 +263,6 @@
     function startVladPowerAnimation() {
         console.log('🎬 Iniciando animação do Vlad Power com loop...');
 
-        // Busca TODAS as layers do personagem (sistema multi-layer)
-        const playerLayers = document.querySelectorAll('.character-sprite-layer');
-
-        if (playerLayers.length === 0) {
-            console.error('❌ Nenhuma layer de sprite encontrada!');
-            return;
-        }
-
-        console.log(`🎯 ${playerLayers.length} layers encontradas`);
-
         // Remove styles de loop anteriores se existirem
         const oldStyle = document.getElementById('vlad-power-loop-style');
         if (oldStyle) {
@@ -292,57 +282,21 @@
         document.head.appendChild(styleSheet);
         console.log('✅ Animação completa modificada para infinite');
 
-        // Aplica animação power em cada layer
-        playerLayers.forEach((layer, idx) => {
-            // Salva estado original
-            if (!animationState.originalAnimations.has(layer)) {
-                const currentBg = window.getComputedStyle(layer).backgroundImage;
-                const currentClass = layer.className;
+        // Usa o sistema oficial do jogo para aplicar a animação power
+        // Isso remove e recria as layers corretamente
+        if (typeof window.applyCharacterAnimation === 'function') {
+            window.applyCharacterAnimation('power', 'power-anim');
+            console.log('✅ Animação power aplicada via sistema oficial');
+        } else {
+            console.error('❌ applyCharacterAnimation não está disponível!');
+        }
 
-                animationState.originalAnimations.set(layer, {
-                    backgroundImage: currentBg,
-                    className: currentClass
-                });
-
-                console.log(`📦 Layer ${idx}: ${currentClass}`);
-            }
-
-            // Troca idle por power na imagem
-            const currentBg = layer.style.backgroundImage || window.getComputedStyle(layer).backgroundImage;
-            if (currentBg.includes('idle/')) {
-                const powerBg = currentBg.replace('/idle/', '/power/').replace('idle-', 'power-');
-                layer.style.backgroundImage = powerBg;
-                console.log(`  ✅ Trocou para: ${powerBg.substring(powerBg.lastIndexOf('/') + 1, powerBg.length - 2)}`);
-            }
-
-            // Troca classe idle-anim por power-anim
-            layer.classList.remove('idle-anim');
-            layer.classList.add('power-anim');
-
-            // Reseta posição inicial
-            layer.style.backgroundPosition = '0 0';
-
-            // Força recálculo para garantir que a animação começa do início
-            void layer.offsetWidth;
-        });
-
-        console.log('🔄 Animação do Vlad Power iniciada com loop infinito em todas as layers');
         animationState.paused = false;
     }
 
     // Para a animação (deixa terminar normalmente)
     function stopVladPowerAnimation() {
         console.log('▶️ Finalizando loop da animação do Vlad Power...');
-
-        // Busca todas as layers
-        const playerLayers = document.querySelectorAll('.character-sprite-layer');
-
-        if (playerLayers.length === 0) {
-            console.warn('⚠️ Nenhuma layer encontrada para parar!');
-            return;
-        }
-
-        console.log(`🎯 Parando animação em ${playerLayers.length} layers`);
 
         // Restaura a animação original (forwards em vez de infinite)
         const loopStyle = document.getElementById('vlad-power-loop-style');
@@ -352,34 +306,18 @@
                     animation: vlad-power-animation 2.7s steps(27) forwards !important;
                 }
             `;
-            console.log('✅ Animação restaurada para forwards');
+            console.log('✅ Animação restaurada para forwards (tocará 1 vez)');
         }
 
-        // Reseta background position para reiniciar do início
-        playerLayers.forEach((layer, idx) => {
-            layer.style.backgroundPosition = '0 0';
-            // Força recálculo
-            void layer.offsetWidth;
-        });
+        // Aplica power novamente mas agora com forwards para tocar do início
+        if (typeof window.applyCharacterAnimation === 'function') {
+            window.applyCharacterAnimation('power', 'power-anim');
+            console.log('✅ Animação power reaplicada com forwards');
+        }
 
-        // Limpa após a animação terminar
+        // Limpa após a animação terminar (2.7s)
         setTimeout(() => {
-            console.log('🧹 Restaurando estado original das layers...');
-
-            playerLayers.forEach((layer, idx) => {
-                const original = animationState.originalAnimations.get(layer);
-                if (original) {
-                    // Restaura imagem original
-                    if (original.backgroundImage) {
-                        layer.style.backgroundImage = original.backgroundImage;
-                    }
-
-                    // Restaura classe original
-                    layer.className = original.className;
-
-                    console.log(`  ✅ Layer ${idx} restaurada`);
-                }
-            });
+            console.log('🧹 Limpando style de loop...');
 
             // Remove style sheet
             const styleToRemove = document.getElementById('vlad-power-loop-style');
@@ -389,7 +327,7 @@
 
             animationState.originalAnimations.clear();
             console.log('✅ Limpeza concluída');
-        }, 2700); // Aguarda a duração da animação completa (2.7s)
+        }, 2700);
     }
 
     // Inicializa quando o DOM estiver pronto
