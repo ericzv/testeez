@@ -280,16 +280,22 @@
             oldStyle.remove();
         }
 
-        // Modifica a animação existente vlad-power-animation para infinite
+        // Cria animação APENAS dos frames 4-16 (canalização do poder)
+        // Esses frames fazem sentido em loop, diferente da animação completa
         const styleSheet = document.createElement('style');
         styleSheet.id = 'vlad-power-loop-style';
         styleSheet.textContent = `
-            .character-container[data-character="vlad"] .character-sprite-layer.power-anim {
-                animation: vlad-power-animation 2.7s steps(27) infinite !important;
+            @keyframes vlad-power-loop {
+                from { background-position: calc(-176px * 4) 0; }
+                to { background-position: calc(-176px * 16) 0; }
+            }
+
+            .character-container[data-character="vlad"] .character-sprite-layer.power-loop-anim {
+                animation: vlad-power-loop 1.2s steps(12) infinite !important;
             }
         `;
         document.head.appendChild(styleSheet);
-        console.log('✅ Animação power modificada para infinite');
+        console.log('✅ Animação de loop (frames 4-16) criada');
 
         // Aplica animação power em cada layer
         playerLayers.forEach((layer, idx) => {
@@ -314,12 +320,12 @@
                 console.log(`  ✅ Trocou para: ${powerBg.substring(powerBg.lastIndexOf('/') + 1, powerBg.length - 2)}`);
             }
 
-            // Troca classe idle-anim por power-anim
+            // Troca classe idle-anim por power-loop-anim (loop dos frames 4-16)
             layer.classList.remove('idle-anim');
-            layer.classList.add('power-anim');
+            layer.classList.add('power-loop-anim');
 
-            // Reset background position
-            layer.style.backgroundPosition = '0 0';
+            // Inicia no frame 4
+            layer.style.backgroundPosition = 'calc(-176px * 4) 0';
         });
 
         console.log('🔄 Animação do Vlad Power iniciada com loop infinito em todas as layers');
@@ -340,16 +346,29 @@
 
         console.log(`🎯 Parando animação em ${playerLayers.length} layers`);
 
-        // Atualiza CSS para restaurar comportamento original (forwards)
+        // Remove o loop e adiciona animação de finalização (frames 16-27)
         const loopStyle = document.getElementById('vlad-power-loop-style');
         if (loopStyle) {
             loopStyle.textContent = `
-                .character-container[data-character="vlad"] .character-sprite-layer.power-anim {
-                    animation: vlad-power-animation 2.7s steps(27) forwards !important;
+                @keyframes vlad-power-finish {
+                    from { background-position: calc(-176px * 16) 0; }
+                    to { background-position: calc(-176px * 27) 0; }
+                }
+
+                .character-container[data-character="vlad"] .character-sprite-layer.power-finish-anim {
+                    animation: vlad-power-finish 1.1s steps(11) forwards !important;
                 }
             `;
-            console.log('✅ Animação restaurada para forwards');
+            console.log('✅ Animação de finalização criada (frames 16-27)');
         }
+
+        // Troca para animação de finalização
+        playerLayers.forEach((layer, idx) => {
+            layer.classList.remove('power-loop-anim');
+            layer.classList.add('power-finish-anim');
+            // Mantém a posição atual (frame 16)
+            layer.style.backgroundPosition = 'calc(-176px * 16) 0';
+        });
 
         // Limpa após a animação terminar
         setTimeout(() => {
@@ -378,7 +397,7 @@
 
             animationState.originalAnimations.clear();
             console.log('✅ Limpeza concluída');
-        }, 2700); // Aguarda a duração da animação (2.7s)
+        }, 1100); // Aguarda a duração da animação de finalização
     }
 
     // Inicializa quando o DOM estiver pronto
