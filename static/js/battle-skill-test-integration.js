@@ -302,35 +302,20 @@
     function stopVladPowerAnimation() {
         console.log('▶️ Finalizando loop da animação do Vlad Power...');
 
-        // Cria animação de FINALIZAÇÃO (frames 16-27) para tocar 1 vez
-        const loopStyle = document.getElementById('vlad-power-loop-style');
-        if (loopStyle) {
-            loopStyle.textContent = `
-                @keyframes vlad-power-finish {
-                    from { background-position: calc(-176px * 16) 0; }
-                    to { background-position: calc(-176px * 27) 0; }
-                }
-
-                .character-container[data-character="vlad"] .character-sprite-layer.power-anim {
-                    animation: vlad-power-finish 1.1s steps(11) forwards !important;
-                }
-            `;
-            console.log('✅ Animação de finalização criada (frames 16-27, forwards)');
+        // Remove o style de loop para que a animação pare
+        const styleToRemove = document.getElementById('vlad-power-loop-style');
+        if (styleToRemove) {
+            styleToRemove.remove();
+            console.log('🗑️ Style de loop removido');
         }
 
-        // Limpa após a animação de finalização terminar (1.1s)
-        setTimeout(() => {
-            console.log('🧹 Limpando style de loop...');
+        // Restaura para idle - o performAttack vai aplicar a animação power completa
+        if (typeof window.restoreCharacterIdle === 'function') {
+            window.restoreCharacterIdle();
+            console.log('✅ Personagem restaurado para idle - performAttack fará o resto');
+        }
 
-            // Remove style sheet
-            const styleToRemove = document.getElementById('vlad-power-loop-style');
-            if (styleToRemove) {
-                styleToRemove.remove();
-            }
-
-            animationState.originalAnimations.clear();
-            console.log('✅ Limpeza concluída');
-        }, 1100);
+        animationState.originalAnimations.clear();
     }
 
     // Inicializa quando o DOM estiver pronto
