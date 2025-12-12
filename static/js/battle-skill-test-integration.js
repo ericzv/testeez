@@ -280,22 +280,17 @@
             oldStyle.remove();
         }
 
-        // Cria animação APENAS dos frames 4-15 (canalização do poder)
-        // Esses frames fazem sentido em loop, diferente da animação completa
+        // Usa a animação completa original em loop
+        // A animação vlad-power-animation já existe e funciona bem
         const styleSheet = document.createElement('style');
         styleSheet.id = 'vlad-power-loop-style';
         styleSheet.textContent = `
-            @keyframes vlad-power-loop {
-                0% { background-position: calc(-176px * 4) 0; }
-                100% { background-position: calc(-176px * 15) 0; }
-            }
-
-            .character-container[data-character="vlad"] .character-sprite-layer.power-loop-anim {
-                animation: vlad-power-loop 1.1s steps(11) infinite !important;
+            .character-container[data-character="vlad"] .character-sprite-layer.power-anim {
+                animation: vlad-power-animation 2.7s steps(27) infinite !important;
             }
         `;
         document.head.appendChild(styleSheet);
-        console.log('✅ Animação de loop (frames 4-15) criada');
+        console.log('✅ Animação completa modificada para infinite');
 
         // Aplica animação power em cada layer
         playerLayers.forEach((layer, idx) => {
@@ -320,12 +315,12 @@
                 console.log(`  ✅ Trocou para: ${powerBg.substring(powerBg.lastIndexOf('/') + 1, powerBg.length - 2)}`);
             }
 
-            // Troca classe idle-anim por power-loop-anim (loop dos frames 4-16)
+            // Troca classe idle-anim por power-anim
             layer.classList.remove('idle-anim');
-            layer.classList.add('power-loop-anim');
+            layer.classList.add('power-anim');
 
-            // Inicia no frame 4
-            layer.style.backgroundPosition = 'calc(-176px * 4) 0';
+            // Reseta posição inicial
+            layer.style.backgroundPosition = '0 0';
 
             // Força recálculo para garantir que a animação começa do início
             void layer.offsetWidth;
@@ -349,28 +344,22 @@
 
         console.log(`🎯 Parando animação em ${playerLayers.length} layers`);
 
-        // Remove o loop e adiciona animação de finalização (frames 15-27)
+        // Restaura a animação original (forwards em vez de infinite)
         const loopStyle = document.getElementById('vlad-power-loop-style');
         if (loopStyle) {
             loopStyle.textContent = `
-                @keyframes vlad-power-finish {
-                    from { background-position: calc(-176px * 15) 0; }
-                    to { background-position: calc(-176px * 27) 0; }
-                }
-
-                .character-container[data-character="vlad"] .character-sprite-layer.power-finish-anim {
-                    animation: vlad-power-finish 1.2s steps(12) forwards !important;
+                .character-container[data-character="vlad"] .character-sprite-layer.power-anim {
+                    animation: vlad-power-animation 2.7s steps(27) forwards !important;
                 }
             `;
-            console.log('✅ Animação de finalização criada (frames 15-27)');
+            console.log('✅ Animação restaurada para forwards');
         }
 
-        // Troca para animação de finalização
+        // Reseta background position para reiniciar do início
         playerLayers.forEach((layer, idx) => {
-            layer.classList.remove('power-loop-anim');
-            layer.classList.add('power-finish-anim');
-            // Mantém a posição atual (frame 15)
-            layer.style.backgroundPosition = 'calc(-176px * 15) 0';
+            layer.style.backgroundPosition = '0 0';
+            // Força recálculo
+            void layer.offsetWidth;
         });
 
         // Limpa após a animação terminar
@@ -400,7 +389,7 @@
 
             animationState.originalAnimations.clear();
             console.log('✅ Limpeza concluída');
-        }, 1100); // Aguarda a duração da animação de finalização
+        }, 2700); // Aguarda a duração da animação completa (2.7s)
     }
 
     // Inicializa quando o DOM estiver pronto
