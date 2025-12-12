@@ -52,16 +52,15 @@
 
             // Se a animação já foi feita pelo skill test, intercepta applyCharacterAnimation
             if (skill && skill._skillTestAnimationDone) {
-                console.log('⚠️ Animação já foi feita pelo skill test - desabilitando applyCharacterAnimation temporariamente');
+                console.log('⚠️ Animação já foi feita pelo skill test - desabilitando TODAS as animações temporariamente');
                 const originalApplyAnim = window.applyCharacterAnimation;
 
-                // Substitui temporariamente por função que não faz nada para animação 'power'
+                // Substitui temporariamente por função que NÃO faz nada (bloqueia TODAS as animações)
+                // Isso permite que o performAttack execute normalmente (lançar projétil, etc)
+                // mas sem aplicar animações visuais (já aplicamos frames 4-16 loop + 16-27 finish)
                 window.applyCharacterAnimation = function(animType, className) {
-                    if (animType === 'power') {
-                        console.log('🚫 applyCharacterAnimation(power) bloqueada - animação já foi feita');
-                        return [];
-                    }
-                    return originalApplyAnim(animType, className);
+                    console.log(`🚫 applyCharacterAnimation(${animType}) bloqueada - animação já foi feita pelo skill test`);
+                    return [];
                 };
 
                 // Chama performAttack original
