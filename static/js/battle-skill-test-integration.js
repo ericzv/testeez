@@ -280,21 +280,16 @@
             oldStyle.remove();
         }
 
-        // Cria animação de poder com 27 frames (spritesheet horizontal)
+        // Modifica a animação existente vlad-power-animation para infinite
         const styleSheet = document.createElement('style');
         styleSheet.id = 'vlad-power-loop-style';
         styleSheet.textContent = `
-            @keyframes vladPowerLoop {
-                from { background-position-x: 0px; }
-                to { background-position-x: calc(-176px * 27); }
-            }
-
-            .character-sprite-layer.power-anim {
-                animation: vladPowerLoop 2s steps(27) infinite !important;
+            .character-container[data-character="vlad"] .character-sprite-layer.power-anim {
+                animation: vlad-power-animation 2.7s steps(27) infinite !important;
             }
         `;
         document.head.appendChild(styleSheet);
-        console.log('✅ Keyframe vladPowerLoop criado');
+        console.log('✅ Animação power modificada para infinite');
 
         // Aplica animação power em cada layer
         playerLayers.forEach((layer, idx) => {
@@ -324,7 +319,7 @@
             layer.classList.add('power-anim');
 
             // Reset background position
-            layer.style.backgroundPosition = '0px 0px';
+            layer.style.backgroundPosition = '0 0';
         });
 
         console.log('🔄 Animação do Vlad Power iniciada com loop infinito em todas as layers');
@@ -345,20 +340,15 @@
 
         console.log(`🎯 Parando animação em ${playerLayers.length} layers`);
 
-        // Atualiza CSS para mudar para 1 iteração + forwards
+        // Atualiza CSS para restaurar comportamento original (forwards)
         const loopStyle = document.getElementById('vlad-power-loop-style');
         if (loopStyle) {
             loopStyle.textContent = `
-                @keyframes vladPowerLoop {
-                    from { background-position-x: 0px; }
-                    to { background-position-x: calc(-176px * 27); }
-                }
-
-                .character-sprite-layer.power-anim {
-                    animation: vladPowerLoop 2s steps(27) 1 forwards !important;
+                .character-container[data-character="vlad"] .character-sprite-layer.power-anim {
+                    animation: vlad-power-animation 2.7s steps(27) forwards !important;
                 }
             `;
-            console.log('✅ Animação mudada para terminar (1 iteração + forwards)');
+            console.log('✅ Animação restaurada para forwards');
         }
 
         // Limpa após a animação terminar
@@ -388,7 +378,7 @@
 
             animationState.originalAnimations.clear();
             console.log('✅ Limpeza concluída');
-        }, 2000); // Aguarda a duração da animação
+        }, 2700); // Aguarda a duração da animação (2.7s)
     }
 
     // Inicializa quando o DOM estiver pronto
