@@ -270,17 +270,21 @@
             oldStyle.remove();
         }
 
-        // Usa a animação completa original em loop
-        // A animação vlad-power-animation já existe e funciona bem
+        // Cria animação de CANALIZAÇÃO (frames 4-16) para loop
         const styleSheet = document.createElement('style');
         styleSheet.id = 'vlad-power-loop-style';
         styleSheet.textContent = `
+            @keyframes vlad-power-channel {
+                from { background-position: calc(-176px * 4) 0; }
+                to { background-position: calc(-176px * 16) 0; }
+            }
+
             .character-container[data-character="vlad"] .character-sprite-layer.power-anim {
-                animation: vlad-power-animation 2.7s steps(27) infinite !important;
+                animation: vlad-power-channel 1.2s steps(12) infinite !important;
             }
         `;
         document.head.appendChild(styleSheet);
-        console.log('✅ Animação completa modificada para infinite');
+        console.log('✅ Animação de canalização criada (frames 4-16, loop infinito)');
 
         // Usa o sistema oficial do jogo para aplicar a animação power
         // Isso remove e recria as layers corretamente
@@ -298,24 +302,23 @@
     function stopVladPowerAnimation() {
         console.log('▶️ Finalizando loop da animação do Vlad Power...');
 
-        // Restaura a animação original (forwards em vez de infinite)
+        // Cria animação de FINALIZAÇÃO (frames 16-27) para tocar 1 vez
         const loopStyle = document.getElementById('vlad-power-loop-style');
         if (loopStyle) {
             loopStyle.textContent = `
+                @keyframes vlad-power-finish {
+                    from { background-position: calc(-176px * 16) 0; }
+                    to { background-position: calc(-176px * 27) 0; }
+                }
+
                 .character-container[data-character="vlad"] .character-sprite-layer.power-anim {
-                    animation: vlad-power-animation 2.7s steps(27) forwards !important;
+                    animation: vlad-power-finish 1.1s steps(11) forwards !important;
                 }
             `;
-            console.log('✅ Animação restaurada para forwards (tocará 1 vez)');
+            console.log('✅ Animação de finalização criada (frames 16-27, forwards)');
         }
 
-        // Aplica power novamente mas agora com forwards para tocar do início
-        if (typeof window.applyCharacterAnimation === 'function') {
-            window.applyCharacterAnimation('power', 'power-anim');
-            console.log('✅ Animação power reaplicada com forwards');
-        }
-
-        // Limpa após a animação terminar (2.7s)
+        // Limpa após a animação de finalização terminar (1.1s)
         setTimeout(() => {
             console.log('🧹 Limpando style de loop...');
 
@@ -327,7 +330,7 @@
 
             animationState.originalAnimations.clear();
             console.log('✅ Limpeza concluída');
-        }, 2700);
+        }, 1100);
     }
 
     // Inicializa quando o DOM estiver pronto
