@@ -55,11 +55,16 @@
                 console.log('⚠️ Animação já foi feita pelo skill test - desabilitando TODAS as animações temporariamente');
                 const originalApplyAnim = window.applyCharacterAnimation;
 
-                // Substitui temporariamente por função que NÃO faz nada (bloqueia TODAS as animações)
-                // Isso permite que o performAttack execute normalmente (lançar projétil, etc)
-                // mas sem aplicar animações visuais (já aplicamos frames 4-16 loop + 16-27 finish)
+                // Substitui temporariamente por função que retorna as layers EXISTENTES
+                // Isso faz o sistema pensar que aplicou a animação, mas mantém as layers
+                // que estão tocando a finalização (frames 16-27)
                 window.applyCharacterAnimation = function(animType, className) {
-                    console.log(`🚫 applyCharacterAnimation(${animType}) bloqueada - animação já foi feita pelo skill test`);
+                    console.log(`🚫 applyCharacterAnimation(${animType}) bloqueada - mantendo layers existentes`);
+                    // Retorna as layers existentes para que o sistema NÃO as remova
+                    const characterEl = window.character || document.querySelector('.character-sprite');
+                    if (characterEl) {
+                        return Array.from(characterEl.querySelectorAll('.character-sprite-layer'));
+                    }
                     return [];
                 };
 
@@ -71,7 +76,7 @@
                     window.applyCharacterAnimation = originalApplyAnim;
                     console.log('✅ applyCharacterAnimation restaurada');
                     delete skill._skillTestAnimationDone;
-                }, 100);
+                }, 2000); // Aumentado para 2s para garantir que toda a sequência termine
 
                 return result;
             }
@@ -128,10 +133,14 @@
                     // Marca que a animação já foi feita (para performAttack não aplicar de novo)
                     skill._skillTestAnimationDone = true;
 
-                    // Executa o ataque original COM O MODIFICADOR IMEDIATAMENTE
-                    // A animação de finalização (frames 16-27) continua rodando em paralelo
-                    // O projétil vai sair no timing correto da sequência (durante frames 16-27)
-                    originalPerformAttack.call(this, skill);
+                    // AGUARDA 50ms para o navegador aplicar o novo CSS da animação de finalização
+                    // antes de chamar performAttack (que pode tentar interferir)
+                    setTimeout(() => {
+                        // Executa o ataque original COM O MODIFICADOR
+                        // A animação de finalização (frames 16-27) continua rodando em paralelo
+                        // O projétil vai sair no timing correto da sequência (durante frames 16-27)
+                        originalPerformAttack.call(this, skill);
+                    }, 50);
                 });
             } else {
                 // Não é Power Attack do Vlad, executa normalmente
