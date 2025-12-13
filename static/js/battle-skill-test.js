@@ -226,6 +226,7 @@ function calculateSkillTestResult(value) {
         value: value,
         damageModifier: 1.0,
         barrier: 0,
+        forceCritical: false,
         text: '',
         description: '',
         cssClass: ''
@@ -236,15 +237,30 @@ function calculateSkillTestResult(value) {
         result.text = 'MISS!';
         result.description = 'O ataque falhou completamente!';
         result.cssClass = 'result-miss';
-    } else if (value >= 2 && value <= 4) {
+    } else if (value === 2) {
+        result.damageModifier = 0.5; // -50%
+        result.text = 'HORRÍVEL';
+        result.description = '-50% de dano';
+        result.cssClass = 'result-negative';
+    } else if (value === 3) {
+        result.damageModifier = 0.6; // -40%
+        result.text = 'PÉSSIMO';
+        result.description = '-40% de dano';
+        result.cssClass = 'result-negative';
+    } else if (value === 4) {
+        result.damageModifier = 0.7; // -30%
+        result.text = 'MUITO RUIM';
+        result.description = '-30% de dano';
+        result.cssClass = 'result-negative';
+    } else if (value === 5) {
+        result.damageModifier = 0.8; // -20%
+        result.text = 'RUIM';
+        result.description = '-20% de dano';
+        result.cssClass = 'result-negative';
+    } else if (value === 6) {
         result.damageModifier = 0.9; // -10%
         result.text = 'FRACO';
         result.description = '-10% de dano';
-        result.cssClass = 'result-negative';
-    } else if (value >= 5 && value <= 6) {
-        result.damageModifier = 0.95; // -5%
-        result.text = 'ABAIXO';
-        result.description = '-5% de dano';
         result.cssClass = 'result-negative';
     } else if (value === 7) {
         result.damageModifier = 1.0; // Normal
@@ -252,25 +268,27 @@ function calculateSkillTestResult(value) {
         result.description = 'Dano normal';
         result.cssClass = 'result-normal';
     } else if (value === 8) {
-        result.damageModifier = 1.05; // +5%
-        result.text = 'BOM!';
-        result.description = '+5% de dano';
-        result.cssClass = 'result-positive';
-    } else if (value === 9) {
         result.damageModifier = 1.10; // +10%
         result.barrier = 2;
-        result.text = 'ÓTIMO!';
+        result.text = 'BOM!';
         result.description = '+10% de dano + 2 barreira';
         result.cssClass = 'result-positive';
+    } else if (value === 9) {
+        result.damageModifier = 1.20; // +20%
+        result.barrier = 4;
+        result.text = 'ÓTIMO!';
+        result.description = '+20% de dano + 4 barreira';
+        result.cssClass = 'result-positive';
     } else if (value === 10) {
-        result.damageModifier = 1.10; // +10%
-        result.barrier = 5;
+        result.damageModifier = 1.0; // 100% (mas com crítico forçado = 150% total)
+        result.barrier = 6;
+        result.forceCritical = true;
         result.text = 'PERFEITO!';
-        result.description = '+10% de dano + 5 barreira';
+        result.description = 'Acerto crítico! + 6 barreira';
         result.cssClass = 'result-perfect';
     }
 
-    console.log(`🎯 Resultado calculado: valor=${value}, modifier=${result.damageModifier}, barrier=${result.barrier}`);
+    console.log(`🎯 Resultado calculado: valor=${value}, modifier=${result.damageModifier}, barrier=${result.barrier}, critical=${result.forceCritical}`);
 
     return result;
 }

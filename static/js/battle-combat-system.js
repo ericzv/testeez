@@ -4079,7 +4079,13 @@ function saveBossDamage(skill, damage, isCritical) {
         requestData.skill_test_modifier = parseFloat(skill.skill_test_modifier);
         console.log(`⚔️ Skill Test Modifier incluído na requisição: ${requestData.skill_test_modifier}`);
     }
-    
+
+    // ADICIONA FORCE CRITICAL SE PRESENTE (pontuação 10 no skill test)
+    if (skill.skillTestResult && skill.skillTestResult.forceCritical === true) {
+        requestData.force_critical = true;
+        console.log(`💥 Crítico forçado pelo Skill Test! (pontuação 10)`);
+    }
+
     console.log("🔍 DADOS ENVIADOS PARA API:", requestData)
     console.log("Enviando dados para o servidor:", requestData);
     
