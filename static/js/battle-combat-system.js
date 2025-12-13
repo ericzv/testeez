@@ -2760,7 +2760,23 @@ function performAttack(skill) {
                         console.log('✅ Animação de finalização criada (frames 16-27, forwards)');
                     }
 
-                    // Aguardar animação de finalização terminar (1.1s) antes de avançar
+                    // Tocar sons de ataque
+                    playSound(this.currentSkill.sound_attack, 0.8);
+                    playSound(this.currentSkill.sound_effect_1, 0.8);
+
+                    // DISPARAR PROJÉTIL após 700ms (momento certo na animação de finalização)
+                    setTimeout(() => {
+                        console.log('🎯 Disparando projétil do Power Attack!');
+                        this.createVisualProjectile();
+
+                        // Aplicar dano quando projétil atingir o boss (após 900ms)
+                        setTimeout(() => {
+                            this.applyBossDamageEffect();
+                            playSound(this.currentSkill.sound_effect_2, 0.8);
+                        }, 900);
+                    }, 700);
+
+                    // Aguardar animação de finalização terminar completamente (1.1s + tempo do projétil)
                     setTimeout(() => {
                         // Limpar o style após a animação terminar
                         const styleToRemove = document.getElementById('vlad-power-loop-style');
@@ -2769,9 +2785,15 @@ function performAttack(skill) {
                             console.log('🗑️ Style de finalização removido');
                         }
 
-                        // Avançar para próxima fase (apply_damage)
+                        // Restaurar idle
+                        restoreCharacterIdle();
+
+                        // Marcar que dano já foi aplicado para a próxima fase não aplicar de novo
+                        this.damageAlreadyApplied = true;
+
+                        // Avançar para próxima fase (apply_damage que vai pular pois já aplicamos)
                         this.nextPhase(0);
-                    }, 1100);
+                    }, 2000); // 1.1s animação + 900ms projétil
                 });
             } else {
                 console.error('❌ showSkillTestModal não está disponível!');
