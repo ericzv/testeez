@@ -1176,7 +1176,10 @@ function performAttack(skill) {
         magic_area: ['cast_preparation', 'wide_focus', 'area_effect', 'apply_damage', 'zoom_out_final', 'restore_complete'],
 
         // Ataques com salto
-        jump_attack: ['jump_preparation', 'aerial_advance', 'focus_boss', 'aerial_strike', 'apply_damage', 'land_return', 'restore_complete']
+        jump_attack: ['jump_preparation', 'aerial_advance', 'focus_boss', 'aerial_strike', 'apply_damage', 'land_return', 'restore_complete'],
+
+        // Ataque especial: Vlad Power com Skill Test
+        vlad_power_skill_test: ['vlad_power_skill_test', 'apply_damage', 'restore_complete']
     };
 
     // Sistema de execução de fases modulares
@@ -2696,6 +2699,84 @@ function performAttack(skill) {
                 this.applyBossDamageEffect();
                 this.nextPhase(0);
             }, 1200);
+        }
+
+        // Fase: Skill Test do Vlad Power Attack
+        executePhase_vlad_power_skill_test() {
+            console.log("🎯 QC Fase: Vlad Power Skill Test");
+
+            // Aplicar animação power com loop (frames 4-16)
+            if (typeof window.applyCharacterAnimation === 'function') {
+                window.applyCharacterAnimation('power', 'power-anim');
+                console.log('✅ Animação power aplicada');
+            }
+
+            // Criar animação de CANALIZAÇÃO (frames 4-16) para loop
+            const styleSheet = document.createElement('style');
+            styleSheet.id = 'vlad-power-loop-style';
+            styleSheet.textContent = `
+                @keyframes vlad-power-channel {
+                    from { background-position: calc(-176px * 4) 0; }
+                    to { background-position: calc(-176px * 16) 0; }
+                }
+
+                .character-container[data-character="vlad"] .character-sprite-layer.power-anim {
+                    animation: vlad-power-channel 1.2s steps(12) infinite !important;
+                }
+            `;
+            document.head.appendChild(styleSheet);
+            console.log('✅ Animação de canalização criada (frames 4-16, loop infinito)');
+
+            // Mostrar modal de skill test
+            if (typeof window.showSkillTestModal === 'function') {
+                window.showSkillTestModal(this.currentSkill, (result) => {
+                    console.log('✅ Skill Test completado:', result);
+
+                    // Aplicar modificador de dano
+                    this.currentSkill.skill_test_modifier = result.damageModifier;
+                    this.currentSkill.skillTestResult = result;
+                    this.currentSkill.skillTestBarrier = result.barrier;
+
+                    console.log(`💥 Skill test modifier aplicado: ${result.damageModifier} (${(result.damageModifier * 100).toFixed(0)}%)`);
+
+                    // Aplicar barreira se houver
+                    if (result.barrier > 0 && typeof window.applySkillTestBarrier === 'function') {
+                        window.applySkillTestBarrier(result.barrier);
+                    }
+
+                    // Atualizar CSS para tocar APENAS frames 16-27 (finalização)
+                    const loopStyle = document.getElementById('vlad-power-loop-style');
+                    if (loopStyle) {
+                        loopStyle.textContent = `
+                            @keyframes vlad-power-finish {
+                                from { background-position: calc(-176px * 16) 0; }
+                                to { background-position: calc(-176px * 27) 0; }
+                            }
+
+                            .character-container[data-character="vlad"] .character-sprite-layer.power-anim {
+                                animation: vlad-power-finish 1.1s steps(11) forwards !important;
+                            }
+                        `;
+                        console.log('✅ Animação de finalização criada (frames 16-27, forwards)');
+                    }
+
+                    // Aguardar animação de finalização terminar (1.1s) antes de avançar
+                    setTimeout(() => {
+                        // Limpar o style após a animação terminar
+                        const styleToRemove = document.getElementById('vlad-power-loop-style');
+                        if (styleToRemove) {
+                            styleToRemove.remove();
+                            console.log('🗑️ Style de finalização removido');
+                        }
+
+                        // Avançar para próxima fase (apply_damage)
+                        this.nextPhase(0);
+                    }, 1100);
+                });
+            } else {
+                console.error('❌ showSkillTestModal não está disponível!');
+                this.nextPhase(0);
+            }
         }
 
         // Fase: Aplicar dano

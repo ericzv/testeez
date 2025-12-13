@@ -1,7 +1,7 @@
 /**
  * BATTLE SKILL TEST INTEGRATION
  * Integração do skill test com o sistema de batalha
- * Intercepta performAttack para detectar Power Attack do Vlad
+ * Define a sequência de ataque customizada para skills com skill test
  */
 
 (function() {
@@ -29,7 +29,7 @@
         // Salva a função original
         const originalPerformAttack = window.performAttack;
 
-        // Wrappeia a função performAttack
+        // Wrappeia a função performAttack para configurar a sequência correta
         window.performAttack = function(skill) {
             console.log('🔍 ========================================');
             console.log('🔍 performAttack CHAMADO!');
@@ -39,49 +39,8 @@
             console.log('🔍 skill.skill_id:', skill?.skill_id);
             console.log('🔍 skill.name:', skill?.name);
             console.log('🔍 skill.skill_type:', skill?.skill_type);
-            console.log('🔍 skill._skillTestAnimationDone:', skill?._skillTestAnimationDone);
-            console.log('🔍 ========================================');
-            console.log('🔍 CHECANDO VARIÁVEIS GLOBAIS:');
-            console.log('🔍 window.currentCharacterId:', window.currentCharacterId);
-            console.log('🔍 window.gameState:', window.gameState);
-            console.log('🔍 window.gameState?.player:', window.gameState?.player);
-            console.log('🔍 window.gameState?.player?.character_id:', window.gameState?.player?.character_id);
-            console.log('🔍 window.gameState?.player?.characterId:', window.gameState?.player?.characterId);
-            console.log('🔍 window.playerData:', window.playerData);
-            console.log('🔍 ========================================');
 
-            // Se a animação já foi feita pelo skill test, intercepta applyCharacterAnimation
-            if (skill && skill._skillTestAnimationDone) {
-                console.log('⚠️ Animação já foi feita pelo skill test - desabilitando TODAS as animações temporariamente');
-                const originalApplyAnim = window.applyCharacterAnimation;
-
-                // Substitui temporariamente por função que retorna as layers EXISTENTES
-                // Isso faz o sistema pensar que aplicou a animação, mas mantém as layers
-                // que estão tocando a finalização (frames 16-27)
-                window.applyCharacterAnimation = function(animType, className) {
-                    console.log(`🚫 applyCharacterAnimation(${animType}) bloqueada - mantendo layers existentes`);
-                    // Retorna as layers existentes para que o sistema NÃO as remova
-                    const characterEl = window.character || document.querySelector('.character-sprite');
-                    if (characterEl) {
-                        return Array.from(characterEl.querySelectorAll('.character-sprite-layer'));
-                    }
-                    return [];
-                };
-
-                // Chama performAttack original
-                const result = originalPerformAttack.call(this, skill);
-
-                // Restaura função original após um delay
-                setTimeout(() => {
-                    window.applyCharacterAnimation = originalApplyAnim;
-                    console.log('✅ applyCharacterAnimation restaurada');
-                    delete skill._skillTestAnimationDone;
-                }, 2000); // Aumentado para 2s para garantir que toda a sequência termine
-
-                return result;
-            }
-
-            // Verifica se é o Power Attack (skill_id 50 - "Energia Escura")
+            // Verifica se é o Power Attack do Vlad (skill_id 50 - "Energia Escura")
             const isPowerAttack = skill && (
                 skill.id === 50 ||
                 skill.skill_id === 50 ||
@@ -91,68 +50,26 @@
 
             console.log('🔍 isPowerAttack:', isPowerAttack);
 
-            // ============================================
-            // MODO DEBUG: FORÇA SKILL TEST PARA POWER
-            // Remove isso depois de funcionar!
-            // ============================================
+            // Se for Power Attack, configura a sequência customizada com skill test
             if (isPowerAttack) {
                 console.log('⚔️ ========================================');
                 console.log('⚔️ POWER ATTACK DETECTADO!');
-                console.log('⚔️ FORÇANDO SKILL TEST (MODO DEBUG)');
+                console.log('⚔️ Configurando sequência com Skill Test');
                 console.log('⚔️ ========================================');
 
-                // Armazena a skill para uso posterior
-                window.skillTestSystem.pendingSkill = skill;
-
-                // DISPARA A ANIMAÇÃO DO PODER IMEDIATAMENTE
-                startVladPowerAnimation();
-
-                // Mostra o modal de skill test (animação já está rodando)
-                window.showSkillTestModal(skill, function(result) {
-                    console.log('✅ Skill Test completado:', result);
-
-                    // APLICA O MODIFICADOR DE DANO NA SKILL
-                    // O backend vai usar isso no calculate_total_damage
-                    skill.skill_test_modifier = result.damageModifier;
-                    skill.skillTestResult = result;
-                    skill.skillTestBarrier = result.barrier;
-
-                    console.log(`💥 Skill test modifier aplicado: ${result.damageModifier} (${(result.damageModifier * 100).toFixed(0)}%)`);
-
-                    // Aplica barreira ao jogador se houver
-                    if (result.barrier > 0) {
-                        applySkillTestBarrier(result.barrier);
-                    }
-
-                    // Exibe feedback visual
-                    showSkillTestFeedback(result);
-
-                    // FINALIZA A ANIMAÇÃO (toca frames 16-27)
-                    stopVladPowerAnimation();
-
-                    // Marca que a animação já foi feita (para performAttack não aplicar de novo)
-                    skill._skillTestAnimationDone = true;
-
-                    // AGUARDA 50ms para o navegador aplicar o novo CSS da animação de finalização
-                    // antes de chamar performAttack (que pode tentar interferir)
-                    setTimeout(() => {
-                        // Executa o ataque original COM O MODIFICADOR
-                        // A animação de finalização (frames 16-27) continua rodando em paralelo
-                        // O projétil vai sair no timing correto da sequência (durante frames 16-27)
-                        originalPerformAttack.call(this, skill);
-                    }, 50);
-                });
-            } else {
-                // Não é Power Attack do Vlad, executa normalmente
-                originalPerformAttack.call(this, skill);
+                // Define a sequência customizada que inclui o skill test
+                skill.attack_sequence = 'vlad_power_skill_test';
             }
+
+            // Chama performAttack original (com a sequência customizada se aplicável)
+            return originalPerformAttack.call(this, skill);
         };
 
         console.log('✅ Skill Test Integration ativada!');
     }
 
-    // Função para aplicar barreira ao jogador
-    function applySkillTestBarrier(barrierAmount) {
+    // Função para aplicar barreira ao jogador (GLOBAL)
+    window.applySkillTestBarrier = function(barrierAmount) {
         console.log(`🛡️ applySkillTestBarrier chamada com: ${barrierAmount}`);
 
         // Busca o elemento de barreira do jogador
@@ -285,87 +202,6 @@
             window.resetSkillTestTurn();
         }
     });
-
-    // ============================================
-    // CONTROLE DE ANIMAÇÃO DO VLAD
-    // ============================================
-
-    // Estado da animação
-    let animationState = {
-        paused: false,
-        originalAnimations: new Map(),
-        loopIntervalId: null
-    };
-
-    // Inicia a animação do poder com loop infinito
-    function startVladPowerAnimation() {
-        console.log('🎬 Iniciando animação do Vlad Power com loop...');
-
-        // Remove styles de loop anteriores se existirem
-        const oldStyle = document.getElementById('vlad-power-loop-style');
-        if (oldStyle) {
-            console.log('🗑️ Removendo style de loop anterior');
-            oldStyle.remove();
-        }
-
-        // Cria animação de CANALIZAÇÃO (frames 4-16) para loop
-        const styleSheet = document.createElement('style');
-        styleSheet.id = 'vlad-power-loop-style';
-        styleSheet.textContent = `
-            @keyframes vlad-power-channel {
-                from { background-position: calc(-176px * 4) 0; }
-                to { background-position: calc(-176px * 16) 0; }
-            }
-
-            .character-container[data-character="vlad"] .character-sprite-layer.power-anim {
-                animation: vlad-power-channel 1.2s steps(12) infinite !important;
-            }
-        `;
-        document.head.appendChild(styleSheet);
-        console.log('✅ Animação de canalização criada (frames 4-16, loop infinito)');
-
-        // Usa o sistema oficial do jogo para aplicar a animação power
-        // Isso remove e recria as layers corretamente
-        if (typeof window.applyCharacterAnimation === 'function') {
-            window.applyCharacterAnimation('power', 'power-anim');
-            console.log('✅ Animação power aplicada via sistema oficial');
-        } else {
-            console.error('❌ applyCharacterAnimation não está disponível!');
-        }
-
-        animationState.paused = false;
-    }
-
-    // Para a animação (deixa terminar normalmente)
-    function stopVladPowerAnimation() {
-        console.log('▶️ Finalizando loop da animação do Vlad Power...');
-
-        // Atualiza CSS para tocar APENAS frames 16-27 (finalização)
-        const loopStyle = document.getElementById('vlad-power-loop-style');
-        if (loopStyle) {
-            loopStyle.textContent = `
-                @keyframes vlad-power-finish {
-                    from { background-position: calc(-176px * 16) 0; }
-                    to { background-position: calc(-176px * 27) 0; }
-                }
-
-                .character-container[data-character="vlad"] .character-sprite-layer.power-anim {
-                    animation: vlad-power-finish 1.1s steps(11) forwards !important;
-                }
-            `;
-            console.log('✅ Animação de finalização criada (frames 16-27, forwards)');
-        }
-
-        // Limpa o style após a animação terminar
-        setTimeout(() => {
-            const styleToRemove = document.getElementById('vlad-power-loop-style');
-            if (styleToRemove) {
-                styleToRemove.remove();
-                console.log('🗑️ Style de finalização removido');
-            }
-            animationState.originalAnimations.clear();
-        }, 1100);
-    }
 
     // Inicializa quando o DOM estiver pronto
     if (document.readyState === 'loading') {
