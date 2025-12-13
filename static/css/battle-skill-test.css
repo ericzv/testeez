@@ -98,35 +98,167 @@
 }
 
 /* ============================================
-   HEADER
+   DIFFICULTY GEM
    ============================================ */
-.skill-test-header {
+.skill-test-gem-container {
     text-align: center;
     margin-bottom: 20px;
+    margin-top: -10px;
 }
 
-.skill-test-header h2 {
-    color: #e94560;
-    font-size: 24px;
+.skill-test-gem {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 15px rgba(233, 69, 96, 0.8));
+    animation: gemFloat 2s ease-in-out infinite;
+}
+
+@keyframes gemFloat {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+/* ============================================
+   RESULT FEEDBACK DISPLAY (LIQUID GLASS)
+   ============================================ */
+.skill-test-result-display {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px 25px;
+    margin-bottom: 20px;
+
+    /* LIQUID GLASS EFFECT */
+    background: linear-gradient(
+        135deg,
+        rgba(30, 30, 45, 0.5) 0%,
+        rgba(20, 20, 35, 0.6) 50%,
+        rgba(25, 25, 40, 0.5) 100%
+    );
+    backdrop-filter: blur(15px) saturate(180%) brightness(1.2);
+    -webkit-backdrop-filter: blur(15px) saturate(180%) brightness(1.2);
+
+    border-radius: 15px;
+    border: 2px solid rgba(233, 69, 96, 0.4);
+    box-shadow:
+        0 8px 32px 0 rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+
+    position: relative;
+    overflow: hidden;
+}
+
+.skill-test-result-display::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.08),
+        transparent
+    );
+    animation: resultShimmer 2.5s infinite;
+    pointer-events: none;
+}
+
+@keyframes resultShimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.result-icon {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px currentColor);
+    flex-shrink: 0;
+}
+
+.result-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.result-name {
+    font-size: 22px;
     font-weight: bold;
-    margin: 0 0 10px 0;
-    text-shadow: 0 0 10px rgba(233, 69, 96, 0.8);
     font-family: 'Cinzel', serif;
+    text-shadow: 0 0 8px currentColor;
 }
 
-.skill-test-difficulty {
-    font-size: 16px;
-    font-weight: bold;
-    padding: 8px 15px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.4);
-    display: inline-block;
+.result-description {
+    font-size: 15px;
+    opacity: 0.9;
+    font-weight: 500;
 }
 
-.difficulty-1 { color: #4caf50; } /* Verde - Normal */
-.difficulty-2 { color: #ff9800; } /* Laranja - Médio */
-.difficulty-3 { color: #f44336; } /* Vermelho - Difícil */
-.difficulty-4 { color: #9c27b0; } /* Roxo - Muito Difícil */
+/* Color classes for result display */
+.result-display-miss {
+    border-color: rgba(255, 23, 68, 0.6);
+    box-shadow:
+        0 8px 32px 0 rgba(255, 23, 68, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+.result-display-miss .result-name,
+.result-display-miss .result-description {
+    color: #ff1744;
+}
+
+.result-display-negative {
+    border-color: rgba(255, 111, 0, 0.6);
+    box-shadow:
+        0 8px 32px 0 rgba(255, 111, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+.result-display-negative .result-name,
+.result-display-negative .result-description {
+    color: #ff6f00;
+}
+
+.result-display-normal {
+    border-color: rgba(158, 158, 158, 0.6);
+    box-shadow:
+        0 8px 32px 0 rgba(158, 158, 158, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+.result-display-normal .result-name,
+.result-display-normal .result-description {
+    color: #9e9e9e;
+}
+
+.result-display-positive {
+    border-color: rgba(0, 230, 118, 0.6);
+    box-shadow:
+        0 8px 32px 0 rgba(0, 230, 118, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+.result-display-positive .result-name,
+.result-display-positive .result-description {
+    color: #00e676;
+}
+
+.result-display-perfect {
+    border-color: rgba(224, 64, 251, 0.6);
+    box-shadow:
+        0 8px 32px 0 rgba(224, 64, 251, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+.result-display-perfect .result-name,
+.result-display-perfect .result-description {
+    color: #e040fb;
+}
 
 /* ============================================
    INSTRUÇÕES
@@ -256,8 +388,22 @@
         width: 95%;
     }
 
-    .skill-test-header h2 {
-        font-size: 20px;
+    .skill-test-gem {
+        width: 60px;
+        height: 60px;
+    }
+
+    .result-icon {
+        width: 48px;
+        height: 48px;
+    }
+
+    .result-name {
+        font-size: 18px;
+    }
+
+    .result-description {
+        font-size: 13px;
     }
 
     .skill-test-instructions {
@@ -283,8 +429,22 @@
         padding: 15px;
     }
 
-    .skill-test-header h2 {
-        font-size: 18px;
+    .skill-test-gem {
+        width: 50px;
+        height: 50px;
+    }
+
+    .result-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .result-name {
+        font-size: 16px;
+    }
+
+    .result-description {
+        font-size: 12px;
     }
 
     .skill-test-power-bar {

@@ -1097,13 +1097,22 @@ console.log('✅ Sistema de poções carregado!');
 <div id="skill-test-modal" class="skill-test-modal">
     <div class="skill-test-overlay"></div>
     <div class="skill-test-content">
-        <div class="skill-test-header">
-            <h2>⚔️ POWER ATTACK - ENERGIA ESCURA</h2>
-            <div id="skill-test-difficulty" class="skill-test-difficulty difficulty-1">Dificuldade: Normal</div>
+        <!-- Difficulty Gem Image -->
+        <div class="skill-test-gem-container">
+            <img id="skill-test-gem" src="/static/game.data/skilltests/medium.png" alt="Difficulty" class="skill-test-gem">
+        </div>
+
+        <!-- Result Feedback (hidden by default) -->
+        <div id="skill-test-result-display" class="skill-test-result-display" style="display: none;">
+            <img id="result-icon" src="/static/game.data/skilltests/result-normal.png" alt="Result" class="result-icon">
+            <div class="result-info">
+                <div id="result-name" class="result-name">NORMAL</div>
+                <div id="result-description" class="result-description">Dano normal</div>
+            </div>
         </div>
 
         <div class="skill-test-instructions">
-            Pressione ESPAÇO, ENTER ou CLIQUE quando as barras estiverem no máximo!
+            Clique ou pressione Espaço/Enter
         </div>
 
         <div class="skill-test-bar-container">
@@ -1130,8 +1139,8 @@ console.log('✅ Sistema de poções carregado!');
             <span class="legend-item legend-below">6: -10%</span>
             <span class="legend-item legend-normal">7: Normal</span>
             <span class="legend-item legend-good">8: +10%</span>
-            <span class="legend-item legend-great">9: +20% +2🛡️</span>
-            <span class="legend-item legend-perfect">10: CRIT +4🛡️</span>
+            <span class="legend-item legend-great">9: +20% +2 BAR</span>
+            <span class="legend-item legend-perfect">10: CRIT +4 BAR</span>
         </div>
     </div>
 </div>

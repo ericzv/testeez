@@ -197,7 +197,15 @@ function activateSkillTest() {
         }
     });
 
-    // (3) AGUARDA 500ms ANTES DE FECHAR O MODAL
+    // Calcula resultado
+    const result = calculateSkillTestResult(value);
+
+    // (3) MOSTRAR RESULTADO COM ÍCONE (200ms após lock)
+    setTimeout(() => {
+        showSkillTestResultDisplay(result);
+    }, 200);
+
+    // (4) AGUARDA 1500ms ANTES DE FECHAR O MODAL (dar tempo de ver o resultado)
     setTimeout(() => {
         closeSkillTestModal();
 
@@ -205,17 +213,14 @@ function activateSkillTest() {
         lightBars.forEach(bar => {
             bar.classList.remove('locked');
         });
-    }, 500);
-
-    // Calcula resultado
-    const result = calculateSkillTestResult(value);
+    }, 1500);
 
     // Executa callback com resultado APÓS o delay visual
     setTimeout(() => {
         if (st.pendingCallback) {
             st.pendingCallback(result);
         }
-    }, 500);
+    }, 1500);
 }
 
 // ============================================
@@ -310,6 +315,12 @@ function showSkillTestModal(skill, callback) {
         return;
     }
 
+    // Esconder resultado anterior (se houver)
+    const resultDisplay = document.getElementById('skill-test-result-display');
+    if (resultDisplay) {
+        resultDisplay.style.display = 'none';
+    }
+
     modal.classList.add('active');
 
     // Reseta estado
@@ -321,7 +332,7 @@ function showSkillTestModal(skill, callback) {
     // INICIALIZA ÁUDIO IMEDIATAMENTE (fix: som na primeira vez)
     initSkillTestAudio();
 
-    // Atualiza UI de dificuldade
+    // Atualiza UI de dificuldade (gem)
     updateSkillTestDifficultyDisplay();
 
     // Inicia animação
@@ -339,29 +350,71 @@ function closeSkillTestModal() {
 
 function updateSkillTestDifficultyDisplay() {
     const st = window.skillTestSystem;
-    const difficultyEl = document.getElementById('skill-test-difficulty');
+    const gemImg = document.getElementById('skill-test-gem');
 
-    if (!difficultyEl) return;
+    if (!gemImg) return;
 
-    let text = '';
-    let colorClass = '';
+    let gemFile = '';
 
     if (st.currentDifficulty === 1) {
-        text = 'Dificuldade: Normal';
-        colorClass = 'difficulty-1';
+        gemFile = 'easy.png';
     } else if (st.currentDifficulty === 2) {
-        text = 'Dificuldade: Médio';
-        colorClass = 'difficulty-2';
+        gemFile = 'medium.png';
     } else if (st.currentDifficulty === 3) {
-        text = 'Dificuldade: Difícil';
-        colorClass = 'difficulty-3';
+        gemFile = 'hard.png';
     } else {
-        text = 'Dificuldade: Muito Difícil';
-        colorClass = 'difficulty-4';
+        gemFile = 'veryhard.png';
     }
 
-    difficultyEl.textContent = text;
-    difficultyEl.className = 'skill-test-difficulty ' + colorClass;
+    gemImg.src = `/static/game.data/skilltests/${gemFile}`;
+    console.log(`💎 Gem atualizada: ${gemFile}`);
+}
+
+// ============================================
+// EXIBIR RESULTADO COM ÍCONE
+// ============================================
+function showSkillTestResultDisplay(result) {
+    const resultDisplay = document.getElementById('skill-test-result-display');
+    const resultIcon = document.getElementById('result-icon');
+    const resultName = document.getElementById('result-name');
+    const resultDescription = document.getElementById('result-description');
+
+    if (!resultDisplay || !resultIcon || !resultName || !resultDescription) return;
+
+    // Mapear cssClass para nome do arquivo de ícone
+    let iconFile = '';
+    let displayClass = '';
+
+    if (result.cssClass === 'result-miss') {
+        iconFile = 'result-verybad.png';
+        displayClass = 'result-display-miss';
+    } else if (result.cssClass === 'result-negative') {
+        // Scores 2-6 usam result-bad
+        iconFile = 'result-bad.png';
+        displayClass = 'result-display-negative';
+    } else if (result.cssClass === 'result-normal') {
+        iconFile = 'result-normal.png';
+        displayClass = 'result-display-normal';
+    } else if (result.cssClass === 'result-positive') {
+        iconFile = 'result-good.png';
+        displayClass = 'result-display-positive';
+    } else if (result.cssClass === 'result-perfect') {
+        iconFile = 'result-perfect.png';
+        displayClass = 'result-display-perfect';
+    }
+
+    // Atualizar conteúdo
+    resultIcon.src = `/static/game.data/skilltests/${iconFile}`;
+    resultName.textContent = result.text;
+    resultDescription.textContent = result.description;
+
+    // Atualizar classes
+    resultDisplay.className = 'skill-test-result-display ' + displayClass;
+
+    // Mostrar o display
+    resultDisplay.style.display = 'flex';
+
+    console.log(`📊 Resultado exibido: ${result.text} (${iconFile})`);
 }
 
 // ============================================
