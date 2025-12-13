@@ -2771,7 +2771,8 @@ function performAttack(skill) {
 
                         // Aplicar dano quando projétil atingir o boss (após 900ms)
                         setTimeout(() => {
-                            this.applyBossDamageEffect();
+                            console.log('💥 Projétil atingiu o boss! Aplicando dano...');
+                            this.calculateAndApplyDamage();
                             playSound(this.currentSkill.sound_effect_2, 0.8);
                         }, 900);
                     }, 700);
