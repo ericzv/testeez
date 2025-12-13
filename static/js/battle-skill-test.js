@@ -269,22 +269,22 @@ function calculateSkillTestResult(value) {
         result.cssClass = 'result-normal';
     } else if (value === 8) {
         result.damageModifier = 1.10; // +10%
-        result.barrier = 2;
+        result.barrier = 0; // Sem barreira
         result.text = 'BOM!';
-        result.description = '+10% de dano + 2 barreira';
+        result.description = '+10% de dano';
         result.cssClass = 'result-positive';
     } else if (value === 9) {
         result.damageModifier = 1.20; // +20%
-        result.barrier = 4;
+        result.barrier = 2; // Reduzido de 4 para 2
         result.text = 'ÓTIMO!';
-        result.description = '+20% de dano + 4 barreira';
+        result.description = '+20% de dano + 2 barreira';
         result.cssClass = 'result-positive';
     } else if (value === 10) {
         result.damageModifier = 1.0; // 100% (mas com crítico forçado = 150% total)
-        result.barrier = 6;
+        result.barrier = 4; // Reduzido de 6 para 4
         result.forceCritical = true;
         result.text = 'PERFEITO!';
-        result.description = 'Acerto crítico! + 6 barreira';
+        result.description = 'Acerto crítico! + 4 barreira';
         result.cssClass = 'result-perfect';
     }
 
