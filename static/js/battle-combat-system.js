@@ -2242,16 +2242,17 @@ function performAttack(skill) {
 
         createVisualProjectile() {
             console.log("🎯 Criando projétil visual");
-            
+
+            // Pegar posição do personagem (origem)
+            const characterRect = character.getBoundingClientRect();
+            const startX = characterRect.left + characterRect.width / 2;
+            const startY = characterRect.top + characterRect.height / 2;
+
             // Pegar posição do boss como alvo
             const bossRect = boss.getBoundingClientRect();
             const endX = bossRect.left + bossRect.width / 2;
             const endY = bossRect.top + bossRect.height / 2;
-            
-            // Projétil sai da MARGEM ESQUERDA da tela
-            const startX = -50; // Fora da tela à esquerda
-            const startY = endY; // Mesma altura do boss
-            
+
             // Criar elemento projétil
             const projectile = document.createElement('div');
             projectile.style.cssText = `
@@ -2266,15 +2267,16 @@ function performAttack(skill) {
                 box-shadow: 0 0 30px #00ffff;
                 transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             `;
-            
+
             document.body.appendChild(projectile);
-            
+
             // Animar projétil até o boss MAIS RÁPIDO
             setTimeout(() => {
                 projectile.style.left = `${endX}px`;
+                projectile.style.top = `${endY}px`;
                 projectile.style.transform = 'scale(1.5)';
             }, 50);
-            
+
             // Remover projétil MAIS RÁPIDO
             setTimeout(() => {
                 if (projectile.parentNode) {
@@ -2774,10 +2776,16 @@ function performAttack(skill) {
                             console.log('💥 Projétil atingiu o boss! Aplicando dano...');
                             this.calculateAndApplyDamage();
                             playSound(this.currentSkill.sound_effect_2, 0.8);
+
+                            // Marcar que dano já foi aplicado
+                            this.damageAlreadyApplied = true;
+
+                            // Avançar para próxima fase APÓS dano aplicado
+                            this.nextPhase(0);
                         }, 900);
                     }, 700);
 
-                    // Aguardar animação de finalização terminar completamente (1.1s + tempo do projétil)
+                    // Restaurar idle IMEDIATAMENTE após animação terminar (1.1s)
                     setTimeout(() => {
                         // Limpar o style após a animação terminar
                         const styleToRemove = document.getElementById('vlad-power-loop-style');
@@ -2786,15 +2794,10 @@ function performAttack(skill) {
                             console.log('🗑️ Style de finalização removido');
                         }
 
-                        // Restaurar idle
+                        // Restaurar idle SEM delay para evitar "sumir"
                         restoreCharacterIdle();
-
-                        // Marcar que dano já foi aplicado para a próxima fase não aplicar de novo
-                        this.damageAlreadyApplied = true;
-
-                        // Avançar para próxima fase (apply_damage que vai pular pois já aplicamos)
-                        this.nextPhase(0);
-                    }, 2000); // 1.1s animação + 900ms projétil
+                        console.log('✅ Vlad restaurado para idle');
+                    }, 1100); // Exatamente quando a animação de finalização termina
                 });
             } else {
                 console.error('❌ showSkillTestModal não está disponível!');
