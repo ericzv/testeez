@@ -919,6 +919,11 @@ def damage_boss():
         'skill_type': cache.skill_type
     }
 
+    # Verificar se skill test forçou crítico (pontuação 10)
+    if data.get('force_critical'):
+        attack_data['force_critical'] = True
+        print(f"💥 CRÍTICO FORÇADO pelo Skill Test!")
+
     skill_data = {'id': cache.skill_id, 'type': cache.skill_type, 'name': cache.skill_name}
     attack_data = relic_hooks.before_attack(player, skill_data, attack_data)
     

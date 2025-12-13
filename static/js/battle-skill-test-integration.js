@@ -72,30 +72,23 @@
     window.applySkillTestBarrier = function(barrierAmount) {
         console.log(`🛡️ applySkillTestBarrier chamada com: ${barrierAmount}`);
 
-        // Busca o elemento de barreira do jogador
-        const playerBarrierEl = document.querySelector('.player-barrier-value');
-        if (playerBarrierEl) {
-            const currentBarrier = parseInt(playerBarrierEl.textContent) || 0;
-            const newBarrier = currentBarrier + barrierAmount;
-            playerBarrierEl.textContent = newBarrier;
+        // Atualizar no gameState (fonte da verdade)
+        if (window.gameState && window.gameState.player) {
+            window.gameState.player.barrier = (window.gameState.player.barrier || 0) + barrierAmount;
+            console.log(`🛡️ gameState atualizado: barreira = ${window.gameState.player.barrier}`);
 
-            // Anima o elemento
-            const barrierContainer = playerBarrierEl.closest('.stat-item');
-            if (barrierContainer) {
-                barrierContainer.classList.add('stat-changed');
-                setTimeout(() => {
-                    barrierContainer.classList.remove('stat-changed');
-                }, 600);
+            // Forçar atualização da UI chamando updateHudAfterDamage
+            if (typeof window.updateHudAfterDamage === 'function') {
+                window.updateHudAfterDamage();
+                console.log(`🛡️ UI atualizada via updateHudAfterDamage`);
             }
-
-            console.log(`🛡️ UI atualizada: +${barrierAmount} (total: ${newBarrier})`);
         } else {
-            console.warn('⚠️ Elemento .player-barrier-value não encontrado!');
+            console.warn('⚠️ gameState.player não encontrado!');
         }
 
         // Também atualiza no backend via AJAX
         console.log('🌐 Enviando barreira ao servidor...');
-        fetch('/battle/apply_barrier', {
+        fetch('/gamification/apply_barrier', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
