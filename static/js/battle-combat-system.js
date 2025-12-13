@@ -2766,7 +2766,7 @@ function performAttack(skill) {
                     playSound(this.currentSkill.sound_attack, 0.8);
                     playSound(this.currentSkill.sound_effect_1, 0.8);
 
-                    // DISPARAR PROJÉTIL após 700ms (momento certo na animação de finalização)
+                    // DISPARAR PROJÉTIL após 300ms (momento certo na animação de finalização)
                     setTimeout(() => {
                         console.log('🎯 Disparando projétil do Power Attack!');
                         this.createVisualProjectile();
@@ -2783,7 +2783,7 @@ function performAttack(skill) {
                             // Avançar para próxima fase APÓS dano aplicado
                             this.nextPhase(0);
                         }, 900);
-                    }, 700);
+                    }, 300);
 
                     // Restaurar idle IMEDIATAMENTE após animação terminar (1.1s)
                     setTimeout(() => {
