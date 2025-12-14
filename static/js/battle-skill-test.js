@@ -347,11 +347,18 @@ function closeSkillTestModal() {
         modal.classList.remove('active');
     }
 
-    // Esconder resultado 1000ms após modal fechar
+    // Iniciar fade-out do resultado 1000ms após modal fechar
     setTimeout(() => {
         const resultDisplay = document.getElementById('skill-test-result-display');
-        if (resultDisplay) {
-            resultDisplay.style.display = 'none';
+        if (resultDisplay && resultDisplay.style.display !== 'none') {
+            // Adicionar classe de fade-out
+            resultDisplay.classList.add('fade-out');
+
+            // Esconder completamente após animação terminar (500ms)
+            setTimeout(() => {
+                resultDisplay.style.display = 'none';
+                resultDisplay.classList.remove('fade-out');
+            }, 500);
         }
     }, 1000);
 }
