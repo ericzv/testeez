@@ -19,6 +19,7 @@
 <link rel="stylesheet" href="/static/css/battle.css">
 <link rel="stylesheet" href="/static/css/battle-turns.css">
 <link rel="stylesheet" href="/static/css/fast-battle-mode.css">
+<link rel="stylesheet" href="/static/css/battle-skill-test.css">
 
 <style>
 /* ============================================
@@ -1091,6 +1092,65 @@ console.log('✅ Sistema de poções carregado!');
 
 <!-- Fast Battle Mode -->
 <script src="/static/js/fast-battle-mode.js"></script>
+
+<!-- Result Feedback (outside modal, above it) -->
+<div id="skill-test-result-display" class="skill-test-result-display" style="display: none;">
+    <img id="result-icon" src="/static/game.data/skilltests/result-normal.png" alt="Result" class="result-icon">
+    <div class="result-info">
+        <div id="result-name" class="result-name">NORMAL</div>
+        <div id="result-description" class="result-description">Dano normal</div>
+    </div>
+</div>
+
+<!-- Skill Test Modal -->
+<div id="skill-test-modal" class="skill-test-modal">
+    <div class="skill-test-overlay"></div>
+    <div class="skill-test-content">
+        <!-- Difficulty Gem Image with Tooltip -->
+        <div class="skill-test-gem-container">
+            <img id="skill-test-gem" src="/static/game.data/skilltests/medium.png" alt="Difficulty" class="skill-test-gem">
+
+            <!-- Tooltip (aparece no hover) -->
+            <div class="skill-test-tooltip">
+                <div class="tooltip-instructions">
+                    Clique ou pressione Espaço/Enter
+                </div>
+                <div class="tooltip-legend">
+                    <div class="legend-title">Pontuação:</div>
+                    <span class="legend-item legend-miss">1: MISS</span>
+                    <span class="legend-item legend-weak">2: -50% dano</span>
+                    <span class="legend-item legend-weak">3: -40% dano</span>
+                    <span class="legend-item legend-weak">4: -30% dano</span>
+                    <span class="legend-item legend-below">5: -20% dano</span>
+                    <span class="legend-item legend-below">6: -10% dano</span>
+                    <span class="legend-item legend-normal">7: Dano normal</span>
+                    <span class="legend-item legend-good">8: +10% dano</span>
+                    <span class="legend-item legend-great">9: +20% dano + 2 Barreira</span>
+                    <span class="legend-item legend-perfect">10: Acerto crítico + 4 Barreira</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="skill-test-bar-container">
+            <div id="skill-test-power-bar" class="skill-test-power-bar">
+                <div class="skill-test-light-bar" data-value="1"></div>
+                <div class="skill-test-light-bar" data-value="2"></div>
+                <div class="skill-test-light-bar" data-value="3"></div>
+                <div class="skill-test-light-bar" data-value="4"></div>
+                <div class="skill-test-light-bar" data-value="5"></div>
+                <div class="skill-test-light-bar" data-value="6"></div>
+                <div class="skill-test-light-bar" data-value="7"></div>
+                <div class="skill-test-light-bar" data-value="8"></div>
+                <div class="skill-test-light-bar" data-value="9"></div>
+                <div class="skill-test-light-bar" data-value="10"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Skill Test System -->
+<script src="/static/js/battle-skill-test.js"></script>
+<script src="/static/js/battle-skill-test-integration.js"></script>
 
                 </body>
             </html>

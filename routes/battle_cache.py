@@ -55,7 +55,7 @@ def get_base_stats_by_type(skill_type):
     if skill_type == 'attack':
         return 6
     elif skill_type == 'power':
-        return 12
+        return 10  # Reduzido de 12 para 10
     elif skill_type == 'special':
         return 18
     elif skill_type == 'ultimate':
@@ -316,8 +316,8 @@ def calculate_attack_cache(player_id):
             # Se for o "Poder" (ID 50), definimos seus efeitos de Barreira
             if skill_id == 50:
                 effect_type = 'barrier'
-                effect_value = 0.10  # 10% do dano
-                effect_bonus = 3
+                effect_value = 0.20  # 20% do dano (aumentado de 10%)
+                effect_bonus = 2  # Flat bonus reduzido de 3 para 2
                 print(f"   🛡️ Skill (ID 50) concede BARREIRA: {effect_value*100:.0f}% Dano + {effect_bonus} flat")
             # =====================================
             

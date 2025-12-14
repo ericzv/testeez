@@ -919,6 +919,11 @@ def damage_boss():
         'skill_type': cache.skill_type
     }
 
+    # Verificar se skill test forçou crítico (pontuação 10)
+    if data.get('force_critical'):
+        attack_data['force_critical'] = True
+        print(f"💥 CRÍTICO FORÇADO pelo Skill Test!")
+
     skill_data = {'id': cache.skill_id, 'type': cache.skill_type, 'name': cache.skill_name}
     attack_data = relic_hooks.before_attack(player, skill_data, attack_data)
     
@@ -1008,6 +1013,13 @@ def damage_boss():
         damage_before_mult = final_damage  # 👈 SALVAR VALOR ANTES
         final_damage = int(final_damage * damage_multiplier)
         print(f"📊 DANO COM MULTIPLICADOR DE RELÍQUIAS: {damage_before_mult} x {damage_multiplier:.2f} = {final_damage}")
+
+    # 4.2. APLICAR SKILL TEST MODIFIER (se presente)
+    skill_test_modifier = data.get('skill_test_modifier')
+    if skill_test_modifier is not None:
+        damage_before_test = final_damage
+        final_damage = int(final_damage * skill_test_modifier)
+        print(f"⚔️ SKILL TEST MODIFIER APLICADO: {damage_before_test} x {skill_test_modifier:.2f} = {final_damage}")
 
     # ===== 4.5. APLICAR BÔNUS DE BATALHA (ID 50) =====
     # Relíquia "Ataque Básico em Batalha" acumula durante a batalha mas reseta depois
@@ -1391,7 +1403,6 @@ def damage_boss():
             # ===== USAR RECOMPENSAS FIXAS DO TEMPLATE =====
             # Obter recompensas do equipment_modifiers
             try:
-                import json
                 equipment_modifiers = json.loads(current_enemy.equipment_modifiers_applied or '{}')
                 fixed_rewards = equipment_modifiers.get('_rewards', {})
 
@@ -4123,6 +4134,38 @@ def player_status():
 
     except Exception as e:
         print(f"Erro ao buscar status do jogador: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@battle_bp.route('/apply_barrier', methods=['POST'])
+def apply_barrier():
+    """Aplica barreira ao jogador (usado pelo skill test)"""
+    try:
+        player = Player.query.first()
+        if not player:
+            return jsonify({'success': False, 'message': 'Jogador não encontrado'})
+
+        data = request.get_json()
+        barrier_amount = data.get('barrier_amount', 0)
+
+        if barrier_amount > 0:
+            # Aplica barreira (cumulativa)
+            player.barrier = (player.barrier or 0) + barrier_amount
+            db.session.commit()
+
+            print(f"🛡️ Barreira aplicada via skill test: +{barrier_amount} (Total: {player.barrier})")
+
+            return jsonify({
+                'success': True,
+                'barrier_gained': barrier_amount,
+                'total_barrier': player.barrier
+            })
+        else:
+            return jsonify({'success': False, 'message': 'Quantidade de barreira inválida'})
+
+    except Exception as e:
+        print(f"❌ Erro ao aplicar barreira: {str(e)}")
+        db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
 
 

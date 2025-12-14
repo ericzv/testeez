@@ -1176,7 +1176,10 @@ function performAttack(skill) {
         magic_area: ['cast_preparation', 'wide_focus', 'area_effect', 'apply_damage', 'zoom_out_final', 'restore_complete'],
 
         // Ataques com salto
-        jump_attack: ['jump_preparation', 'aerial_advance', 'focus_boss', 'aerial_strike', 'apply_damage', 'land_return', 'restore_complete']
+        jump_attack: ['jump_preparation', 'aerial_advance', 'focus_boss', 'aerial_strike', 'apply_damage', 'land_return', 'restore_complete'],
+
+        // Ataque especial: Vlad Power com Skill Test
+        vlad_power_skill_test: ['vlad_power_skill_test', 'apply_damage', 'restore_complete']
     };
 
     // Sistema de execução de fases modulares
@@ -2239,16 +2242,17 @@ function performAttack(skill) {
 
         createVisualProjectile() {
             console.log("🎯 Criando projétil visual");
-            
+
+            // Pegar posição do personagem (origem)
+            const characterRect = character.getBoundingClientRect();
+            const startX = characterRect.left + characterRect.width / 2;
+            const startY = characterRect.top + characterRect.height / 2;
+
             // Pegar posição do boss como alvo
             const bossRect = boss.getBoundingClientRect();
             const endX = bossRect.left + bossRect.width / 2;
             const endY = bossRect.top + bossRect.height / 2;
-            
-            // Projétil sai da MARGEM ESQUERDA da tela
-            const startX = -50; // Fora da tela à esquerda
-            const startY = endY; // Mesma altura do boss
-            
+
             // Criar elemento projétil
             const projectile = document.createElement('div');
             projectile.style.cssText = `
@@ -2263,15 +2267,16 @@ function performAttack(skill) {
                 box-shadow: 0 0 30px #00ffff;
                 transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             `;
-            
+
             document.body.appendChild(projectile);
-            
+
             // Animar projétil até o boss MAIS RÁPIDO
             setTimeout(() => {
                 projectile.style.left = `${endX}px`;
+                projectile.style.top = `${endY}px`;
                 projectile.style.transform = 'scale(1.5)';
             }, 50);
-            
+
             // Remover projétil MAIS RÁPIDO
             setTimeout(() => {
                 if (projectile.parentNode) {
@@ -2696,6 +2701,108 @@ function performAttack(skill) {
                 this.applyBossDamageEffect();
                 this.nextPhase(0);
             }, 1200);
+        }
+
+        // Fase: Skill Test do Vlad Power Attack
+        executePhase_vlad_power_skill_test() {
+            console.log("🎯 QC Fase: Vlad Power Skill Test");
+
+            // Aplicar animação power com loop (frames 4-16)
+            if (typeof window.applyCharacterAnimation === 'function') {
+                window.applyCharacterAnimation('power', 'power-anim');
+                console.log('✅ Animação power aplicada');
+            }
+
+            // Criar animação de CANALIZAÇÃO (frames 4-16) para loop
+            const styleSheet = document.createElement('style');
+            styleSheet.id = 'vlad-power-loop-style';
+            styleSheet.textContent = `
+                @keyframes vlad-power-channel {
+                    from { background-position: calc(-176px * 4) 0; }
+                    to { background-position: calc(-176px * 16) 0; }
+                }
+
+                .character-container[data-character="vlad"] .character-sprite-layer.power-anim {
+                    animation: vlad-power-channel 1.2s steps(12) infinite !important;
+                }
+            `;
+            document.head.appendChild(styleSheet);
+            console.log('✅ Animação de canalização criada (frames 4-16, loop infinito)');
+
+            // Mostrar modal de skill test
+            if (typeof window.showSkillTestModal === 'function') {
+                window.showSkillTestModal(this.currentSkill, (result) => {
+                    console.log('✅ Skill Test completado:', result);
+
+                    // Aplicar modificador de dano
+                    this.currentSkill.skill_test_modifier = result.damageModifier;
+                    this.currentSkill.skillTestResult = result;
+                    this.currentSkill.skillTestBarrier = result.barrier;
+
+                    console.log(`💥 Skill test modifier aplicado: ${result.damageModifier} (${(result.damageModifier * 100).toFixed(0)}%)`);
+
+                    // Aplicar barreira se houver
+                    if (result.barrier > 0 && typeof window.applySkillTestBarrier === 'function') {
+                        window.applySkillTestBarrier(result.barrier);
+                    }
+
+                    // Atualizar CSS para tocar APENAS frames 16-27 (finalização)
+                    const loopStyle = document.getElementById('vlad-power-loop-style');
+                    if (loopStyle) {
+                        loopStyle.textContent = `
+                            @keyframes vlad-power-finish {
+                                from { background-position: calc(-176px * 16) 0; }
+                                to { background-position: calc(-176px * 27) 0; }
+                            }
+
+                            .character-container[data-character="vlad"] .character-sprite-layer.power-anim {
+                                animation: vlad-power-finish 1.1s steps(11) forwards !important;
+                            }
+                        `;
+                        console.log('✅ Animação de finalização criada (frames 16-27, forwards)');
+                    }
+
+                    // Tocar sons de ataque
+                    playSound(this.currentSkill.sound_attack, 0.8);
+                    playSound(this.currentSkill.sound_effect_1, 0.8);
+
+                    // DISPARAR PROJÉTIL após 300ms (momento certo na animação de finalização)
+                    setTimeout(() => {
+                        console.log('🎯 Disparando projétil do Power Attack!');
+                        this.createVisualProjectile();
+
+                        // Aplicar dano quando projétil atingir o boss (após 900ms)
+                        setTimeout(() => {
+                            console.log('💥 Projétil atingiu o boss! Aplicando dano...');
+                            this.calculateAndApplyDamage();
+                            playSound(this.currentSkill.sound_effect_2, 0.8);
+
+                            // Marcar que dano já foi aplicado
+                            this.damageAlreadyApplied = true;
+
+                            // Avançar para próxima fase APÓS dano aplicado
+                            this.nextPhase(0);
+                        }, 900);
+                    }, 300);
+
+                    // Restaurar idle IMEDIATAMENTE após animação terminar (1.1s)
+                    setTimeout(() => {
+                        // Limpar o style após a animação terminar
+                        const styleToRemove = document.getElementById('vlad-power-loop-style');
+                        if (styleToRemove) {
+                            styleToRemove.remove();
+                            console.log('🗑️ Style de finalização removido');
+                        }
+
+                        // Restaurar idle SEM delay para evitar "sumir"
+                        restoreCharacterIdle();
+                        console.log('✅ Vlad restaurado para idle');
+                    }, 1100); // Exatamente quando a animação de finalização termina
+                });
+            } else {
+                console.error('❌ showSkillTestModal não está disponível!');
+                this.nextPhase(0);
+            }
         }
 
         // Fase: Aplicar dano
@@ -3959,14 +4066,26 @@ function saveBossDamage(skill, damage, isCritical) {
     if (skill.damageModifier && !isNaN(parseFloat(skill.damageModifier))) {
         damageModifier = parseFloat(skill.damageModifier);
     }
-    
+
     // Preparar os dados para enviar ao servidor - CORRIGIDO para enviar valores reais
     const requestData = {
         attack_type: 'basic',
         skill_id: skillId,
         damage_modifier: damageModifier,
     };
-    
+
+    // ADICIONA SKILL TEST MODIFIER SE PRESENTE
+    if (skill.skill_test_modifier !== undefined && skill.skill_test_modifier !== null) {
+        requestData.skill_test_modifier = parseFloat(skill.skill_test_modifier);
+        console.log(`⚔️ Skill Test Modifier incluído na requisição: ${requestData.skill_test_modifier}`);
+    }
+
+    // ADICIONA FORCE CRITICAL SE PRESENTE (pontuação 10 no skill test)
+    if (skill.skillTestResult && skill.skillTestResult.forceCritical === true) {
+        requestData.force_critical = true;
+        console.log(`💥 Crítico forçado pelo Skill Test! (pontuação 10)`);
+    }
+
     console.log("🔍 DADOS ENVIADOS PARA API:", requestData)
     console.log("Enviando dados para o servidor:", requestData);
     
