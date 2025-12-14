@@ -335,6 +335,9 @@ function showSkillTestModal(skill, callback) {
     // Atualiza UI de dificuldade (gem)
     updateSkillTestDifficultyDisplay();
 
+    // Atualiza tooltip com simulação de dano
+    updateTooltipWithDamageSimulation();
+
     // Inicia animação
     requestAnimationFrame(animateSkillTest);
 
@@ -383,6 +386,63 @@ function updateSkillTestDifficultyDisplay() {
 
     gemImg.src = `/static/game.data/skilltests/${gemFile}`;
     console.log(`💎 Gem atualizada: ${gemFile}`);
+}
+
+// ============================================
+// SIMULAÇÃO DE DANO NO TOOLTIP
+// ============================================
+function updateTooltipWithDamageSimulation() {
+    // Verificar se temos dados necessários
+    if (!window.skillTestSystem || !window.skillTestSystem.pendingSkill) {
+        console.warn('⚠️ pendingSkill não disponível para simulação');
+        return;
+    }
+
+    const skill = window.skillTestSystem.pendingSkill;
+
+    // Usar o dano final do cache_data (já inclui lembranças, relíquias, força, etc)
+    let baseDamage = 10; // Fallback
+
+    if (skill.cache_data && skill.cache_data.base_damage) {
+        baseDamage = skill.cache_data.base_damage;
+        console.log(`💥 Dano final da skill (cache): ${baseDamage}`);
+    } else {
+        console.warn('⚠️ cache_data.base_damage não disponível, usando fallback');
+    }
+
+    // Atualizar cada linha da legenda com simulação
+    const scores = [
+        { value: 1, modifier: 0, crit: false },      // MISS
+        { value: 2, modifier: 0.5, crit: false },    // -50%
+        { value: 3, modifier: 0.6, crit: false },    // -40%
+        { value: 4, modifier: 0.7, crit: false },    // -30%
+        { value: 5, modifier: 0.8, crit: false },    // -20%
+        { value: 6, modifier: 0.9, crit: false },    // -10%
+        { value: 7, modifier: 1.0, crit: false },    // Normal
+        { value: 8, modifier: 1.10, crit: false },   // +10%
+        { value: 9, modifier: 1.20, crit: false },   // +20%
+        { value: 10, modifier: 1.0, crit: true }     // Crítico
+    ];
+
+    scores.forEach(score => {
+        const legendItem = document.querySelector(`.tooltip-legend .legend-item:nth-child(${score.value + 1})`); // +1 por causa do legend-title
+        if (legendItem) {
+            let simulatedDamage = Math.floor(baseDamage * score.modifier);
+
+            // Aplicar crítico (1.5x) para score 10
+            if (score.crit) {
+                simulatedDamage = Math.floor(simulatedDamage * 1.5);
+            }
+
+            // Pegar texto atual e adicionar simulação
+            const currentText = legendItem.textContent.trim();
+            const textWithoutSimulation = currentText.replace(/\s*\(\d+\)/, ''); // Remove simulação anterior
+
+            legendItem.textContent = `${textWithoutSimulation} (${simulatedDamage})`;
+        }
+    });
+
+    console.log('✅ Tooltip atualizado com simulação de dano');
 }
 
 // ============================================
