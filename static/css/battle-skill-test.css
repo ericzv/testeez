@@ -104,6 +104,7 @@
     text-align: center;
     margin-bottom: 20px;
     margin-top: -10px;
+    position: relative;
 }
 
 .skill-test-gem {
@@ -112,6 +113,7 @@
     object-fit: contain;
     filter: drop-shadow(0 0 15px rgba(233, 69, 96, 0.8));
     animation: gemFloat 2s ease-in-out infinite;
+    cursor: help;
 }
 
 @keyframes gemFloat {
@@ -124,14 +126,112 @@
 }
 
 /* ============================================
+   TOOLTIP (aparece no hover da gem)
+   ============================================ */
+.skill-test-tooltip {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 15px;
+    z-index: 10001;
+
+    /* Inicialmente escondido */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+
+    /* Liquid glass effect */
+    background: linear-gradient(
+        135deg,
+        rgba(20, 20, 35, 0.95) 0%,
+        rgba(10, 10, 25, 0.98) 50%,
+        rgba(15, 15, 30, 0.95) 100%
+    );
+    backdrop-filter: blur(15px) saturate(180%);
+    -webkit-backdrop-filter: blur(15px) saturate(180%);
+
+    border: 2px solid rgba(233, 69, 96, 0.5);
+    border-radius: 12px;
+    padding: 15px 20px;
+    box-shadow:
+        0 8px 32px 0 rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+
+    min-width: 280px;
+    max-width: 400px;
+}
+
+/* Mostrar tooltip no hover da gem */
+.skill-test-gem-container:hover .skill-test-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Seta do tooltip */
+.skill-test-tooltip::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-bottom-color: rgba(233, 69, 96, 0.5);
+}
+
+.skill-test-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-bottom-color: rgba(15, 15, 30, 0.95);
+    margin-bottom: -2px;
+}
+
+.tooltip-instructions {
+    text-align: center;
+    color: #ffd700;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(233, 69, 96, 0.3);
+}
+
+.tooltip-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.legend-title {
+    color: #fff;
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 5px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ============================================
    RESULT FEEDBACK DISPLAY (LIQUID GLASS)
+   FORA DO MODAL, ACIMA DELE
    ============================================ */
 .skill-test-result-display {
+    position: fixed;
+    top: 25%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10002; /* Acima do modal */
+
     display: flex;
     align-items: center;
     gap: 15px;
     padding: 20px 25px;
-    margin-bottom: 20px;
 
     /* LIQUID GLASS EFFECT */
     background: linear-gradient(
@@ -150,8 +250,22 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.2),
         inset 0 -1px 0 rgba(0, 0, 0, 0.5);
 
-    position: relative;
+    position: fixed;
     overflow: hidden;
+
+    /* Animação de entrada */
+    animation: resultSlideDown 0.4s ease-out;
+}
+
+@keyframes resultSlideDown {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
 }
 
 .skill-test-result-display::before {
@@ -260,19 +374,6 @@
     color: #e040fb;
 }
 
-/* ============================================
-   INSTRUÇÕES
-   ============================================ */
-.skill-test-instructions {
-    text-align: center;
-    color: #ffd700;
-    font-size: 16px;
-    margin-bottom: 25px;
-    padding: 12px;
-    background: rgba(255, 215, 0, 0.1);
-    border-radius: 10px;
-    border: 1px solid rgba(255, 215, 0, 0.3);
-}
 
 /* ============================================
    BARRA DE POWER
@@ -351,24 +452,14 @@
 }
 
 /* ============================================
-   LEGENDA
+   LEGENDA (dentro do tooltip)
    ============================================ */
-.skill-test-legend {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    font-size: 13px;
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 10px;
-}
-
 .legend-item {
-    padding: 5px 10px;
+    padding: 6px 10px;
     border-radius: 5px;
-    font-weight: bold;
-    white-space: nowrap;
+    font-weight: 600;
+    font-size: 12px;
+    text-align: left;
 }
 
 .legend-miss { background: rgba(107, 0, 0, 0.5); color: #ff6b6b; }
@@ -393,6 +484,30 @@
         height: 60px;
     }
 
+    .skill-test-tooltip {
+        min-width: 240px;
+        max-width: 90vw;
+        font-size: 12px;
+    }
+
+    .tooltip-instructions {
+        font-size: 13px;
+    }
+
+    .legend-title {
+        font-size: 12px;
+    }
+
+    .legend-item {
+        font-size: 11px;
+        padding: 5px 8px;
+    }
+
+    .skill-test-result-display {
+        padding: 15px 20px;
+        max-width: 90vw;
+    }
+
     .result-icon {
         width: 48px;
         height: 48px;
@@ -406,21 +521,8 @@
         font-size: 13px;
     }
 
-    .skill-test-instructions {
-        font-size: 14px;
-    }
-
     .skill-test-power-bar {
         height: 35px;
-    }
-
-    .skill-test-legend {
-        font-size: 11px;
-        gap: 5px;
-    }
-
-    .legend-item {
-        padding: 4px 8px;
     }
 }
 
@@ -432,6 +534,28 @@
     .skill-test-gem {
         width: 50px;
         height: 50px;
+    }
+
+    .skill-test-tooltip {
+        min-width: 200px;
+        padding: 12px 15px;
+    }
+
+    .tooltip-instructions {
+        font-size: 12px;
+    }
+
+    .legend-title {
+        font-size: 11px;
+    }
+
+    .legend-item {
+        font-size: 10px;
+        padding: 4px 7px;
+    }
+
+    .skill-test-result-display {
+        padding: 12px 15px;
     }
 
     .result-icon {
@@ -450,10 +574,5 @@
     .skill-test-power-bar {
         gap: 4px;
         height: 30px;
-    }
-
-    .skill-test-legend {
-        flex-direction: column;
-        align-items: center;
     }
 }
