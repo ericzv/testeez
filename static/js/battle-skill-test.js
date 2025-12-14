@@ -393,42 +393,22 @@ function updateSkillTestDifficultyDisplay() {
 // ============================================
 function updateTooltipWithDamageSimulation() {
     // Verificar se temos dados necessários
-    if (!window.gameState || !window.gameState.player) {
-        console.warn('⚠️ gameState.player não disponível para simulação');
-        return;
-    }
-
     if (!window.skillTestSystem || !window.skillTestSystem.pendingSkill) {
         console.warn('⚠️ pendingSkill não disponível para simulação');
         return;
     }
 
-    const player = window.gameState.player;
     const skill = window.skillTestSystem.pendingSkill;
 
-    // Calcular dano base (10 pontos para o Power do Vlad - skill ID 50)
-    const damagePoints = 10; // Dano base do poder
+    // Usar o dano final do cache_data (já inclui lembranças, relíquias, força, etc)
+    let baseDamage = 10; // Fallback
 
-    // Calcular dano usando o sistema de dano (sem skill test modifier)
-    let baseDamage = damagePoints;
-
-    // Aplicar multiplicador da skill
-    if (skill.damageModifier && !isNaN(parseFloat(skill.damageModifier))) {
-        baseDamage = Math.floor(baseDamage * parseFloat(skill.damageModifier));
+    if (skill.cache_data && skill.cache_data.base_damage) {
+        baseDamage = skill.cache_data.base_damage;
+        console.log(`💥 Dano final da skill (cache): ${baseDamage}`);
+    } else {
+        console.warn('⚠️ cache_data.base_damage não disponível, usando fallback');
     }
-
-    // Aplicar bônus de força (usando calculateStrengthDamage se disponível)
-    if (typeof calculateStrengthDamage === 'function' && player.strength) {
-        const strengthMult = calculateStrengthDamage(player.strength);
-        baseDamage = Math.floor(baseDamage * strengthMult);
-    }
-
-    // Aplicar bônus de dano do player
-    if (player.damageBonus) {
-        baseDamage = Math.floor(baseDamage * (1 + player.damageBonus));
-    }
-
-    console.log(`💥 Dano base calculado: ${baseDamage}`);
 
     // Atualizar cada linha da legenda com simulação
     const scores = [
