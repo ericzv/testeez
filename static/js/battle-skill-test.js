@@ -335,6 +335,9 @@ function showSkillTestModal(skill, callback) {
     // Atualiza UI de dificuldade (gem)
     updateSkillTestDifficultyDisplay();
 
+    // Atualiza tooltip com simulação de dano
+    updateTooltipWithDamageSimulation();
+
     // Inicia animação
     requestAnimationFrame(animateSkillTest);
 
@@ -383,6 +386,83 @@ function updateSkillTestDifficultyDisplay() {
 
     gemImg.src = `/static/game.data/skilltests/${gemFile}`;
     console.log(`💎 Gem atualizada: ${gemFile}`);
+}
+
+// ============================================
+// SIMULAÇÃO DE DANO NO TOOLTIP
+// ============================================
+function updateTooltipWithDamageSimulation() {
+    // Verificar se temos dados necessários
+    if (!window.gameState || !window.gameState.player) {
+        console.warn('⚠️ gameState.player não disponível para simulação');
+        return;
+    }
+
+    if (!window.skillTestSystem || !window.skillTestSystem.pendingSkill) {
+        console.warn('⚠️ pendingSkill não disponível para simulação');
+        return;
+    }
+
+    const player = window.gameState.player;
+    const skill = window.skillTestSystem.pendingSkill;
+
+    // Calcular dano base (10 pontos para o Power do Vlad - skill ID 50)
+    const damagePoints = 10; // Dano base do poder
+
+    // Calcular dano usando o sistema de dano (sem skill test modifier)
+    let baseDamage = damagePoints;
+
+    // Aplicar multiplicador da skill
+    if (skill.damageModifier && !isNaN(parseFloat(skill.damageModifier))) {
+        baseDamage = Math.floor(baseDamage * parseFloat(skill.damageModifier));
+    }
+
+    // Aplicar bônus de força (usando calculateStrengthDamage se disponível)
+    if (typeof calculateStrengthDamage === 'function' && player.strength) {
+        const strengthMult = calculateStrengthDamage(player.strength);
+        baseDamage = Math.floor(baseDamage * strengthMult);
+    }
+
+    // Aplicar bônus de dano do player
+    if (player.damageBonus) {
+        baseDamage = Math.floor(baseDamage * (1 + player.damageBonus));
+    }
+
+    console.log(`💥 Dano base calculado: ${baseDamage}`);
+
+    // Atualizar cada linha da legenda com simulação
+    const scores = [
+        { value: 1, modifier: 0, crit: false },      // MISS
+        { value: 2, modifier: 0.5, crit: false },    // -50%
+        { value: 3, modifier: 0.6, crit: false },    // -40%
+        { value: 4, modifier: 0.7, crit: false },    // -30%
+        { value: 5, modifier: 0.8, crit: false },    // -20%
+        { value: 6, modifier: 0.9, crit: false },    // -10%
+        { value: 7, modifier: 1.0, crit: false },    // Normal
+        { value: 8, modifier: 1.10, crit: false },   // +10%
+        { value: 9, modifier: 1.20, crit: false },   // +20%
+        { value: 10, modifier: 1.0, crit: true }     // Crítico
+    ];
+
+    scores.forEach(score => {
+        const legendItem = document.querySelector(`.tooltip-legend .legend-item:nth-child(${score.value + 1})`); // +1 por causa do legend-title
+        if (legendItem) {
+            let simulatedDamage = Math.floor(baseDamage * score.modifier);
+
+            // Aplicar crítico (1.5x) para score 10
+            if (score.crit) {
+                simulatedDamage = Math.floor(simulatedDamage * 1.5);
+            }
+
+            // Pegar texto atual e adicionar simulação
+            const currentText = legendItem.textContent.trim();
+            const textWithoutSimulation = currentText.replace(/\s*\(\d+\)/, ''); // Remove simulação anterior
+
+            legendItem.textContent = `${textWithoutSimulation} (${simulatedDamage})`;
+        }
+    });
+
+    console.log('✅ Tooltip atualizado com simulação de dano');
 }
 
 // ============================================
