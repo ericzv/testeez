@@ -977,8 +977,8 @@
     font-size: 24px;
     margin-bottom: 10px;
     text-align: center;
-    color: #ff5555;
-    text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
   }
   
   .boss-tags {

@@ -375,11 +375,6 @@
 </div>
 
 <div class="boss-hud">
-  <!-- Blood Stacks Container (acima do HP) -->
-  <div class="blood-stacks-container" id="blood-stacks-container" style="display: none;">
-    <!-- Ícones de blood stacks serão adicionados aqui pelo JavaScript -->
-  </div>
-
   <div class="small-bar-container">
     <div class="small-hp-fill" id="small-boss-hp-bar"></div>
     <div class="small-bar-label">
@@ -453,6 +448,10 @@
 <!-- Boss Info Panel -->
 <div class="boss-info-panel" id="boss-info-panel">
   <div class="boss-name" id="boss-info-name">{{ boss_name or 'Inimigo' }}</div>
+  <!-- Blood Stacks Container (entre nome e stats) -->
+  <div class="blood-stacks-container" id="blood-stacks-container" style="display: none;">
+    <!-- Ícones de blood stacks serão adicionados aqui pelo JavaScript -->
+  </div>
   <div class="boss-stat">
     <span>Vida:</span>
     <span id="boss-info-hp">{{ boss_hp or 100 }}/{{ boss_max_hp or 100 }}</span>

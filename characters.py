@@ -617,7 +617,7 @@ def get_player_attacks(player_id):
                 if current_enemy:
                     blood_stacks = getattr(current_enemy, 'blood_stacks', 0) or 0
                     if blood_stacks > 0:
-                        blood_bonus = blood_stacks * 2  # +2 dano por stack
+                        blood_bonus = blood_stacks * 4  # +4 dano por blood stack
                         total_damage += blood_bonus
                         skill['blood_stacks_bonus'] = blood_bonus  # Para mostrar no tooltip
 

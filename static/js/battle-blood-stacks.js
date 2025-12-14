@@ -71,16 +71,9 @@ style.textContent = `
     .blood-stacks-container {
         display: flex;
         flex-wrap: wrap;
-        gap: 4px;
-        padding: 8px;
-        background: rgba(139, 0, 0, 0.2);
-        border: 2px solid rgba(220, 20, 60, 0.6);
-        border-radius: 8px;
-        margin-bottom: 8px;
+        gap: 0px;
+        padding: 0px;
         justify-content: center;
-        max-width: 200px;
-        margin-left: auto;
-        margin-right: auto;
     }
 
     .blood-stack-icon {
