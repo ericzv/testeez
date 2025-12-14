@@ -346,6 +346,14 @@ function closeSkillTestModal() {
     if (modal) {
         modal.classList.remove('active');
     }
+
+    // Esconder resultado 1000ms após modal fechar
+    setTimeout(() => {
+        const resultDisplay = document.getElementById('skill-test-result-display');
+        if (resultDisplay) {
+            resultDisplay.style.display = 'none';
+        }
+    }, 1000);
 }
 
 function updateSkillTestDifficultyDisplay() {

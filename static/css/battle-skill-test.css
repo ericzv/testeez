@@ -19,6 +19,7 @@
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
+    overflow: visible; /* Permitir tooltip sair do modal */
 }
 
 .skill-test-modal.active {
@@ -33,35 +34,35 @@
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(1px);
 }
 
 .skill-test-content {
     position: relative;
     z-index: 10000;
-    /* LIQUID GLASS EFFECT - INTENSIFICADO */
+    top: -15%;
+
+    /* LIQUID GLASS EFFECT - MAIS TRANSPARENTE E SEM BORDA COLORIDA */
     background: linear-gradient(
         135deg,
-        rgba(20, 20, 35, 0.4) 0%,
-        rgba(10, 10, 25, 0.5) 50%,
-        rgba(15, 15, 30, 0.4) 100%
+        rgba(20, 20, 35, 0.25) 0%,
+        rgba(10, 10, 25, 0.3) 50%,
+        rgba(15, 15, 30, 0.25) 100%
     );
-    backdrop-filter: blur(12px) saturate(200%) brightness(1.1);
-    -webkit-backdrop-filter: blur(12px) saturate(200%) brightness(1.1);
-    border: 2px solid rgba(233, 69, 96, 0.4);
+    backdrop-filter: blur(20px) saturate(200%) brightness(1.15);
+    -webkit-backdrop-filter: blur(20px) saturate(200%) brightness(1.15);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 25px;
     padding: 30px;
     max-width: 700px;
     width: 90%;
     box-shadow:
-        0 8px 32px 0 rgba(233, 69, 96, 0.5),
-        0 0 80px rgba(233, 69, 96, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+        0 8px 32px 0 rgba(0, 0, 0, 0.6),
+        0 0 80px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3);
     animation: modalAppear 0.3s ease-out;
-    /* Efeito de vidro brilhante */
-    position: relative;
-    overflow: hidden;
+    overflow: visible; /* Permitir tooltip overflow */
 }
 
 .skill-test-content::before {
@@ -105,6 +106,7 @@
     margin-bottom: 20px;
     margin-top: -10px;
     position: relative;
+    z-index: 10001; /* Garantir que tooltip apareça acima de tudo */
 }
 
 .skill-test-gem {
@@ -134,7 +136,7 @@
     left: 50%;
     transform: translateX(-50%);
     margin-top: 15px;
-    z-index: 10001;
+    z-index: 10005; /* Acima do modal e resultado */
 
     /* Inicialmente escondido */
     opacity: 0;
@@ -291,8 +293,8 @@
 }
 
 .result-icon {
-    width: 64px;
-    height: 64px;
+    width: 96px;
+    height: 96px;
     object-fit: contain;
     filter: drop-shadow(0 0 10px currentColor);
     flex-shrink: 0;
@@ -509,8 +511,8 @@
     }
 
     .result-icon {
-        width: 48px;
-        height: 48px;
+        width: 72px;
+        height: 72px;
     }
 
     .result-name {
@@ -559,8 +561,8 @@
     }
 
     .result-icon {
-        width: 40px;
-        height: 40px;
+        width: 64px;
+        height: 64px;
     }
 
     .result-name {
