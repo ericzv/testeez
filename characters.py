@@ -617,16 +617,88 @@ def get_player_attacks(player_id):
                 if current_enemy:
                     blood_stacks = getattr(current_enemy, 'blood_stacks', 0) or 0
                     if blood_stacks > 0:
-                        blood_bonus = blood_stacks * 2  # +2 dano por stack
+                        blood_bonus = blood_stacks * 4  # +4 dano por blood stack
                         total_damage += blood_bonus
                         skill['blood_stacks_bonus'] = blood_bonus  # Para mostrar no tooltip
 
+            # ===== APLICAR MODIFICADORES PARA PREVIEW PRECISO =====
+            preview_crit_chance = cache.base_crit_chance
+            preview_lifesteal = cache.lifesteal_percent
+
+            try:
+                # Multiplicadores de relíquias
+                preview_damage_multiplier = 1.0
+                for relic in active_relics:
+                    relic_def = get_relic_definition(relic.relic_id)
+                    if not relic_def:
+                        continue
+                    relic_effect = relic_def.get('effect', {})
+                    relic_effect_type = relic_effect.get('type')
+                    relic_state = json.loads(relic.state_data or '{}')
+
+                    # ID 24 - Última Graça: x2 na Suprema (se não usada)
+                    if relic_effect_type == 'ultimate_trade' and cache.skill_type == 'ultimate':
+                        if not relic_state.get('used_this_battle', False):
+                            preview_damage_multiplier *= relic_effect.get('damage_multiplier', 2.0)
+
+                    # ID 25 - Discipulado: x2 no 10º, 20º, 30º... ataque
+                    elif relic_effect_type == 'damage_multiplier_on_threshold':
+                        threshold = relic_effect.get('counter_threshold', 10)
+                        next_attack = player.total_attacks_any_type + 1
+                        if next_attack % threshold == 0:
+                            preview_damage_multiplier *= relic_effect.get('multiplier', 2.0)
+
+                if preview_damage_multiplier != 1.0:
+                    total_damage = int(total_damage * preview_damage_multiplier)
+
+                # Buffs ativos (filtrar apenas buffs válidos)
+                from sqlalchemy import or_
+                preview_buffs = ActiveBuff.query.filter_by(player_id=player_id).filter(
+                    or_(
+                        ActiveBuff.duration_type != 'attacks',  # Buffs não baseados em ataques
+                        ActiveBuff.attacks_remaining > 0  # Ou buffs com ataques restantes
+                    )
+                ).all()
+                buffs_damage_flat = 0
+                buffs_damage_mult = 1.0
+
+                for buff in preview_buffs:
+                    if buff.effect_type == 'damage_flat':
+                        buffs_damage_flat += int(buff.effect_value)
+                    elif buff.effect_type == 'damage':
+                        buffs_damage_mult += buff.effect_value
+                    elif buff.effect_type == 'crit_chance':
+                        preview_crit_chance += buff.effect_value
+                    elif buff.effect_type == 'lifesteal':
+                        preview_lifesteal += buff.effect_value
+
+                if buffs_damage_mult != 1.0:
+                    total_damage = int(total_damage * buffs_damage_mult)
+                total_damage += buffs_damage_flat
+
+                # Debuffs do inimigo
+                from models import EnemySkillDebuff
+                preview_debuffs = EnemySkillDebuff.query.filter_by(player_id=player_id).filter(
+                    EnemySkillDebuff.duration_remaining > 0
+                ).all()
+
+                debuff_mult = 1.0
+                for debuff in preview_debuffs:
+                    if debuff.effect_type == 'decrease_damage':
+                        debuff_mult *= (1 - debuff.effect_value)
+
+                if debuff_mult < 1.0:
+                    total_damage = int(total_damage * debuff_mult)
+
+            except Exception as e:
+                print(f"Erro ao calcular modificadores para preview: {e}")
+
             # Adicionar dados do cache para exibição no frontend
             skill['cache_data'] = {
-                'base_damage': total_damage,  # Agora inclui todos os bônus
-                'base_crit_chance': cache.base_crit_chance,
+                'base_damage': total_damage,
+                'base_crit_chance': min(1.0, preview_crit_chance),
                 'base_crit_multiplier': cache.base_crit_multiplier,
-                'lifesteal_percent': cache.lifesteal_percent,
+                'lifesteal_percent': preview_lifesteal,
                 'effect_type': cache.effect_type,
                 'effect_value': cache.effect_value,
                 'effect_bonus': cache.effect_bonus

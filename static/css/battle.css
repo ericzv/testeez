@@ -977,8 +977,8 @@
     font-size: 24px;
     margin-bottom: 10px;
     text-align: center;
-    color: #ff5555;
-    text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
   }
   
   .boss-tags {
@@ -3087,10 +3087,9 @@
   .skill-button.disabled::after {
     content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
+    z-index: 10;
+    pointer-events: none;
     background: repeating-linear-gradient(
       45deg,
       rgba(0, 0, 0, 0.1),

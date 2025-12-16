@@ -103,7 +103,7 @@ def before_attack(player, skill_data, attack_data):
         if current_enemy:
             blood_stacks = current_enemy.blood_stacks or 0
             if blood_stacks > 0:
-                bonus_damage = blood_stacks * 2
+                bonus_damage = blood_stacks * 4  # +4 dano por blood stack
                 # Adicionar dano extra ao attack_data
                 if 'flat_damage_bonus' not in attack_data:
                     attack_data['flat_damage_bonus'] = 0
@@ -152,11 +152,11 @@ def after_attack(player, attack_result):
                 current_enemy.blood_stacks = (current_enemy.blood_stacks or 0) + 1
                 print(f"🩸 Blood Stacks: +1 (Poder/Especial) | Total: {current_enemy.blood_stacks}")
 
-            # ID 53 (Beijo da Morte - Ultimate) = CONSOME todos e adiciona +2 dano por stack
+            # ID 53 (Beijo da Morte - Ultimate) = CONSOME todos e adiciona +4 dano por stack
             elif skill_id == 53:
                 blood_stacks = current_enemy.blood_stacks or 0
                 if blood_stacks > 0:
-                    bonus_damage = blood_stacks * 2
+                    bonus_damage = blood_stacks * 4  # +4 dano por blood stack
                     # O dano bonus já deve ter sido aplicado, mas registramos aqui
                     print(f"🩸 Blood Stacks: CONSUMIU {blood_stacks} stacks (+{bonus_damage} dano)")
                     current_enemy.blood_stacks = 0
