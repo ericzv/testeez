@@ -408,38 +408,48 @@ def load_enemy_templates():
 
     return _enemy_templates
 
-def get_enemy_template_by_progression(enemy_number):
+def get_enemy_template_by_act_and_position(act_number, node_y):
     """
-    Seleciona um template de inimigo baseado no progresso (enemy_number).
+    Seleciona um template de inimigo baseado no ATO e POSIÇÃO DO NÓ.
+
+    Cada ato tem 16 nodes (y = 0 a 15):
+    - Primeira metade (y = 0-7): grupo ímpar
+    - Segunda metade (y = 8-15): grupo par
 
     Mapeamento:
-    - enemy_number 1-16  → Grupo 0 (Ato 1 - 1ª Metade)
-    - enemy_number 17-33 → Grupo 1 (Ato 1 - 2ª Metade)
-    - enemy_number 34-50 → Grupo 2 (Ato 2 - 1ª Metade)
-    - enemy_number 51-66 → Grupo 3 (Ato 2 - 2ª Metade)
-    - enemy_number 67-83 → Grupo 4 (Ato 3 - 1ª Metade)
-    - enemy_number 84+   → Grupo 5 (Ato 3 - 2ª Metade)
+    - Ato 1, nodes 0-7:  → Grupo 1 (índice 0)
+    - Ato 1, nodes 8-15: → Grupo 2 (índice 1)
+    - Ato 2, nodes 0-7:  → Grupo 3 (índice 2)
+    - Ato 2, nodes 8-15: → Grupo 4 (índice 3)
+    - Ato 3, nodes 0-7:  → Grupo 5 (índice 4)
+    - Ato 3, nodes 8-15: → Grupo 6 (índice 5)
+
+    Args:
+        act_number: Número do ato (1, 2 ou 3)
+        node_y: Posição Y do nó no mapa (0-15)
+
+    Returns:
+        Template do inimigo selecionado aleatoriamente do grupo correto
     """
     load_enemy_templates()
 
-    # Mapear enemy_number para grupo
-    if enemy_number <= 16:
-        group_idx = 0
-    elif enemy_number <= 33:
-        group_idx = 1
-    elif enemy_number <= 50:
-        group_idx = 2
-    elif enemy_number <= 66:
-        group_idx = 3
-    elif enemy_number <= 83:
-        group_idx = 4
-    else:
-        group_idx = 5
+    # Determinar se está na primeira ou segunda metade do ato
+    is_second_half = node_y >= 8
+
+    # Calcular índice do grupo baseado no ato e metade
+    # Ato 1: grupos 0 e 1
+    # Ato 2: grupos 2 e 3
+    # Ato 3: grupos 4 e 5
+    base_group = (act_number - 1) * 2  # Ato 1 → 0, Ato 2 → 2, Ato 3 → 4
+    group_idx = base_group + (1 if is_second_half else 0)
+
+    # Garantir que não ultrapasse o grupo 5 (índice máximo para batalhas normais)
+    group_idx = min(group_idx, 5)
 
     group = _enemy_templates_by_group[group_idx]
 
     if not group:
-        print(f"⚠️ Grupo {group_idx} vazio! Usando grupo 0 como fallback")
+        print(f"⚠️ Grupo {group_idx + 1} vazio! Usando grupo 1 como fallback")
         group = _enemy_templates_by_group[0]
 
     if not group:
@@ -452,9 +462,25 @@ def get_enemy_template_by_progression(enemy_number):
     # Adicionar informação de grupo ao template para uso posterior
     template['group_index'] = group_idx
 
-    print(f"🎯 Enemy #{enemy_number} → Grupo {group_idx+1} → {template['name']} (tier {template['total_tier']}) [ALEATÓRIO]")
+    half_name = "2ª metade" if is_second_half else "1ª metade"
+    print(f"🎯 Ato {act_number}, Node Y={node_y} ({half_name}) → Grupo {group_idx + 1} → {template['name']} [ALEATÓRIO]")
 
     return template
+
+
+def get_enemy_template_by_progression(enemy_number):
+    """
+    DEPRECATED: Use get_enemy_template_by_act_and_position() instead.
+
+    Mantido apenas para compatibilidade com código legado.
+    Assume Ato 1 e calcula posição aproximada.
+    """
+    # Converter enemy_number para posição aproximada (fallback)
+    # Isso é usado apenas pelo sistema legado de hub
+    node_y = min(15, (enemy_number - 1) % 16)
+    act_number = min(3, ((enemy_number - 1) // 16) + 1)
+
+    return get_enemy_template_by_act_and_position(act_number, node_y)
 
 def get_infernal_challenger_template(act_number=1):
     """
@@ -2469,8 +2495,21 @@ def ensure_minimum_enemies(progress, minimum=None):
     """
     Garante que sempre haja pelo menos N inimigos disponíveis.
     minimum: Se None, calcula automaticamente baseado em relíquias
+
+    A seleção do grupo é baseada em:
+    - ATO atual (1, 2 ou 3)
+    - Posição no mapa (node_y do nó atual, ou estimada pelo progresso)
+
+    Mapeamento de grupos:
+    - Ato 1, nodes 0-7:  Grupo 1
+    - Ato 1, nodes 8-15: Grupo 2
+    - Ato 2, nodes 0-7:  Grupo 3
+    - Ato 2, nodes 8-15: Grupo 4
+    - Ato 3, nodes 0-7:  Grupo 5
+    - Ato 3, nodes 8-15: Grupo 6
     """
     from models import Player, PlayerRelic
+    from models_map import PlayerMapProgress, MapNode
 
     # Se minimum não foi fornecido, calcular dinamicamente
     if minimum is None:
@@ -2478,32 +2517,53 @@ def ensure_minimum_enemies(progress, minimum=None):
 
     # LÓGICA NORMAL: Gerar inimigos genéricos
     available_count = GenericEnemy.query.filter_by(is_available=True).count()
-    
+
     if available_count >= minimum:
         return 0  # Já temos suficientes
-    
+
     needed = minimum - available_count
     generated = 0
-    
-    # Calcular próximo enemy_number baseado no progresso
-    next_enemy_number = progress.generic_enemies_defeated + 1
-    
-    # Obter temas disponíveis
-    themes = EnemyTheme.query.all()
-    if not themes:
-        print("❌ Nenhum tema de inimigo encontrado!")
-        return 0
-    
-    print(f"📊 Gerando {needed} inimigos (enemy_number: {next_enemy_number})")
-    print(f"🔍 DEBUG: Temas encontrados: {len(themes)}")
-    for theme in themes:
-        print(f"   - {theme.name}")
-    print(f"🔍 DEBUG: _theme_proportions = {_theme_proportions}")
-    
-    # 🔧 NOVO: Cache temporário para evitar repetições durante esta sessão de geração
-    temp_recent_equipment = set()
 
-    # Adicionar equipamentos dos últimos inimigos DISPONÍVEIS ao cache temporário
+    # ================================================================
+    # OBTER ATO ATUAL E POSIÇÃO DO NÓ
+    # ================================================================
+    map_progress = PlayerMapProgress.query.filter_by(player_id=progress.player_id).first()
+
+    if map_progress and map_progress.current_node_id:
+        # Se temos um nó atual, usar sua posição
+        current_node = MapNode.query.get(map_progress.current_node_id)
+        act_number = map_progress.current_act or 1
+        node_y = current_node.y if current_node else 0
+    elif map_progress:
+        # Se temos progresso no mapa mas não um nó específico
+        act_number = map_progress.current_act or 1
+        # Estimar posição baseado em batalhas vencidas (aproximado)
+        node_y = min(15, map_progress.battles_won)
+    else:
+        # Fallback: Ato 1, início
+        act_number = 1
+        node_y = 0
+
+    # enemy_number ainda é usado para tracking interno
+    next_enemy_number = progress.generic_enemies_defeated + 1
+
+    print(f"📊 Gerando {needed} inimigos (Ato {act_number}, Node Y={node_y})")
+
+    # ================================================================
+    # ANTI-REPETIÇÃO: Buscar TODOS os inimigos da run atual
+    # ================================================================
+    used_enemy_names = set()
+
+    # Buscar todos os inimigos já criados (disponíveis e não disponíveis)
+    all_run_enemies = GenericEnemy.query.all()
+
+    for enemy in all_run_enemies:
+        used_enemy_names.add(enemy.name)
+
+    print(f"🔧 Inimigos já usados ({len(used_enemy_names)}): {list(used_enemy_names)[:10]}...")
+
+    # Cache de equipamentos para evitar repetição visual
+    temp_recent_equipment = set()
     recent_available_enemies = GenericEnemy.query.filter_by(is_available=True).order_by(GenericEnemy.id.desc()).limit(3).all()
     for enemy in recent_available_enemies:
         if enemy.sprite_body:
@@ -2515,50 +2575,16 @@ def ensure_minimum_enemies(progress, minimum=None):
         if enemy.sprite_back:
             temp_recent_equipment.add(enemy.sprite_back)
 
-    print(f"🔧 Cache inicial populado com {len(temp_recent_equipment)} equipamentos dos inimigos disponíveis")
-    print(f"   Equipamentos no cache inicial: {list(temp_recent_equipment)}")
-    
-    # ================================================================
-    # NOVO SISTEMA: Usar templates FIXOS do JSON
-    # ================================================================
-    # O sistema antigo gerava stats dinamicamente baseado em enemy_number.
-    # O novo sistema usa templates pré-definidos com HP, dano e ações FIXAS.
-    # Cada grupo de templates corresponde a uma fase da run:
-    # - Grupo 1: Primeira metade do Ato 1 (enemy_number 1-16)
-    # - Grupo 2: Segunda metade do Ato 1 (enemy_number 17-33)
-    # - Grupo 3: Primeira metade do Ato 2 (enemy_number 34-50)
-    # - Grupo 4: Segunda metade do Ato 2 (enemy_number 51-66)
-    # - Grupo 5: Primeira metade do Ato 3 (enemy_number 67-83)
-    # - Grupo 6: Segunda metade do Ato 3 (enemy_number 84+)
-    # - Grupo 7: Desafiantes Infernais (NÃO aparecem em batalhas normais)
-    # ================================================================
-
-    # ================================================================
-    # ANTI-REPETIÇÃO: Buscar TODOS os inimigos da run atual
-    # ================================================================
-    # Inimigos derrotados (is_available=False) + disponíveis (is_available=True)
-    # Isso garante que não haja repetição durante TODA a run
-    used_enemy_names = set()
-
-    # Buscar todos os inimigos já criados na run (baseado no progresso do jogador)
-    # enemy_number vai de 1 até generic_enemies_defeated, então buscamos todos
-    all_run_enemies = GenericEnemy.query.filter(
-        GenericEnemy.enemy_number <= next_enemy_number
-    ).all()
-
-    for enemy in all_run_enemies:
-        used_enemy_names.add(enemy.name)
-
-    print(f"🔧 Inimigos já usados na run ({len(used_enemy_names)}): {used_enemy_names}")
-
     # Gerar inimigos usando templates fixos
     for i in range(needed):
         try:
-            # Obter template do grupo correto baseado no enemy_number
-            template = get_enemy_template_by_progression(next_enemy_number)
+            # ================================================================
+            # SELECIONAR TEMPLATE BASEADO NO ATO E POSIÇÃO
+            # ================================================================
+            template = get_enemy_template_by_act_and_position(act_number, node_y)
 
             if not template:
-                print(f"❌ Nenhum template encontrado para enemy_number {next_enemy_number}")
+                print(f"❌ Nenhum template encontrado para Ato {act_number}, Node Y={node_y}")
                 continue
 
             # ================================================================

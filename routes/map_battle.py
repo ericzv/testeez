@@ -9,7 +9,7 @@ from models_map import MapNode, PlayerMapProgress
 from models import Player, GenericEnemy, LastBoss, PlayerProgress, EnemyTheme
 from .map_modules.node_types import ELITE_BOSSES, FINAL_BOSSES
 from .battle_modules.enemy_generation import (
-    get_enemy_template_by_progression,
+    get_enemy_template_by_act_and_position,
     get_infernal_challenger_template,
     create_enemy_from_template
 )
@@ -41,17 +41,26 @@ def start_battle():
         flash('Nó atual não é uma batalha.', 'error')
         return redirect(url_for('map.map_view'))
 
-    # Calcular número do inimigo baseado no progresso
-    # Nível do nó (0-14) + batalhas vencidas no mapa
-    enemy_number = min(99, (current_node.y * 6) + map_progress.battles_won + 1)
+    # Obter ato atual e posição Y do nó para selecionar o grupo correto
+    act_number = map_progress.current_act or 1
+    node_y = current_node.y
 
     try:
-        # NOVO SISTEMA: Usar templates fixos ao invés de geração procedural
-        template = get_enemy_template_by_progression(enemy_number)
+        # SELECIONAR TEMPLATE BASEADO NO ATO E POSIÇÃO DO NÓ
+        # - Ato 1, nodes 0-7:  Grupo 1
+        # - Ato 1, nodes 8-15: Grupo 2
+        # - Ato 2, nodes 0-7:  Grupo 3
+        # - Ato 2, nodes 8-15: Grupo 4
+        # - Ato 3, nodes 0-7:  Grupo 5
+        # - Ato 3, nodes 8-15: Grupo 6
+        template = get_enemy_template_by_act_and_position(act_number, node_y)
 
         if not template:
             flash('Erro ao carregar template de inimigo.', 'error')
             return redirect(url_for('map.map_view'))
+
+        # enemy_number ainda é usado para tracking interno (não afeta grupo)
+        enemy_number = map_progress.battles_won + 1
 
         # Criar inimigo a partir do template
         enemy = create_enemy_from_template(
