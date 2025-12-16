@@ -2048,42 +2048,50 @@ body.gamification-page {
   box-shadow: 0 10px 25px rgba(0,0,0,0.3);
 }
 
-/* Brilho permanente (sem hover) - Progressão por raridade */
+/* Brilho permanente (sem hover) - Progressão por raridade + outline */
 .enemy-card.rarity-1 .enemy-sprite-container {
-  filter: drop-shadow(0 0 25px rgba(102, 102, 102, 0.8));
+  filter: drop-shadow(0 0 0 black) drop-shadow(2px 0 0 black) drop-shadow(-2px 0 0 black) drop-shadow(0 1px 0 black) drop-shadow(0 -1px 0 black)
+          drop-shadow(0 0 25px rgba(102, 102, 102, 0.8));
   transition: filter 0.3s ease;
 }
 
 .enemy-card.rarity-2 .enemy-sprite-container {
-  filter: drop-shadow(0 0 28px rgba(59, 130, 246, 0.85));
+  filter: drop-shadow(0 0 0 black) drop-shadow(2px 0 0 black) drop-shadow(-2px 0 0 black) drop-shadow(0 1px 0 black) drop-shadow(0 -1px 0 black)
+          drop-shadow(0 0 28px rgba(59, 130, 246, 0.85));
   transition: filter 0.3s ease;
 }
 
 .enemy-card.rarity-3 .enemy-sprite-container {
-  filter: drop-shadow(0 0 31px rgba(139, 92, 246, 0.9));
+  filter: drop-shadow(0 0 0 black) drop-shadow(2px 0 0 black) drop-shadow(-2px 0 0 black) drop-shadow(0 1px 0 black) drop-shadow(0 -1px 0 black)
+          drop-shadow(0 0 31px rgba(139, 92, 246, 0.9));
   transition: filter 0.3s ease;
 }
 
 .enemy-card.rarity-4 .enemy-sprite-container {
-  filter: drop-shadow(0 0 35px rgba(245, 158, 11, 1.0));
+  filter: drop-shadow(0 0 0 black) drop-shadow(2px 0 0 black) drop-shadow(-2px 0 0 black) drop-shadow(0 1px 0 black) drop-shadow(0 -1px 0 black)
+          drop-shadow(0 0 35px rgba(245, 158, 11, 1.0));
   transition: filter 0.3s ease;
 }
 
-/* Brilho aumentado no hover */
+/* Brilho aumentado no hover + outline */
 .enemy-card.rarity-1:hover .enemy-sprite-container {
-  filter: drop-shadow(0 0 15px rgba(102, 102, 102, 0.8));
+  filter: drop-shadow(0 0 0 black) drop-shadow(2px 0 0 black) drop-shadow(-2px 0 0 black) drop-shadow(0 1px 0 black) drop-shadow(0 -1px 0 black)
+          drop-shadow(0 0 15px rgba(102, 102, 102, 0.8));
 }
 
 .enemy-card.rarity-2:hover .enemy-sprite-container {
-  filter: drop-shadow(0 0 18px rgba(59, 130, 246, 0.85));
+  filter: drop-shadow(0 0 0 black) drop-shadow(2px 0 0 black) drop-shadow(-2px 0 0 black) drop-shadow(0 1px 0 black) drop-shadow(0 -1px 0 black)
+          drop-shadow(0 0 18px rgba(59, 130, 246, 0.85));
 }
 
 .enemy-card.rarity-3:hover .enemy-sprite-container {
-  filter: drop-shadow(0 0 21px rgba(139, 92, 246, 0.9));
+  filter: drop-shadow(0 0 0 black) drop-shadow(2px 0 0 black) drop-shadow(-2px 0 0 black) drop-shadow(0 1px 0 black) drop-shadow(0 -1px 0 black)
+          drop-shadow(0 0 21px rgba(139, 92, 246, 0.9));
 }
 
 .enemy-card.rarity-4:hover .enemy-sprite-container {
-  filter: drop-shadow(0 0 25px rgba(245, 158, 11, 1.0));
+  filter: drop-shadow(0 0 0 black) drop-shadow(2px 0 0 black) drop-shadow(-2px 0 0 black) drop-shadow(0 1px 0 black) drop-shadow(0 -1px 0 black)
+          drop-shadow(0 0 25px rgba(245, 158, 11, 1.0));
 }
 
 /* Raridades */
@@ -2183,6 +2191,12 @@ body.gamification-page {
   margin: 0 auto 15px auto; /* Margem maior */
   position: relative;
   transform: scaleX(-1); /* Flip horizontal inicial */
+  /* Outline preto nos sprites */
+  filter: drop-shadow(0 0 0 black)
+          drop-shadow(2px 0 0 black)
+          drop-shadow(-2px 0 0 black)
+          drop-shadow(0 1px 0 black)
+          drop-shadow(0 -1px 0 black);
 }
 
 .enemy-sprite-layer {
@@ -2601,16 +2615,19 @@ body.gamification-page {
 }
 
 .enemy-card.boss .enemy-sprite-container {
-    filter: drop-shadow(0 0 35px rgba(239, 68, 68, 1.0));
+    filter: drop-shadow(0 0 0 black) drop-shadow(2px 0 0 black) drop-shadow(-2px 0 0 black) drop-shadow(0 1px 0 black) drop-shadow(0 -1px 0 black)
+            drop-shadow(0 0 35px rgba(239, 68, 68, 1.0));
     animation: boss-glow-pulse 2s ease-in-out infinite;
 }
 
 @keyframes boss-glow-pulse {
-    0%, 100% { 
-        filter: drop-shadow(0 0 35px rgba(239, 68, 68, 1.0));
+    0%, 100% {
+        filter: drop-shadow(0 0 0 black) drop-shadow(2px 0 0 black) drop-shadow(-2px 0 0 black) drop-shadow(0 1px 0 black) drop-shadow(0 -1px 0 black)
+                drop-shadow(0 0 35px rgba(239, 68, 68, 1.0));
     }
-    50% { 
-        filter: drop-shadow(0 0 50px rgba(239, 68, 68, 1.2));
+    50% {
+        filter: drop-shadow(0 0 0 black) drop-shadow(2px 0 0 black) drop-shadow(-2px 0 0 black) drop-shadow(0 1px 0 black) drop-shadow(0 -1px 0 black)
+                drop-shadow(0 0 50px rgba(239, 68, 68, 1.2));
     }
 }
 
