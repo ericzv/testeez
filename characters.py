@@ -651,9 +651,14 @@ def get_player_attacks(player_id):
                 if preview_damage_multiplier != 1.0:
                     total_damage = int(total_damage * preview_damage_multiplier)
 
-                # Buffs ativos
-                from models import ActiveBuff
-                preview_buffs = ActiveBuff.query.filter_by(player_id=player_id).all()
+                # Buffs ativos (filtrar apenas buffs válidos)
+                from sqlalchemy import or_
+                preview_buffs = ActiveBuff.query.filter_by(player_id=player_id).filter(
+                    or_(
+                        ActiveBuff.duration_type != 'attacks',  # Buffs não baseados em ataques
+                        ActiveBuff.attacks_remaining > 0  # Ou buffs com ataques restantes
+                    )
+                ).all()
                 buffs_damage_flat = 0
                 buffs_damage_mult = 1.0
 
