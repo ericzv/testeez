@@ -365,6 +365,24 @@ function populateAttackOptions() {
                             barrierInfo.appendChild(barrierText);
                             skillDetails.appendChild(barrierInfo);
                         }
+
+                        // EXPLOSÃO DE SANGUE (Ultimate do Vlad - bônus por blood_stacks)
+                        if (skill.blood_stacks_bonus !== undefined && skill.blood_stacks_bonus > 0) {
+                            const bloodExplosionInfo = document.createElement('div');
+                            bloodExplosionInfo.className = 'skill-stat';
+                            bloodExplosionInfo.title = `Explosão de Sangue: +${skill.blood_stacks_bonus} dano (${skill.blood_stacks_bonus / 4} acúmulos x4)`;
+
+                            const bloodExplosionIcon = document.createElement('img');
+                            bloodExplosionIcon.src = '/static/game.data/icons/bloodexplosion.png';
+                            bloodExplosionIcon.className = 'stat-icon';
+
+                            const bloodExplosionText = document.createElement('span');
+                            bloodExplosionText.textContent = `+${skill.blood_stacks_bonus}`;
+
+                            bloodExplosionInfo.appendChild(bloodExplosionIcon);
+                            bloodExplosionInfo.appendChild(bloodExplosionText);
+                            skillDetails.appendChild(bloodExplosionInfo);
+                        }
                     }
 
                     centralContainer.appendChild(skillDetails);
