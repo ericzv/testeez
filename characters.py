@@ -621,12 +621,79 @@ def get_player_attacks(player_id):
                         total_damage += blood_bonus
                         skill['blood_stacks_bonus'] = blood_bonus  # Para mostrar no tooltip
 
+            # ===== APLICAR MULTIPLICADORES DE RELÍQUIAS (para preview preciso) =====
+            damage_multiplier = 1.0
+            for relic in active_relics:
+                definition = get_relic_definition(relic.relic_id)
+                if not definition:
+                    continue
+                effect = definition.get('effect', {})
+                effect_type = effect.get('type')
+                state = json.loads(relic.state_data or '{}')
+
+                # ID 24 - Última Graça: x2 na Suprema (se não usada)
+                if effect_type == 'ultimate_trade' and cache.skill_type == 'ultimate':
+                    if not state.get('used_this_battle', False):
+                        damage_multiplier *= effect.get('damage_multiplier', 2.0)
+
+                # ID 25 - Discipulado: x2 no 10º, 20º, 30º... ataque
+                elif effect_type == 'damage_multiplier_on_threshold':
+                    threshold = effect.get('counter_threshold', 10)
+                    next_attack = player.total_attacks_any_type + 1
+                    if next_attack % threshold == 0:
+                        damage_multiplier *= effect.get('multiplier', 2.0)
+
+            # Aplicar multiplicador de relíquias
+            if damage_multiplier != 1.0:
+                total_damage = int(total_damage * damage_multiplier)
+
+            # ===== APLICAR BUFFS ATIVOS (para preview preciso) =====
+            from models import ActiveBuff
+            active_buffs = ActiveBuff.query.filter_by(player_id=player_id).all()
+
+            buffs_damage_flat = 0
+            buffs_damage_multiplier = 1.0
+            preview_crit_chance = cache.base_crit_chance
+            preview_lifesteal = cache.lifesteal_percent
+
+            for buff in active_buffs:
+                if buff.effect_type == 'damage_flat':
+                    buffs_damage_flat += int(buff.effect_value)
+                elif buff.effect_type == 'damage':
+                    buffs_damage_multiplier += buff.effect_value
+                elif buff.effect_type == 'crit_chance':
+                    preview_crit_chance += buff.effect_value
+                elif buff.effect_type == 'lifesteal':
+                    preview_lifesteal += buff.effect_value
+
+            # Aplicar multiplicador de buffs e depois flat
+            if buffs_damage_multiplier != 1.0:
+                total_damage = int(total_damage * buffs_damage_multiplier)
+            total_damage += buffs_damage_flat
+
+            # ===== APLICAR DEBUFFS DO INIMIGO (para preview preciso) =====
+            try:
+                from models import EnemySkillDebuff
+                enemy_debuffs = EnemySkillDebuff.query.filter_by(player_id=player_id).filter(
+                    EnemySkillDebuff.duration_remaining > 0
+                ).all()
+
+                debuff_damage_multiplier = 1.0
+                for debuff in enemy_debuffs:
+                    if debuff.effect_type == 'decrease_damage':
+                        debuff_damage_multiplier *= (1 - debuff.effect_value)
+
+                if debuff_damage_multiplier < 1.0:
+                    total_damage = int(total_damage * debuff_damage_multiplier)
+            except Exception as e:
+                print(f"Erro ao calcular debuffs para preview: {e}")
+
             # Adicionar dados do cache para exibição no frontend
             skill['cache_data'] = {
-                'base_damage': total_damage,  # Agora inclui todos os bônus
-                'base_crit_chance': cache.base_crit_chance,
+                'base_damage': total_damage,  # Agora inclui TODOS os modificadores
+                'base_crit_chance': min(1.0, preview_crit_chance),
                 'base_crit_multiplier': cache.base_crit_multiplier,
-                'lifesteal_percent': cache.lifesteal_percent,
+                'lifesteal_percent': preview_lifesteal,
                 'effect_type': cache.effect_type,
                 'effect_value': cache.effect_value,
                 'effect_bonus': cache.effect_bonus
