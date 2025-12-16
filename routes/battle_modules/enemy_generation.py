@@ -2533,13 +2533,23 @@ def ensure_minimum_enemies(progress, minimum=None):
     # - Grupo 7: Desafiantes Infernais (NÃO aparecem em batalhas normais)
     # ================================================================
 
-    # Carregar nomes dos últimos inimigos para evitar repetição
-    recent_enemy_names = set()
-    recent_enemies = GenericEnemy.query.filter_by(is_available=True).order_by(GenericEnemy.id.desc()).limit(5).all()
-    for enemy in recent_enemies:
-        recent_enemy_names.add(enemy.name)
+    # ================================================================
+    # ANTI-REPETIÇÃO: Buscar TODOS os inimigos da run atual
+    # ================================================================
+    # Inimigos derrotados (is_available=False) + disponíveis (is_available=True)
+    # Isso garante que não haja repetição durante TODA a run
+    used_enemy_names = set()
 
-    print(f"🔧 Evitando repetição de nomes: {recent_enemy_names}")
+    # Buscar todos os inimigos já criados na run (baseado no progresso do jogador)
+    # enemy_number vai de 1 até generic_enemies_defeated, então buscamos todos
+    all_run_enemies = GenericEnemy.query.filter(
+        GenericEnemy.enemy_number <= next_enemy_number
+    ).all()
+
+    for enemy in all_run_enemies:
+        used_enemy_names.add(enemy.name)
+
+    print(f"🔧 Inimigos já usados na run ({len(used_enemy_names)}): {used_enemy_names}")
 
     # Gerar inimigos usando templates fixos
     for i in range(needed):
@@ -2551,23 +2561,30 @@ def ensure_minimum_enemies(progress, minimum=None):
                 print(f"❌ Nenhum template encontrado para enemy_number {next_enemy_number}")
                 continue
 
-            # Evitar repetição de nomes se possível
-            max_attempts = 10
+            # ================================================================
+            # ANTI-REPETIÇÃO: Tentar encontrar um inimigo não usado na run
+            # ================================================================
+            max_attempts = 30  # Mais tentativas para garantir variedade
+            found_unique = False
+
             for attempt in range(max_attempts):
-                if template['name'] not in recent_enemy_names:
+                if template['name'] not in used_enemy_names:
+                    found_unique = True
                     break
                 # Tentar outro template do mesmo grupo
                 new_template = get_enemy_template_by_progression(next_enemy_number)
-                if new_template and new_template['name'] not in recent_enemy_names:
+                if new_template:
                     template = new_template
-                    break
+
+            if not found_unique:
+                print(f"⚠️ AVISO: Todos os inimigos do grupo já foram usados! Repetindo: {template['name']}")
 
             # Criar inimigo a partir do template (usa stats FIXOS)
             new_enemy = create_enemy_from_template(template, next_enemy_number, progress.player_id)
 
             if new_enemy:
                 generated += 1
-                recent_enemy_names.add(new_enemy.name)
+                used_enemy_names.add(new_enemy.name)  # Adicionar ao set para evitar repetição
                 print(f"   ✅ {new_enemy.name} (HP: {new_enemy.hp}, Dano: {new_enemy.damage}, Grupo: {template.get('group_index', 0) + 1})")
 
                 # Adicionar equipamentos ao cache
