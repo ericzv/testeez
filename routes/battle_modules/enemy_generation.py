@@ -2518,107 +2518,75 @@ def ensure_minimum_enemies(progress, minimum=None):
     print(f"🔧 Cache inicial populado com {len(temp_recent_equipment)} equipamentos dos inimigos disponíveis")
     print(f"   Equipamentos no cache inicial: {list(temp_recent_equipment)}")
     
-    # Obter último tema usado para evitar repetição
-    last_enemy = GenericEnemy.query.order_by(GenericEnemy.id.desc()).first()
-    last_theme_used = None
-    if last_enemy:
-        last_theme = EnemyTheme.query.get(last_enemy.theme_id)
-        last_theme_used = last_theme.name if last_theme else None
-    
-    # Gerar inimigos necessários com fallback inteligente
+    # ================================================================
+    # NOVO SISTEMA: Usar templates FIXOS do JSON
+    # ================================================================
+    # O sistema antigo gerava stats dinamicamente baseado em enemy_number.
+    # O novo sistema usa templates pré-definidos com HP, dano e ações FIXAS.
+    # Cada grupo de templates corresponde a uma fase da run:
+    # - Grupo 1: Primeira metade do Ato 1 (enemy_number 1-16)
+    # - Grupo 2: Segunda metade do Ato 1 (enemy_number 17-33)
+    # - Grupo 3: Primeira metade do Ato 2 (enemy_number 34-50)
+    # - Grupo 4: Segunda metade do Ato 2 (enemy_number 51-66)
+    # - Grupo 5: Primeira metade do Ato 3 (enemy_number 67-83)
+    # - Grupo 6: Segunda metade do Ato 3 (enemy_number 84+)
+    # - Grupo 7: Desafiantes Infernais (NÃO aparecem em batalhas normais)
+    # ================================================================
+
+    # Carregar nomes dos últimos inimigos para evitar repetição
+    recent_enemy_names = set()
+    recent_enemies = GenericEnemy.query.filter_by(is_available=True).order_by(GenericEnemy.id.desc()).limit(5).all()
+    for enemy in recent_enemies:
+        recent_enemy_names.add(enemy.name)
+
+    print(f"🔧 Evitando repetição de nomes: {recent_enemy_names}")
+
+    # Gerar inimigos usando templates fixos
     for i in range(needed):
-        max_theme_attempts = 5  # Máximo 5 tentativas de tema
-        enemy_created = False
-        
-        # Calcular raridade para este inimigo
-        enemy_rarity_chances = calculate_rarity_chances(next_enemy_number)
-        rand = random.random() * 100
-        cumulative = 0
-        current_rarity = 1
-        for r, chance in enemy_rarity_chances.items():
-            cumulative += chance
-            if rand <= cumulative:
-                current_rarity = r
-                break
-        
-        print(f"🎯 Inimigo #{i+1}: Raridade {current_rarity} sorteada")
-        
-        for attempt in range(max_theme_attempts):
-            # Filtrar temas proibidos para esta raridade
-            forbidden_themes = FORBIDDEN_THEMES_BY_RARITY.get(current_rarity, [])
-            allowed_theme_names = [theme.name for theme in themes if theme.name not in forbidden_themes]
-            
-            if not allowed_theme_names:
-                print(f"⚠️ Nenhum tema disponível para raridade {current_rarity}, usando fallback")
-                allowed_theme_names = [theme.name for theme in themes]  # Usar todos como fallback
-            
-            print(f"🎯 Tentativa {attempt + 1}/5: Raridade {current_rarity}")
-            print(f"   Temas proibidos: {forbidden_themes}")
-            print(f"   Temas permitidos: {allowed_theme_names}")
-            
-            # Escolher tema baseado nas proporções e anti-repetição
-            selected_theme_name = select_theme_by_proportion(last_theme_used, allowed_theme_names)
-            selected_theme = None
-            
-            # Encontrar o tema por nome
-            for theme in themes:
-                if theme.name == selected_theme_name:
-                    selected_theme = theme
-                    break
-            
-            if not selected_theme:
-                selected_theme = themes[i % len(themes)]
-                print(f"⚠️ Tema '{selected_theme_name}' não encontrado, usando fallback: {selected_theme.name}")
-            
-            try:
-                print(f"🎯 Gerando com tema: {selected_theme.name}")
-                
-                new_enemy = generate_enemy_by_theme(selected_theme.id, next_enemy_number, progress.player_id, temp_recent_equipment)
-                
-                if new_enemy:  # SUCESSO: Inimigo compatível criado
-                    generated += 1
-                    enemy_created = True
-                    print(f"   ✅ {new_enemy.name} (Tema: {selected_theme.name}, Raridade: {new_enemy.rarity})")
-                    
-                    # Adicionar equipamentos ao cache e atualizar tema usado
-                    if new_enemy.sprite_body:
-                        temp_recent_equipment.add(new_enemy.sprite_body)
-                    if new_enemy.sprite_head:
-                        temp_recent_equipment.add(new_enemy.sprite_head)
-                    if new_enemy.sprite_weapon:
-                        temp_recent_equipment.add(new_enemy.sprite_weapon)
-                    if new_enemy.sprite_back:
-                        temp_recent_equipment.add(new_enemy.sprite_back)
-                    
-                    last_theme_used = selected_theme.name
-                    break  # Sair do loop de tentativas de tema
-                    
-                else:  # FALHA: Tema incompatível com raridade
-                    print(f"   ❌ Tema {selected_theme.name} incompatível com raridade {current_rarity}")
-                    # Remover tema da lista para próxima tentativa
-                    if selected_theme.name in allowed_theme_names:
-                        allowed_theme_names.remove(selected_theme.name)
-                    
-            except Exception as e:
-                print(f"   ❌ Erro ao gerar inimigo com tema {selected_theme.name}: {str(e)}")
+        try:
+            # Obter template do grupo correto baseado no enemy_number
+            template = get_enemy_template_by_progression(next_enemy_number)
+
+            if not template:
+                print(f"❌ Nenhum template encontrado para enemy_number {next_enemy_number}")
                 continue
-        
-        if not enemy_created:
-            print(f"❌ FALHA TOTAL: Não foi possível criar inimigo compatível após {max_theme_attempts} tentativas de tema")
-            print(f"   Última raridade tentada: {current_rarity}")
-            print(f"   Tentando com raridade mais flexível...")
-            
-            # Fallback: tentar com raridade 2 (Raro) que tem mais opções
-            try:
-                fallback_theme = themes[0]  # Primeiro tema como fallback
-                new_enemy = generate_enemy_by_theme(fallback_theme.id, next_enemy_number, progress.player_id, temp_recent_equipment)
-                if new_enemy:
-                    generated += 1
-                    print(f"   🔄 FALLBACK: {new_enemy.name} criado com tema {fallback_theme.name}")
-                else:
-                    print(f"   ❌ Até o fallback falhou!")
-            except Exception as e:
-                print(f"   ❌ Erro no fallback: {str(e)}")
+
+            # Evitar repetição de nomes se possível
+            max_attempts = 10
+            for attempt in range(max_attempts):
+                if template['name'] not in recent_enemy_names:
+                    break
+                # Tentar outro template do mesmo grupo
+                new_template = get_enemy_template_by_progression(next_enemy_number)
+                if new_template and new_template['name'] not in recent_enemy_names:
+                    template = new_template
+                    break
+
+            # Criar inimigo a partir do template (usa stats FIXOS)
+            new_enemy = create_enemy_from_template(template, next_enemy_number, progress.player_id)
+
+            if new_enemy:
+                generated += 1
+                recent_enemy_names.add(new_enemy.name)
+                print(f"   ✅ {new_enemy.name} (HP: {new_enemy.hp}, Dano: {new_enemy.damage}, Grupo: {template.get('group_index', 0) + 1})")
+
+                # Adicionar equipamentos ao cache
+                if new_enemy.sprite_body:
+                    temp_recent_equipment.add(new_enemy.sprite_body)
+                if new_enemy.sprite_head:
+                    temp_recent_equipment.add(new_enemy.sprite_head)
+                if new_enemy.sprite_weapon:
+                    temp_recent_equipment.add(new_enemy.sprite_weapon)
+                if new_enemy.sprite_back:
+                    temp_recent_equipment.add(new_enemy.sprite_back)
+            else:
+                print(f"   ❌ Falha ao criar inimigo a partir do template: {template['name']}")
+
+        except Exception as e:
+            print(f"   ❌ Erro ao gerar inimigo #{i+1}: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            continue
     
     if generated > 0:
         db.session.commit()
