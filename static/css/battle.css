@@ -3087,10 +3087,9 @@
   .skill-button.disabled::after {
     content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
+    z-index: 10;
+    pointer-events: none;
     background: repeating-linear-gradient(
       45deg,
       rgba(0, 0, 0, 0.1),
