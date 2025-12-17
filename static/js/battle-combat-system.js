@@ -2283,9 +2283,9 @@ function performAttack(skill) {
             }
         }
 
-        // SCORE 1-3: Projétil fraco - pequeno, escuro, sem efeitos
+        // SCORE 1-3: Projétil fraco - pequeno, roxo escuro, mas visível
         createWeakProjectile(startX, startY, endX, endY, score) {
-            const size = 12 + score * 2; // 14-18px
+            const size = 14 + score * 2; // 16-20px
 
             const projectile = document.createElement('div');
             projectile.style.cssText = `
@@ -2294,12 +2294,12 @@ function performAttack(skill) {
                 top: ${startY}px;
                 width: ${size}px;
                 height: ${size}px;
-                background: radial-gradient(circle, #6b4c6b 0%, #3d2d3d 100%);
+                background: radial-gradient(circle, #9370db 0%, #6a5acd 50%, #483d8b 100%);
                 border-radius: 50%;
                 z-index: 100;
-                box-shadow: 0 0 8px #4a3a4a;
+                box-shadow: 0 0 15px #6a5acd;
                 transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-                opacity: 0.7;
+                opacity: 0.95;
             `;
             document.body.appendChild(projectile);
 
@@ -2370,7 +2370,7 @@ function performAttack(skill) {
                 transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             `;
 
-            // Núcleo do projétil
+            // Núcleo do projétil - ROXO vibrante
             const core = document.createElement('div');
             core.style.cssText = `
                 position: absolute;
@@ -2379,12 +2379,12 @@ function performAttack(skill) {
                 transform: translate(-50%, -50%);
                 width: ${size * 0.7}px;
                 height: ${size * 0.7}px;
-                background: radial-gradient(circle, #ff69b4 0%, #da70d6 50%, #9400d3 100%);
+                background: radial-gradient(circle, #da70d6 0%, #9400d3 50%, #6b238e 100%);
                 border-radius: 50%;
-                box-shadow: 0 0 30px #ff69b4, 0 0 50px #da70d6;
+                box-shadow: 0 0 30px #9400d3, 0 0 50px #6b238e;
             `;
 
-            // Anel externo girando
+            // Anel externo girando - ROXO
             const ring = document.createElement('div');
             ring.style.cssText = `
                 position: absolute;
@@ -2393,11 +2393,11 @@ function performAttack(skill) {
                 transform: translate(-50%, -50%);
                 width: ${size}px;
                 height: ${size}px;
-                border: 3px solid #ff69b4;
+                border: 3px solid #9400d3;
                 border-top-color: transparent;
                 border-radius: 50%;
                 animation: projectileRingSpin 0.3s linear infinite;
-                box-shadow: 0 0 15px #ff69b4;
+                box-shadow: 0 0 15px #9400d3;
             `;
 
             // Adicionar keyframes se não existir
@@ -2417,11 +2417,11 @@ function performAttack(skill) {
             container.appendChild(core);
             document.body.appendChild(container);
 
-            // Trilha de partículas (6-8)
+            // Trilha de partículas (6-8) - ROXAS
             const particleCount = 4 + score;
             for (let i = 0; i < particleCount; i++) {
                 setTimeout(() => {
-                    this.createSingleParticle(startX, startY, endX, endY, '#ff69b4', '#da70d6', 8 + Math.random() * 4);
+                    this.createSingleParticle(startX, startY, endX, endY, '#da70d6', '#9400d3', 8 + Math.random() * 4);
                 }, i * 40);
             }
 
@@ -2453,7 +2453,7 @@ function performAttack(skill) {
                 transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             `;
 
-            // Aura externa pulsando
+            // Aura externa pulsando - ROXA
             const aura = document.createElement('div');
             aura.style.cssText = `
                 position: absolute;
@@ -2462,12 +2462,12 @@ function performAttack(skill) {
                 transform: translate(-50%, -50%);
                 width: ${size * 1.5}px;
                 height: ${size * 1.5}px;
-                background: radial-gradient(circle, rgba(255,20,147,0.4) 0%, transparent 70%);
+                background: radial-gradient(circle, rgba(148,0,211,0.5) 0%, transparent 70%);
                 border-radius: 50%;
                 animation: projectileAuraPulse 0.2s ease-in-out infinite alternate;
             `;
 
-            // Anel externo girando (sentido horário)
+            // Anel externo girando (sentido horário) - ROXO
             const outerRing = document.createElement('div');
             outerRing.style.cssText = `
                 position: absolute;
@@ -2476,15 +2476,15 @@ function performAttack(skill) {
                 transform: translate(-50%, -50%);
                 width: ${size}px;
                 height: ${size}px;
-                border: 4px solid #ff1493;
+                border: 4px solid #9400d3;
                 border-top-color: transparent;
                 border-bottom-color: transparent;
                 border-radius: 50%;
                 animation: projectileRingSpin 0.25s linear infinite;
-                box-shadow: 0 0 20px #ff1493, 0 0 40px #ff69b4;
+                box-shadow: 0 0 20px #9400d3, 0 0 40px #da70d6;
             `;
 
-            // Anel interno girando (sentido anti-horário)
+            // Anel interno girando (sentido anti-horário) - ROXO CLARO
             const innerRing = document.createElement('div');
             innerRing.style.cssText = `
                 position: absolute;
@@ -2493,15 +2493,15 @@ function performAttack(skill) {
                 transform: translate(-50%, -50%);
                 width: ${size * 0.7}px;
                 height: ${size * 0.7}px;
-                border: 3px solid #ffffff;
+                border: 3px solid #da70d6;
                 border-left-color: transparent;
                 border-right-color: transparent;
                 border-radius: 50%;
                 animation: projectileRingSpinReverse 0.2s linear infinite;
-                box-shadow: 0 0 15px #ffffff;
+                box-shadow: 0 0 15px #da70d6;
             `;
 
-            // Núcleo brilhante com centro branco
+            // Núcleo brilhante com centro branco e bordas ROXAS
             const core = document.createElement('div');
             core.style.cssText = `
                 position: absolute;
@@ -2510,9 +2510,9 @@ function performAttack(skill) {
                 transform: translate(-50%, -50%);
                 width: ${size * 0.4}px;
                 height: ${size * 0.4}px;
-                background: radial-gradient(circle, #ffffff 0%, #ff69b4 40%, #ff1493 70%, #da70d6 100%);
+                background: radial-gradient(circle, #ffffff 0%, #da70d6 40%, #9400d3 70%, #6b238e 100%);
                 border-radius: 50%;
-                box-shadow: 0 0 40px #ffffff, 0 0 60px #ff1493, 0 0 80px #da70d6;
+                box-shadow: 0 0 40px #ffffff, 0 0 60px #9400d3, 0 0 80px #6b238e;
                 animation: projectileCorePulse 0.15s ease-in-out infinite alternate;
             `;
 
@@ -2543,17 +2543,17 @@ function performAttack(skill) {
             container.appendChild(core);
             document.body.appendChild(container);
 
-            // MUITAS partículas (12-15)
+            // MUITAS partículas (12-15) - ROXAS
             const particleCount = 10 + score;
             for (let i = 0; i < particleCount; i++) {
                 setTimeout(() => {
-                    const colors = ['#ffffff', '#ff69b4', '#ff1493', '#da70d6'];
+                    const colors = ['#ffffff', '#da70d6', '#9400d3', '#6b238e'];
                     const color = colors[Math.floor(Math.random() * colors.length)];
-                    this.createSingleParticle(startX, startY, endX, endY, color, '#ff1493', 8 + Math.random() * 8);
+                    this.createSingleParticle(startX, startY, endX, endY, color, '#9400d3', 8 + Math.random() * 8);
                 }, i * 30);
             }
 
-            // Criar explosão de partículas no início
+            // Criar explosão de partículas no início - ROXAS
             for (let i = 0; i < 8; i++) {
                 const burstParticle = document.createElement('div');
                 const angle = (i / 8) * Math.PI * 2;
@@ -2564,10 +2564,10 @@ function performAttack(skill) {
                     top: ${startY}px;
                     width: 6px;
                     height: 6px;
-                    background: #ffffff;
+                    background: #da70d6;
                     border-radius: 50%;
                     z-index: 99;
-                    box-shadow: 0 0 10px #ff69b4;
+                    box-shadow: 0 0 10px #9400d3;
                     transition: all 0.3s ease-out;
                 `;
                 document.body.appendChild(burstParticle);
@@ -2587,7 +2587,7 @@ function performAttack(skill) {
                 container.style.transform = 'scale(1.8)';
             }, 50);
 
-            // Explosão no impacto
+            // Explosão no impacto - ROXA
             setTimeout(() => {
                 // Criar flash de impacto
                 const flash = document.createElement('div');
@@ -2598,7 +2598,7 @@ function performAttack(skill) {
                     width: 100px;
                     height: 100px;
                     transform: translate(-50%, -50%);
-                    background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,20,147,0.5) 50%, transparent 70%);
+                    background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(148,0,211,0.5) 50%, transparent 70%);
                     border-radius: 50%;
                     z-index: 101;
                     animation: impactFlash 0.3s ease-out forwards;
