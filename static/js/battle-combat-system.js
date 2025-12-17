@@ -2741,7 +2741,7 @@ function performAttack(skill) {
                 will-change: width, transform;
             `;
 
-            // Camada 1: Glow externo (sem blur!)
+            // Camada 1: Glow externo (bordas suaves)
             const outerGlow = document.createElement('div');
             outerGlow.style.cssText = `
                 position: absolute;
@@ -2749,17 +2749,16 @@ function performAttack(skill) {
                 left: 0;
                 width: 100%;
                 height: 60px;
-                background: linear-gradient(90deg,
-                    transparent 0%,
-                    ${config.halo} 5%,
-                    ${config.core} 50%,
-                    ${config.halo} 95%,
-                    transparent 100%);
+                border-radius: 30px;
+                background: radial-gradient(ellipse 100% 100% at center,
+                    ${config.core} 0%,
+                    ${config.halo} 40%,
+                    transparent 70%);
                 opacity: 0.7;
                 will-change: opacity;
             `;
 
-            // Camada 2: Núcleo brilhante
+            // Camada 2: Núcleo brilhante (bordas suaves)
             const beamCore = document.createElement('div');
             beamCore.style.cssText = `
                 position: absolute;
@@ -2767,17 +2766,17 @@ function performAttack(skill) {
                 left: 0;
                 width: 100%;
                 height: 24px;
-                background: linear-gradient(90deg,
-                    ${config.core} 0%,
-                    ${config.bright} 20%,
-                    #ffffff 50%,
-                    ${config.bright} 80%,
-                    ${config.core} 100%);
+                border-radius: 12px;
+                background: radial-gradient(ellipse 100% 100% at center,
+                    #ffffff 0%,
+                    ${config.bright} 30%,
+                    ${config.core} 70%,
+                    transparent 100%);
                 box-shadow: 0 0 20px ${config.core}, 0 0 40px ${config.bright};
                 will-change: opacity, transform;
             `;
 
-            // Energia interna que "viaja" pelo beam
+            // Energia interna que "viaja" pelo beam (bordas suaves)
             const travelingEnergy = document.createElement('div');
             travelingEnergy.style.cssText = `
                 position: absolute;
@@ -2785,10 +2784,10 @@ function performAttack(skill) {
                 left: 0;
                 width: 80px;
                 height: 16px;
-                background: linear-gradient(90deg,
-                    transparent 0%,
-                    #ffffff 40%,
-                    #ffffff 60%,
+                border-radius: 8px;
+                background: radial-gradient(ellipse 100% 100% at center,
+                    #ffffff 0%,
+                    rgba(255,255,255,0.5) 50%,
                     transparent 100%);
                 opacity: 0;
                 will-change: transform, opacity;
