@@ -179,11 +179,20 @@ def elite_battle(boss_id):
             print(f"❌ Não foi possível criar boss ID {boss_id}")
             return redirect(url_for('battle.gamification'))
 
-    # Ativar o boss se não estiver ativo
-    if not boss.is_active:
-        boss.is_active = True
-        boss.current_hp = boss.max_hp
-        print(f"🔓 Boss {boss.name} ativado para elite battle")
+    # ================================================================
+    # RESETAR ESTADO COMPLETO DO BOSS PARA NOVA BATALHA
+    # ================================================================
+    boss.is_active = True
+    boss.hp = boss.max_hp
+    boss.current_hp = boss.max_hp
+    boss.blood_stacks = 0  # Resetar blood stacks
+    boss.battle_turn_counter = 0
+    boss.action_queue = '[]'
+    boss.buff_debuff_queue = '[]'
+    boss.current_action_index = 0
+    boss.attack_skill_rotation_index = 0
+    boss.buff_debuff_rotation_index = 0
+    print(f"🔄 Estado do boss elite resetado: HP={boss.max_hp}, blood_stacks=0")
 
     # Obter progresso do jogador
     progress = PlayerProgress.query.filter_by(player_id=player.id).first()
@@ -194,9 +203,6 @@ def elite_battle(boss_id):
     # Limpar seleção de inimigo genérico e selecionar o boss
     progress.selected_enemy_id = None
     progress.selected_boss_id = boss.id
-
-    # Resetar contador de turnos e calcular intenções
-    boss.battle_turn_counter = 0
 
     # Pré-calcular intenções do Turno 1
     from routes.battle import get_next_actions
@@ -217,9 +223,14 @@ def elite_battle(boss_id):
 def boss_battle(boss_id):
     """
     Inicia batalha contra um boss final de ato.
-    Seleciona o boss e redireciona para a página de batalha.
+    O boss é determinado pelo ATO ATUAL, não pelo boss_id do parâmetro.
+    Isso garante que cada ato sempre tenha o boss correto:
+    - Ato 1: Purassombra
+    - Ato 2: Formofagus
+    - Ato 3: Nefasto
     """
     from models import PlayerProgress, GenericEnemy
+    from models_map import PlayerMapProgress
     from routes.battle_modules.enemy_generation import create_boss_by_name
     import json
 
@@ -227,32 +238,34 @@ def boss_battle(boss_id):
     if not player:
         return redirect(url_for('battle.gamification'))
 
-    # Mapeamento de ID esperado para nome do boss (chave para create_boss_by_name)
-    # e nome de display (para busca no banco)
-    BOSS_ID_TO_DATA = {
-        1: {'key': 'purassombra', 'display': 'Purassombra'},
-        2: {'key': 'heresiarca', 'display': 'Heresiarca'},
-        3: {'key': 'alma_negra', 'display': 'Alma Negra'},
-        4: {'key': 'formofagus', 'display': 'Formofagus'},
-        5: {'key': 'nefasto', 'display': 'Nefasto'}
-    }
-
-    # Verificar se temos dados para esse ID
-    if boss_id not in BOSS_ID_TO_DATA:
-        print(f"❌ Boss ID {boss_id} não mapeado!")
+    # ================================================================
+    # OBTER O ATO ATUAL DO MAPA - ISSO DETERMINA O BOSS
+    # ================================================================
+    map_progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+    if not map_progress:
+        print("❌ Progresso do mapa não encontrado!")
         return redirect(url_for('battle.gamification'))
 
-    boss_data = BOSS_ID_TO_DATA[boss_id]
+    act_number = map_progress.current_act or 1
+
+    # Mapeamento FIXO de ATO para BOSS
+    # Isso ignora o boss_id do parâmetro para garantir consistência
+    ACT_TO_BOSS = {
+        1: {'key': 'purassombra', 'display': 'Purassombra'},
+        2: {'key': 'formofagus', 'display': 'Formofagus'},
+        3: {'key': 'nefasto', 'display': 'Nefasto'}
+    }
+
+    boss_data = ACT_TO_BOSS.get(act_number, ACT_TO_BOSS[1])
     boss_key = boss_data['key']
     boss_display_name = boss_data['display']
 
-    # CORREÇÃO: Buscar por NOME em vez de por ID do banco
-    # Isso evita bug quando IDs do banco não correspondem aos esperados
+    print(f"🎯 Boss Final do Ato {act_number}: {boss_display_name} (ignorando boss_id={boss_id})")
+
+    # Buscar ou criar o boss correto
     boss = LastBoss.query.filter_by(name=boss_display_name).first()
-    print(f"🔍 Buscando boss final '{boss_display_name}' por nome... Encontrado: {boss is not None}")
 
     if not boss:
-        # Boss não existe, criar
         print(f"🎭 Criando boss final {boss_key}...")
         boss = create_boss_by_name(boss_key)
         if boss:
@@ -264,11 +277,20 @@ def boss_battle(boss_id):
             print(f"❌ Não foi possível criar boss {boss_display_name}")
             return redirect(url_for('battle.gamification'))
 
-    # Ativar o boss se não estiver ativo
-    if not boss.is_active:
-        boss.is_active = True
-        boss.current_hp = boss.max_hp
-        print(f"🔓 Boss {boss.name} ativado para boss final battle")
+    # ================================================================
+    # RESETAR ESTADO COMPLETO DO BOSS PARA NOVA BATALHA
+    # ================================================================
+    boss.is_active = True
+    boss.hp = boss.max_hp
+    boss.current_hp = boss.max_hp
+    boss.blood_stacks = 0  # Resetar blood stacks
+    boss.battle_turn_counter = 0
+    boss.action_queue = '[]'
+    boss.buff_debuff_queue = '[]'
+    boss.current_action_index = 0
+    boss.attack_skill_rotation_index = 0
+    boss.buff_debuff_rotation_index = 0
+    print(f"🔄 Estado do boss resetado: HP={boss.max_hp}, blood_stacks=0")
 
     # Obter progresso do jogador
     progress = PlayerProgress.query.filter_by(player_id=player.id).first()
@@ -280,16 +302,13 @@ def boss_battle(boss_id):
     progress.selected_enemy_id = None
     progress.selected_boss_id = boss.id
 
-    # Resetar contador de turnos e calcular intenções
-    boss.battle_turn_counter = 0
-
     # Pré-calcular intenções do Turno 1
     from routes.battle import get_next_actions
     next_turn_data = get_next_actions(boss)
     next_intentions = next_turn_data['actions']
     boss.next_intentions_cached = json.dumps(next_intentions)
 
-    print(f"⚔️ Boss Final Battle iniciando: {boss.name} (ID: {boss.id})")
+    print(f"⚔️ Boss Final Battle iniciando: {boss.name} (Ato {act_number})")
     print(f"🔮 Intenções do Turno 1 calculadas: {[a.get('type') for a in next_intentions]}")
 
     db.session.commit()
