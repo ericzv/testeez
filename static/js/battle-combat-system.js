@@ -1951,15 +1951,18 @@ function performAttack(skill) {
             // Aplicar movimento via classe CSS
             character.classList.add('moving-to-boss');
             
-            // Finalizar após movimento
+            // Finalizar após movimento - ACELERADO para Vlad
+            const currentChar = getCurrentPlayerCharacter();
+            const runDuration = (currentChar === 'Vlad' || currentChar === 'vlad') ? 700 : 1200;
+
             setTimeout(() => {
                 fxLayerA.classList.remove('animate-fx');
                 fxLayerB.classList.remove('animate-fx');
                 fxLayerA.style.opacity = 0;
                 fxLayerB.style.opacity = 0;
-                
+
                 this.nextPhase(0);
-            }, 1200); 
+            }, runDuration); 
         }
 
         // Fase: Avanço aéreo (para ataques com salto)
@@ -2253,38 +2256,97 @@ function performAttack(skill) {
             const endX = bossRect.left + bossRect.width / 2;
             const endY = bossRect.top + bossRect.height / 2;
 
-            // Criar elemento projétil
+            // Determinar intensidade baseada no score do skill test (0-10)
+            const skillTestResult = this.currentSkill?.skillTestResult;
+            const score = skillTestResult?.score || 5; // Score padrão 5 se não houver
+            const intensity = Math.max(0.5, score / 10); // 0.5 a 1.0
+
+            // Cores roxas com intensidade variável
+            const baseSize = 20 + (score * 1.5); // 20-35px baseado no score
+            const glowSize = 20 + (score * 3); // 20-50px de glow
+            const extraGlow = score >= 8 ? ', 0 0 60px #9400d3, 0 0 80px #8b008b' : ''; // Glow extra para scores altos
+
+            console.log(`🎯 Projétil com score ${score}, intensidade ${intensity.toFixed(2)}`);
+
+            // Criar elemento projétil - COR ROXA
             const projectile = document.createElement('div');
             projectile.style.cssText = `
                 position: fixed;
                 left: ${startX}px;
                 top: ${startY}px;
-                width: 25px;
-                height: 25px;
-                background: radial-gradient(circle, #00ffff 0%, #0088ff 100%);
+                width: ${baseSize}px;
+                height: ${baseSize}px;
+                background: radial-gradient(circle, #da70d6 0%, #9400d3 50%, #4b0082 100%);
                 border-radius: 50%;
                 z-index: 100;
-                box-shadow: 0 0 30px #00ffff;
-                transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                box-shadow: 0 0 ${glowSize}px #9400d3, 0 0 ${glowSize * 1.5}px #8b008b${extraGlow};
+                transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                filter: brightness(${0.8 + intensity * 0.4});
             `;
 
             document.body.appendChild(projectile);
+
+            // Criar partículas extras para scores altos (>=7)
+            if (score >= 7) {
+                this.createProjectileParticles(startX, startY, endX, endY, score);
+            }
 
             // Animar projétil até o boss MAIS RÁPIDO
             setTimeout(() => {
                 projectile.style.left = `${endX}px`;
                 projectile.style.top = `${endY}px`;
-                projectile.style.transform = 'scale(1.5)';
+                projectile.style.transform = `scale(${1.2 + intensity * 0.5})`;
             }, 50);
 
-            // Remover projétil MAIS RÁPIDO
+            // Remover projétil MAIS RÁPIDO (0.5s de viagem + margem)
             setTimeout(() => {
                 if (projectile.parentNode) {
                     projectile.style.opacity = '0';
                     projectile.style.transform = 'scale(0)';
                     setTimeout(() => projectile.remove(), 200);
                 }
-            }, 900); // Reduzido de 1300 para 900
+            }, 600);
+        }
+
+        // Criar partículas que seguem o projétil para scores altos
+        createProjectileParticles(startX, startY, endX, endY, score) {
+            const particleCount = Math.min(score - 4, 8); // 3-8 partículas para scores 7-10
+
+            for (let i = 0; i < particleCount; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    const size = 6 + Math.random() * 6;
+                    const offsetX = (Math.random() - 0.5) * 30;
+                    const offsetY = (Math.random() - 0.5) * 30;
+
+                    particle.style.cssText = `
+                        position: fixed;
+                        left: ${startX + offsetX}px;
+                        top: ${startY + offsetY}px;
+                        width: ${size}px;
+                        height: ${size}px;
+                        background: radial-gradient(circle, #ff69b4 0%, #9400d3 100%);
+                        border-radius: 50%;
+                        z-index: 99;
+                        box-shadow: 0 0 10px #da70d6;
+                        transition: all ${0.4 + Math.random() * 0.2}s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                        opacity: 0.8;
+                    `;
+
+                    document.body.appendChild(particle);
+
+                    // Animar partícula até o boss com offset
+                    setTimeout(() => {
+                        particle.style.left = `${endX + (Math.random() - 0.5) * 40}px`;
+                        particle.style.top = `${endY + (Math.random() - 0.5) * 40}px`;
+                        particle.style.opacity = '0';
+                        particle.style.transform = 'scale(0.3)';
+                    }, 30);
+
+                    // Remover partícula
+                    setTimeout(() => particle.remove(), 700);
+                }, i * 50); // Escalonar criação das partículas
+            }
         }
 
         // ===== FUNÇÃO PARA CRIAR BEAM VISUAL IMPRESSIONANTE =====
@@ -2771,7 +2833,7 @@ function performAttack(skill) {
                         console.log('🎯 Disparando projétil do Power Attack!');
                         this.createVisualProjectile();
 
-                        // Aplicar dano quando projétil atingir o boss (após 900ms)
+                        // Aplicar dano quando projétil atingir o boss (após 550ms - projétil mais rápido)
                         setTimeout(() => {
                             console.log('💥 Projétil atingiu o boss! Aplicando dano...');
                             this.calculateAndApplyDamage();
@@ -2782,7 +2844,7 @@ function performAttack(skill) {
 
                             // Avançar para próxima fase APÓS dano aplicado
                             this.nextPhase(0);
-                        }, 900);
+                        }, 550);
                     }, 300);
 
                     // Restaurar idle IMEDIATAMENTE após animação terminar (1.1s)
@@ -3489,7 +3551,7 @@ function performAttack(skill) {
             let frameWidth = 111;
             let frameHeight = 186;
             let frameCount = 16;
-            let duration = 1.0; // duração padrão em segundos
+            let duration = 1.6; // duração padrão em segundos - aumentada para completar animações
 
             if (match) {
                 frameWidth = parseInt(match[1]);
