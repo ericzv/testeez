@@ -3208,25 +3208,20 @@ function performAttack(skill) {
             // Tocar som de preparação imediatamente
             playSound(this.currentSkill.sound_prep_1, 0.8);
 
-            // EM PARALELO: Iniciar efeitos no boss após 300ms (não espera animação do Vlad)
+            // Tocar som de ataque imediatamente junto com prep
+            playSound(this.currentSkill.sound_attack, 0.8);
+
+            // 500ms depois: efeito visual no boss (blood-execution)
             setTimeout(() => {
-                // Tocar som de ataque
-                playSound(this.currentSkill.sound_attack, 0.8);
-
-                // Aplicar efeito de dano no boss (blood-execution)
                 this.applyBossDamageEffect();
+            }, 500);
 
-                // Tocar som effect_1 (execution.mp3) 500ms depois
-                setTimeout(() => {
-                    playSound(this.currentSkill.sound_effect_1, 0.8);
-                }, 500);
-
-                // Calcular e aplicar dano
+            // 1000ms depois: som execution.mp3 + dano
+            setTimeout(() => {
+                playSound(this.currentSkill.sound_effect_1, 0.8);
                 this.calculateAndApplyDamage();
-
-                // Marcar dano como aplicado
                 this.damageAlreadyApplied = true;
-            }, 300);
+            }, 1000);
 
             // Restaurar idle após animação do Vlad terminar
             // A animação 'special' tem 28 frames, 1.4s
