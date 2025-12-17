@@ -1953,7 +1953,7 @@ function performAttack(skill) {
             
             // Finalizar após movimento - ACELERADO para Vlad
             const currentChar = getCurrentPlayerCharacter();
-            const runDuration = (currentChar === 'Vlad' || currentChar === 'vlad') ? 700 : 1200;
+            const runDuration = (currentChar === 'Vlad' || currentChar === 'vlad') ? 500 : 1200;
 
             setTimeout(() => {
                 fxLayerA.classList.remove('animate-fx');
@@ -2259,16 +2259,58 @@ function performAttack(skill) {
             // Determinar intensidade baseada no score do skill test (0-10)
             const skillTestResult = this.currentSkill?.skillTestResult;
             const score = skillTestResult?.score || 5; // Score padrão 5 se não houver
-            const intensity = Math.max(0.5, score / 10); // 0.5 a 1.0
 
-            // Cores roxas com intensidade variável
-            const baseSize = 20 + (score * 1.5); // 20-35px baseado no score
-            const glowSize = 20 + (score * 3); // 20-50px de glow
-            const extraGlow = score >= 8 ? ', 0 0 60px #9400d3, 0 0 80px #8b008b' : ''; // Glow extra para scores altos
+            // ===== DIFERENCIAÇÃO DRÁSTICA POR SCORE =====
 
-            console.log(`🎯 Projétil com score ${score}, intensidade ${intensity.toFixed(2)}`);
+            // Tamanho varia MUITO mais (15px a 45px)
+            const baseSize = 15 + (score * 3);
 
-            // Criar elemento projétil - COR ROXA
+            // Cores variam de roxo escuro/fraco (score baixo) a magenta brilhante (score alto)
+            let coreColor, midColor, outerColor, glowColor;
+            if (score <= 3) {
+                // Score baixo: roxo escuro, apagado
+                coreColor = '#8b668b';
+                midColor = '#6b4c6b';
+                outerColor = '#3d2d3d';
+                glowColor = '#6b4c6b';
+            } else if (score <= 6) {
+                // Score médio: roxo normal
+                coreColor = '#da70d6';
+                midColor = '#9400d3';
+                outerColor = '#4b0082';
+                glowColor = '#9400d3';
+            } else if (score <= 8) {
+                // Score alto: roxo vibrante com rosa
+                coreColor = '#ff69b4';
+                midColor = '#da70d6';
+                outerColor = '#9400d3';
+                glowColor = '#ff69b4';
+            } else {
+                // Score 9-10: magenta/rosa intenso, quase branco no centro
+                coreColor = '#ffffff';
+                midColor = '#ff1493';
+                outerColor = '#da70d6';
+                glowColor = '#ff1493';
+            }
+
+            // Glow varia MUITO (10px a 60px)
+            const glowSize = 10 + (score * 5);
+
+            // Glow extra para scores altos
+            let extraGlow = '';
+            if (score >= 7) {
+                extraGlow = `, 0 0 ${glowSize * 1.5}px ${glowColor}`;
+            }
+            if (score >= 9) {
+                extraGlow += `, 0 0 ${glowSize * 2}px ${midColor}, 0 0 ${glowSize * 2.5}px #ff69b4`;
+            }
+
+            // Brightness varia de 0.6 (escuro) a 1.4 (muito brilhante)
+            const brightness = 0.6 + (score * 0.08);
+
+            console.log(`🎯 Projétil com score ${score}: tamanho ${baseSize}px, cor ${coreColor}`);
+
+            // Criar elemento projétil
             const projectile = document.createElement('div');
             projectile.style.cssText = `
                 position: fixed;
@@ -2276,48 +2318,52 @@ function performAttack(skill) {
                 top: ${startY}px;
                 width: ${baseSize}px;
                 height: ${baseSize}px;
-                background: radial-gradient(circle, #da70d6 0%, #9400d3 50%, #4b0082 100%);
+                background: radial-gradient(circle, ${coreColor} 0%, ${midColor} 50%, ${outerColor} 100%);
                 border-radius: 50%;
                 z-index: 100;
-                box-shadow: 0 0 ${glowSize}px #9400d3, 0 0 ${glowSize * 1.5}px #8b008b${extraGlow};
-                transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-                filter: brightness(${0.8 + intensity * 0.4});
+                box-shadow: 0 0 ${glowSize}px ${glowColor}${extraGlow};
+                transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                filter: brightness(${brightness});
             `;
 
             document.body.appendChild(projectile);
 
-            // Criar partículas extras para scores altos (>=7)
-            if (score >= 7) {
-                this.createProjectileParticles(startX, startY, endX, endY, score);
+            // Criar partículas - quantidade varia muito por score
+            const particleCount = Math.max(0, score - 2); // 0 partículas para score 1-2, até 8 para score 10
+            if (particleCount > 0) {
+                this.createProjectileParticles(startX, startY, endX, endY, score, coreColor, midColor);
             }
 
-            // Animar projétil até o boss MAIS RÁPIDO
+            // Animar projétil até o boss
             setTimeout(() => {
                 projectile.style.left = `${endX}px`;
                 projectile.style.top = `${endY}px`;
-                projectile.style.transform = `scale(${1.2 + intensity * 0.5})`;
+                // Scale final também varia por score
+                const finalScale = 1.0 + (score * 0.1); // 1.1x a 2.0x
+                projectile.style.transform = `scale(${finalScale})`;
             }, 50);
 
-            // Remover projétil MAIS RÁPIDO (0.5s de viagem + margem)
+            // Remover projétil (0.7s de viagem + margem)
             setTimeout(() => {
                 if (projectile.parentNode) {
                     projectile.style.opacity = '0';
                     projectile.style.transform = 'scale(0)';
                     setTimeout(() => projectile.remove(), 200);
                 }
-            }, 600);
+            }, 800);
         }
 
-        // Criar partículas que seguem o projétil para scores altos
-        createProjectileParticles(startX, startY, endX, endY, score) {
-            const particleCount = Math.min(score - 4, 8); // 3-8 partículas para scores 7-10
+        // Criar partículas que seguem o projétil
+        createProjectileParticles(startX, startY, endX, endY, score, coreColor, midColor) {
+            const particleCount = Math.max(0, score - 2); // 0-8 partículas
 
             for (let i = 0; i < particleCount; i++) {
                 setTimeout(() => {
                     const particle = document.createElement('div');
-                    const size = 6 + Math.random() * 6;
-                    const offsetX = (Math.random() - 0.5) * 30;
-                    const offsetY = (Math.random() - 0.5) * 30;
+                    // Tamanho das partículas também varia por score
+                    const size = 4 + (score * 0.5) + Math.random() * 4;
+                    const offsetX = (Math.random() - 0.5) * 40;
+                    const offsetY = (Math.random() - 0.5) * 40;
 
                     particle.style.cssText = `
                         position: fixed;
@@ -2325,27 +2371,27 @@ function performAttack(skill) {
                         top: ${startY + offsetY}px;
                         width: ${size}px;
                         height: ${size}px;
-                        background: radial-gradient(circle, #ff69b4 0%, #9400d3 100%);
+                        background: radial-gradient(circle, ${coreColor} 0%, ${midColor} 100%);
                         border-radius: 50%;
                         z-index: 99;
-                        box-shadow: 0 0 10px #da70d6;
-                        transition: all ${0.4 + Math.random() * 0.2}s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-                        opacity: 0.8;
+                        box-shadow: 0 0 ${5 + score}px ${midColor};
+                        transition: all ${0.5 + Math.random() * 0.3}s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                        opacity: ${0.5 + score * 0.05};
                     `;
 
                     document.body.appendChild(particle);
 
                     // Animar partícula até o boss com offset
                     setTimeout(() => {
-                        particle.style.left = `${endX + (Math.random() - 0.5) * 40}px`;
-                        particle.style.top = `${endY + (Math.random() - 0.5) * 40}px`;
+                        particle.style.left = `${endX + (Math.random() - 0.5) * 50}px`;
+                        particle.style.top = `${endY + (Math.random() - 0.5) * 50}px`;
                         particle.style.opacity = '0';
-                        particle.style.transform = 'scale(0.3)';
+                        particle.style.transform = 'scale(0.2)';
                     }, 30);
 
                     // Remover partícula
-                    setTimeout(() => particle.remove(), 700);
-                }, i * 50); // Escalonar criação das partículas
+                    setTimeout(() => particle.remove(), 900);
+                }, i * 40); // Escalonar criação das partículas
             }
         }
 
@@ -2833,7 +2879,7 @@ function performAttack(skill) {
                         console.log('🎯 Disparando projétil do Power Attack!');
                         this.createVisualProjectile();
 
-                        // Aplicar dano quando projétil atingir o boss (após 550ms - projétil mais rápido)
+                        // Aplicar dano quando projétil atingir o boss (após 750ms - tempo do projétil 0.7s)
                         setTimeout(() => {
                             console.log('💥 Projétil atingiu o boss! Aplicando dano...');
                             this.calculateAndApplyDamage();
@@ -2844,7 +2890,7 @@ function performAttack(skill) {
 
                             // Avançar para próxima fase APÓS dano aplicado
                             this.nextPhase(0);
-                        }, 550);
+                        }, 750);
                     }, 300);
 
                     // Restaurar idle IMEDIATAMENTE após animação terminar (1.1s)
@@ -3551,7 +3597,7 @@ function performAttack(skill) {
             let frameWidth = 111;
             let frameHeight = 186;
             let frameCount = 16;
-            let duration = 1.6; // duração padrão em segundos - aumentada para completar animações
+            let duration = 1.0; // duração padrão em segundos
 
             if (match) {
                 frameWidth = parseInt(match[1]);
