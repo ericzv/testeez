@@ -2255,9 +2255,16 @@ function performAttack(skill) {
             const endY = bossRect.top + bossRect.height / 2;
 
             const skillTestResult = this.currentSkill?.skillTestResult;
-            const score = skillTestResult?.score || 5;
+            // CORRIGIDO: usar 'value' ao invés de 'score' (é assim que o skill test retorna)
+            const score = skillTestResult?.value || 5;
 
-            console.log(`🎯 Criando projétil com score ${score}`);
+            // DEBUG: Log detalhado para verificar score
+            console.log("🔍 DEBUG PROJÉTIL:");
+            console.log("  - this.currentSkill:", this.currentSkill);
+            console.log("  - skillTestResult:", skillTestResult);
+            console.log("  - skillTestResult.value:", skillTestResult?.value);
+            console.log("  - score final:", score);
+            console.log(`🎯 Criando projétil com score ${score} - Tipo: ${score <= 3 ? 'FRACO' : score <= 6 ? 'NORMAL' : score <= 8 ? 'FORTE' : 'ÉPICO'}`);
 
             // ===== PROJÉTEIS COMPLETAMENTE DIFERENTES POR SCORE =====
 
@@ -3099,6 +3106,8 @@ function performAttack(skill) {
             if (typeof window.showSkillTestModal === 'function') {
                 window.showSkillTestModal(this.currentSkill, (result) => {
                     console.log('✅ Skill Test completado:', result);
+                    console.log('🔍 DEBUG - result.score:', result.score);
+                    console.log('🔍 DEBUG - result completo:', JSON.stringify(result));
 
                     // Aplicar modificador de dano
                     this.currentSkill.skill_test_modifier = result.damageModifier;
