@@ -2667,34 +2667,64 @@ function performAttack(skill) {
             setTimeout(() => particle.remove(), 900);
         }
 
-        // ===== FUNÇÃO PARA CRIAR BEAM VISUAL IMPRESSIONANTE =====
+        // ===== FUNÇÃO PARA CRIAR BEAM VISUAL OTIMIZADO =====
+        // Versão otimizada: sem blur, sem partículas, 2 camadas, CSS animations, GPU accelerated
         createEnergyBeamVisual() {
-            console.log("⚡ Criando raio de energia visual ÉPICO");
-            
-            // Determinar tipo de beam baseado na skill
-            let beamType = "energy_beam";
-            if (this.currentSkill.beam_type && BEAM_TYPES[this.currentSkill.beam_type]) {
-                beamType = this.currentSkill.beam_type;
-            }
-            
-            const config = BEAM_TYPES[beamType];
-            console.log(`⚡ Usando beam tipo: ${beamType}`, config);
-            
+            console.log("⚡ Criando beam otimizado");
+
+            const config = BEAM_TYPES["dark_beam"]; // Vlad usa dark_beam
+
             // Pegar posições atuais na tela
             const characterRect = character.getBoundingClientRect();
             const bossRect = boss.getBoundingClientRect();
-            
+
             const startX = characterRect.left + characterRect.width / 2;
             const startY = characterRect.top + characterRect.height / 2;
             const endX = bossRect.left + bossRect.width / 2;
             const endY = bossRect.top + bossRect.height / 2;
-            
+
             // Calcular ângulo e distância
             const deltaX = endX - startX;
             const deltaY = endY - startY;
             const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
             const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI;
-            
+
+            // Adicionar CSS animations (apenas uma vez)
+            this.addBeamAnimations();
+
+            // ===== FLASH INICIAL NA TELA =====
+            const screenFlash = document.createElement('div');
+            screenFlash.style.cssText = `
+                position: fixed;
+                inset: 0;
+                background: ${config.core};
+                opacity: 0;
+                z-index: 130;
+                pointer-events: none;
+                will-change: opacity;
+            `;
+            document.body.appendChild(screenFlash);
+
+            // ===== EFEITO DE CHARGE-UP NO PERSONAGEM =====
+            const chargeEffect = document.createElement('div');
+            chargeEffect.style.cssText = `
+                position: fixed;
+                left: ${startX - 60}px;
+                top: ${startY - 60}px;
+                width: 120px;
+                height: 120px;
+                border-radius: 50%;
+                background: radial-gradient(circle,
+                    ${config.bright} 0%,
+                    ${config.core} 30%,
+                    transparent 70%);
+                opacity: 0;
+                z-index: 126;
+                pointer-events: none;
+                will-change: transform, opacity;
+            `;
+            document.body.appendChild(chargeEffect);
+
             // ===== CONTAINER PRINCIPAL DO BEAM =====
             const beamContainer = document.createElement('div');
             beamContainer.id = 'energy-beam-container';
@@ -2702,334 +2732,235 @@ function performAttack(skill) {
                 position: fixed;
                 left: ${startX}px;
                 top: ${startY}px;
-                width: ${distance}px;
+                width: 0px;
                 height: 0px;
-                transform-origin: 0 0;
+                transform-origin: 0 50%;
                 transform: rotate(${angle}deg);
                 z-index: 125;
                 pointer-events: none;
+                will-change: width, transform;
             `;
-            
-            // ===== EFEITO DE CHARGE-UP NO PERSONAGEM =====
-            this.createBeamChargeEffect(startX, startY, config);
-            
-            // ===== MÚLTIPLAS CAMADAS DO BEAM =====
-            
-            // Camada 1: Brilho externo massivo
+
+            // Camada 1: Glow externo (sem blur!)
             const outerGlow = document.createElement('div');
             outerGlow.style.cssText = `
                 position: absolute;
-                top: -${config.thickness.glow}px;
+                top: -30px;
                 left: 0;
                 width: 100%;
-                height: ${config.thickness.glow * 2}px;
-                background: radial-gradient(ellipse closest-side, 
-                    ${config.glow} 0%, 
-                    transparent 70%);
-                opacity: 0;
-                filter: blur(8px);
-                animation: beamPulse 0.3s infinite alternate;
-            `;
-            
-            // Camada 2: Halo energético
-            const energyHalo = document.createElement('div');
-            energyHalo.style.cssText = `
-                position: absolute;
-                top: -${config.thickness.halo}px;
-                left: 0;
-                width: 100%;
-                height: ${config.thickness.halo * 2}px;
-                background: linear-gradient(90deg, 
-                    transparent 0%, 
-                    ${config.halo} 10%, 
-                    ${config.bright} 50%, 
-                    ${config.halo} 90%, 
+                height: 60px;
+                background: linear-gradient(90deg,
+                    transparent 0%,
+                    ${config.halo} 5%,
+                    ${config.core} 50%,
+                    ${config.halo} 95%,
                     transparent 100%);
-                opacity: 0;
-                filter: blur(3px);
-                box-shadow: 0 0 40px ${config.core};
+                opacity: 0.7;
+                will-change: opacity;
             `;
-            
-            // Camada 3: Núcleo principal
+
+            // Camada 2: Núcleo brilhante
             const beamCore = document.createElement('div');
             beamCore.style.cssText = `
                 position: absolute;
-                top: -${config.thickness.core}px;
+                top: -12px;
                 left: 0;
                 width: 100%;
-                height: ${config.thickness.core * 2}px;
-                background: linear-gradient(90deg, 
-                    ${config.core} 0%, 
-                    ${config.bright} 30%, 
-                    ${config.bright} 70%, 
+                height: 24px;
+                background: linear-gradient(90deg,
+                    ${config.core} 0%,
+                    ${config.bright} 20%,
+                    #ffffff 50%,
+                    ${config.bright} 80%,
                     ${config.core} 100%);
-                opacity: 0;
-                box-shadow: 
-                    0 0 20px ${config.core},
-                    inset 0 0 10px ${config.bright};
+                box-shadow: 0 0 20px ${config.core}, 0 0 40px ${config.bright};
+                will-change: opacity, transform;
             `;
-            
-            // Camada 4: Energia interna cintilante
-            const innerEnergy = document.createElement('div');
-            innerEnergy.style.cssText = `
+
+            // Energia interna que "viaja" pelo beam
+            const travelingEnergy = document.createElement('div');
+            travelingEnergy.style.cssText = `
                 position: absolute;
-                top: -${config.thickness.core / 2}px;
+                top: -8px;
                 left: 0;
-                width: 100%;
-                height: ${config.thickness.core}px;
-                background: linear-gradient(90deg, 
-                    transparent 0%, 
-                    ${config.bright} 20%, 
-                    ${config.bright} 80%, 
+                width: 80px;
+                height: 16px;
+                background: linear-gradient(90deg,
+                    transparent 0%,
+                    #ffffff 40%,
+                    #ffffff 60%,
                     transparent 100%);
                 opacity: 0;
-                filter: brightness(1.5);
+                will-change: transform, opacity;
             `;
-            
-            // ===== EFEITOS DE IMPACTO NO BOSS =====
-            const impactEffect = this.createBeamImpactEffect(endX, endY, config);
-            
-            // ===== PARTÍCULAS DE ENERGIA =====
-            const particles = this.createBeamParticles(startX, startY, endX, endY, config);
-            
-            // Adicionar todas as camadas
+
             beamContainer.appendChild(outerGlow);
-            beamContainer.appendChild(energyHalo);
             beamContainer.appendChild(beamCore);
-            beamContainer.appendChild(innerEnergy);
-            
+            beamContainer.appendChild(travelingEnergy);
             document.body.appendChild(beamContainer);
-            document.body.appendChild(impactEffect);
-            document.body.appendChild(particles);
-            
-            // ===== ADICIONAR ANIMAÇÕES CSS =====
-            this.addBeamAnimations();
-            
-            // ===== SEQUÊNCIA DE ANIMAÇÃO =====
 
-            // Fase 1: Apenas círculo de emissão (500ms)
-            setTimeout(() => {
-                console.log("⚡ Fase 1: Círculo de emissão");
-                outerGlow.style.opacity = '0.8';
-                outerGlow.style.transition = 'opacity 0.3s ease-out';
-            }, 500);
-
-            // Fase 2: Raio laser aparece + SHADER NO INIMIGO (800ms)
-            setTimeout(() => {
-                console.log("⚡ Fase 2: Laser disparando + SHADER!");
-                energyHalo.style.opacity = '0.9';
-                beamCore.style.opacity = '1.0';
-                innerEnergy.style.opacity = '0.7';
-                impactEffect.style.opacity = '1.0';
-                particles.style.opacity = '1.0';
-
-                energyHalo.style.transition = 'opacity 0.3s ease-out';
-                beamCore.style.transition = 'opacity 0.3s ease-out';
-                innerEnergy.style.transition = 'opacity 0.3s ease-out';
-                impactEffect.style.transition = 'opacity 0.3s ease-out';
-                particles.style.transition = 'opacity 0.3s ease-out';
-
-                // APLICAR SHADER DE IMPACTO NO INIMIGO AQUI
-                if (this.currentSkill && this.currentSkill.boss_damage_overlay) {
-                    console.log("💥 Aplicando shader no inimigo:", this.currentSkill.boss_damage_overlay);
-                    this.applyBossDamageEffect();
-                }
-            }, 800);
-
-            // Fase 3: Intensificação e pulsação (1200ms)
-            let pulseInterval = null;
-            setTimeout(() => {
-                console.log("⚡ Fase 3: Intensificação");
-                let intensity = 1;
-                let direction = 1;
-
-                pulseInterval = setInterval(() => {
-                    intensity += direction * 0.15;
-                    if (intensity >= 1.8) direction = -1;
-                    if (intensity <= 0.8) direction = 1;
-
-                    beamCore.style.filter = `brightness(${intensity}) saturate(${intensity})`;
-                    innerEnergy.style.filter = `brightness(${intensity * 1.5})`;
-                    impactEffect.style.filter = `brightness(${intensity}) scale(${intensity})`;
-
-                    // Shake sutil no beam
-                    const shake = (Math.random() - 0.3) * 2;
-                    beamContainer.style.transform = `rotate(${angle + shake}deg)`;
-
-                }, config.pulseSpeed);
-
-                // APLICAR DANO REAL no pico da intensificação (após 300ms = 1500ms total)
-                setTimeout(() => {
-                    console.log("💥 Aplicando DANO REAL no finalzinho da animação!");
-                    this.applyDamageAndEffects();
-                    this.damageAlreadyApplied = true; // Marcar que dano foi aplicado
-                }, 300);
-            }, 1200);
-
-            // Fase 4: Fade out (1800ms)
-            setTimeout(() => {
-                console.log("⚡ Fase 4: Desaparecendo");
-                if (pulseInterval) clearInterval(pulseInterval);
-
-                // Fade out de todas as camadas
-                outerGlow.style.opacity = '0';
-                energyHalo.style.opacity = '0';
-                beamCore.style.opacity = '0';
-                innerEnergy.style.opacity = '0';
-                impactEffect.style.opacity = '0';
-                particles.style.opacity = '0';
-
-                outerGlow.style.transition = 'opacity 0.4s ease-in';
-                energyHalo.style.transition = 'opacity 0.4s ease-in';
-                beamCore.style.transition = 'opacity 0.4s ease-in';
-                innerEnergy.style.transition = 'opacity 0.4s ease-in';
-                impactEffect.style.transition = 'opacity 0.4s ease-in';
-                particles.style.transition = 'opacity 0.4s ease-in';
-
-                // Remover elementos
-                setTimeout(() => {
-                    if (beamContainer.parentNode) beamContainer.remove();
-                    if (impactEffect.parentNode) impactEffect.remove();
-                    if (particles.parentNode) particles.remove();
-                }, 500);
-
-            }, 1800);
-        }
-
-        // ===== EFEITO DE CHARGE-UP NO PERSONAGEM =====
-        createBeamChargeEffect(x, y, config) {
-            const chargeEffect = document.createElement('div');
-            chargeEffect.style.cssText = `
+            // ===== EFEITO DE IMPACTO NO BOSS =====
+            const impactEffect = document.createElement('div');
+            impactEffect.style.cssText = `
                 position: fixed;
-                left: ${x - 50}px;
-                top: ${y - 50}px;
-                width: 100px;
-                height: 100px;
+                left: ${endX - 80}px;
+                top: ${endY - 80}px;
+                width: 160px;
+                height: 160px;
                 border-radius: 50%;
-                background: radial-gradient(circle, 
-                    ${config.bright} 0%, 
-                    ${config.core} 25%, 
-                    rgba(255, 255, 255, 0.3) 45%, 
-                    rgba(255, 255, 255, 0.1) 65%, 
-                    transparent 85%);
+                background: radial-gradient(circle,
+                    #ffffff 0%,
+                    ${config.bright} 20%,
+                    ${config.core} 40%,
+                    transparent 70%);
                 opacity: 0;
                 z-index: 124;
-                animation: chargeUp 1.6s ease-out forwards;
                 pointer-events: none;
+                will-change: transform, opacity;
             `;
-            
-            document.body.appendChild(chargeEffect);
-            
-            // Auto-remover após animação
-            setTimeout(() => {
-                if (chargeEffect.parentNode) chargeEffect.remove();
-            }, 1000);
-        }
+            document.body.appendChild(impactEffect);
 
-        // ===== EFEITO DE IMPACTO NO BOSS =====
-        createBeamImpactEffect(x, y, config) {
-            const impact = document.createElement('div');
-            impact.style.cssText = `
-                position: fixed;
-                left: ${x - 60}px;
-                top: ${y - 60}px;
-                width: 120px;
-                height: 120px;
-                border-radius: 50%;
-                background: radial-gradient(circle, 
-                    ${config.bright} 0%, 
-                    ${config.core} 20%, 
-                    ${config.halo} 40%, 
-                    rgba(255, 255, 255, 0.3) 60%, 
-                    rgba(255, 255, 255, 0.1) 75%, 
-                    transparent 90%);
-                opacity: 0;
-                z-index: 123;
-                pointer-events: none;
-                animation: impactBurst 0.2s infinite alternate;
-            `;
-            
-            return impact;
-        }
-
-        // ===== PARTÍCULAS DE ENERGIA =====
-        createBeamParticles(startX, startY, endX, endY, config) {
-            const particleContainer = document.createElement('div');
-            particleContainer.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                pointer-events: none;
-                z-index: 122;
-                opacity: 0;
-            `;
-            
-            // Criar 10 partículas ao longo do beam
-            for (let i = 0; i < 10; i++) {
-                const progress = i / 9;
-                const particleX = startX + (endX - startX) * progress;
-                const particleY = startY + (endY - startY) * progress;
-                
-                const particle = document.createElement('div');
-                particle.style.cssText = `
-                    position: absolute;
-                    left: ${particleX}px;
-                    top: ${particleY}px;
-                    width: 6px;
-                    height: 6px;
-                    background: ${config.bright};
+            // ===== ONDAS DE IMPACTO =====
+            const createImpactRing = (delay, size) => {
+                const ring = document.createElement('div');
+                ring.style.cssText = `
+                    position: fixed;
+                    left: ${endX - size/2}px;
+                    top: ${endY - size/2}px;
+                    width: ${size}px;
+                    height: ${size}px;
+                    border: 3px solid ${config.core};
                     border-radius: 50%;
-                    box-shadow: 0 0 10px ${config.core};
-                    animation: particleFloat 0.5s infinite alternate;
-                    animation-delay: ${i * 0.1}s;
+                    opacity: 0;
+                    z-index: 123;
+                    pointer-events: none;
+                    will-change: transform, opacity;
                 `;
-                
-                particleContainer.appendChild(particle);
-            }
-            
-            return particleContainer;
+                document.body.appendChild(ring);
+
+                setTimeout(() => {
+                    ring.style.transition = 'transform 0.4s ease-out, opacity 0.4s ease-out';
+                    ring.style.opacity = '0.8';
+                    ring.style.transform = 'scale(2)';
+
+                    setTimeout(() => {
+                        ring.style.opacity = '0';
+                        setTimeout(() => ring.remove(), 400);
+                    }, 200);
+                }, delay);
+
+                return ring;
+            };
+
+            // ===== SEQUÊNCIA DE ANIMAÇÃO =====
+
+            // Fase 1: Charge-up (0-600ms)
+            chargeEffect.style.transition = 'opacity 0.3s ease-out, transform 0.6s ease-out';
+            chargeEffect.style.opacity = '1';
+            chargeEffect.style.transform = 'scale(1.5)';
+
+            // Fase 2: Flash + Beam dispara (600ms)
+            setTimeout(() => {
+                // Flash na tela
+                screenFlash.style.transition = 'opacity 0.1s ease-out';
+                screenFlash.style.opacity = '0.4';
+                setTimeout(() => {
+                    screenFlash.style.transition = 'opacity 0.3s ease-in';
+                    screenFlash.style.opacity = '0';
+                }, 100);
+
+                // Charge desaparece
+                chargeEffect.style.opacity = '0';
+                chargeEffect.style.transform = 'scale(0.5)';
+
+                // Beam "dispara" - cresce do personagem ao boss
+                beamContainer.style.transition = 'width 0.15s ease-out';
+                beamContainer.style.width = `${distance}px`;
+
+            }, 600);
+
+            // Fase 3: Impacto no boss (750ms)
+            setTimeout(() => {
+                // Efeito de impacto aparece
+                impactEffect.style.transition = 'opacity 0.1s ease-out, transform 0.3s ease-out';
+                impactEffect.style.opacity = '1';
+                impactEffect.style.transform = 'scale(1.2)';
+
+                // Ondas de impacto
+                createImpactRing(0, 100);
+                createImpactRing(150, 140);
+                createImpactRing(300, 180);
+
+                // Energia viajando pelo beam
+                travelingEnergy.style.opacity = '0.9';
+                travelingEnergy.style.animation = 'beamTravelEnergy 0.3s linear infinite';
+
+                // Aplicar efeito no boss
+                if (this.currentSkill && this.currentSkill.boss_damage_overlay) {
+                    this.applyBossDamageEffect();
+                }
+
+                // Pulsação do beam via CSS (leve)
+                beamCore.style.animation = 'beamCorePulse 0.15s ease-in-out infinite alternate';
+                impactEffect.style.animation = 'impactPulse 0.2s ease-in-out infinite alternate';
+
+            }, 750);
+
+            // Fase 4: Aplicar dano (1400ms)
+            setTimeout(() => {
+                console.log("💥 Aplicando dano!");
+                this.applyDamageAndEffects();
+                this.damageAlreadyApplied = true;
+            }, 1400);
+
+            // Fase 5: Fade out (1700ms)
+            setTimeout(() => {
+                // Parar animações
+                beamCore.style.animation = 'none';
+                travelingEnergy.style.animation = 'none';
+                impactEffect.style.animation = 'none';
+
+                // Fade out suave
+                beamContainer.style.transition = 'opacity 0.3s ease-in';
+                beamContainer.style.opacity = '0';
+                impactEffect.style.transition = 'opacity 0.3s ease-in, transform 0.3s ease-in';
+                impactEffect.style.opacity = '0';
+                impactEffect.style.transform = 'scale(2)';
+
+                // Limpar elementos
+                setTimeout(() => {
+                    screenFlash.remove();
+                    chargeEffect.remove();
+                    beamContainer.remove();
+                    impactEffect.remove();
+                }, 400);
+
+            }, 1700);
         }
 
-        // ===== ADICIONAR ANIMAÇÕES CSS =====
+        // ===== ADICIONAR ANIMAÇÕES CSS (otimizadas) =====
         addBeamAnimations() {
             if (document.querySelector('#beam-animations')) return;
-            
+
             const style = document.createElement('style');
             style.id = 'beam-animations';
             style.textContent = `
-                @keyframes beamPulse {
-                    0% { filter: blur(8px) brightness(1); }
-                    100% { filter: blur(6px) brightness(1.3); }
+                @keyframes beamCorePulse {
+                    0% { opacity: 0.9; transform: scaleY(1); }
+                    100% { opacity: 1; transform: scaleY(1.3); }
                 }
-                
-                @keyframes chargeUp {
-                    0% { 
-                        opacity: 0; 
-                        transform: scale(0.3) rotate(0deg); 
-                    }
-                    50% { 
-                        opacity: 1; 
-                        transform: scale(1.2) rotate(180deg); 
-                    }
-                    100% { 
-                        opacity: 0; 
-                        transform: scale(0.8) rotate(360deg); 
-                    }
+
+                @keyframes beamTravelEnergy {
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(calc(100% + 80px)); }
                 }
-                
-                @keyframes impactBurst {
-                    0% { transform: scale(1) rotate(0deg); }
-                    100% { transform: scale(1.1) rotate(10deg); }
-                }
-                
-                @keyframes particleFloat {
-                    0% { transform: translateY(0px) scale(1); }
-                    100% { transform: translateY(-10px) scale(1.2); }
+
+                @keyframes impactPulse {
+                    0% { transform: scale(1.1); opacity: 0.9; }
+                    100% { transform: scale(1.3); opacity: 1; }
                 }
             `;
-            
+
             document.head.appendChild(style);
         }
 
