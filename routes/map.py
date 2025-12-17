@@ -142,28 +142,38 @@ def elite_battle(boss_id):
     if not player:
         return redirect(url_for('battle.gamification'))
 
-    # Mapeamento de ID para nome do boss
-    BOSS_ID_TO_NAME = {
-        1: 'purassombra',
-        2: 'heresiarca',
-        3: 'alma_negra',
-        4: 'formofagus',
-        5: 'nefasto'
+    # Mapeamento de ID esperado para nome do boss (chave para create_boss_by_name)
+    # e nome de display (para busca no banco)
+    BOSS_ID_TO_DATA = {
+        1: {'key': 'purassombra', 'display': 'Purassombra'},
+        2: {'key': 'heresiarca', 'display': 'Heresiarca'},
+        3: {'key': 'alma_negra', 'display': 'Alma Negra'},
+        4: {'key': 'formofagus', 'display': 'Formofagus'},
+        5: {'key': 'nefasto', 'display': 'Nefasto'}
     }
 
-    # Verificar se o boss existe
-    boss = LastBoss.query.get(boss_id)
+    # Verificar se temos dados para esse ID
+    if boss_id not in BOSS_ID_TO_DATA:
+        print(f"❌ Boss ID {boss_id} não mapeado!")
+        return redirect(url_for('battle.gamification'))
+
+    boss_data = BOSS_ID_TO_DATA[boss_id]
+    boss_key = boss_data['key']
+    boss_display_name = boss_data['display']
+
+    # CORREÇÃO: Buscar por NOME em vez de por ID do banco
+    # Isso evita bug quando IDs do banco não correspondem aos esperados
+    boss = LastBoss.query.filter_by(name=boss_display_name).first()
+    print(f"🔍 Buscando boss '{boss_display_name}' por nome... Encontrado: {boss is not None}")
 
     if not boss:
-        # Boss não existe, criar usando as definições existentes
-        if boss_id in BOSS_ID_TO_NAME:
-            boss_name = BOSS_ID_TO_NAME[boss_id]
-            print(f"🎭 Criando boss {boss_name} para elite...")
-            boss = create_boss_by_name(boss_name)
-            if boss:
-                db.session.add(boss)
-                db.session.commit()
-                print(f"✅ Boss {boss.name} criado com sucesso!")
+        # Boss não existe, criar
+        print(f"🎭 Criando boss {boss_key} para elite...")
+        boss = create_boss_by_name(boss_key)
+        if boss:
+            db.session.add(boss)
+            db.session.commit()
+            print(f"✅ Boss {boss.name} criado com sucesso!")
 
         if not boss:
             print(f"❌ Não foi possível criar boss ID {boss_id}")
@@ -217,31 +227,41 @@ def boss_battle(boss_id):
     if not player:
         return redirect(url_for('battle.gamification'))
 
-    # Mapeamento de ID para nome do boss
-    BOSS_ID_TO_NAME = {
-        1: 'purassombra',
-        2: 'heresiarca',
-        3: 'alma_negra',
-        4: 'formofagus',
-        5: 'nefasto'
+    # Mapeamento de ID esperado para nome do boss (chave para create_boss_by_name)
+    # e nome de display (para busca no banco)
+    BOSS_ID_TO_DATA = {
+        1: {'key': 'purassombra', 'display': 'Purassombra'},
+        2: {'key': 'heresiarca', 'display': 'Heresiarca'},
+        3: {'key': 'alma_negra', 'display': 'Alma Negra'},
+        4: {'key': 'formofagus', 'display': 'Formofagus'},
+        5: {'key': 'nefasto', 'display': 'Nefasto'}
     }
 
-    # Verificar se o boss existe
-    boss = LastBoss.query.get(boss_id)
+    # Verificar se temos dados para esse ID
+    if boss_id not in BOSS_ID_TO_DATA:
+        print(f"❌ Boss ID {boss_id} não mapeado!")
+        return redirect(url_for('battle.gamification'))
+
+    boss_data = BOSS_ID_TO_DATA[boss_id]
+    boss_key = boss_data['key']
+    boss_display_name = boss_data['display']
+
+    # CORREÇÃO: Buscar por NOME em vez de por ID do banco
+    # Isso evita bug quando IDs do banco não correspondem aos esperados
+    boss = LastBoss.query.filter_by(name=boss_display_name).first()
+    print(f"🔍 Buscando boss final '{boss_display_name}' por nome... Encontrado: {boss is not None}")
 
     if not boss:
-        # Boss não existe, criar usando as definições existentes
-        if boss_id in BOSS_ID_TO_NAME:
-            boss_name = BOSS_ID_TO_NAME[boss_id]
-            print(f"🎭 Criando boss final {boss_name}...")
-            boss = create_boss_by_name(boss_name)
-            if boss:
-                db.session.add(boss)
-                db.session.commit()
-                print(f"✅ Boss final {boss.name} criado com sucesso!")
+        # Boss não existe, criar
+        print(f"🎭 Criando boss final {boss_key}...")
+        boss = create_boss_by_name(boss_key)
+        if boss:
+            db.session.add(boss)
+            db.session.commit()
+            print(f"✅ Boss final {boss.name} criado com sucesso!")
 
         if not boss:
-            print(f"❌ Não foi possível criar boss ID {boss_id}")
+            print(f"❌ Não foi possível criar boss {boss_display_name}")
             return redirect(url_for('battle.gamification'))
 
     # Ativar o boss se não estiver ativo

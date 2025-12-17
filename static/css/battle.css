@@ -1116,14 +1116,14 @@
     pointer-events: auto;
     /* Outline preto no personagem */
     filter: drop-shadow(0 0 0 black)
-            drop-shadow(2px 0 0 black)
-            drop-shadow(-2px 0 0 black)
+            drop-shadow(1px 0 0 black)
+            drop-shadow(-1px 0 0 black)
             drop-shadow(0 1px 0 black)
             drop-shadow(0 -1px 0 black);
   }
-  
+
   .character-container:hover {
-    filter: drop-shadow(0 0 0 black) drop-shadow(2px 0 0 black) drop-shadow(-2px 0 0 black) drop-shadow(0 1px 0 black) drop-shadow(0 -1px 0 black)
+    filter: drop-shadow(0 0 0 black) drop-shadow(1px 0 0 black) drop-shadow(-1px 0 0 black) drop-shadow(0 1px 0 black) drop-shadow(0 -1px 0 black)
             drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
   }
 

@@ -46,42 +46,61 @@ def start_battle():
     node_y = current_node.y
 
     try:
-        # SELECIONAR TEMPLATE BASEADO NO ATO E POSIÇÃO DO NÓ
-        # - Ato 1, nodes 0-7:  Grupo 1
-        # - Ato 1, nodes 8-15: Grupo 2
-        # - Ato 2, nodes 0-7:  Grupo 3
-        # - Ato 2, nodes 8-15: Grupo 4
-        # - Ato 3, nodes 0-7:  Grupo 5
-        # - Ato 3, nodes 8-15: Grupo 6
-        template = get_enemy_template_by_act_and_position(act_number, node_y)
+        # ================================================================
+        # VERIFICAR SE O NODE JÁ TEM UM INIMIGO ASSOCIADO
+        # ================================================================
+        # Se o node já tem um inimigo, usar esse inimigo (persistência)
+        # Só criar novo inimigo se o node ainda não tiver um
+        enemy = None
 
-        if not template:
-            flash('Erro ao carregar template de inimigo.', 'error')
-            return redirect(url_for('map.map_view'))
+        if current_node.enemy_id:
+            # Tentar carregar o inimigo existente
+            enemy = GenericEnemy.query.get(current_node.enemy_id)
+            if enemy:
+                print(f"📌 NODE JÁ TEM INIMIGO: {enemy.name} (ID: {enemy.id})")
+            else:
+                print(f"⚠️ Inimigo ID {current_node.enemy_id} não encontrado, criando novo...")
+                current_node.enemy_id = None  # Limpar referência inválida
 
-        # enemy_number ainda é usado para tracking interno (não afeta grupo)
-        enemy_number = map_progress.battles_won + 1
-
-        # Criar inimigo a partir do template
-        enemy = create_enemy_from_template(
-            template=template,
-            enemy_number=enemy_number,
-            player_id=player.id
-        )
-
+        # Se não tem inimigo associado, criar um novo
         if not enemy:
-            flash('Erro ao criar inimigo.', 'error')
-            return redirect(url_for('map.map_view'))
+            # SELECIONAR TEMPLATE BASEADO NO ATO E POSIÇÃO DO NÓ
+            # - Ato 1, nodes 0-7:  Grupo 1
+            # - Ato 1, nodes 8-15: Grupo 2
+            # - Ato 2, nodes 0-7:  Grupo 3
+            # - Ato 2, nodes 8-15: Grupo 4
+            # - Ato 3, nodes 0-7:  Grupo 5
+            # - Ato 3, nodes 8-15: Grupo 6
+            template = get_enemy_template_by_act_and_position(act_number, node_y)
 
-        # GERAR INTENÇÕES INICIAIS DO TURNO 1
+            if not template:
+                flash('Erro ao carregar template de inimigo.', 'error')
+                return redirect(url_for('map.map_view'))
+
+            # enemy_number ainda é usado para tracking interno (não afeta grupo)
+            enemy_number = map_progress.battles_won + 1
+
+            # Criar inimigo a partir do template
+            enemy = create_enemy_from_template(
+                template=template,
+                enemy_number=enemy_number,
+                player_id=player.id
+            )
+
+            if not enemy:
+                flash('Erro ao criar inimigo.', 'error')
+                return redirect(url_for('map.map_view'))
+
+            # Associar inimigo ao nó (PERSISTÊNCIA)
+            current_node.enemy_id = enemy.id
+            print(f"🆕 NOVO INIMIGO CRIADO: {enemy.name} (ID: {enemy.id}) → Node {current_node.id}")
+
+        # GERAR INTENÇÕES INICIAIS DO TURNO 1 (sempre recalcular)
         from .battle_modules.battle_turns import get_next_actions
         next_turn_data = get_next_actions(enemy)
         next_intentions = next_turn_data['actions']
         enemy.next_intentions_cached = json.dumps(next_intentions)
-        print(f"🔮 Intenções do Turno 1 pré-calculadas: {[a.get('type') for a in next_intentions]}")
-
-        # Associar inimigo ao nó
-        current_node.enemy_id = enemy.id
+        print(f"🔮 Intenções do Turno 1: {[a.get('type') for a in next_intentions]}")
 
         # Atualizar progresso do jogador (sistema antigo)
         progress = PlayerProgress.query.filter_by(player_id=player.id).first()
