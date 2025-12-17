@@ -468,6 +468,81 @@ def get_enemy_template_by_act_and_position(act_number, node_y):
     return template
 
 
+def get_enemy_template_excluding_names(act_number, node_y, excluded_names):
+    """
+    Seleciona um template de inimigo baseado no ATO e POSIÇÃO,
+    excluindo nomes já usados na run atual.
+
+    Args:
+        act_number: Número do ato (1, 2 ou 3)
+        node_y: Posição Y do nó no mapa (0-15)
+        excluded_names: Set de nomes de inimigos já usados na run
+
+    Returns:
+        Template do inimigo ou None se todos já foram usados
+    """
+    load_enemy_templates()
+
+    # Determinar se está na primeira ou segunda metade do ato
+    is_second_half = node_y >= 8
+
+    # Calcular índice do grupo
+    base_group = (act_number - 1) * 2
+    group_idx = base_group + (1 if is_second_half else 0)
+    group_idx = min(group_idx, 5)
+
+    group = _enemy_templates_by_group[group_idx]
+
+    if not group:
+        print(f"⚠️ Grupo {group_idx + 1} vazio!")
+        return None
+
+    # Filtrar templates que não foram usados
+    available_templates = [t for t in group if t['name'] not in excluded_names]
+
+    if available_templates:
+        template = random.choice(available_templates)
+        template['group_index'] = group_idx
+        half_name = "2ª metade" if is_second_half else "1ª metade"
+        print(f"🎯 Ato {act_number}, Node Y={node_y} ({half_name}) → Grupo {group_idx + 1} → {template['name']} [ANTI-REP: {len(available_templates)}/{len(group)} disponíveis]")
+        return template
+
+    # Todos os inimigos do grupo já foram usados
+    # Tentar grupos adjacentes (primeiro o próximo, depois o anterior)
+    adjacent_groups = []
+    if group_idx < 5:
+        adjacent_groups.append(group_idx + 1)
+    if group_idx > 0:
+        adjacent_groups.append(group_idx - 1)
+
+    for adj_idx in adjacent_groups:
+        adj_group = _enemy_templates_by_group[adj_idx]
+        available_in_adj = [t for t in adj_group if t['name'] not in excluded_names]
+        if available_in_adj:
+            template = random.choice(available_in_adj)
+            template['group_index'] = adj_idx
+            print(f"⚠️ Grupo {group_idx + 1} esgotado! Usando Grupo {adj_idx + 1} → {template['name']}")
+            return template
+
+    # Último recurso: permitir repetição do grupo original
+    print(f"⚠️ TODOS OS GRUPOS ESGOTADOS! Permitindo repetição no Grupo {group_idx + 1}")
+    template = random.choice(group)
+    template['group_index'] = group_idx
+    return template
+
+
+def get_used_enemy_names_in_run():
+    """
+    Retorna um set com todos os nomes de inimigos já usados na run atual.
+    Inclui inimigos derrotados e inimigos ainda disponíveis.
+    """
+    used_names = set()
+    all_enemies = GenericEnemy.query.all()
+    for enemy in all_enemies:
+        used_names.add(enemy.name)
+    return used_names
+
+
 def get_enemy_template_by_progression(enemy_number):
     """
     DEPRECATED: Use get_enemy_template_by_act_and_position() instead.
@@ -2579,31 +2654,14 @@ def ensure_minimum_enemies(progress, minimum=None):
     for i in range(needed):
         try:
             # ================================================================
-            # SELECIONAR TEMPLATE BASEADO NO ATO E POSIÇÃO
+            # SELECIONAR TEMPLATE COM ANTI-REPETIÇÃO INTEGRADA
+            # A função já exclui nomes usados e tenta grupos adjacentes se necessário
             # ================================================================
-            template = get_enemy_template_by_act_and_position(act_number, node_y)
+            template = get_enemy_template_excluding_names(act_number, node_y, used_enemy_names)
 
             if not template:
                 print(f"❌ Nenhum template encontrado para Ato {act_number}, Node Y={node_y}")
                 continue
-
-            # ================================================================
-            # ANTI-REPETIÇÃO: Tentar encontrar um inimigo não usado na run
-            # ================================================================
-            max_attempts = 30  # Mais tentativas para garantir variedade
-            found_unique = False
-
-            for attempt in range(max_attempts):
-                if template['name'] not in used_enemy_names:
-                    found_unique = True
-                    break
-                # Tentar outro template do mesmo grupo
-                new_template = get_enemy_template_by_progression(next_enemy_number)
-                if new_template:
-                    template = new_template
-
-            if not found_unique:
-                print(f"⚠️ AVISO: Todos os inimigos do grupo já foram usados! Repetindo: {template['name']}")
 
             # Criar inimigo a partir do template (usa stats FIXOS)
             new_enemy = create_enemy_from_template(template, next_enemy_number, progress.player_id)

@@ -10,6 +10,8 @@ from models import Player, GenericEnemy, LastBoss, PlayerProgress, EnemyTheme
 from .map_modules.node_types import ELITE_BOSSES, FINAL_BOSSES
 from .battle_modules.enemy_generation import (
     get_enemy_template_by_act_and_position,
+    get_enemy_template_excluding_names,
+    get_used_enemy_names_in_run,
     get_infernal_challenger_template,
     create_enemy_from_template
 )
@@ -64,14 +66,21 @@ def start_battle():
 
         # Se não tem inimigo associado, criar um novo
         if not enemy:
+            # ================================================================
+            # ANTI-REPETIÇÃO: Buscar nomes de inimigos já usados na run
+            # ================================================================
+            used_names = get_used_enemy_names_in_run()
+            print(f"🔒 Anti-repetição: {len(used_names)} inimigos já usados na run")
+
             # SELECIONAR TEMPLATE BASEADO NO ATO E POSIÇÃO DO NÓ
+            # Usando função que exclui nomes já usados
             # - Ato 1, nodes 0-7:  Grupo 1
             # - Ato 1, nodes 8-15: Grupo 2
             # - Ato 2, nodes 0-7:  Grupo 3
             # - Ato 2, nodes 8-15: Grupo 4
             # - Ato 3, nodes 0-7:  Grupo 5
             # - Ato 3, nodes 8-15: Grupo 6
-            template = get_enemy_template_by_act_and_position(act_number, node_y)
+            template = get_enemy_template_excluding_names(act_number, node_y, used_names)
 
             if not template:
                 flash('Erro ao carregar template de inimigo.', 'error')
