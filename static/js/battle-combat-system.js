@@ -1179,7 +1179,10 @@ function performAttack(skill) {
         jump_attack: ['jump_preparation', 'aerial_advance', 'focus_boss', 'aerial_strike', 'apply_damage', 'land_return', 'restore_complete'],
 
         // Ataque especial: Vlad Power com Skill Test
-        vlad_power_skill_test: ['vlad_power_skill_test', 'apply_damage', 'restore_complete']
+        vlad_power_skill_test: ['vlad_power_skill_test', 'apply_damage', 'restore_complete'],
+
+        // Ataque especial do Vlad (Abraço da Escuridão) - executa em paralelo para ser mais rápido
+        vlad_special_parallel: ['vlad_special_parallel', 'restore_complete']
     };
 
     // Sistema de execução de fases modulares
@@ -1196,9 +1199,17 @@ function performAttack(skill) {
         executeAttackSequence(skill, fxPaths, prepDelay) {
             this.currentSkill = skill;
             this.phaseData = { fxPaths, prepDelay };
-            
+
+            // Verificar se é o especial do Vlad (skill 52) - usar sequência paralela otimizada
+            const currentCharacter = getCurrentPlayerCharacter();
+            const isVladSpecial = (currentCharacter === 'Vlad' || currentCharacter === 'vlad') && skill.id === 52;
+
+            if (isVladSpecial) {
+                console.log("🧛 Vlad Special detectado - usando sequência paralela otimizada");
+                this.currentSequence = [...ATTACK_PATTERNS.vlad_special_parallel];
+            }
             // Determinar sequência: usar padrão pré-definido ou sequência customizada
-            if (typeof skill.attack_sequence === 'string' && ATTACK_PATTERNS[skill.attack_sequence]) {
+            else if (typeof skill.attack_sequence === 'string' && ATTACK_PATTERNS[skill.attack_sequence]) {
                 this.currentSequence = [...ATTACK_PATTERNS[skill.attack_sequence]];
             } else if (Array.isArray(skill.attack_sequence)) {
                 this.currentSequence = [...skill.attack_sequence];
@@ -3149,6 +3160,10 @@ function performAttack(skill) {
                         // Aplicar dano quando projétil atingir o boss (após 750ms - tempo do projétil 0.7s)
                         setTimeout(() => {
                             console.log('💥 Projétil atingiu o boss! Aplicando dano...');
+
+                            // Aplicar efeito de hit no boss
+                            this.applyPowerHitEffect();
+
                             this.calculateAndApplyDamage();
                             playSound(this.currentSkill.sound_effect_2, 0.8);
 
@@ -3178,6 +3193,51 @@ function performAttack(skill) {
                 console.error('❌ showSkillTestModal não está disponível!');
                 this.nextPhase(0);
             }
+        }
+
+        // Fase: Especial do Vlad (Abraço da Escuridão) - executa tudo em paralelo
+        executePhase_vlad_special_parallel() {
+            console.log("🧛 QC Fase: Vlad Special Parallel");
+
+            // Aplicar animação 'special' do Vlad
+            if (typeof window.applyCharacterAnimation === 'function') {
+                window.applyCharacterAnimation('special', 'vlad-special-anim');
+                console.log('✅ Animação special do Vlad aplicada');
+            }
+
+            // Tocar som de preparação imediatamente
+            playSound(this.currentSkill.sound_prep_1, 0.8);
+
+            // EM PARALELO: Iniciar efeitos no boss após 300ms (não espera animação do Vlad)
+            setTimeout(() => {
+                // Tocar som de ataque
+                playSound(this.currentSkill.sound_attack, 0.8);
+
+                // Aplicar efeito de dano no boss (blood-execution)
+                this.applyBossDamageEffect();
+
+                // Tocar som effect_1 (execution.mp3) 500ms depois
+                setTimeout(() => {
+                    playSound(this.currentSkill.sound_effect_1, 0.8);
+                }, 500);
+
+                // Calcular e aplicar dano
+                this.calculateAndApplyDamage();
+
+                // Marcar dano como aplicado
+                this.damageAlreadyApplied = true;
+            }, 300);
+
+            // Restaurar idle após animação do Vlad terminar
+            // A animação 'special' tem 28 frames, 1.4s
+            setTimeout(() => {
+                restoreCharacterIdle();
+                console.log('✅ Vlad restaurado para idle após special');
+            }, 1400);
+
+            // Avançar para próxima fase (restore_complete) após tudo
+            // Tempo total reduzido: 1.4s (duração da animação) + margem
+            this.nextPhase(1600);
         }
 
         // Fase: Aplicar dano
@@ -3920,7 +3980,69 @@ function performAttack(skill) {
                 console.log(`🗑️ Sprite FX do boss removido após ${animationDuration}s`);
             }, animationDuration * 1000 + 200);
         }
-        
+
+        // Efeito de hit do Power Attack do Vlad
+        applyPowerHitEffect() {
+            const boss = document.getElementById('boss');
+            if (!boss) {
+                console.error("Boss element not found for power hit effect");
+                return;
+            }
+
+            // Configuração do sprite: powerhiteffect-86x69-5f.png
+            const imageUrl = '/static/game.data/fx/powerhiteffect-86x69-5f.png';
+            const frameWidth = 86;
+            const frameHeight = 69;
+            const frameCount = 5;
+            const duration = 0.4; // 5 frames em 0.4s = animação rápida de impacto
+
+            const totalWidth = frameWidth * frameCount;
+
+            // Criar keyframes dinamicamente
+            const keyframeId = `power-hit-fx-${Date.now()}`;
+            const styleEl = document.createElement('style');
+            styleEl.id = keyframeId;
+            styleEl.textContent = `
+                @keyframes ${keyframeId} {
+                    from { background-position: 0 0; }
+                    to { background-position: -${totalWidth}px 0; }
+                }
+            `;
+            document.head.appendChild(styleEl);
+
+            // Criar elemento da sprite animation
+            const spriteLayer = document.createElement('div');
+            spriteLayer.className = 'boss-power-hit-layer';
+            spriteLayer.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: ${frameWidth}px;
+                height: ${frameHeight}px;
+                background-image: url("${imageUrl}");
+                background-repeat: no-repeat;
+                background-position: 0 0;
+                background-size: ${totalWidth}px ${frameHeight}px;
+                opacity: 1;
+                pointer-events: none;
+                z-index: 101;
+                image-rendering: pixelated;
+                animation: ${keyframeId} ${duration}s steps(${frameCount}) forwards;
+            `;
+
+            boss.appendChild(spriteLayer);
+            console.log(`✅ Power Hit Effect adicionado ao boss`);
+
+            // Remover após animação
+            setTimeout(() => {
+                spriteLayer.remove();
+                const keyframeStyle = document.getElementById(keyframeId);
+                if (keyframeStyle) keyframeStyle.remove();
+                console.log(`🗑️ Power Hit Effect removido`);
+            }, duration * 1000 + 100);
+        }
+
         createProjectileEffect() {
             console.log("🎯 Criando efeito de projétil");
             // Implementação futura usando sistema PixiJS existente
