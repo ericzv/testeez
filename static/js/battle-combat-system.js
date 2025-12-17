@@ -2246,153 +2246,407 @@ function performAttack(skill) {
         createVisualProjectile() {
             console.log("🎯 Criando projétil visual");
 
-            // Pegar posição do personagem (origem)
             const characterRect = character.getBoundingClientRect();
             const startX = characterRect.left + characterRect.width / 2;
             const startY = characterRect.top + characterRect.height / 2;
 
-            // Pegar posição do boss como alvo
             const bossRect = boss.getBoundingClientRect();
             const endX = bossRect.left + bossRect.width / 2;
             const endY = bossRect.top + bossRect.height / 2;
 
-            // Determinar intensidade baseada no score do skill test (0-10)
             const skillTestResult = this.currentSkill?.skillTestResult;
-            const score = skillTestResult?.score || 5; // Score padrão 5 se não houver
+            const score = skillTestResult?.score || 5;
 
-            // ===== DIFERENCIAÇÃO DRÁSTICA POR SCORE =====
+            console.log(`🎯 Criando projétil com score ${score}`);
 
-            // Tamanho varia MUITO mais (15px a 45px)
-            const baseSize = 15 + (score * 3);
+            // ===== PROJÉTEIS COMPLETAMENTE DIFERENTES POR SCORE =====
 
-            // Cores variam de roxo escuro/fraco (score baixo) a magenta brilhante (score alto)
-            let coreColor, midColor, outerColor, glowColor;
             if (score <= 3) {
-                // Score baixo: roxo escuro, apagado
-                coreColor = '#8b668b';
-                midColor = '#6b4c6b';
-                outerColor = '#3d2d3d';
-                glowColor = '#6b4c6b';
+                // SCORE BAIXO (1-3): Projétil pequeno, fraco, sem efeitos
+                this.createWeakProjectile(startX, startY, endX, endY, score);
             } else if (score <= 6) {
-                // Score médio: roxo normal
-                coreColor = '#da70d6';
-                midColor = '#9400d3';
-                outerColor = '#4b0082';
-                glowColor = '#9400d3';
+                // SCORE MÉDIO (4-6): Projétil normal com algumas partículas
+                this.createNormalProjectile(startX, startY, endX, endY, score);
             } else if (score <= 8) {
-                // Score alto: roxo vibrante com rosa
-                coreColor = '#ff69b4';
-                midColor = '#da70d6';
-                outerColor = '#9400d3';
-                glowColor = '#ff69b4';
+                // SCORE ALTO (7-8): Projétil forte com trilha e anel
+                this.createStrongProjectile(startX, startY, endX, endY, score);
             } else {
-                // Score 9-10: magenta/rosa intenso, quase branco no centro
-                coreColor = '#ffffff';
-                midColor = '#ff1493';
-                outerColor = '#da70d6';
-                glowColor = '#ff1493';
+                // SCORE PERFEITO (9-10): Projétil épico com múltiplos efeitos
+                this.createEpicProjectile(startX, startY, endX, endY, score);
             }
+        }
 
-            // Glow varia MUITO (10px a 60px)
-            const glowSize = 10 + (score * 5);
+        // SCORE 1-3: Projétil fraco - pequeno, escuro, sem efeitos
+        createWeakProjectile(startX, startY, endX, endY, score) {
+            const size = 12 + score * 2; // 14-18px
 
-            // Glow extra para scores altos
-            let extraGlow = '';
-            if (score >= 7) {
-                extraGlow = `, 0 0 ${glowSize * 1.5}px ${glowColor}`;
-            }
-            if (score >= 9) {
-                extraGlow += `, 0 0 ${glowSize * 2}px ${midColor}, 0 0 ${glowSize * 2.5}px #ff69b4`;
-            }
-
-            // Brightness varia de 0.6 (escuro) a 1.4 (muito brilhante)
-            const brightness = 0.6 + (score * 0.08);
-
-            console.log(`🎯 Projétil com score ${score}: tamanho ${baseSize}px, cor ${coreColor}`);
-
-            // Criar elemento projétil
             const projectile = document.createElement('div');
             projectile.style.cssText = `
                 position: fixed;
                 left: ${startX}px;
                 top: ${startY}px;
-                width: ${baseSize}px;
-                height: ${baseSize}px;
-                background: radial-gradient(circle, ${coreColor} 0%, ${midColor} 50%, ${outerColor} 100%);
+                width: ${size}px;
+                height: ${size}px;
+                background: radial-gradient(circle, #6b4c6b 0%, #3d2d3d 100%);
                 border-radius: 50%;
                 z-index: 100;
-                box-shadow: 0 0 ${glowSize}px ${glowColor}${extraGlow};
+                box-shadow: 0 0 8px #4a3a4a;
                 transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-                filter: brightness(${brightness});
+                opacity: 0.7;
             `;
-
             document.body.appendChild(projectile);
 
-            // Criar partículas - quantidade varia muito por score
-            const particleCount = Math.max(0, score - 2); // 0 partículas para score 1-2, até 8 para score 10
-            if (particleCount > 0) {
-                this.createProjectileParticles(startX, startY, endX, endY, score, coreColor, midColor);
-            }
-
-            // Animar projétil até o boss
             setTimeout(() => {
                 projectile.style.left = `${endX}px`;
                 projectile.style.top = `${endY}px`;
-                // Scale final também varia por score
-                const finalScale = 1.0 + (score * 0.1); // 1.1x a 2.0x
-                projectile.style.transform = `scale(${finalScale})`;
             }, 50);
 
-            // Remover projétil (0.7s de viagem + margem)
             setTimeout(() => {
-                if (projectile.parentNode) {
-                    projectile.style.opacity = '0';
-                    projectile.style.transform = 'scale(0)';
-                    setTimeout(() => projectile.remove(), 200);
-                }
+                projectile.style.opacity = '0';
+                setTimeout(() => projectile.remove(), 200);
             }, 800);
         }
 
-        // Criar partículas que seguem o projétil
-        createProjectileParticles(startX, startY, endX, endY, score, coreColor, midColor) {
-            const particleCount = Math.max(0, score - 2); // 0-8 partículas
+        // SCORE 4-6: Projétil normal - tamanho médio, roxo, com algumas partículas
+        createNormalProjectile(startX, startY, endX, endY, score) {
+            const size = 22 + (score - 4) * 4; // 22-30px
 
+            const projectile = document.createElement('div');
+            projectile.style.cssText = `
+                position: fixed;
+                left: ${startX}px;
+                top: ${startY}px;
+                width: ${size}px;
+                height: ${size}px;
+                background: radial-gradient(circle, #da70d6 0%, #9400d3 60%, #4b0082 100%);
+                border-radius: 50%;
+                z-index: 100;
+                box-shadow: 0 0 20px #9400d3, 0 0 35px #6b238e;
+                transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            `;
+            document.body.appendChild(projectile);
+
+            // Algumas partículas (2-4)
+            const particleCount = score - 2;
             for (let i = 0; i < particleCount; i++) {
                 setTimeout(() => {
-                    const particle = document.createElement('div');
-                    // Tamanho das partículas também varia por score
-                    const size = 4 + (score * 0.5) + Math.random() * 4;
-                    const offsetX = (Math.random() - 0.5) * 40;
-                    const offsetY = (Math.random() - 0.5) * 40;
-
-                    particle.style.cssText = `
-                        position: fixed;
-                        left: ${startX + offsetX}px;
-                        top: ${startY + offsetY}px;
-                        width: ${size}px;
-                        height: ${size}px;
-                        background: radial-gradient(circle, ${coreColor} 0%, ${midColor} 100%);
-                        border-radius: 50%;
-                        z-index: 99;
-                        box-shadow: 0 0 ${5 + score}px ${midColor};
-                        transition: all ${0.5 + Math.random() * 0.3}s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-                        opacity: ${0.5 + score * 0.05};
-                    `;
-
-                    document.body.appendChild(particle);
-
-                    // Animar partícula até o boss com offset
-                    setTimeout(() => {
-                        particle.style.left = `${endX + (Math.random() - 0.5) * 50}px`;
-                        particle.style.top = `${endY + (Math.random() - 0.5) * 50}px`;
-                        particle.style.opacity = '0';
-                        particle.style.transform = 'scale(0.2)';
-                    }, 30);
-
-                    // Remover partícula
-                    setTimeout(() => particle.remove(), 900);
-                }, i * 40); // Escalonar criação das partículas
+                    this.createSingleParticle(startX, startY, endX, endY, '#da70d6', '#9400d3', 6);
+                }, i * 60);
             }
+
+            setTimeout(() => {
+                projectile.style.left = `${endX}px`;
+                projectile.style.top = `${endY}px`;
+                projectile.style.transform = 'scale(1.3)';
+            }, 50);
+
+            setTimeout(() => {
+                projectile.style.opacity = '0';
+                projectile.style.transform = 'scale(0)';
+                setTimeout(() => projectile.remove(), 200);
+            }, 800);
+        }
+
+        // SCORE 7-8: Projétil forte - grande, com anel externo e trilha
+        createStrongProjectile(startX, startY, endX, endY, score) {
+            const size = 35 + (score - 7) * 5; // 35-40px
+
+            // Container para o projétil e o anel
+            const container = document.createElement('div');
+            container.style.cssText = `
+                position: fixed;
+                left: ${startX}px;
+                top: ${startY}px;
+                width: ${size}px;
+                height: ${size}px;
+                z-index: 100;
+                transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            `;
+
+            // Núcleo do projétil
+            const core = document.createElement('div');
+            core.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: ${size * 0.7}px;
+                height: ${size * 0.7}px;
+                background: radial-gradient(circle, #ff69b4 0%, #da70d6 50%, #9400d3 100%);
+                border-radius: 50%;
+                box-shadow: 0 0 30px #ff69b4, 0 0 50px #da70d6;
+            `;
+
+            // Anel externo girando
+            const ring = document.createElement('div');
+            ring.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: ${size}px;
+                height: ${size}px;
+                border: 3px solid #ff69b4;
+                border-top-color: transparent;
+                border-radius: 50%;
+                animation: projectileRingSpin 0.3s linear infinite;
+                box-shadow: 0 0 15px #ff69b4;
+            `;
+
+            // Adicionar keyframes se não existir
+            if (!document.getElementById('projectile-ring-style')) {
+                const style = document.createElement('style');
+                style.id = 'projectile-ring-style';
+                style.textContent = `
+                    @keyframes projectileRingSpin {
+                        from { transform: translate(-50%, -50%) rotate(0deg); }
+                        to { transform: translate(-50%, -50%) rotate(360deg); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            container.appendChild(ring);
+            container.appendChild(core);
+            document.body.appendChild(container);
+
+            // Trilha de partículas (6-8)
+            const particleCount = 4 + score;
+            for (let i = 0; i < particleCount; i++) {
+                setTimeout(() => {
+                    this.createSingleParticle(startX, startY, endX, endY, '#ff69b4', '#da70d6', 8 + Math.random() * 4);
+                }, i * 40);
+            }
+
+            setTimeout(() => {
+                container.style.left = `${endX}px`;
+                container.style.top = `${endY}px`;
+                container.style.transform = 'scale(1.5)';
+            }, 50);
+
+            setTimeout(() => {
+                container.style.opacity = '0';
+                setTimeout(() => container.remove(), 200);
+            }, 800);
+        }
+
+        // SCORE 9-10: Projétil ÉPICO - muito grande, múltiplos anéis, muitas partículas, pulsando
+        createEpicProjectile(startX, startY, endX, endY, score) {
+            const size = 50 + (score - 9) * 10; // 50-60px
+
+            // Container principal
+            const container = document.createElement('div');
+            container.style.cssText = `
+                position: fixed;
+                left: ${startX}px;
+                top: ${startY}px;
+                width: ${size}px;
+                height: ${size}px;
+                z-index: 100;
+                transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            `;
+
+            // Aura externa pulsando
+            const aura = document.createElement('div');
+            aura.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: ${size * 1.5}px;
+                height: ${size * 1.5}px;
+                background: radial-gradient(circle, rgba(255,20,147,0.4) 0%, transparent 70%);
+                border-radius: 50%;
+                animation: projectileAuraPulse 0.2s ease-in-out infinite alternate;
+            `;
+
+            // Anel externo girando (sentido horário)
+            const outerRing = document.createElement('div');
+            outerRing.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: ${size}px;
+                height: ${size}px;
+                border: 4px solid #ff1493;
+                border-top-color: transparent;
+                border-bottom-color: transparent;
+                border-radius: 50%;
+                animation: projectileRingSpin 0.25s linear infinite;
+                box-shadow: 0 0 20px #ff1493, 0 0 40px #ff69b4;
+            `;
+
+            // Anel interno girando (sentido anti-horário)
+            const innerRing = document.createElement('div');
+            innerRing.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: ${size * 0.7}px;
+                height: ${size * 0.7}px;
+                border: 3px solid #ffffff;
+                border-left-color: transparent;
+                border-right-color: transparent;
+                border-radius: 50%;
+                animation: projectileRingSpinReverse 0.2s linear infinite;
+                box-shadow: 0 0 15px #ffffff;
+            `;
+
+            // Núcleo brilhante com centro branco
+            const core = document.createElement('div');
+            core.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: ${size * 0.4}px;
+                height: ${size * 0.4}px;
+                background: radial-gradient(circle, #ffffff 0%, #ff69b4 40%, #ff1493 70%, #da70d6 100%);
+                border-radius: 50%;
+                box-shadow: 0 0 40px #ffffff, 0 0 60px #ff1493, 0 0 80px #da70d6;
+                animation: projectileCorePulse 0.15s ease-in-out infinite alternate;
+            `;
+
+            // Adicionar keyframes épicos se não existir
+            if (!document.getElementById('projectile-epic-style')) {
+                const style = document.createElement('style');
+                style.id = 'projectile-epic-style';
+                style.textContent = `
+                    @keyframes projectileRingSpinReverse {
+                        from { transform: translate(-50%, -50%) rotate(360deg); }
+                        to { transform: translate(-50%, -50%) rotate(0deg); }
+                    }
+                    @keyframes projectileAuraPulse {
+                        from { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+                        to { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+                    }
+                    @keyframes projectileCorePulse {
+                        from { transform: translate(-50%, -50%) scale(1); }
+                        to { transform: translate(-50%, -50%) scale(1.15); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            container.appendChild(aura);
+            container.appendChild(outerRing);
+            container.appendChild(innerRing);
+            container.appendChild(core);
+            document.body.appendChild(container);
+
+            // MUITAS partículas (12-15)
+            const particleCount = 10 + score;
+            for (let i = 0; i < particleCount; i++) {
+                setTimeout(() => {
+                    const colors = ['#ffffff', '#ff69b4', '#ff1493', '#da70d6'];
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    this.createSingleParticle(startX, startY, endX, endY, color, '#ff1493', 8 + Math.random() * 8);
+                }, i * 30);
+            }
+
+            // Criar explosão de partículas no início
+            for (let i = 0; i < 8; i++) {
+                const burstParticle = document.createElement('div');
+                const angle = (i / 8) * Math.PI * 2;
+                const distance = 30;
+                burstParticle.style.cssText = `
+                    position: fixed;
+                    left: ${startX}px;
+                    top: ${startY}px;
+                    width: 6px;
+                    height: 6px;
+                    background: #ffffff;
+                    border-radius: 50%;
+                    z-index: 99;
+                    box-shadow: 0 0 10px #ff69b4;
+                    transition: all 0.3s ease-out;
+                `;
+                document.body.appendChild(burstParticle);
+
+                setTimeout(() => {
+                    burstParticle.style.left = `${startX + Math.cos(angle) * distance}px`;
+                    burstParticle.style.top = `${startY + Math.sin(angle) * distance}px`;
+                    burstParticle.style.opacity = '0';
+                }, 10);
+
+                setTimeout(() => burstParticle.remove(), 350);
+            }
+
+            setTimeout(() => {
+                container.style.left = `${endX}px`;
+                container.style.top = `${endY}px`;
+                container.style.transform = 'scale(1.8)';
+            }, 50);
+
+            // Explosão no impacto
+            setTimeout(() => {
+                // Criar flash de impacto
+                const flash = document.createElement('div');
+                flash.style.cssText = `
+                    position: fixed;
+                    left: ${endX}px;
+                    top: ${endY}px;
+                    width: 100px;
+                    height: 100px;
+                    transform: translate(-50%, -50%);
+                    background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,20,147,0.5) 50%, transparent 70%);
+                    border-radius: 50%;
+                    z-index: 101;
+                    animation: impactFlash 0.3s ease-out forwards;
+                `;
+
+                if (!document.getElementById('impact-flash-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'impact-flash-style';
+                    style.textContent = `
+                        @keyframes impactFlash {
+                            from { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+                            to { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+
+                document.body.appendChild(flash);
+                setTimeout(() => flash.remove(), 350);
+
+                container.style.opacity = '0';
+                setTimeout(() => container.remove(), 200);
+            }, 750);
+        }
+
+        // Criar uma única partícula
+        createSingleParticle(startX, startY, endX, endY, coreColor, glowColor, size) {
+            const particle = document.createElement('div');
+            const offsetX = (Math.random() - 0.5) * 50;
+            const offsetY = (Math.random() - 0.5) * 50;
+
+            particle.style.cssText = `
+                position: fixed;
+                left: ${startX + offsetX}px;
+                top: ${startY + offsetY}px;
+                width: ${size}px;
+                height: ${size}px;
+                background: radial-gradient(circle, ${coreColor} 0%, ${glowColor} 100%);
+                border-radius: 50%;
+                z-index: 99;
+                box-shadow: 0 0 ${size}px ${glowColor};
+                transition: all ${0.5 + Math.random() * 0.3}s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                opacity: 0.9;
+            `;
+
+            document.body.appendChild(particle);
+
+            setTimeout(() => {
+                particle.style.left = `${endX + (Math.random() - 0.5) * 60}px`;
+                particle.style.top = `${endY + (Math.random() - 0.5) * 60}px`;
+                particle.style.opacity = '0';
+                particle.style.transform = 'scale(0.2)';
+            }, 30);
+
+            setTimeout(() => particle.remove(), 900);
         }
 
         // ===== FUNÇÃO PARA CRIAR BEAM VISUAL IMPRESSIONANTE =====
@@ -2764,19 +3018,23 @@ function performAttack(skill) {
         // Fase: Efeito à distância normal (para ranged_distant)
         executePhase_distant_effect_normal() {
             console.log("QC Fase: Distant Effect Normal");
-                       
+
             // Criar efeito à distância (raio do céu, etc.)
             this.createDistantEffect();
 
-            // Sons: attack primeiro, depois effect_1, depois effect_2 com delay
+            // Sons: attack primeiro, depois effect_1 com delay de 500ms
             playSound(this.currentSkill.sound_attack, 0.8);
-            playSound(this.currentSkill.sound_effect_1, 0.8);
-            
+
+            // Effect_1 (execution.mp3) toca 500ms depois para sincronizar com a animação
+            setTimeout(() => {
+                playSound(this.currentSkill.sound_effect_1, 0.8);
+            }, 500);
+
             // Effect_2 toca depois do effect_1
             setTimeout(() => {
                 playSound(this.currentSkill.sound_effect_2, 0.8);
-            }, 700);
-            
+            }, 1200);
+
             setTimeout(() => {
                 // ✅ APLICAR BOSS DAMAGE OVERLAY AQUI - momento do dano
                 this.applyBossDamageEffect();
@@ -3597,7 +3855,7 @@ function performAttack(skill) {
             let frameWidth = 111;
             let frameHeight = 186;
             let frameCount = 16;
-            let duration = 1.0; // duração padrão em segundos
+            let duration = 1.6; // duração padrão em segundos - tempo suficiente para completar
 
             if (match) {
                 frameWidth = parseInt(match[1]);
