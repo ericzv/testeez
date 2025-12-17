@@ -408,38 +408,48 @@ def load_enemy_templates():
 
     return _enemy_templates
 
-def get_enemy_template_by_progression(enemy_number):
+def get_enemy_template_by_act_and_position(act_number, node_y):
     """
-    Seleciona um template de inimigo baseado no progresso (enemy_number).
+    Seleciona um template de inimigo baseado no ATO e POSIÇÃO DO NÓ.
+
+    Cada ato tem 16 nodes (y = 0 a 15):
+    - Primeira metade (y = 0-7): grupo ímpar
+    - Segunda metade (y = 8-15): grupo par
 
     Mapeamento:
-    - enemy_number 1-16  → Grupo 0 (Ato 1 - 1ª Metade)
-    - enemy_number 17-33 → Grupo 1 (Ato 1 - 2ª Metade)
-    - enemy_number 34-50 → Grupo 2 (Ato 2 - 1ª Metade)
-    - enemy_number 51-66 → Grupo 3 (Ato 2 - 2ª Metade)
-    - enemy_number 67-83 → Grupo 4 (Ato 3 - 1ª Metade)
-    - enemy_number 84+   → Grupo 5 (Ato 3 - 2ª Metade)
+    - Ato 1, nodes 0-7:  → Grupo 1 (índice 0)
+    - Ato 1, nodes 8-15: → Grupo 2 (índice 1)
+    - Ato 2, nodes 0-7:  → Grupo 3 (índice 2)
+    - Ato 2, nodes 8-15: → Grupo 4 (índice 3)
+    - Ato 3, nodes 0-7:  → Grupo 5 (índice 4)
+    - Ato 3, nodes 8-15: → Grupo 6 (índice 5)
+
+    Args:
+        act_number: Número do ato (1, 2 ou 3)
+        node_y: Posição Y do nó no mapa (0-15)
+
+    Returns:
+        Template do inimigo selecionado aleatoriamente do grupo correto
     """
     load_enemy_templates()
 
-    # Mapear enemy_number para grupo
-    if enemy_number <= 16:
-        group_idx = 0
-    elif enemy_number <= 33:
-        group_idx = 1
-    elif enemy_number <= 50:
-        group_idx = 2
-    elif enemy_number <= 66:
-        group_idx = 3
-    elif enemy_number <= 83:
-        group_idx = 4
-    else:
-        group_idx = 5
+    # Determinar se está na primeira ou segunda metade do ato
+    is_second_half = node_y >= 8
+
+    # Calcular índice do grupo baseado no ato e metade
+    # Ato 1: grupos 0 e 1
+    # Ato 2: grupos 2 e 3
+    # Ato 3: grupos 4 e 5
+    base_group = (act_number - 1) * 2  # Ato 1 → 0, Ato 2 → 2, Ato 3 → 4
+    group_idx = base_group + (1 if is_second_half else 0)
+
+    # Garantir que não ultrapasse o grupo 5 (índice máximo para batalhas normais)
+    group_idx = min(group_idx, 5)
 
     group = _enemy_templates_by_group[group_idx]
 
     if not group:
-        print(f"⚠️ Grupo {group_idx} vazio! Usando grupo 0 como fallback")
+        print(f"⚠️ Grupo {group_idx + 1} vazio! Usando grupo 1 como fallback")
         group = _enemy_templates_by_group[0]
 
     if not group:
@@ -452,9 +462,100 @@ def get_enemy_template_by_progression(enemy_number):
     # Adicionar informação de grupo ao template para uso posterior
     template['group_index'] = group_idx
 
-    print(f"🎯 Enemy #{enemy_number} → Grupo {group_idx+1} → {template['name']} (tier {template['total_tier']}) [ALEATÓRIO]")
+    half_name = "2ª metade" if is_second_half else "1ª metade"
+    print(f"🎯 Ato {act_number}, Node Y={node_y} ({half_name}) → Grupo {group_idx + 1} → {template['name']} [ALEATÓRIO]")
 
     return template
+
+
+def get_enemy_template_excluding_names(act_number, node_y, excluded_names):
+    """
+    Seleciona um template de inimigo baseado no ATO e POSIÇÃO,
+    excluindo nomes já usados na run atual.
+
+    Args:
+        act_number: Número do ato (1, 2 ou 3)
+        node_y: Posição Y do nó no mapa (0-15)
+        excluded_names: Set de nomes de inimigos já usados na run
+
+    Returns:
+        Template do inimigo ou None se todos já foram usados
+    """
+    load_enemy_templates()
+
+    # Determinar se está na primeira ou segunda metade do ato
+    is_second_half = node_y >= 8
+
+    # Calcular índice do grupo
+    base_group = (act_number - 1) * 2
+    group_idx = base_group + (1 if is_second_half else 0)
+    group_idx = min(group_idx, 5)
+
+    group = _enemy_templates_by_group[group_idx]
+
+    if not group:
+        print(f"⚠️ Grupo {group_idx + 1} vazio!")
+        return None
+
+    # Filtrar templates que não foram usados
+    available_templates = [t for t in group if t['name'] not in excluded_names]
+
+    if available_templates:
+        template = random.choice(available_templates)
+        template['group_index'] = group_idx
+        half_name = "2ª metade" if is_second_half else "1ª metade"
+        print(f"🎯 Ato {act_number}, Node Y={node_y} ({half_name}) → Grupo {group_idx + 1} → {template['name']} [ANTI-REP: {len(available_templates)}/{len(group)} disponíveis]")
+        return template
+
+    # Todos os inimigos do grupo já foram usados
+    # Tentar grupos adjacentes (primeiro o próximo, depois o anterior)
+    adjacent_groups = []
+    if group_idx < 5:
+        adjacent_groups.append(group_idx + 1)
+    if group_idx > 0:
+        adjacent_groups.append(group_idx - 1)
+
+    for adj_idx in adjacent_groups:
+        adj_group = _enemy_templates_by_group[adj_idx]
+        available_in_adj = [t for t in adj_group if t['name'] not in excluded_names]
+        if available_in_adj:
+            template = random.choice(available_in_adj)
+            template['group_index'] = adj_idx
+            print(f"⚠️ Grupo {group_idx + 1} esgotado! Usando Grupo {adj_idx + 1} → {template['name']}")
+            return template
+
+    # Último recurso: permitir repetição do grupo original
+    print(f"⚠️ TODOS OS GRUPOS ESGOTADOS! Permitindo repetição no Grupo {group_idx + 1}")
+    template = random.choice(group)
+    template['group_index'] = group_idx
+    return template
+
+
+def get_used_enemy_names_in_run():
+    """
+    Retorna um set com todos os nomes de inimigos já usados na run atual.
+    Inclui inimigos derrotados e inimigos ainda disponíveis.
+    """
+    used_names = set()
+    all_enemies = GenericEnemy.query.all()
+    for enemy in all_enemies:
+        used_names.add(enemy.name)
+    return used_names
+
+
+def get_enemy_template_by_progression(enemy_number):
+    """
+    DEPRECATED: Use get_enemy_template_by_act_and_position() instead.
+
+    Mantido apenas para compatibilidade com código legado.
+    Assume Ato 1 e calcula posição aproximada.
+    """
+    # Converter enemy_number para posição aproximada (fallback)
+    # Isso é usado apenas pelo sistema legado de hub
+    node_y = min(15, (enemy_number - 1) % 16)
+    act_number = min(3, ((enemy_number - 1) // 16) + 1)
+
+    return get_enemy_template_by_act_and_position(act_number, node_y)
 
 def get_infernal_challenger_template(act_number=1):
     """
@@ -2469,8 +2570,21 @@ def ensure_minimum_enemies(progress, minimum=None):
     """
     Garante que sempre haja pelo menos N inimigos disponíveis.
     minimum: Se None, calcula automaticamente baseado em relíquias
+
+    A seleção do grupo é baseada em:
+    - ATO atual (1, 2 ou 3)
+    - Posição no mapa (node_y do nó atual, ou estimada pelo progresso)
+
+    Mapeamento de grupos:
+    - Ato 1, nodes 0-7:  Grupo 1
+    - Ato 1, nodes 8-15: Grupo 2
+    - Ato 2, nodes 0-7:  Grupo 3
+    - Ato 2, nodes 8-15: Grupo 4
+    - Ato 3, nodes 0-7:  Grupo 5
+    - Ato 3, nodes 8-15: Grupo 6
     """
     from models import Player, PlayerRelic
+    from models_map import PlayerMapProgress, MapNode
 
     # Se minimum não foi fornecido, calcular dinamicamente
     if minimum is None:
@@ -2478,32 +2592,53 @@ def ensure_minimum_enemies(progress, minimum=None):
 
     # LÓGICA NORMAL: Gerar inimigos genéricos
     available_count = GenericEnemy.query.filter_by(is_available=True).count()
-    
+
     if available_count >= minimum:
         return 0  # Já temos suficientes
-    
+
     needed = minimum - available_count
     generated = 0
-    
-    # Calcular próximo enemy_number baseado no progresso
-    next_enemy_number = progress.generic_enemies_defeated + 1
-    
-    # Obter temas disponíveis
-    themes = EnemyTheme.query.all()
-    if not themes:
-        print("❌ Nenhum tema de inimigo encontrado!")
-        return 0
-    
-    print(f"📊 Gerando {needed} inimigos (enemy_number: {next_enemy_number})")
-    print(f"🔍 DEBUG: Temas encontrados: {len(themes)}")
-    for theme in themes:
-        print(f"   - {theme.name}")
-    print(f"🔍 DEBUG: _theme_proportions = {_theme_proportions}")
-    
-    # 🔧 NOVO: Cache temporário para evitar repetições durante esta sessão de geração
-    temp_recent_equipment = set()
 
-    # Adicionar equipamentos dos últimos inimigos DISPONÍVEIS ao cache temporário
+    # ================================================================
+    # OBTER ATO ATUAL E POSIÇÃO DO NÓ
+    # ================================================================
+    map_progress = PlayerMapProgress.query.filter_by(player_id=progress.player_id).first()
+
+    if map_progress and map_progress.current_node_id:
+        # Se temos um nó atual, usar sua posição
+        current_node = MapNode.query.get(map_progress.current_node_id)
+        act_number = map_progress.current_act or 1
+        node_y = current_node.y if current_node else 0
+    elif map_progress:
+        # Se temos progresso no mapa mas não um nó específico
+        act_number = map_progress.current_act or 1
+        # Estimar posição baseado em batalhas vencidas (aproximado)
+        node_y = min(15, map_progress.battles_won)
+    else:
+        # Fallback: Ato 1, início
+        act_number = 1
+        node_y = 0
+
+    # enemy_number ainda é usado para tracking interno
+    next_enemy_number = progress.generic_enemies_defeated + 1
+
+    print(f"📊 Gerando {needed} inimigos (Ato {act_number}, Node Y={node_y})")
+
+    # ================================================================
+    # ANTI-REPETIÇÃO: Buscar TODOS os inimigos da run atual
+    # ================================================================
+    used_enemy_names = set()
+
+    # Buscar todos os inimigos já criados (disponíveis e não disponíveis)
+    all_run_enemies = GenericEnemy.query.all()
+
+    for enemy in all_run_enemies:
+        used_enemy_names.add(enemy.name)
+
+    print(f"🔧 Inimigos já usados ({len(used_enemy_names)}): {list(used_enemy_names)[:10]}...")
+
+    # Cache de equipamentos para evitar repetição visual
+    temp_recent_equipment = set()
     recent_available_enemies = GenericEnemy.query.filter_by(is_available=True).order_by(GenericEnemy.id.desc()).limit(3).all()
     for enemy in recent_available_enemies:
         if enemy.sprite_body:
@@ -2515,110 +2650,44 @@ def ensure_minimum_enemies(progress, minimum=None):
         if enemy.sprite_back:
             temp_recent_equipment.add(enemy.sprite_back)
 
-    print(f"🔧 Cache inicial populado com {len(temp_recent_equipment)} equipamentos dos inimigos disponíveis")
-    print(f"   Equipamentos no cache inicial: {list(temp_recent_equipment)}")
-    
-    # Obter último tema usado para evitar repetição
-    last_enemy = GenericEnemy.query.order_by(GenericEnemy.id.desc()).first()
-    last_theme_used = None
-    if last_enemy:
-        last_theme = EnemyTheme.query.get(last_enemy.theme_id)
-        last_theme_used = last_theme.name if last_theme else None
-    
-    # Gerar inimigos necessários com fallback inteligente
+    # Gerar inimigos usando templates fixos
     for i in range(needed):
-        max_theme_attempts = 5  # Máximo 5 tentativas de tema
-        enemy_created = False
-        
-        # Calcular raridade para este inimigo
-        enemy_rarity_chances = calculate_rarity_chances(next_enemy_number)
-        rand = random.random() * 100
-        cumulative = 0
-        current_rarity = 1
-        for r, chance in enemy_rarity_chances.items():
-            cumulative += chance
-            if rand <= cumulative:
-                current_rarity = r
-                break
-        
-        print(f"🎯 Inimigo #{i+1}: Raridade {current_rarity} sorteada")
-        
-        for attempt in range(max_theme_attempts):
-            # Filtrar temas proibidos para esta raridade
-            forbidden_themes = FORBIDDEN_THEMES_BY_RARITY.get(current_rarity, [])
-            allowed_theme_names = [theme.name for theme in themes if theme.name not in forbidden_themes]
-            
-            if not allowed_theme_names:
-                print(f"⚠️ Nenhum tema disponível para raridade {current_rarity}, usando fallback")
-                allowed_theme_names = [theme.name for theme in themes]  # Usar todos como fallback
-            
-            print(f"🎯 Tentativa {attempt + 1}/5: Raridade {current_rarity}")
-            print(f"   Temas proibidos: {forbidden_themes}")
-            print(f"   Temas permitidos: {allowed_theme_names}")
-            
-            # Escolher tema baseado nas proporções e anti-repetição
-            selected_theme_name = select_theme_by_proportion(last_theme_used, allowed_theme_names)
-            selected_theme = None
-            
-            # Encontrar o tema por nome
-            for theme in themes:
-                if theme.name == selected_theme_name:
-                    selected_theme = theme
-                    break
-            
-            if not selected_theme:
-                selected_theme = themes[i % len(themes)]
-                print(f"⚠️ Tema '{selected_theme_name}' não encontrado, usando fallback: {selected_theme.name}")
-            
-            try:
-                print(f"🎯 Gerando com tema: {selected_theme.name}")
-                
-                new_enemy = generate_enemy_by_theme(selected_theme.id, next_enemy_number, progress.player_id, temp_recent_equipment)
-                
-                if new_enemy:  # SUCESSO: Inimigo compatível criado
-                    generated += 1
-                    enemy_created = True
-                    print(f"   ✅ {new_enemy.name} (Tema: {selected_theme.name}, Raridade: {new_enemy.rarity})")
-                    
-                    # Adicionar equipamentos ao cache e atualizar tema usado
-                    if new_enemy.sprite_body:
-                        temp_recent_equipment.add(new_enemy.sprite_body)
-                    if new_enemy.sprite_head:
-                        temp_recent_equipment.add(new_enemy.sprite_head)
-                    if new_enemy.sprite_weapon:
-                        temp_recent_equipment.add(new_enemy.sprite_weapon)
-                    if new_enemy.sprite_back:
-                        temp_recent_equipment.add(new_enemy.sprite_back)
-                    
-                    last_theme_used = selected_theme.name
-                    break  # Sair do loop de tentativas de tema
-                    
-                else:  # FALHA: Tema incompatível com raridade
-                    print(f"   ❌ Tema {selected_theme.name} incompatível com raridade {current_rarity}")
-                    # Remover tema da lista para próxima tentativa
-                    if selected_theme.name in allowed_theme_names:
-                        allowed_theme_names.remove(selected_theme.name)
-                    
-            except Exception as e:
-                print(f"   ❌ Erro ao gerar inimigo com tema {selected_theme.name}: {str(e)}")
+        try:
+            # ================================================================
+            # SELECIONAR TEMPLATE COM ANTI-REPETIÇÃO INTEGRADA
+            # A função já exclui nomes usados e tenta grupos adjacentes se necessário
+            # ================================================================
+            template = get_enemy_template_excluding_names(act_number, node_y, used_enemy_names)
+
+            if not template:
+                print(f"❌ Nenhum template encontrado para Ato {act_number}, Node Y={node_y}")
                 continue
-        
-        if not enemy_created:
-            print(f"❌ FALHA TOTAL: Não foi possível criar inimigo compatível após {max_theme_attempts} tentativas de tema")
-            print(f"   Última raridade tentada: {current_rarity}")
-            print(f"   Tentando com raridade mais flexível...")
-            
-            # Fallback: tentar com raridade 2 (Raro) que tem mais opções
-            try:
-                fallback_theme = themes[0]  # Primeiro tema como fallback
-                new_enemy = generate_enemy_by_theme(fallback_theme.id, next_enemy_number, progress.player_id, temp_recent_equipment)
-                if new_enemy:
-                    generated += 1
-                    print(f"   🔄 FALLBACK: {new_enemy.name} criado com tema {fallback_theme.name}")
-                else:
-                    print(f"   ❌ Até o fallback falhou!")
-            except Exception as e:
-                print(f"   ❌ Erro no fallback: {str(e)}")
+
+            # Criar inimigo a partir do template (usa stats FIXOS)
+            new_enemy = create_enemy_from_template(template, next_enemy_number, progress.player_id)
+
+            if new_enemy:
+                generated += 1
+                used_enemy_names.add(new_enemy.name)  # Adicionar ao set para evitar repetição
+                print(f"   ✅ {new_enemy.name} (HP: {new_enemy.hp}, Dano: {new_enemy.damage}, Grupo: {template.get('group_index', 0) + 1})")
+
+                # Adicionar equipamentos ao cache
+                if new_enemy.sprite_body:
+                    temp_recent_equipment.add(new_enemy.sprite_body)
+                if new_enemy.sprite_head:
+                    temp_recent_equipment.add(new_enemy.sprite_head)
+                if new_enemy.sprite_weapon:
+                    temp_recent_equipment.add(new_enemy.sprite_weapon)
+                if new_enemy.sprite_back:
+                    temp_recent_equipment.add(new_enemy.sprite_back)
+            else:
+                print(f"   ❌ Falha ao criar inimigo a partir do template: {template['name']}")
+
+        except Exception as e:
+            print(f"   ❌ Erro ao gerar inimigo #{i+1}: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            continue
     
     if generated > 0:
         db.session.commit()

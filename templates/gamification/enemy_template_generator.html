@@ -50,6 +50,12 @@
             margin: 10px 0;
             scale: 2;
             right: -10%;
+            /* Outline aplicado ao container dos sprites */
+            filter: drop-shadow(0 0 0 black)
+                    drop-shadow(2px 0 0 black)
+                    drop-shadow(-2px 0 0 black)
+                    drop-shadow(0 1px 0 black)
+                    drop-shadow(0 -1px 0 black);
         }
 
         .sprite-layer {
@@ -61,6 +67,15 @@
             transform-origin: top left;
             background-size: auto 64px;
             animation: sprite-animation 0.8s steps(11) infinite;
+        }
+
+        /* Outline para sprites de inimigos */
+        .img-outline {
+            filter: drop-shadow(0 0 0 black)
+                    drop-shadow(2px 0 0 black)
+                    drop-shadow(-2px 0 0 black)
+                    drop-shadow(0 2px 0 black)
+                    drop-shadow(0 -2px 0 black);
         }
 
         @keyframes sprite-animation {
@@ -208,6 +223,12 @@
             width: 128px;
             height: 128px;
             margin: 10px 0;
+            /* Outline aplicado ao container dos sprites */
+            filter: drop-shadow(0 0 0 black)
+                    drop-shadow(2px 0 0 black)
+                    drop-shadow(-2px 0 0 black)
+                    drop-shadow(0 1px 0 black)
+                    drop-shadow(0 -1px 0 black);
         }
 
         .template-sprite-layer {

@@ -1114,10 +1114,17 @@
     transition: all 0.4s linear; /* Mesma duração da transição de tela */
     cursor: pointer;
     pointer-events: auto;
+    /* Outline preto no personagem */
+    filter: drop-shadow(0 0 0 black)
+            drop-shadow(1px 0 0 black)
+            drop-shadow(-1px 0 0 black)
+            drop-shadow(0 1px 0 black)
+            drop-shadow(0 -1px 0 black);
   }
-  
+
   .character-container:hover {
-    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
+    filter: drop-shadow(0 0 0 black) drop-shadow(1px 0 0 black) drop-shadow(-1px 0 0 black) drop-shadow(0 1px 0 black) drop-shadow(0 -1px 0 black)
+            drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
   }
 
   .boss-container {
@@ -1130,6 +1137,12 @@
     cursor: pointer !important;
     pointer-events: all !important;
     transition: all 0.4s linear !important;
+    /* Outline preto nos sprites de inimigos */
+    filter: drop-shadow(0 0 0 black)
+            drop-shadow(2px 0 0 black)
+            drop-shadow(-2px 0 0 black)
+            drop-shadow(0 1px 0 black)
+            drop-shadow(0 -1px 0 black);
   }
   
   /* Zoom view effects */
@@ -3693,7 +3706,8 @@
       /* bottom: 50%; */
       opacity: 1;
       z-index: 20; /* Mantém z-index */
-      filter: brightness(1.1) contrast(1.1) drop-shadow(-5px 10px 15px rgba(0, 0, 0, 0.6));
+      filter: drop-shadow(0 0 0 black) drop-shadow(2px 0 0 black) drop-shadow(-2px 0 0 black) drop-shadow(0 1px 0 black) drop-shadow(0 -1px 0 black)
+              brightness(1.1) contrast(1.1) drop-shadow(-5px 10px 15px rgba(0, 0, 0, 0.6));
       transition: transform 0.4s ease-out, opacity 0.4s ease-out, filter 0.4s ease-out;
   }
 
