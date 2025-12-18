@@ -4012,6 +4012,7 @@ function performAttack(skill) {
             const frameHeight = 69;
             const frameCount = 5;
             const duration = 0.4; // 5 frames em 0.4s = animação rápida de impacto
+            const scale = 2.5; // Escala maior para impacto mais visível
 
             const totalWidth = frameWidth * frameCount;
 
@@ -4028,13 +4029,15 @@ function performAttack(skill) {
             document.head.appendChild(styleEl);
 
             // Criar elemento da sprite animation
+            // Posicionamento igual ao execution: top 0, centralizado horizontal
             const spriteLayer = document.createElement('div');
             spriteLayer.className = 'boss-power-hit-layer';
             spriteLayer.style.cssText = `
                 position: absolute;
-                top: 50%;
+                top: 0;
                 left: 50%;
-                transform: translate(-50%, -50%);
+                transform: translateX(-50%) scale(${scale});
+                transform-origin: top center;
                 width: ${frameWidth}px;
                 height: ${frameHeight}px;
                 background-image: url("${imageUrl}");
@@ -4043,7 +4046,7 @@ function performAttack(skill) {
                 background-size: ${totalWidth}px ${frameHeight}px;
                 opacity: 1;
                 pointer-events: none;
-                z-index: 101;
+                z-index: 150;
                 image-rendering: pixelated;
                 animation: ${keyframeId} ${duration}s steps(${frameCount}) forwards;
             `;
