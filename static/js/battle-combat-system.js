@@ -2668,11 +2668,72 @@ function performAttack(skill) {
         }
 
         // ===== FUNÇÃO PARA CRIAR BEAM VISUAL OTIMIZADO =====
-        // Versão otimizada: sem blur, sem partículas, 2 camadas, CSS animations, GPU accelerated
+        // Versão otimizada com escalonamento visual baseado em blood_stacks
         createEnergyBeamVisual() {
             console.log("⚡ Criando beam otimizado");
 
             const config = BEAM_TYPES["dark_beam"]; // Vlad usa dark_beam
+
+            // ===== SISTEMA DE TIERS BASEADO EM BLOOD_STACKS =====
+            const bloodStacks = gameState?.boss?.bloodStacks || 5;
+            console.log(`🩸 Blood Stacks no momento da Suprema: ${bloodStacks}`);
+
+            // Determinar tier e configurações visuais
+            let tier, beamScale, impactScale, ringCount, flashIntensity, shakeIntensity;
+
+            if (bloodStacks >= 20) {
+                // Tier 5: DEVASTADOR (20+)
+                tier = 5;
+                beamScale = 2.0;
+                impactScale = 1.8;
+                ringCount = 6;
+                flashIntensity = 0.7;
+                shakeIntensity = 8;
+                console.log("💀 TIER 5: DEVASTADOR!");
+            } else if (bloodStacks >= 16) {
+                // Tier 4: Muito Forte (16-19)
+                tier = 4;
+                beamScale = 1.6;
+                impactScale = 1.5;
+                ringCount = 5;
+                flashIntensity = 0.55;
+                shakeIntensity = 5;
+                console.log("🔥 TIER 4: Muito Forte!");
+            } else if (bloodStacks >= 12) {
+                // Tier 3: Forte (12-15)
+                tier = 3;
+                beamScale = 1.45;
+                impactScale = 1.35;
+                ringCount = 4;
+                flashIntensity = 0.5;
+                shakeIntensity = 3;
+                console.log("⚡ TIER 3: Forte!");
+            } else if (bloodStacks >= 8) {
+                // Tier 2: Moderado (8-11)
+                tier = 2;
+                beamScale = 1.3;
+                impactScale = 1.2;
+                ringCount = 4;
+                flashIntensity = 0.45;
+                shakeIntensity = 2;
+                console.log("✨ TIER 2: Moderado");
+            } else {
+                // Tier 1: Normal (5-7)
+                tier = 1;
+                beamScale = 1.0;
+                impactScale = 1.0;
+                ringCount = 3;
+                flashIntensity = 0.4;
+                shakeIntensity = 0;
+                console.log("🔹 TIER 1: Normal");
+            }
+
+            // Dimensões base escaladas
+            const baseGlowHeight = 60 * beamScale;
+            const baseCoreHeight = 24 * beamScale;
+            const baseTravelHeight = 16 * beamScale;
+            const baseImpactSize = 160 * impactScale;
+            const baseChargeSize = 120 * beamScale;
 
             // Pegar posições atuais na tela
             const characterRect = character.getBoundingClientRect();
@@ -2705,14 +2766,14 @@ function performAttack(skill) {
             `;
             document.body.appendChild(screenFlash);
 
-            // ===== EFEITO DE CHARGE-UP NO PERSONAGEM =====
+            // ===== EFEITO DE CHARGE-UP NO PERSONAGEM (escalado) =====
             const chargeEffect = document.createElement('div');
             chargeEffect.style.cssText = `
                 position: fixed;
-                left: ${startX - 60}px;
-                top: ${startY - 60}px;
-                width: 120px;
-                height: 120px;
+                left: ${startX - baseChargeSize/2}px;
+                top: ${startY - baseChargeSize/2}px;
+                width: ${baseChargeSize}px;
+                height: ${baseChargeSize}px;
                 border-radius: 50%;
                 background: radial-gradient(circle,
                     ${config.bright} 0%,
@@ -2741,15 +2802,15 @@ function performAttack(skill) {
                 will-change: width, transform;
             `;
 
-            // Camada 1: Glow externo (bordas suaves)
+            // Camada 1: Glow externo (escalado)
             const outerGlow = document.createElement('div');
             outerGlow.style.cssText = `
                 position: absolute;
-                top: -30px;
+                top: -${baseGlowHeight/2}px;
                 left: 0;
                 width: 100%;
-                height: 60px;
-                border-radius: 30px;
+                height: ${baseGlowHeight}px;
+                border-radius: ${baseGlowHeight/2}px;
                 background: radial-gradient(ellipse 100% 100% at center,
                     ${config.core} 0%,
                     ${config.halo} 40%,
@@ -2758,33 +2819,33 @@ function performAttack(skill) {
                 will-change: opacity;
             `;
 
-            // Camada 2: Núcleo brilhante (bordas suaves)
+            // Camada 2: Núcleo brilhante (escalado)
             const beamCore = document.createElement('div');
             beamCore.style.cssText = `
                 position: absolute;
-                top: -12px;
+                top: -${baseCoreHeight/2}px;
                 left: 0;
                 width: 100%;
-                height: 24px;
-                border-radius: 12px;
+                height: ${baseCoreHeight}px;
+                border-radius: ${baseCoreHeight/2}px;
                 background: radial-gradient(ellipse 100% 100% at center,
                     #ffffff 0%,
                     ${config.bright} 30%,
                     ${config.core} 70%,
                     transparent 100%);
-                box-shadow: 0 0 20px ${config.core}, 0 0 40px ${config.bright};
+                box-shadow: 0 0 ${20 * beamScale}px ${config.core}, 0 0 ${40 * beamScale}px ${config.bright};
                 will-change: opacity, transform;
             `;
 
-            // Energia interna que "viaja" pelo beam (bordas suaves)
+            // Energia interna que "viaja" pelo beam (escalada)
             const travelingEnergy = document.createElement('div');
             travelingEnergy.style.cssText = `
                 position: absolute;
-                top: -8px;
+                top: -${baseTravelHeight/2}px;
                 left: 0;
-                width: 80px;
-                height: 16px;
-                border-radius: 8px;
+                width: ${80 * beamScale}px;
+                height: ${baseTravelHeight}px;
+                border-radius: ${baseTravelHeight/2}px;
                 background: radial-gradient(ellipse 100% 100% at center,
                     #ffffff 0%,
                     rgba(255,255,255,0.5) 50%,
@@ -2798,14 +2859,14 @@ function performAttack(skill) {
             beamContainer.appendChild(travelingEnergy);
             document.body.appendChild(beamContainer);
 
-            // ===== EFEITO DE IMPACTO NO BOSS =====
+            // ===== EFEITO DE IMPACTO NO BOSS (escalado) =====
             const impactEffect = document.createElement('div');
             impactEffect.style.cssText = `
                 position: fixed;
-                left: ${endX - 80}px;
-                top: ${endY - 80}px;
-                width: 160px;
-                height: 160px;
+                left: ${endX - baseImpactSize/2}px;
+                top: ${endY - baseImpactSize/2}px;
+                width: ${baseImpactSize}px;
+                height: ${baseImpactSize}px;
                 border-radius: 50%;
                 background: radial-gradient(circle,
                     #ffffff 0%,
@@ -2819,7 +2880,8 @@ function performAttack(skill) {
             `;
             document.body.appendChild(impactEffect);
 
-            // ===== ONDAS DE IMPACTO =====
+            // ===== ONDAS DE IMPACTO (quantidade baseada no tier) =====
+            const impactRings = [];
             const createImpactRing = (delay, size) => {
                 const ring = document.createElement('div');
                 ring.style.cssText = `
@@ -2828,7 +2890,7 @@ function performAttack(skill) {
                     top: ${endY - size/2}px;
                     width: ${size}px;
                     height: ${size}px;
-                    border: 3px solid ${config.core};
+                    border: ${3 * beamScale}px solid ${config.core};
                     border-radius: 50%;
                     opacity: 0;
                     z-index: 123;
@@ -2836,6 +2898,7 @@ function performAttack(skill) {
                     will-change: transform, opacity;
                 `;
                 document.body.appendChild(ring);
+                impactRings.push(ring);
 
                 setTimeout(() => {
                     ring.style.transition = 'transform 0.4s ease-out, opacity 0.4s ease-out';
@@ -2851,18 +2914,41 @@ function performAttack(skill) {
                 return ring;
             };
 
+            // ===== FUNÇÃO DE SCREEN SHAKE (para tiers altos) =====
+            const applyScreenShake = (intensity, duration) => {
+                if (intensity <= 0) return;
+
+                const battleContainer = document.querySelector('.battle-container') || document.body;
+                const originalTransform = battleContainer.style.transform || '';
+                let elapsed = 0;
+                const interval = 50;
+
+                const shakeInterval = setInterval(() => {
+                    elapsed += interval;
+                    if (elapsed >= duration) {
+                        clearInterval(shakeInterval);
+                        battleContainer.style.transform = originalTransform;
+                        return;
+                    }
+
+                    const x = (Math.random() - 0.5) * intensity;
+                    const y = (Math.random() - 0.5) * intensity;
+                    battleContainer.style.transform = `translate(${x}px, ${y}px)`;
+                }, interval);
+            };
+
             // ===== SEQUÊNCIA DE ANIMAÇÃO =====
 
             // Fase 1: Charge-up (0-600ms)
             chargeEffect.style.transition = 'opacity 0.3s ease-out, transform 0.6s ease-out';
             chargeEffect.style.opacity = '1';
-            chargeEffect.style.transform = 'scale(1.5)';
+            chargeEffect.style.transform = `scale(${1.5 * beamScale})`;
 
             // Fase 2: Flash + Beam dispara (600ms)
             setTimeout(() => {
-                // Flash na tela
+                // Flash na tela (intensidade baseada no tier)
                 screenFlash.style.transition = 'opacity 0.1s ease-out';
-                screenFlash.style.opacity = '0.4';
+                screenFlash.style.opacity = `${flashIntensity}`;
                 setTimeout(() => {
                     screenFlash.style.transition = 'opacity 0.3s ease-in';
                     screenFlash.style.opacity = '0';
@@ -2876,6 +2962,11 @@ function performAttack(skill) {
                 beamContainer.style.transition = 'width 0.15s ease-out';
                 beamContainer.style.width = `${distance}px`;
 
+                // Screen shake no disparo (se tier >= 2)
+                if (shakeIntensity > 0) {
+                    applyScreenShake(shakeIntensity, 800);
+                }
+
             }, 600);
 
             // Fase 3: Impacto no boss (750ms)
@@ -2883,16 +2974,17 @@ function performAttack(skill) {
                 // Efeito de impacto aparece
                 impactEffect.style.transition = 'opacity 0.1s ease-out, transform 0.3s ease-out';
                 impactEffect.style.opacity = '1';
-                impactEffect.style.transform = 'scale(1.2)';
+                impactEffect.style.transform = `scale(${1.2 * impactScale})`;
 
-                // Ondas de impacto
-                createImpactRing(0, 100);
-                createImpactRing(150, 140);
-                createImpactRing(300, 180);
+                // Ondas de impacto (quantidade baseada no tier)
+                const baseRingSize = 100 * impactScale;
+                for (let i = 0; i < ringCount; i++) {
+                    createImpactRing(i * 120, baseRingSize + (i * 40 * impactScale));
+                }
 
                 // Energia viajando pelo beam
                 travelingEnergy.style.opacity = '0.9';
-                travelingEnergy.style.animation = 'beamTravelEnergy 0.3s linear infinite';
+                travelingEnergy.style.animation = `beamTravelEnergy ${0.3 / beamScale}s linear infinite`;
 
                 // Aplicar efeito no boss
                 if (this.currentSkill && this.currentSkill.boss_damage_overlay) {
@@ -2907,7 +2999,7 @@ function performAttack(skill) {
 
             // Fase 4: Aplicar dano (1400ms)
             setTimeout(() => {
-                console.log("💥 Aplicando dano!");
+                console.log(`💥 Aplicando dano! (Tier ${tier}, ${bloodStacks} stacks)`);
                 this.applyDamageAndEffects();
                 this.damageAlreadyApplied = true;
             }, 1400);
@@ -2924,7 +3016,7 @@ function performAttack(skill) {
                 beamContainer.style.opacity = '0';
                 impactEffect.style.transition = 'opacity 0.3s ease-in, transform 0.3s ease-in';
                 impactEffect.style.opacity = '0';
-                impactEffect.style.transform = 'scale(2)';
+                impactEffect.style.transform = `scale(${2 * impactScale})`;
 
                 // Limpar elementos
                 setTimeout(() => {
