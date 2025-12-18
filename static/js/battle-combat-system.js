@@ -2185,18 +2185,18 @@ function performAttack(skill) {
                 if (isVladMelee) {
                     // Sons de gore-stab com timing correto:
                     // - gore-stab1x: 200ms após início da animação de ataque
-                    // - gore-stab2x: 100ms depois do gore-stab1x (300ms total)
+                    // - gore-stab2x: 500ms depois do gore-stab1x (700ms total)
                     setTimeout(() => {
                         const sfx1 = getRandomSound(VLAD_BASIC_ATTACK_SFX1);
                         playSound(sfx1, 0.8);
                         console.log(`🔊 Tocando som de ataque Vlad SFX1: ${sfx1}`);
 
-                        // Som 2: 100ms depois do sfx1
+                        // Som 2: 500ms depois do sfx1
                         setTimeout(() => {
                             const sfx2 = getRandomSound(VLAD_BASIC_ATTACK_SFX2);
                             playSound(sfx2, 0.8);
                             console.log(`🔊 Tocando som de ataque Vlad SFX2: ${sfx2}`);
-                        }, 100);
+                        }, 500);
                     }, 200);
                 } else {
                     playSound(this.currentSkill.sound_attack, 0.8);
@@ -2227,15 +2227,18 @@ function performAttack(skill) {
                 // Tocar sons do ataque - para Vlad skill 51 usar gore-stab aleatórios
                 const isVladMelee = (currentCharacter === 'Vlad' || currentCharacter === 'vlad') && this.currentSkill?.id === 51;
                 if (isVladMelee) {
-                    const sfx1 = getRandomSound(VLAD_BASIC_ATTACK_SFX1);
-                    playSound(sfx1, 0.8);
-                    console.log(`🔊 Tocando som de ataque Vlad SFX1 (fallback): ${sfx1}`);
-
+                    // 200ms delay, depois sfx1, depois 500ms, depois sfx2
                     setTimeout(() => {
-                        const sfx2 = getRandomSound(VLAD_BASIC_ATTACK_SFX2);
-                        playSound(sfx2, 0.8);
-                        console.log(`🔊 Tocando som de ataque Vlad SFX2 (fallback): ${sfx2}`);
-                    }, 50);
+                        const sfx1 = getRandomSound(VLAD_BASIC_ATTACK_SFX1);
+                        playSound(sfx1, 0.8);
+                        console.log(`🔊 Tocando som de ataque Vlad SFX1 (fallback): ${sfx1}`);
+
+                        setTimeout(() => {
+                            const sfx2 = getRandomSound(VLAD_BASIC_ATTACK_SFX2);
+                            playSound(sfx2, 0.8);
+                            console.log(`🔊 Tocando som de ataque Vlad SFX2 (fallback): ${sfx2}`);
+                        }, 500);
+                    }, 200);
                 } else {
                     playSound(this.currentSkill.sound_attack, 0.8);
                     playSound(this.currentSkill.sound_effect_1, 0.8);
