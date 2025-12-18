@@ -2183,17 +2183,21 @@ function performAttack(skill) {
                 // Tocar sons do ataque - para Vlad skill 51 usar gore-stab aleatórios
                 const isVladMelee = (currentCharacter === 'Vlad' || currentCharacter === 'vlad') && this.currentSkill?.id === 51;
                 if (isVladMelee) {
-                    // Som 1: escolher aleatoriamente da lista vlad_basic_attack_sfx1
-                    const sfx1 = getRandomSound(VLAD_BASIC_ATTACK_SFX1);
-                    playSound(sfx1, 0.8);
-                    console.log(`🔊 Tocando som de ataque Vlad SFX1: ${sfx1}`);
-
-                    // Som 2: 50ms depois, escolher aleatoriamente da lista vlad_basic_attack_sfx2
+                    // Sons de gore-stab com timing correto:
+                    // - gore-stab1x: 200ms após início da animação de ataque
+                    // - gore-stab2x: 100ms depois do gore-stab1x (300ms total)
                     setTimeout(() => {
-                        const sfx2 = getRandomSound(VLAD_BASIC_ATTACK_SFX2);
-                        playSound(sfx2, 0.8);
-                        console.log(`🔊 Tocando som de ataque Vlad SFX2: ${sfx2}`);
-                    }, 50);
+                        const sfx1 = getRandomSound(VLAD_BASIC_ATTACK_SFX1);
+                        playSound(sfx1, 0.8);
+                        console.log(`🔊 Tocando som de ataque Vlad SFX1: ${sfx1}`);
+
+                        // Som 2: 100ms depois do sfx1
+                        setTimeout(() => {
+                            const sfx2 = getRandomSound(VLAD_BASIC_ATTACK_SFX2);
+                            playSound(sfx2, 0.8);
+                            console.log(`🔊 Tocando som de ataque Vlad SFX2: ${sfx2}`);
+                        }, 100);
+                    }, 200);
                 } else {
                     playSound(this.currentSkill.sound_attack, 0.8);
                     playSound(this.currentSkill.sound_effect_1, 0.8);
