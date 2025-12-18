@@ -151,6 +151,71 @@ const BEAM_TYPES = {
 
 
 // ========================================
+// SISTEMA DE SONS ALEATÓRIOS PARA VLAD
+// ========================================
+
+// Sons de impacto do Power Attack (Energia Escura) - variam por score do skill test
+const VLAD_POWER_IMPACT_SOUNDS = {
+    weak: '/static/game.data/sounds/power-impact-1.mp3',      // Score 1-3
+    normal: '/static/game.data/sounds/power-impact-2.mp3',    // Score 4-6
+    strong: '/static/game.data/sounds/power-impact-3.mp3',    // Score 7-8
+    epic: '/static/game.data/sounds/power-impact-4.mp3'       // Score 9-10
+};
+
+// Sons de emissão do projétil (quando sai da mão do Vlad)
+const VLAD_POWER_EMISSION_SOUND = '/static/game.data/sounds/power-emission.mp3';
+
+// Sons de ataque básico melee do Vlad (Garras Sangrentas)
+const VLAD_BASIC_ATTACK_SFX1 = [
+    '/static/game.data/sounds/gore-stab1a.mp3',
+    '/static/game.data/sounds/gore-stab1b.mp3',
+    '/static/game.data/sounds/gore-stab1c.mp3',
+    '/static/game.data/sounds/gore-stab1d.mp3'
+];
+
+const VLAD_BASIC_ATTACK_SFX2 = [
+    '/static/game.data/sounds/gore-stab2a.mp3',
+    '/static/game.data/sounds/gore-stab2b.mp3',
+    '/static/game.data/sounds/gore-stab2c.mp3',
+    '/static/game.data/sounds/gore-stab2d.mp3',
+    '/static/game.data/sounds/gore-stab2e.mp3',
+    '/static/game.data/sounds/gore-stab2f.mp3',
+    '/static/game.data/sounds/gore-stab2g.mp3'
+];
+
+// Som de dash/corrida
+const VLAD_WIND_DASH_SOUND = '/static/game.data/sounds/wind-dash.mp3';
+
+// Sons de execução (Abraço da Escuridão) - variam aleatoriamente
+const VLAD_EXECUTION_ORDER_SOUNDS = [
+    '/static/game.data/sounds/execution-order1.mp3',
+    '/static/game.data/sounds/execution-order2.mp3',
+    '/static/game.data/sounds/execution-order3.mp3',
+    '/static/game.data/sounds/execution-order4.mp3',
+    '/static/game.data/sounds/execution-order5.mp3',
+    '/static/game.data/sounds/execution-order6.mp3',
+    '/static/game.data/sounds/execution-order7.mp3'
+];
+
+// Sons do Ultimate (Beijo da Morte)
+const VLAD_LASER_CHARGE_SOUND = '/static/game.data/sounds/laser-charge.mp3';
+const VLAD_LASER_BEAM_SOUND = '/static/game.data/sounds/laser-beam.mp3';
+
+// Função auxiliar para escolher som aleatório de uma lista
+function getRandomSound(soundList) {
+    if (!soundList || soundList.length === 0) return null;
+    return soundList[Math.floor(Math.random() * soundList.length)];
+}
+
+// Função para obter som de impacto baseado no score do skill test
+function getPowerImpactSound(score) {
+    if (score <= 3) return VLAD_POWER_IMPACT_SOUNDS.weak;
+    if (score <= 6) return VLAD_POWER_IMPACT_SOUNDS.normal;
+    if (score <= 8) return VLAD_POWER_IMPACT_SOUNDS.strong;
+    return VLAD_POWER_IMPACT_SOUNDS.epic;
+}
+
+// ========================================
 // MAPEAMENTO DE ANIMAÇÕES PARA VLAD
 // ========================================
 
@@ -1541,14 +1606,21 @@ function performAttack(skill) {
                 if (isProjectileSkill) {
                     setTimeout(() => {
                         console.log("🎯 Criando projétil no final da animação de mira");
-                        
-                        // Tocar sons do ataque
-                        playSound(this.currentSkill.sound_attack, 0.8);
-                        playSound(this.currentSkill.sound_effect_1, 0.8);
-                        
+
+                        // Tocar som de emissão do projétil (quando sai da mão)
+                        // Para Vlad skill 50 (Energia Escura): usar power-emission.mp3
+                        const isVladPowerAttack = (currentCharacter === 'Vlad' || currentCharacter === 'vlad') && this.currentSkill?.id === 50;
+                        if (isVladPowerAttack) {
+                            playSound(VLAD_POWER_EMISSION_SOUND, 0.8);
+                            console.log("🔊 Tocando som de emissão do poder do Vlad");
+                        } else {
+                            playSound(this.currentSkill.sound_attack, 0.8);
+                            playSound(this.currentSkill.sound_effect_1, 0.8);
+                        }
+
                         // Criar projétil
                         this.createTimedProjectile();
-                        
+
                     }, duration - 200);
                 }
 
@@ -1559,12 +1631,24 @@ function performAttack(skill) {
                     // Antecipar criação do beam em 1000ms
                     const beamStartTime = Math.max(0, duration - 1000);
 
+                    // Para Vlad skill 53 (Beijo da Morte): tocar laser-charge no início do carregamento
+                    const isVladUltimate = (currentCharacter === 'Vlad' || currentCharacter === 'vlad') && this.currentSkill?.id === 53;
+                    if (isVladUltimate) {
+                        playSound(VLAD_LASER_CHARGE_SOUND, 0.8);
+                        console.log("🔊 Tocando som de carregamento do laser do Vlad");
+                    }
+
                     setTimeout(() => {
                         console.log("🔥 Criando beam antecipado!");
 
-                        // Tocar sons do ataque
-                        playSound(this.currentSkill.sound_attack, 0.8);
-                        playSound(this.currentSkill.sound_effect_1, 0.8);
+                        // Tocar sons do ataque - para Vlad ultimate usar laser-beam
+                        if (isVladUltimate) {
+                            playSound(VLAD_LASER_BEAM_SOUND, 0.8);
+                            console.log("🔊 Tocando som do laser beam do Vlad");
+                        } else {
+                            playSound(this.currentSkill.sound_attack, 0.8);
+                            playSound(this.currentSkill.sound_effect_1, 0.8);
+                        }
 
                         // Criar beam visual
                         this.createEnergyBeamVisual();
@@ -1586,22 +1670,28 @@ function performAttack(skill) {
             } else {
                 // Fallback: usar melee_attack1 com transição direta
                 console.log("Fallback: usando melee_attack1 para aim_stance");
-                
+
                 // Transição direta para fallback também
                 applyCharacterAnimation('melee_attack1', 'aim-stance-fallback');
-                
+
                 // ===== APENAS PARA SKILLS DE PROJÉTIL =====
                 if (isProjectileSkill) {
                     setTimeout(() => {
                         console.log("🎯 Criando projétil no fallback");
-                        
-                        // Tocar sons do ataque
-                        playSound(this.currentSkill.sound_attack, 0.8);
-                        playSound(this.currentSkill.sound_effect_1, 0.8);
-                        
+
+                        // Tocar som de emissão - para Vlad skill 50 usar power-emission
+                        const isVladPowerAttack = (currentCharacter === 'Vlad' || currentCharacter === 'vlad') && this.currentSkill?.id === 50;
+                        if (isVladPowerAttack) {
+                            playSound(VLAD_POWER_EMISSION_SOUND, 0.8);
+                            console.log("🔊 Tocando som de emissão do poder do Vlad (fallback)");
+                        } else {
+                            playSound(this.currentSkill.sound_attack, 0.8);
+                            playSound(this.currentSkill.sound_effect_1, 0.8);
+                        }
+
                         // Criar projétil
                         this.createTimedProjectile();
-                        
+
                     }, 600);
                 }
 
@@ -1609,14 +1699,26 @@ function performAttack(skill) {
                 if (isBeamSkill) {
                     console.log("⚡ Preparando para beam no fallback (antecipado)");
 
+                    // Para Vlad skill 53: tocar laser-charge imediatamente
+                    const isVladUltimate = (currentCharacter === 'Vlad' || currentCharacter === 'vlad') && this.currentSkill?.id === 53;
+                    if (isVladUltimate) {
+                        playSound(VLAD_LASER_CHARGE_SOUND, 0.8);
+                        console.log("🔊 Tocando som de carregamento do laser do Vlad (fallback)");
+                    }
+
                     // Antecipar criação do beam em 1000ms (mas fallback tem 800ms de duração)
                     // Então criar imediatamente
                     setTimeout(() => {
                         console.log("🔥 Criando beam antecipado (fallback)!");
 
-                        // Tocar sons do ataque
-                        playSound(this.currentSkill.sound_attack, 0.8);
-                        playSound(this.currentSkill.sound_effect_1, 0.8);
+                        // Tocar sons do ataque - para Vlad ultimate usar laser-beam
+                        if (isVladUltimate) {
+                            playSound(VLAD_LASER_BEAM_SOUND, 0.8);
+                            console.log("🔊 Tocando som do laser beam do Vlad (fallback)");
+                        } else {
+                            playSound(this.currentSkill.sound_attack, 0.8);
+                            playSound(this.currentSkill.sound_effect_1, 0.8);
+                        }
 
                         // Criar beam visual
                         this.createEnergyBeamVisual();
@@ -1952,13 +2054,21 @@ function performAttack(skill) {
             // Definir variável CSS customizada
             character.style.setProperty('--movement-distance', movementDistance);
             console.log(`🎯 Distância de movimento definida: ${movementDistance} (${screenWidth}px de tela)`);
-            
+
+            // Para Vlad (skill 51 - Garras Sangrentas): tocar som de wind-dash ao começar a correr
+            const currentCharacter = getCurrentPlayerCharacter();
+            const isVladMelee = (currentCharacter === 'Vlad' || currentCharacter === 'vlad') && this.currentSkill?.id === 51;
+            if (isVladMelee) {
+                playSound(VLAD_WIND_DASH_SOUND, 0.8);
+                console.log("🔊 Tocando som de wind-dash do Vlad");
+            }
+
             // Liberar movimento do personagem mantendo boss posicionado
             window.visualStateManager.applyState('player_moving');
-            
+
             // Aplicar animação de corrida em loop
             applyCharacterAnimation('run', 'run-advance-anim');
-            
+
             // Aplicar movimento via classe CSS
             character.classList.add('moving-to-boss');
             
@@ -2070,13 +2180,28 @@ function performAttack(skill) {
                     console.log(`🎯 Ajuste de ataque: movendo +3vw para compensar centralização`);
                 }
 
-                // Tocar sons do ataque
-                playSound(this.currentSkill.sound_attack, 0.8);
-                playSound(this.currentSkill.sound_effect_1, 0.8);
+                // Tocar sons do ataque - para Vlad skill 51 usar gore-stab aleatórios
+                const isVladMelee = (currentCharacter === 'Vlad' || currentCharacter === 'vlad') && this.currentSkill?.id === 51;
+                if (isVladMelee) {
+                    // Som 1: escolher aleatoriamente da lista vlad_basic_attack_sfx1
+                    const sfx1 = getRandomSound(VLAD_BASIC_ATTACK_SFX1);
+                    playSound(sfx1, 0.8);
+                    console.log(`🔊 Tocando som de ataque Vlad SFX1: ${sfx1}`);
 
-                setTimeout(() => {
-                    playSound(this.currentSkill.sound_effect_2, 0.8);
-                }, 500);
+                    // Som 2: 50ms depois, escolher aleatoriamente da lista vlad_basic_attack_sfx2
+                    setTimeout(() => {
+                        const sfx2 = getRandomSound(VLAD_BASIC_ATTACK_SFX2);
+                        playSound(sfx2, 0.8);
+                        console.log(`🔊 Tocando som de ataque Vlad SFX2: ${sfx2}`);
+                    }, 50);
+                } else {
+                    playSound(this.currentSkill.sound_attack, 0.8);
+                    playSound(this.currentSkill.sound_effect_1, 0.8);
+
+                    setTimeout(() => {
+                        playSound(this.currentSkill.sound_effect_2, 0.8);
+                    }, 500);
+                }
 
                 // Aplicar efeito de dano no boss
                 this.applyBossDamageEffect();
@@ -2094,18 +2219,31 @@ function performAttack(skill) {
                 // Fallback
                 console.log("Fallback: usando animação padrão para melee_strike");
                 applyCharacterAnimation('melee_attack1', 'melee-strike-fallback');
-                
-                // Tocar sons do ataque
-                playSound(this.currentSkill.sound_attack, 0.8);
-                playSound(this.currentSkill.sound_effect_1, 0.8);
-                
-                setTimeout(() => {
-                    playSound(this.currentSkill.sound_effect_2, 0.8);
-                }, 500);
+
+                // Tocar sons do ataque - para Vlad skill 51 usar gore-stab aleatórios
+                const isVladMelee = (currentCharacter === 'Vlad' || currentCharacter === 'vlad') && this.currentSkill?.id === 51;
+                if (isVladMelee) {
+                    const sfx1 = getRandomSound(VLAD_BASIC_ATTACK_SFX1);
+                    playSound(sfx1, 0.8);
+                    console.log(`🔊 Tocando som de ataque Vlad SFX1 (fallback): ${sfx1}`);
+
+                    setTimeout(() => {
+                        const sfx2 = getRandomSound(VLAD_BASIC_ATTACK_SFX2);
+                        playSound(sfx2, 0.8);
+                        console.log(`🔊 Tocando som de ataque Vlad SFX2 (fallback): ${sfx2}`);
+                    }, 50);
+                } else {
+                    playSound(this.currentSkill.sound_attack, 0.8);
+                    playSound(this.currentSkill.sound_effect_1, 0.8);
+
+                    setTimeout(() => {
+                        playSound(this.currentSkill.sound_effect_2, 0.8);
+                    }, 500);
+                }
 
                 // Aplicar efeito de dano no boss
                 this.applyBossDamageEffect();
-                
+
                 this.nextPhase(1000);
             }
         }
@@ -2319,6 +2457,16 @@ function performAttack(skill) {
                 projectile.style.top = `${endY}px`;
             }, 50);
 
+            // Tocar som de impacto quando o projétil chega ao destino (700ms = transição)
+            setTimeout(() => {
+                const currentCharacter = getCurrentPlayerCharacter();
+                const isVlad = currentCharacter === 'Vlad' || currentCharacter === 'vlad';
+                if (isVlad) {
+                    playSound(getPowerImpactSound(score), 0.8);
+                    console.log(`🔊 Tocando som de impacto FRACO (score ${score})`);
+                }
+            }, 700);
+
             setTimeout(() => {
                 projectile.style.opacity = '0';
                 setTimeout(() => projectile.remove(), 200);
@@ -2357,6 +2505,16 @@ function performAttack(skill) {
                 projectile.style.top = `${endY}px`;
                 projectile.style.transform = 'scale(1.3)';
             }, 50);
+
+            // Tocar som de impacto quando o projétil chega ao destino
+            setTimeout(() => {
+                const currentCharacter = getCurrentPlayerCharacter();
+                const isVlad = currentCharacter === 'Vlad' || currentCharacter === 'vlad';
+                if (isVlad) {
+                    playSound(getPowerImpactSound(score), 0.8);
+                    console.log(`🔊 Tocando som de impacto NORMAL (score ${score})`);
+                }
+            }, 700);
 
             setTimeout(() => {
                 projectile.style.opacity = '0';
@@ -2441,6 +2599,16 @@ function performAttack(skill) {
                 container.style.top = `${endY}px`;
                 container.style.transform = 'scale(1.5)';
             }, 50);
+
+            // Tocar som de impacto quando o projétil chega ao destino
+            setTimeout(() => {
+                const currentCharacter = getCurrentPlayerCharacter();
+                const isVlad = currentCharacter === 'Vlad' || currentCharacter === 'vlad';
+                if (isVlad) {
+                    playSound(getPowerImpactSound(score), 0.8);
+                    console.log(`🔊 Tocando som de impacto FORTE (score ${score})`);
+                }
+            }, 700);
 
             setTimeout(() => {
                 container.style.opacity = '0';
@@ -2600,6 +2768,14 @@ function performAttack(skill) {
 
             // Explosão no impacto - ROXA
             setTimeout(() => {
+                // Tocar som de impacto ÉPICO
+                const currentCharacter = getCurrentPlayerCharacter();
+                const isVlad = currentCharacter === 'Vlad' || currentCharacter === 'vlad';
+                if (isVlad) {
+                    playSound(getPowerImpactSound(score), 0.9); // Volume um pouco maior para épico
+                    console.log(`🔊 Tocando som de impacto ÉPICO (score ${score})`);
+                }
+
                 // Criar flash de impacto
                 const flash = document.createElement('div');
                 flash.style.cssText = `
@@ -3227,8 +3403,15 @@ function performAttack(skill) {
                 console.log('✅ Animação special do Vlad aplicada');
             }
 
-            // Tocar som de preparação imediatamente
-            playSound(this.currentSkill.sound_prep_1, 0.8);
+            // Tocar som de preparação imediatamente - para Vlad skill 52 usar execution-order aleatório
+            const isVladExecution = this.currentSkill?.id === 52;
+            if (isVladExecution) {
+                const executionSound = getRandomSound(VLAD_EXECUTION_ORDER_SOUNDS);
+                playSound(executionSound, 0.8);
+                console.log(`🔊 Tocando som de execução aleatório: ${executionSound}`);
+            } else {
+                playSound(this.currentSkill.sound_prep_1, 0.8);
+            }
 
             // Tocar som de ataque imediatamente junto com prep
             playSound(this.currentSkill.sound_attack, 0.8);

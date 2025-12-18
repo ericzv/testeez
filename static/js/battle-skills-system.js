@@ -1069,7 +1069,7 @@ function useSpecialSkill(skillId, skillName) {
                             }
                         }
 
-                        applySpecialSkillVisualEffect(data.details.animation);
+                        applySpecialSkillVisualEffect(data.details.animation, skillId);
 
                         // APLICAR DANO APÓS ANIMAÇÃO (delay para view swap + som + efeito)
                         if (pendingDamageData) {
@@ -1164,7 +1164,7 @@ function useSpecialSkill(skillId, skillName) {
                             sound_effect_1: "/static/game.data/sounds/buff_activate.mp3",
                             sound_effect_2: ""
                         };
-                        applySpecialSkillVisualEffect(animationData);
+                        applySpecialSkillVisualEffect(animationData, skillId);
                     } else {
                         console.error("🎬 [VISUAL FX DEBUG] NENHUM dado de animação encontrado! data.details:", data.details);
                     }
@@ -1193,13 +1193,14 @@ function useSpecialSkill(skillId, skillName) {
 }
 
 // Aplicar efeito visual das habilidades especiais
-function applySpecialSkillVisualEffect(animationData) {
+function applySpecialSkillVisualEffect(animationData, skillId = null) {
     console.log("🎬 [VISUAL FX] Aplicando efeito visual com dados diretos da API:", animationData);
     console.log("🎬 [VISUAL FX] animation_activate_1:", animationData?.animation_activate_1);
     console.log("🎬 [VISUAL FX] animation_activate_2:", animationData?.animation_activate_2);
     console.log("🎬 [VISUAL FX] sound_prep_1:", animationData?.sound_prep_1);
     console.log("🎬 [VISUAL FX] sound_effect_1:", animationData?.sound_effect_1);
     console.log("🎬 [VISUAL FX] target:", animationData?.target || "player");
+    console.log("🎬 [VISUAL FX] skillId:", skillId);
 
     // Verificar se temos dados de animação
     if (!animationData) {
@@ -1245,35 +1246,52 @@ function applySpecialSkillVisualEffect(animationData) {
             targetElement = document.getElementById('boss');
         }
 
-        // PARTE 1: PROCESSAR SONS EXATAMENTE COMO VIERAM DA API
-        const delay = 500; // 500ms entre os sons
-    
-    // Tocar os sons em sequência
-    if (animationData.sound_prep_1) {
-        console.log("Tocando sound_prep_1:", animationData.sound_prep_1);
-        playSound(animationData.sound_prep_1, 0.8);
-    }
-    
-    if (animationData.sound_prep_2) {
-        setTimeout(() => {
-            console.log("Tocando sound_prep_2:", animationData.sound_prep_2);
-            playSound(animationData.sound_prep_2, 0.8);
-        }, delay);
-    }
-    
-    if (animationData.sound_effect_1) {
-        setTimeout(() => {
-            console.log("Tocando sound_effect_1:", animationData.sound_effect_1);
-            playSound(animationData.sound_effect_1, 0.8);
-        }, delay * 3);
-    }
-    
-    if (animationData.sound_effect_2) {
-        setTimeout(() => {
-            console.log("Tocando sound_effect_2:", animationData.sound_effect_2);
-            playSound(animationData.sound_effect_2, 0.8);
-        }, delay * 4);
-    }
+        // PARTE 1: PROCESSAR SONS COM DELAYS CUSTOMIZADOS POR SKILL
+        const baseDelay = 500; // delay base em ms
+
+        // Delays customizados por skill ID:
+        // - Autofagia (138): som imediato (0ms)
+        // - Lâmina de Sangue (139): 600ms
+        // - Barreira de Sangue (140): 1500ms (padrão)
+        // - Regeneração (141): 600ms
+        let soundEffect1Delay = baseDelay * 3; // 1500ms padrão
+        if (skillId === 138) {
+            soundEffect1Delay = 0; // Autofagia: som imediato
+            console.log("🔊 Autofagia detectada - som imediato (0ms)");
+        } else if (skillId === 139) {
+            soundEffect1Delay = 600; // Lâmina de Sangue: 600ms
+            console.log("🔊 Lâmina de Sangue detectada - som em 600ms");
+        } else if (skillId === 141) {
+            soundEffect1Delay = 600; // Regeneração: 600ms
+            console.log("🔊 Regeneração detectada - som em 600ms");
+        }
+
+        // Tocar os sons em sequência
+        if (animationData.sound_prep_1) {
+            console.log("Tocando sound_prep_1:", animationData.sound_prep_1);
+            playSound(animationData.sound_prep_1, 0.8);
+        }
+
+        if (animationData.sound_prep_2) {
+            setTimeout(() => {
+                console.log("Tocando sound_prep_2:", animationData.sound_prep_2);
+                playSound(animationData.sound_prep_2, 0.8);
+            }, baseDelay);
+        }
+
+        if (animationData.sound_effect_1) {
+            setTimeout(() => {
+                console.log("Tocando sound_effect_1:", animationData.sound_effect_1, "com delay:", soundEffect1Delay);
+                playSound(animationData.sound_effect_1, 0.8);
+            }, soundEffect1Delay);
+        }
+
+        if (animationData.sound_effect_2) {
+            setTimeout(() => {
+                console.log("Tocando sound_effect_2:", animationData.sound_effect_2);
+                playSound(animationData.sound_effect_2, 0.8);
+            }, baseDelay * 4);
+        }
     
     // PARTE 2: PROCESSAR ANIMAÇÕES VISUAIS COM SISTEMA HÍBRIDO
     const hasVisualEffect1 = animationData.animation_activate_1;
