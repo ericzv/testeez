@@ -4047,7 +4047,7 @@ function performAttack(skill) {
                 opacity: 1;
                 pointer-events: none;
                 z-index: 150;
-                image-rendering: pixelated;
+                image-rendering: auto;
                 animation: ${keyframeId} ${duration}s steps(${frameCount}) forwards;
             `;
 
