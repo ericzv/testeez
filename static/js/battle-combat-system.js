@@ -4006,6 +4006,9 @@ function performAttack(skill) {
                 return;
             }
 
+            // Pegar posição do boss na tela
+            const bossRect = boss.getBoundingClientRect();
+
             // Configuração do sprite: powerhiteffect-86x69-5f.png
             const imageUrl = '/static/game.data/fx/powerhiteffect-86x69-5f.png';
             const frameWidth = 86;
@@ -4015,6 +4018,7 @@ function performAttack(skill) {
             const scale = 2.5; // Escala maior para impacto mais visível
 
             const totalWidth = frameWidth * frameCount;
+            const scaledWidth = frameWidth * scale;
 
             // Criar keyframes dinamicamente
             const keyframeId = `power-hit-fx-${Date.now()}`;
@@ -4028,16 +4032,20 @@ function performAttack(skill) {
             `;
             document.head.appendChild(styleEl);
 
-            // Criar elemento da sprite animation
-            // Posicionamento igual ao execution: top 0, centralizado horizontal
+            // Posição centralizada sobre o boss (position: fixed no body)
+            const centerX = bossRect.left + bossRect.width / 2 - scaledWidth / 2;
+            const topY = bossRect.top;
+
+            // Criar elemento da sprite animation no BODY (não no boss)
+            // Isso garante z-index global acima de projéteis e outros efeitos
             const spriteLayer = document.createElement('div');
             spriteLayer.className = 'boss-power-hit-layer';
             spriteLayer.style.cssText = `
-                position: absolute;
-                top: 0;
-                left: 50%;
-                transform: translateX(-50%) scale(${scale});
-                transform-origin: top center;
+                position: fixed;
+                top: ${topY}px;
+                left: ${centerX}px;
+                transform: scale(${scale});
+                transform-origin: top left;
                 width: ${frameWidth}px;
                 height: ${frameHeight}px;
                 background-image: url("${imageUrl}");
@@ -4046,14 +4054,13 @@ function performAttack(skill) {
                 background-size: ${totalWidth}px ${frameHeight}px;
                 opacity: 1;
                 pointer-events: none;
-                z-index: 150;
+                z-index: 9999;
                 image-rendering: pixelated;
-                filter: none;
                 animation: ${keyframeId} ${duration}s steps(${frameCount}) forwards;
             `;
 
-            boss.appendChild(spriteLayer);
-            console.log(`✅ Power Hit Effect adicionado ao boss`);
+            document.body.appendChild(spriteLayer);
+            console.log(`✅ Power Hit Effect adicionado ao body (z-index: 9999)`);
 
             // Remover após animação
             setTimeout(() => {
