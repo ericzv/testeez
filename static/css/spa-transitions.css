@@ -1,0 +1,216 @@
+/* ============================================
+   SPA TRANSITIONS - Gamification Single Page
+   ============================================ */
+
+/* Container principal da SPA */
+.spa-container {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+/* Views da SPA (hub e battle) */
+.spa-view {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 100vh;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+    transform: scale(0.98);
+    z-index: 1;
+}
+
+.spa-view.active {
+    position: relative;
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+    z-index: 10;
+}
+
+.spa-view.exiting {
+    opacity: 0;
+    transform: scale(1.02);
+    z-index: 5;
+}
+
+/* Transições específicas por direção */
+.spa-view.entering-from-hub {
+    animation: slideFromRight 0.5s ease-out forwards;
+}
+
+.spa-view.exiting-to-battle {
+    animation: slideToLeft 0.5s ease-out forwards;
+}
+
+.spa-view.entering-from-battle {
+    animation: slideFromLeft 0.5s ease-out forwards;
+}
+
+.spa-view.exiting-to-hub {
+    animation: slideToRight 0.5s ease-out forwards;
+}
+
+@keyframes slideFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes slideToLeft {
+    from {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-50px) scale(0.98);
+    }
+}
+
+@keyframes slideFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes slideToRight {
+    from {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(50px) scale(0.98);
+    }
+}
+
+/* Loading overlay durante transições */
+.spa-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease;
+}
+
+.spa-loading-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.spa-loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #ffd700;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.spa-loading-text {
+    color: #ffd700;
+    font-family: 'Cinzel', serif;
+    font-size: 18px;
+    margin-top: 15px;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+/* Botão de voltar ao hub (na batalha) */
+.spa-back-button {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1500;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid rgba(255, 215, 0, 0.5);
+    color: #ffd700;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'Cinzel', serif;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.spa-back-button:hover {
+    background: rgba(255, 215, 0, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
+}
+
+.spa-back-button .arrow {
+    font-size: 18px;
+}
+
+/* Flash de transição */
+.spa-transition-flash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, rgba(0, 0, 0, 0) 70%);
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0;
+}
+
+.spa-transition-flash.active {
+    animation: flashPulse 0.5s ease-out;
+}
+
+@keyframes flashPulse {
+    0% { opacity: 0; }
+    30% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Otimizações de performance */
+.spa-view {
+    will-change: opacity, transform;
+    backface-visibility: hidden;
+}
+
+.spa-view:not(.active) {
+    pointer-events: none;
+}
+
+/* Esconder elementos do hub quando em battle e vice-versa */
+#hub-view:not(.active) #particles-js {
+    display: none !important;
+}
+
+#battle-view:not(.active) canvas {
+    display: none !important;
+}

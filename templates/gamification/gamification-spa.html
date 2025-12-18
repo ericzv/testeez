@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Retina Cards RPG</title>
+
+<!-- Preconnect -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<!-- Core CSS (carregado sempre) -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/hub.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/spa-transitions.css') }}">
+
+<!-- Battle CSS (preload para carregamento mais rápido) -->
+<link rel="preload" href="{{ url_for('static', filename='css/battle.css') }}" as="style">
+<link rel="preload" href="{{ url_for('static', filename='css/battle-turns.css') }}" as="style">
+
+<style>
+/* Base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #0a0a0f;
+    font-family: 'Cinzel', serif;
+}
+
+/* Gamification base */
+.gamification-page {
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f0f23 50%, #1a1a2e 100%);
+    min-height: 100vh;
+}
+</style>
+</head>
+
+<body class="gamification-page">
+
+<!-- SPA Container -->
+<div class="spa-container">
+
+    <!-- Loading Overlay -->
+    <div class="spa-loading-overlay" id="spa-loading-overlay">
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <div class="spa-loading-spinner"></div>
+            <div class="spa-loading-text">Carregando...</div>
+        </div>
+    </div>
+
+    <!-- Transition Flash -->
+    <div class="spa-transition-flash" id="spa-transition-flash"></div>
+
+    <!-- ============================================
+         HUB VIEW
+         ============================================ -->
+    <div class="spa-view active" id="hub-view">
+
+        <!-- Navegação -->
+        <a href="{{ url_for('cards.index') }}" class="nav-button">
+            <span>&#8592;</span>
+            Voltar ao Retina Cards
+        </a>
+
+        <!-- Particles Background -->
+        <div id="particles-js"></div>
+
+        <!-- HUD de Currencies -->
+        <div class="currencies-hud" id="currencies-hud">
+            <div class="currency-item">
+                <img src="{{ url_for('static', filename='game.data/crystal.png') }}" alt="Cristais" class="currency-icon">
+                <span class="currency-name">Cristais de Memória:</span>
+                <span class="currency-value" id="crystals-value">{{ player.crystals }}</span>
+            </div>
+            <div class="currency-item">
+                <img src="{{ url_for('static', filename='game.data/gold.png') }}" alt="Ouro" class="currency-icon">
+                <span class="currency-name">Ouro:</span>
+                <span class="currency-value" id="gold-value">{{ player.run_gold or 0 }}</span>
+            </div>
+            <div class="currency-item">
+                <img src="{{ url_for('static', filename='game.data/hourglass.png') }}" alt="Ampulhetas" class="currency-icon">
+                <span class="currency-name">Ampulhetas Eternas:</span>
+                <span class="currency-value" id="hourglasses-value">{{ player.eternal_hourglasses or 0 }}</span>
+            </div>
+        </div>
+
+        <!-- Active Run Buffs Section -->
+        <div class="run-buffs-hud" id="run-buffs-hud" style="display:none;">
+            <div class="run-buffs-title">
+                <img src="{{ url_for('static', filename='game.data/buffs/memory.png') }}" alt="Lembranças" style="width: 16px; height: 16px; margin-right: 5px;">
+                Lembranças Ativas
+            </div>
+            <div class="run-buffs-list" id="run-buffs-list"></div>
+        </div>
+
+        <!-- HUD de Relíquias -->
+        <div class="relics-bar" id="relics-bar" style="display:none;">
+            <div class="relics-bar-items" id="relics-bar-items"></div>
+        </div>
+
+        <!-- Menu Container -->
+        <div class="menu-container">
+            {% set menu = [
+                ('index', '📚', 'Flashcards'),
+                ('attributes', '✨', 'Atributos'),
+                ('game_inventory', '🎒', 'Inventário'),
+                ('items.shop', '🪙', 'Loja'),
+                ('bestiary', '📘', 'Bestiário'),
+                ('battle.battle', '⚔️', 'Batalha'),
+                ('game_profile', '🧙‍♂️', 'Perfil'),
+                ('battle.skills', '🔥', 'Habilidades'),
+                ('talents', '🌟', 'Talentos'),
+            ] %}
+
+            <a href="{{ url_for(menu[1][0]) }}" class="menu-btn btn-1">
+                <span class="menu-icon">{{ menu[1][1] }}</span>
+                <span class="menu-text">{{ menu[1][2] }}</span>
+            </a>
+
+            <a href="{{ url_for(menu[3][0]) }}" class="menu-btn btn-3">
+                <span class="menu-icon">{{ menu[3][1] }}</span>
+                <span class="menu-text">{{ menu[3][2] }}</span>
+            </a>
+
+            <!-- Botão de Batalha - SPA Navigation -->
+            <a href="#" class="menu-btn btn-5 battle-btn" onclick="SPANavigation.navigateToBattle(); return false;">
+                <span class="menu-icon">⚔️</span>
+                <span class="menu-text">Batalha</span>
+            </a>
+
+            <a href="{{ url_for(menu[6][0]) }}" class="menu-btn btn-6">
+                <span class="menu-icon">{{ menu[6][1] }}</span>
+                <span class="menu-text">{{ menu[6][2] }}</span>
+            </a>
+
+            <a href="{{ url_for(menu[7][0]) }}" class="menu-btn btn-7">
+                <span class="menu-icon">{{ menu[7][1] }}</span>
+                <span class="menu-text">{{ menu[7][2] }}</span>
+            </a>
+
+            <a href="{{ url_for('talents.talents') }}" class="menu-btn btn-8">
+                <span class="menu-icon">🌟</span>
+                <span class="menu-text">Talentos</span>
+            </a>
+
+            <!-- Botão do Mapa Procedural -->
+            <a href="#" onclick="openMapPopup(); return false;" class="menu-btn btn-9" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; padding: 20px 40px; border-radius: 15px; text-decoration: none; font-weight: bold; font-size: 20px; box-shadow: 0 0 30px rgba(255, 215, 0, 0.7); border: 3px solid #fff;">
+                <span class="menu-icon">🗺️</span>
+                <span class="menu-text">MAPA</span>
+            </a>
+
+            <!-- Notification Bell -->
+            <div class="notification-bell" id="notificationBell">
+                <span class="bell-icon">🔔</span>
+                <span class="notification-count" id="notificationCount">0</span>
+            </div>
+
+            <div class="notification-panel" id="notificationPanel">
+                <div class="notification-header">
+                    <h3>Notificações</h3>
+                    <button id="clearNotifications">Limpar Todas</button>
+                </div>
+                <div class="notification-list" id="notificationList"></div>
+            </div>
+        </div>
+
+        <!-- Incluir conteúdo dos popups do hub (memory, relic, map, etc) -->
+        {% include 'gamification/partials/hub-popups.html' ignore missing %}
+
+    </div>
+
+    <!-- ============================================
+         BATTLE VIEW
+         ============================================ -->
+    <div class="spa-view" id="battle-view">
+
+        <!-- Botão Voltar ao Hub (SPA) -->
+        <button class="spa-back-button" id="spa-back-to-hub" onclick="SPANavigation.navigateToHub()">
+            <span class="arrow">&#8592;</span>
+            <span>Hub</span>
+        </button>
+
+        <!-- Loading Screen da Batalha -->
+        <div class="loading-screen" id="loading-screen" style="display: none;">
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+                <div class="loading-text">Preparando para Batalha...</div>
+                <div id="progress-container" style="width: 60%; max-width: 400px; height: 20px; background: rgba(0, 0, 0, 0.5); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 10px; overflow: hidden;">
+                    <div id="progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #4CAF50, #8BC34A); transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Critical Flash Effect -->
+        <div id="critical-flash"></div>
+
+        <!-- Canvas Layers -->
+        <canvas id="attack-vignette-canvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1200; pointer-events: none; opacity: 0;"></canvas>
+        <canvas id="background-effects-canvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4;"></canvas>
+        <canvas id="foreground-effects-canvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100;"></canvas>
+
+        <!-- Main Battle Arena -->
+        <div class="battle-arena battle-area-dynamic battle-dynamic" id="battle-arena">
+
+            <!-- Energy Indicator -->
+            <div class="energy-indicator" id="energy-indicator" data-energy-percent="high">
+                <span class="energy-label">Energia</span>
+                <div class="energy-icon-container">
+                    <img src="/static/game.data/energy.png" alt="Energia" class="energy-icon">
+                </div>
+                <span class="energy-text" id="energy-text">10/10</span>
+            </div>
+
+            <!-- Background -->
+            <div class="background-container">
+                <div class="background-default" id="background-default"></div>
+                <div class="background-zoom" id="background-zoom"></div>
+                <div class="background-character" id="background-character"></div>
+            </div>
+
+            <!-- Parallax Layer -->
+            <div class="parallax-layer" id="layer1"></div>
+
+            <!-- Particle Layers -->
+            <div class="particles-container">
+                <div id="particles-layer1"></div>
+                <div id="particles-layer2"></div>
+                <div id="particles-layer3"></div>
+            </div>
+
+            <!-- Special Effects -->
+            <div class="initial-vignette" id="initial-vignette"></div>
+            <div class="vignette" id="vignette"></div>
+            <div class="horizontal-vignette" id="horizontal-vignette"></div>
+            <div class="attack-vignette" id="attack-vignette"></div>
+            <div class="spotlight" id="spotlight"></div>
+            <div class="white-pulse" id="white-pulse"></div>
+            <div class="enemy-attack-vignette" id="enemy-attack-vignette"></div>
+
+            <!-- Enemy Active Buffs -->
+            <div class="enemy-active-buffs" id="enemy-active-buffs"></div>
+
+            <!-- Defeat Overlay -->
+            <div class="defeat-overlay" id="defeat-overlay">
+                <div class="defeat-text">DERROTA!</div>
+            </div>
+
+            <!-- Battle Message -->
+            <div class="battle-message" id="battle-message">
+                Estude cartões de revisão para causar dano ao boss!
+            </div>
+
+            <!-- Character -->
+            <div class="character-container" id="character" data-character="{{ player.character_id or 'mago_teste' }}" data-animation="idle">
+                <div class="character-fx-layer fx-layer-behind" id="fx-layer-b"></div>
+                <div class="character-fx-layer fx-layer-front" id="fx-layer-a"></div>
+            </div>
+            <div id="player-character" style="display: none;">{{ player.character_id or 'Mago' }}</div>
+
+            <!-- Boss -->
+            <div class="boss-container" id="boss"></div>
+
+            <!-- HUDs -->
+            <div class="character-hud">
+                <div class="small-bar-container">
+                    <div class="small-hp-fill" id="small-player-hp-bar"></div>
+                    <div class="small-bar-label">
+                        <span id="small-player-hp-text">{{ player_hp or 100 }}/{{ player_max_hp or 100 }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="boss-hud">
+                <div class="small-bar-container">
+                    <div class="small-hp-fill" id="small-boss-hp-bar"></div>
+                    <div class="small-bar-label">
+                        <span id="small-boss-hp-text">{{ boss_hp or 500 }}/{{ boss_max_hp or 500 }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Menu -->
+            <div class="action-menu" id="action-menu">
+                <div class="menu-buttons">
+                    <button class="action-button" id="attack-button">Atacar</button>
+                    <button class="action-button" id="special-button">Especiais</button>
+                    <button class="action-button" id="inventory-button">Inventário</button>
+                </div>
+            </div>
+
+            <!-- Attack Submenu -->
+            <div class="submenu" id="attack-submenu">
+                <div class="submenu-content">
+                    <div id="attack-skills-menu"></div>
+                </div>
+            </div>
+
+            <!-- Special Abilities Submenu -->
+            <div class="submenu" id="special-submenu">
+                <div class="submenu-content">
+                    <div id="special-skills-menu"></div>
+                </div>
+            </div>
+
+            <!-- Inventory Submenu -->
+            <div class="submenu" id="inventory-submenu">
+                <div class="submenu-content">
+                    <div id="inventory-options" class="inventory-grid">
+                        <div class="potion-slot empty" data-slot="1" id="potion-slot-1">
+                            <div class="slot-icon-container"><div class="empty-slot-icon">?</div></div>
+                            <div class="slot-info">
+                                <div class="slot-name">Vazio</div>
+                                <div class="slot-quantity">0</div>
+                            </div>
+                        </div>
+                        <div class="potion-slot empty" data-slot="2" id="potion-slot-2">
+                            <div class="slot-icon-container"><div class="empty-slot-icon">?</div></div>
+                            <div class="slot-info">
+                                <div class="slot-name">Vazio</div>
+                                <div class="slot-quantity">0</div>
+                            </div>
+                        </div>
+                        <div class="potion-slot empty" data-slot="3" id="potion-slot-3">
+                            <div class="slot-icon-container"><div class="empty-slot-icon">?</div></div>
+                            <div class="slot-info">
+                                <div class="slot-name">Vazio</div>
+                                <div class="slot-quantity">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Boss Info Panel -->
+            <div class="boss-info-panel" id="boss-info-panel">
+                <div class="boss-name" id="boss-info-name">{{ boss_name or 'Inimigo' }}</div>
+                <div class="blood-stacks-container" id="blood-stacks-container" style="display: none;"></div>
+                <div class="boss-stat">
+                    <span>Vida:</span>
+                    <span id="boss-info-hp">{{ boss_hp or 100 }}/{{ boss_max_hp or 100 }}</span>
+                </div>
+                <div class="boss-stat">
+                    <span>Dano:</span>
+                    <span id="boss-info-damage">{{ boss_damage or 15 }}</span>
+                </div>
+                <div class="boss-quote" id="boss-info-quote">{{ boss_quote }}</div>
+            </div>
+
+            <div class="boss-view-background"></div>
+        </div>
+
+        <!-- Enemy Intentions Container -->
+        <div id="enemy-intentions-container" class="enemy-intentions-container">
+            <div class="intentions-header">⚔️ Ações do Inimigo</div>
+            <div id="intentions-icons" class="intentions-icons"></div>
+        </div>
+
+        <!-- End Turn Button -->
+        <button id="end-turn-btn" class="end-turn-btn">
+            <img src="/static/game.data/turn.png" alt="Turno" class="turn-icon-img">
+            <span class="turn-text">Terminar Turno</span>
+        </button>
+
+        <!-- Skill Test Modal -->
+        <div id="skill-test-modal" class="skill-test-modal">
+            <div class="skill-test-overlay"></div>
+            <div class="skill-test-content">
+                <div class="skill-test-gem-container">
+                    <img id="skill-test-gem" src="/static/game.data/skilltests/medium.png" alt="Difficulty" class="skill-test-gem">
+                    <div class="skill-test-tooltip">
+                        <div class="tooltip-instructions">Clique ou pressione Espaço/Enter</div>
+                        <div class="tooltip-legend">
+                            <div class="legend-title">Pontuação:</div>
+                            <span class="legend-item legend-miss">1: MISS</span>
+                            <span class="legend-item legend-weak">2-4: -50% a -30% dano</span>
+                            <span class="legend-item legend-below">5-6: -20% a -10% dano</span>
+                            <span class="legend-item legend-normal">7: Dano normal</span>
+                            <span class="legend-item legend-good">8: +10% dano</span>
+                            <span class="legend-item legend-great">9: +20% dano + 2 Barreira</span>
+                            <span class="legend-item legend-perfect">10: Crítico + 4 Barreira</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="skill-test-bar-container">
+                    <div id="skill-test-power-bar" class="skill-test-power-bar">
+                        {% for i in range(1, 11) %}
+                        <div class="skill-test-light-bar" data-value="{{ i }}"></div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Feedback -->
+        <div id="skill-test-result-display" class="skill-test-result-display" style="display: none;">
+            <img id="result-icon" src="/static/game.data/skilltests/result-normal.png" alt="Result" class="result-icon">
+            <div class="result-info">
+                <div id="result-name" class="result-name">NORMAL</div>
+                <div id="result-description" class="result-description">Dano normal</div>
+            </div>
+        </div>
+
+        <!-- Memory Selection Popup (Battle) -->
+        <div id="memory-selection-popup-battle" class="victory-popup" style="display: none;">
+            <div class="victory-content">
+                <div class="victory-header">
+                    <img src="{{ url_for('static', filename='game.data/buffs/memory.png') }}" alt="Lembranças" class="victory-icon">
+                    <h2>Escolha uma Lembrança</h2>
+                    <p>Selecione um dos buffs abaixo para sua run atual:</p>
+                </div>
+                <div class="memory-options" id="memory-options-container-battle"></div>
+                <div class="victory-actions">
+                    <button id="confirm-memory-btn-battle" class="btn btn-primary" disabled>Confirmar Seleção</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Hidden Data Elements -->
+<div style="display: none;">
+    <span id="player_hp">{{ player_hp or 100 }}</span>/<span id="player_max_hp">{{ player_max_hp or 100 }}</span>
+    <span id="session_points">{{ session_points or 0 }}</span>
+    <span id="boss_hp">{{ boss_hp or 500 }}</span>/<span id="boss_max_hp">{{ boss_max_hp or 500 }}</span>
+    <span id="player_strength">{{ player_strength or 0 }}</span>
+    <span id="player_damage_bonus">{{ player_damage_bonus or 0 }}</span>
+    <span id="player_luck">{{ player_luck or 0 }}</span>
+    <span id="player_crit_bonus">{{ player_crit_bonus or 0.05 }}</span>
+    <span id="player_resistance">{{ player_resistance or 0 }}</span>
+    <span id="player_block_bonus">{{ player_block_bonus or 0 }}</span>
+    <span id="player_damage_multiplier">{{ player_damage_multiplier or 1.0 }}</span>
+    <span id="player_dodge_chance">{{ player_dodge_chance or 0 }}</span>
+    <span id="player_class">{{ player_class or 'Nenhuma' }}</span>
+    <span id="player_subclass">{{ player_subclass or 'Nenhuma' }}</span>
+    <span id="player_talents">[]</span>
+</div>
+
+<div id="character-debug-info" style="display: none;">
+    <span id="current-character">{{ player.character_id or 'mago_teste' }}</span>
+    <span id="current-animation">idle</span>
+    <span id="character-skills">{{ (player_attack_skills or []) | tojson | safe }}</span>
+    <span id="character-specials">{{ (player_special_skills or []) | tojson | safe }}</span>
+</div>
+
+<!-- Core Scripts (sempre carregados) -->
+<script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
+<script src="{{ url_for('static', filename='js/register-sw.js') }}"></script>
+<script src="{{ url_for('static', filename='js/spa-navigation.js') }}"></script>
+
+<!-- Hub Scripts -->
+<script>
+// Inicialização do Hub
+document.addEventListener('DOMContentLoaded', function() {
+    // Particles
+    if (document.getElementById('particles-js')) {
+        particlesJS('particles-js', {
+            "particles": {
+                "number": { "value": 180 },
+                "color": { "value": ["#888888", "#aaaaaa", "#cccccc", "#999999", "#bbbbbb"] },
+                "shape": { "type": "circle" },
+                "opacity": {
+                    "value": 0.4,
+                    "random": true,
+                    "anim": { "enable": true, "speed": 1, "opacity_min": 0.1, "sync": false }
+                },
+                "size": {
+                    "value": 2,
+                    "random": true,
+                    "anim": { "enable": true, "speed": 2, "size_min": 0.5, "sync": false }
+                },
+                "line_linked": { "enable": false },
+                "move": {
+                    "enable": true,
+                    "speed": 0.3,
+                    "direction": "none",
+                    "random": true,
+                    "straight": false,
+                    "out_mode": "out",
+                    "bounce": false
+                }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": { "onhover": { "enable": false } },
+                "modes": {}
+            },
+            "retina_detect": true
+        });
+    }
+});
+
+// === SISTEMA DE SONS ===
+function playSound(audioPath, volume = 0.6) {
+    try {
+        const cacheBuster = `?v=${Date.now()}`;
+        const audio = new Audio(audioPath + cacheBuster);
+        audio.volume = volume;
+        audio.play().catch(err => console.warn("Som não pôde ser reproduzido:", audioPath, err));
+    } catch (e) {
+        console.error("Erro ao tocar som:", audioPath, e);
+    }
+}
+
+function playRewardPopupSound() { playSound("/static/game.data/sounds/rewardpopup.mp3", 0.7); }
+function playEnemySelectionSound() { playSound("/static/game.data/sounds/enemyselection.mp3", 0.8); }
+function playEnemySelectionCloseSound() { playSound("/static/game.data/sounds/enemyselectionclose.mp3", 0.5); }
+function playCoinGainSound() {
+    const variations = ['coin-use4.mp3', 'coin-use5.mp3', 'coin-use6.mp3', 'coin-use8.mp3'];
+    playSound(`/static/game.data/sounds/${variations[Math.floor(Math.random() * variations.length)]}`, 0.6);
+}
+function playCoinLossSound() {
+    const variations = ['coin-use1.mp3', 'coin-use2.mp3', 'coin-use3.mp3', 'coin-use9.mp3'];
+    playSound(`/static/game.data/sounds/${variations[Math.floor(Math.random() * variations.length)]}`, 0.6);
+}
+function playRelicOptionsSound() { playSound("/static/game.data/sounds/oh-options.mp3", 0.7); }
+let currentRelicHoverIndex = 1;
+function playRelicHoverSound() {
+    playSound(`/static/game.data/sounds/oh-hover${currentRelicHoverIndex}.mp3`, 0.25);
+    currentRelicHoverIndex = (currentRelicHoverIndex % 8) + 1;
+}
+function playRelicSelectionSound() { playSound("/static/game.data/sounds/oh-selection.mp3", 0.6); }
+function playRelicConfirmedSound() { playSound("/static/game.data/sounds/oh-confirmed.mp3", 0.7); }
+function playMemoryPopupOpeningSound() { playSound("/static/game.data/sounds/memory-reward-popup-openning.wav", 0.7); }
+function playMemoryHoverSound() { playSound("/static/game.data/sounds/memory-hover.mp3", 0.4); }
+function playMemoryRewardSelectionSound() { playSound("/static/game.data/sounds/memory-reward-popup-selection.wav", 0.8); }
+function playActionDenialSound() { playSound("/static/game.data/sounds/action-denial-sound.wav", 0.6); }
+function playStartRunBellSound() { playSound("/static/game.data/sounds/short-bell.mp3", 0.7); }
+function playMapSheetSound() {
+    const sounds = ['map-sheet1.mp3', 'map-sheet2.mp3', 'map-sheet3.mp3', 'map-sheet4.mp3', 'map-sheet5.mp3'];
+    playSound(`/static/game.data/sounds/${sounds[Math.floor(Math.random() * sounds.length)]}`, 0.5);
+}
+
+// === NOTIFICATIONS ===
+window.addNotification = function(message) {
+    let notifications = JSON.parse(localStorage.getItem('gameNotifications') || '[]');
+    const now = new Date();
+    const timestamp = now.toLocaleTimeString() + ' ' + now.toLocaleDateString();
+    notifications.unshift({ message, timestamp, read: false });
+    if (notifications.length > 50) notifications.pop();
+    localStorage.setItem('gameNotifications', JSON.stringify(notifications));
+
+    const count = document.getElementById('notificationCount');
+    if (count) {
+        const unread = notifications.filter(n => !n.read).length;
+        count.textContent = unread;
+        count.style.display = unread > 0 ? 'flex' : 'none';
+    }
+};
+
+// === CURRENCIES UPDATE ===
+async function updateCurrencyDisplay(skipDomUpdate = false) {
+    try {
+        const response = await fetch('/gamification/get_player_currencies');
+        const data = await response.json();
+        if (data.success && !skipDomUpdate) {
+            const crystalsEl = document.getElementById('crystals-value');
+            const goldEl = document.getElementById('gold-value');
+            const hourglassesEl = document.getElementById('hourglasses-value');
+            if (crystalsEl) crystalsEl.textContent = data.crystals;
+            if (goldEl) goldEl.textContent = data.gold;
+            if (hourglassesEl) hourglassesEl.textContent = data.hourglasses;
+        }
+        return data;
+    } catch (error) {
+        console.error('Erro ao atualizar currencies:', error);
+        return null;
+    }
+}
+
+// === BUFFS UPDATE ===
+async function updateActiveRunBuffs(skipDomUpdate = false) {
+    try {
+        const response = await fetch('/gamification/get_active_run_buffs');
+        const data = await response.json();
+        if (data.success && !skipDomUpdate) {
+            displayActiveRunBuffs(data.buffs);
+        }
+        return data;
+    } catch (error) {
+        console.error('Erro ao carregar buffs ativos:', error);
+        return null;
+    }
+}
+
+function displayActiveRunBuffs(buffs) {
+    const hud = document.getElementById('run-buffs-hud');
+    if (!hud) return;
+    if (!buffs || buffs.length === 0) {
+        hud.style.display = 'none';
+        hud.innerHTML = '';
+        return;
+    }
+    hud.style.display = 'flex';
+    hud.innerHTML = '';
+    buffs.forEach(buff => {
+        const item = document.createElement('div');
+        item.className = 'currency-item';
+        item.setAttribute('data-key', buff.name);
+        item.innerHTML = `
+            <img src="/static/game.data/buffs/${buff.icon}" alt="${buff.name}" class="currency-icon tooltip-trigger">
+            <span class="currency-value tooltip-trigger">${buff.display_value}</span>
+            <div class="custom-tooltip">
+                <div class="tooltip-name">${buff.name}${buff.count > 1 ? ` (${buff.count})` : ''}</div>
+                <div class="tooltip-description">${buff.description}</div>
+                <div class="tooltip-value">${buff.display_value}</div>
+            </div>
+        `;
+        hud.appendChild(item);
+    });
+}
+
+// === RELICS UPDATE ===
+async function updateActiveRelics(skipDomUpdate = false) {
+    try {
+        const response = await fetch('/gamification/get_player_relics');
+        const data = await response.json();
+        if (data.success && !skipDomUpdate) {
+            displayActiveRelics(data.relics);
+        }
+        return data;
+    } catch (error) {
+        console.error('Erro ao carregar relíquias ativas:', error);
+        return null;
+    }
+}
+
+function displayActiveRelics(relics) {
+    const bar = document.getElementById('relics-bar');
+    const items = document.getElementById('relics-bar-items');
+    if (!bar || !items) return;
+    if (!relics || relics.length === 0) {
+        bar.style.display = 'none';
+        items.innerHTML = '';
+        return;
+    }
+    bar.style.display = 'block';
+    items.innerHTML = '';
+    relics.forEach(relic => {
+        const rarityMap = { 'common': 'common', 'uncommon': 'rare', 'rare': 'rare', 'epic': 'epic', 'legendary': 'legendary' };
+        const normalizedRarity = rarityMap[relic.rarity] || 'common';
+        const item = document.createElement('div');
+        item.className = 'relic-bar-item';
+        item.setAttribute('data-rarity', normalizedRarity);
+        item.setAttribute('data-key', relic.name);
+        item.innerHTML = `
+            <img src="/static/game.data/relics/${relic.icon}" alt="${relic.name}" class="relic-bar-icon" onerror="this.src='/static/game.data/relics/placeholder.png'">
+            ${relic.counter_value && relic.counter_value > 0 ? `<div class="relic-bar-counter">${relic.counter_value}</div>` : ''}
+            <div class="relic-tooltip">
+                <div class="relic-tooltip-name">${relic.name}</div>
+                <div class="relic-tooltip-desc">${relic.description}</div>
+            </div>
+        `;
+        items.appendChild(item);
+    });
+}
+
+// Init on load
+document.addEventListener('DOMContentLoaded', function() {
+    updateActiveRunBuffs();
+    updateActiveRelics();
+});
+
+// === DIALOG UTILS ===
+function openDialog(el) {
+    const d = typeof el === 'string' ? document.querySelector(el) : el;
+    if (!d) return;
+    d.style.display = 'flex';
+    d.dataset.open = "1";
+}
+
+function closeDialog(el) {
+    const d = typeof el === 'string' ? document.querySelector(el) : el;
+    if (!d) return;
+    d.classList.add('ui-exit');
+    setTimeout(() => { d.style.display = 'none'; d.classList.remove('ui-exit'); }, 140);
+    d.dataset.open = "";
+}
+
+// === MAP POPUP (stub - full implementation in hub-popups.html) ===
+function openMapPopup() {
+    playMapSheetSound();
+    openDialog('#map-popup');
+    if (typeof loadMap === 'function') loadMap();
+}
+
+function closeMapPopup() {
+    closeDialog('#map-popup');
+}
+
+// Global data for battle
+window.gameData = {
+    characterId: '{{ player.character_id or "" }}',
+    attackSkills: {{ (player_attack_skills or []) | tojson | safe }},
+    specialSkills: {{ (player_special_skills or []) | tojson | safe }},
+    playerData: {
+        hp: {{ player_hp or 100 }},
+        maxHp: {{ player_max_hp or 100 }}
+    },
+    bossData: {
+        hp: {{ boss_hp or 500 }},
+        maxHp: {{ boss_max_hp or 500 }}
+    }
+};
+</script>
+
+<!-- Include hub popups if they exist as separate partial -->
+{% include 'gamification/partials/hub-map-popup.html' ignore missing %}
+
+</body>
+</html>

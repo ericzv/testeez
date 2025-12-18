@@ -1,0 +1,484 @@
+<!-- Pop-up do Mapa Procedural -->
+<div id="map-popup" class="ui-dialog" style="display:none">
+  <div class="ui-panel map-popup-panel" style="width: 90vw; height: 85vh; max-width: 1400px; padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+    <button class="close-popup-btn" onclick="closeMapPopup()" style="position: absolute; top: 15px; right: 15px; z-index: 1001;">✕</button>
+
+    <!-- Header do Mapa -->
+    <div style="background: rgba(0, 0, 0, 0.8); padding: 15px 20px; border-bottom: 2px solid rgba(255, 215, 0, 0.3); flex-shrink: 0;">
+      <h2 class="title" style="margin: 0;">Ato <span id="map-act-number">1</span> - Escolha seu Caminho</h2>
+    </div>
+
+    <!-- Container do Mapa com Scroll -->
+    <div id="map-scroll-container" style="flex: 1; overflow-y: auto; overflow-x: hidden; position: relative;">
+      <div id="map-canvas" style="position: relative; min-height: 100%; width: 100%;">
+        <div id="map-background" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('/static/game.data/map/map.png'); background-size: 100% auto; background-repeat: repeat-y; background-position: top center;"></div>
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.3); pointer-events: none;"></div>
+        <svg id="map-connections" style="position: absolute; top: 0; left: 0; width: 100%; pointer-events: none; z-index: 1;"></svg>
+        <div id="map-nodes" style="position: absolute; top: 0; left: 0; width: 100%; z-index: 2;"></div>
+        <div id="map-loading" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ffd700; font-size: 20px; z-index: 10;">
+          Carregando mapa...
+        </div>
+      </div>
+    </div>
+
+    <!-- Legenda -->
+    <div style="background: rgba(0, 0, 0, 0.8); padding: 10px 20px; display: flex; justify-content: center; gap: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1); flex-shrink: 0; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 6px; color: #e0e0e0; font-size: 11px;">
+        <img src="/static/game.data/map/map-generic.png" alt="Batalha" style="width: 20px; height: 20px;">
+        <span>Batalha</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; color: #e0e0e0; font-size: 11px;">
+        <img src="/static/game.data/map/map-challanger.png" alt="Elite" style="width: 20px; height: 20px;">
+        <span>Elite</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; color: #e0e0e0; font-size: 11px;">
+        <img src="/static/game.data/map/map-shop.png" alt="Shop" style="width: 20px; height: 20px;">
+        <span>Loja</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; color: #e0e0e0; font-size: 11px;">
+        <img src="/static/game.data/map/map-random.png" alt="Evento" style="width: 20px; height: 20px;">
+        <span>Evento</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; color: #e0e0e0; font-size: 11px;">
+        <img src="/static/game.data/map/map-rest.png" alt="Descanso" style="width: 20px; height: 20px;">
+        <span>Descanso</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; color: #e0e0e0; font-size: 11px;">
+        <img src="/static/game.data/map/map-lastboss.png" alt="Boss" style="width: 20px; height: 20px;">
+        <span>Boss</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tooltip do Mapa -->
+<div id="map-tooltip" style="position: fixed; background: rgba(0, 0, 0, 0.95); color: #fff; padding: 10px 15px; border-radius: 8px; font-size: 14px; pointer-events: none; display: none; z-index: 2000; border: 1px solid rgba(255, 215, 0, 0.3); box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);">
+  <div id="map-tooltip-name" style="color: #ffd700; font-weight: bold; margin-bottom: 5px;"></div>
+  <div id="map-tooltip-desc" style="color: #ccc; font-size: 12px;"></div>
+</div>
+
+<!-- Pop-up de Descanso -->
+<div id="rest-popup" class="ui-dialog" style="display:none">
+  <div class="ui-panel">
+    <h2 class="title">Área de Descanso</h2>
+    <button class="close-popup-btn" onclick="closeDialog('#rest-popup')">✕</button>
+  </div>
+</div>
+
+<script>
+// ===== SISTEMA DE MAPA PROCEDURAL =====
+let currentMapData = null;
+const nodeTypeInfo = {
+  'battle': { 'name': 'Batalha', 'image': '/static/game.data/map/map-generic.png', 'description': 'Enfrente um inimigo comum' },
+  'elite': { 'name': 'Desafiante Infernal', 'image': '/static/game.data/map/map-challanger.png', 'description': 'Batalha difícil com melhor recompensa' },
+  'shop': { 'name': 'Loja', 'image': '/static/game.data/map/map-shop.png', 'description': 'Compre itens e melhorias' },
+  'event': { 'name': 'Evento Aleatório', 'image': '/static/game.data/map/map-random.png', 'description': 'Um encontro misterioso' },
+  'rest': { 'name': 'Descanso', 'image': '/static/game.data/map/map-rest.png', 'description': 'Recupere HP e descanse' },
+  'boss': { 'name': 'Boss Final', 'image': '/static/game.data/map/map-lastboss.png', 'description': 'O guardião desta fase' }
+};
+
+let mapPresentedNodes = new Set();
+let mapLastCompletedNode = null;
+let mapLastNodeStates = null;
+
+// Carregar mapa
+async function loadMap() {
+  const loadingEl = document.getElementById('map-loading');
+  if (loadingEl) {
+    loadingEl.style.display = 'block';
+    loadingEl.textContent = 'Carregando mapa...';
+  }
+
+  try {
+    const response = await fetch('/map/api/current');
+    const data = await response.json();
+
+    if (data.success && data.map_data) {
+      currentMapData = data.map_data;
+      renderMapNodes(data.map_data);
+      document.getElementById('map-act-number').textContent = data.map_data.act_number || 1;
+      if (loadingEl) loadingEl.style.display = 'none';
+    } else {
+      if (loadingEl) loadingEl.textContent = 'Gerando novo mapa...';
+      await generateMap();
+    }
+  } catch (error) {
+    console.error('Erro ao carregar mapa:', error);
+    if (loadingEl) {
+      loadingEl.textContent = 'Erro ao carregar mapa. Clique para tentar novamente.';
+      loadingEl.style.cursor = 'pointer';
+      loadingEl.onclick = loadMap;
+    }
+  }
+}
+
+// Gerar novo mapa
+async function generateMap() {
+  const loadingEl = document.getElementById('map-loading');
+  try {
+    const response = await fetch('/map/api/generate', { method: 'POST' });
+    const data = await response.json();
+    if (data.success) {
+      currentMapData = data.map_data;
+      renderMapNodes(data.map_data);
+      document.getElementById('map-act-number').textContent = data.map_data.act_number || 1;
+      if (loadingEl) loadingEl.style.display = 'none';
+    } else {
+      throw new Error(data.error || 'Erro ao gerar mapa');
+    }
+  } catch (error) {
+    console.error('Erro:', error);
+    if (loadingEl) loadingEl.textContent = 'Erro: ' + error.message;
+  }
+}
+
+// Renderizar nós do mapa
+function renderMapNodes(mapData) {
+  const canvas = document.getElementById('map-canvas');
+  const container = document.getElementById('map-nodes');
+  const svgContainer = document.getElementById('map-connections');
+
+  container.innerHTML = '';
+  svgContainer.innerHTML = '';
+
+  const scrollContainer = document.getElementById('map-scroll-container');
+  const containerWidth = scrollContainer.clientWidth;
+
+  const paddingX = 100;
+  const paddingY = 120;
+  const nodeSpacingY = 120;
+
+  let maxX = 0, maxY = 0;
+  mapData.nodes.forEach(node => {
+    maxX = Math.max(maxX, node.x);
+    maxY = Math.max(maxY, node.y);
+  });
+
+  const usableWidth = containerWidth - (paddingX * 2);
+  const spacingX = usableWidth / (maxX || 1);
+  const totalHeight = paddingY * 2 + (maxY * nodeSpacingY);
+
+  canvas.style.height = totalHeight + 'px';
+  svgContainer.style.height = totalHeight + 'px';
+
+  const nodePositions = {};
+  const nodesByCoord = {};
+
+  mapData.nodes.forEach(node => {
+    nodesByCoord[`${node.x},${node.y}`] = node;
+  });
+
+  const getVariation = (id, multiplier = 1) => {
+    const hash = ((id * 2654435761) % 21) - 10;
+    return hash * multiplier;
+  };
+
+  // Criar nós
+  mapData.nodes.forEach(node => {
+    const baseX = paddingX + (node.x * spacingX);
+    const baseY = paddingY + ((maxY - node.y) * nodeSpacingY);
+    const varX = getVariation(node.id, 2.5);
+    const varY = getVariation(node.id * 7, 2.5);
+    const posX = baseX + varX;
+    const posY = baseY + varY;
+
+    nodePositions[node.id] = { x: posX, y: posY };
+
+    const nodeEl = document.createElement('div');
+    nodeEl.style.cssText = `
+      position: absolute;
+      width: 75px;
+      height: 75px;
+      left: ${posX - 37.5}px;
+      top: ${posY - 37.5}px;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: transform 0.2s ease, filter 0.2s ease;
+    `;
+    nodeEl.dataset.nodeId = node.id;
+
+    // Estado visual
+    if (node.is_current) {
+      nodeEl.style.animation = 'mapNodePulse 0.8s infinite';
+      nodeEl.style.filter = 'drop-shadow(0 0 20px rgba(255, 215, 0, 1)) brightness(1.3)';
+    } else if (node.is_available) {
+      nodeEl.style.animation = 'mapNodeAvailable 2s infinite';
+      nodeEl.style.filter = 'brightness(1.3) drop-shadow(0 0 15px rgba(255, 50, 50, 0.9))';
+    } else if (node.is_visited) {
+      nodeEl.style.opacity = '0.7';
+      nodeEl.style.cursor = 'default';
+      nodeEl.style.filter = 'brightness(0.5) saturate(0.4)';
+    } else {
+      nodeEl.style.opacity = '0.45';
+      nodeEl.style.cursor = 'not-allowed';
+      nodeEl.style.filter = 'grayscale(100%) brightness(0.4)';
+    }
+
+    // Imagem
+    const img = document.createElement('img');
+    const typeInfo = nodeTypeInfo[node.node_type] || nodeTypeInfo['battle'];
+    img.src = typeInfo.image;
+    img.loading = 'lazy';
+    img.style.cssText = 'width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.8));';
+    nodeEl.appendChild(img);
+
+    // Eventos
+    const isClickable = (node.is_available && !node.is_visited) || (node.is_current && !node.is_completed);
+    if (isClickable) {
+      nodeEl.addEventListener('click', () => {
+        playSound('/static/game.data/sounds/map-node-selection1.mp3', 0.6);
+        nodeEl.style.animation = 'mapNodeSelection 0.5s ease-out';
+        setTimeout(() => {
+          if (node.is_current) {
+            handleCurrentNodeClick(node);
+          } else {
+            handleMapNodeClick(node);
+          }
+        }, 500);
+      });
+      nodeEl.addEventListener('mouseenter', () => {
+        nodeEl.style.transform = 'scale(1.25)';
+      });
+      nodeEl.addEventListener('mouseleave', () => {
+        nodeEl.style.transform = 'scale(1)';
+      });
+    }
+
+    // Tooltip
+    nodeEl.addEventListener('mouseenter', (e) => showMapTooltip(e, node));
+    nodeEl.addEventListener('mousemove', moveMapTooltip);
+    nodeEl.addEventListener('mouseleave', hideMapTooltip);
+
+    container.appendChild(nodeEl);
+  });
+
+  // Desenhar conexões
+  mapData.nodes.forEach(node => {
+    if (node.connections_up && nodePositions[node.id]) {
+      node.connections_up.forEach(targetCoord => {
+        const targetKey = `${targetCoord[0]},${targetCoord[1]}`;
+        const targetNode = nodesByCoord[targetKey];
+        if (targetNode && nodePositions[targetNode.id]) {
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', nodePositions[node.id].x);
+          line.setAttribute('y1', nodePositions[node.id].y);
+          line.setAttribute('x2', nodePositions[targetNode.id].x);
+          line.setAttribute('y2', nodePositions[targetNode.id].y);
+          line.setAttribute('stroke', 'rgba(255, 215, 0, 0.4)');
+          line.setAttribute('stroke-width', '3');
+          svgContainer.appendChild(line);
+        }
+      });
+    }
+  });
+
+  // Scroll para nó atual
+  setTimeout(() => {
+    const currentNode = mapData.nodes.find(n => n.is_current);
+    if (currentNode && nodePositions[currentNode.id]) {
+      const nodeY = nodePositions[currentNode.id].y;
+      const containerHeight = scrollContainer.clientHeight;
+      scrollContainer.scrollTop = Math.max(0, nodeY - (containerHeight / 2));
+    } else {
+      scrollContainer.scrollTop = scrollContainer.scrollHeight;
+    }
+  }, 100);
+}
+
+// Handler nó atual
+async function handleCurrentNodeClick(node) {
+  closeMapPopup();
+  const hasBattleActive = await checkActiveBattle();
+
+  switch (node.node_type) {
+    case 'battle':
+      if (hasBattleActive) {
+        // SPA: navegar para batalha
+        if (typeof SPANavigation !== 'undefined') {
+          SPANavigation.navigateToBattle();
+        } else {
+          window.location.href = '/gamification/battle';
+        }
+      } else {
+        window.location.href = '/map/battle/start';
+      }
+      break;
+    case 'elite':
+      window.location.href = `/map/battle/elite/${node.boss_id || 2}`;
+      break;
+    case 'boss':
+      window.location.href = `/map/battle/boss/${node.boss_id || 1}`;
+      break;
+    case 'shop':
+      window.location.href = '/map/shop';
+      break;
+    case 'event':
+      window.location.href = '/map/event';
+      break;
+    case 'rest':
+      openRestArea();
+      break;
+  }
+}
+
+// Verificar batalha ativa
+async function checkActiveBattle() {
+  try {
+    const response = await fetch('/gamification/check_battle_status');
+    const data = await response.json();
+    return data.has_active_battle || false;
+  } catch (error) {
+    return false;
+  }
+}
+
+// Handler clique no nó
+async function handleMapNodeClick(node) {
+  // Marcar nó atual como completado antes de avançar
+  if (currentMapData && currentMapData.progress && currentMapData.progress.current_node_id) {
+    const currentNode = currentMapData.nodes.find(n => n.id === currentMapData.progress.current_node_id);
+    if (currentNode && ['shop', 'event', 'rest'].includes(currentNode.node_type)) {
+      try {
+        await fetch('/map/api/complete-node', { method: 'POST' });
+        currentNode.is_completed = true;
+      } catch (error) {
+        console.log("Erro ao marcar nó como completado");
+      }
+    }
+  }
+
+  // Selecionar nó no backend
+  try {
+    const response = await fetch(`/map/api/select-node/${node.id}`, { method: 'POST' });
+    const data = await response.json();
+    if (!data.success) {
+      alert(data.error || 'Erro ao selecionar nó');
+      return;
+    }
+    if (currentMapData) {
+      currentMapData.progress = currentMapData.progress || {};
+      currentMapData.progress.current_node_id = node.id;
+      currentMapData.nodes.forEach(n => {
+        n.is_current = (n.id === node.id);
+        if (n.id === node.id) {
+          n.is_visited = true;
+          n.is_available = false;
+          n.is_completed = false;
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Erro:', error);
+    alert('Erro de conexão');
+    return;
+  }
+
+  closeMapPopup();
+
+  // Ação baseada no tipo
+  switch (node.node_type) {
+    case 'battle':
+      window.location.href = '/map/battle/start';
+      break;
+    case 'elite':
+      window.location.href = `/map/battle/elite/${node.boss_id || 2}`;
+      break;
+    case 'boss':
+      window.location.href = `/map/battle/boss/${node.boss_id || 1}`;
+      break;
+    case 'shop':
+      window.location.href = '/map/shop';
+      break;
+    case 'event':
+      window.location.href = '/map/event';
+      break;
+    case 'rest':
+      openRestArea();
+      break;
+  }
+}
+
+// Área de descanso
+function openRestArea() {
+  const restPopup = document.getElementById('rest-popup');
+  const panel = restPopup.querySelector('.ui-panel');
+  panel.innerHTML = `
+    <h2 class="title">Área de Descanso</h2>
+    <button class="close-popup-btn" onclick="closeDialog('#rest-popup')">✕</button>
+    <div style="color: #e0e0e0; text-align: center; padding: 20px;">
+      <span style="font-size: 60px; display: block; margin-bottom: 20px;">🏕️</span>
+      <p style="font-size: 18px; margin-bottom: 30px;">Você encontrou um local seguro para descansar.</p>
+      <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+        <button onclick="restAndHeal()" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-size: 16px;">
+          <div style="font-size: 30px; margin-bottom: 5px;">❤️</div>
+          <div style="font-weight: bold;">Descansar</div>
+          <div style="font-size: 12px; opacity: 0.8;">Recupera 30% do HP</div>
+        </button>
+      </div>
+    </div>
+  `;
+  openDialog('#rest-popup');
+}
+
+// Descansar e curar
+async function restAndHeal() {
+  try {
+    const response = await fetch('/map/api/rest/heal', { method: 'POST' });
+    const data = await response.json();
+    if (data.success) {
+      alert(`Você descansou e recuperou ${data.healed} HP! (${data.new_hp}/${data.max_hp})`);
+      closeDialog('#rest-popup');
+    } else {
+      alert(data.error || 'Erro ao descansar');
+    }
+  } catch (error) {
+    alert('Erro de conexão');
+  }
+}
+
+// Tooltip
+function showMapTooltip(e, node) {
+  const tooltip = document.getElementById('map-tooltip');
+  const typeInfo = nodeTypeInfo[node.node_type] || {};
+  document.getElementById('map-tooltip-name').textContent = typeInfo.name || node.node_type;
+  document.getElementById('map-tooltip-desc').textContent = typeInfo.description || '';
+  tooltip.style.display = 'block';
+  moveMapTooltip(e);
+}
+
+function moveMapTooltip(e) {
+  const tooltip = document.getElementById('map-tooltip');
+  tooltip.style.left = (e.clientX + 15) + 'px';
+  tooltip.style.top = (e.clientY + 15) + 'px';
+}
+
+function hideMapTooltip() {
+  document.getElementById('map-tooltip').style.display = 'none';
+}
+</script>
+
+<style>
+/* Animações do mapa */
+@keyframes mapNodePulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1)) brightness(1.3); }
+  50% { transform: scale(1.3); filter: drop-shadow(0 0 40px rgba(255, 215, 0, 1)) brightness(1.6); }
+}
+
+@keyframes mapNodeAvailable {
+  0%, 100% { transform: scale(1); filter: brightness(1.3) drop-shadow(0 0 15px rgba(255, 50, 50, 0.9)); }
+  50% { transform: scale(1.15); filter: brightness(1.6) drop-shadow(0 0 30px rgba(255, 50, 50, 1)); }
+}
+
+@keyframes mapNodeSelection {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.4); filter: brightness(2.5) drop-shadow(0 0 35px rgba(255, 255, 255, 1)); }
+  60% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+.map-popup-panel { background: linear-gradient(135deg, #1a1a3e 0%, #0f0f23 100%) !important; }
+
+#map-scroll-container::-webkit-scrollbar { width: 12px; }
+#map-scroll-container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); border-radius: 6px; }
+#map-scroll-container::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #ffd700, #ff8c00); border-radius: 6px; }
+</style>
