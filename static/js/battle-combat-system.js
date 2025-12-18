@@ -215,6 +215,21 @@ function getPowerImpactSound(score) {
     return VLAD_POWER_IMPACT_SOUNDS.epic;
 }
 
+// Função para verificar se um som é placeholder (sfx1.mp3 ou sfx2.mp3) - não deve ser tocado
+function isPlaceholderSound(soundPath) {
+    if (!soundPath) return true;
+    return soundPath.includes('sfx1.mp3') || soundPath.includes('sfx2.mp3');
+}
+
+// Função wrapper para tocar som apenas se não for placeholder
+function playSoundIfNotPlaceholder(soundPath, volume = 0.8) {
+    if (isPlaceholderSound(soundPath)) {
+        console.log(`🔇 Ignorando som placeholder: ${soundPath}`);
+        return;
+    }
+    playSound(soundPath, volume);
+}
+
 // ========================================
 // MAPEAMENTO DE ANIMAÇÕES PARA VLAD
 // ========================================
@@ -1359,8 +1374,8 @@ function performAttack(skill) {
                 setZoomFocus(character, window.visualStateManager.elements.background);
                 
                 // Tocar som de preparação 1
-                playSound(this.currentSkill.sound_prep_1, 0.7);
-                
+                playSoundIfNotPlaceholder(this.currentSkill.sound_prep_1, 0.7);
+
                 this.nextPhase(500);
             }, 50);
         }
@@ -1384,8 +1399,8 @@ function performAttack(skill) {
             
             setTimeout(() => {
                 // Tocar som de preparação 1
-                playSound(this.currentSkill.sound_prep_1, 0.7);
-                
+                playSoundIfNotPlaceholder(this.currentSkill.sound_prep_1, 0.7);
+
                 this.nextPhase(500);
             }, 50);
         }
@@ -1467,7 +1482,7 @@ function performAttack(skill) {
             console.log("QC Fase: Show FX");
             
             // Tocar som de preparação 2
-            playSound(this.currentSkill.sound_prep_2, 0.7);
+            playSoundIfNotPlaceholder(this.currentSkill.sound_prep_2, 0.7);
 
             // Configurar classes FX
             fxLayerA.classList.add('fx-layer-front');
@@ -1614,8 +1629,8 @@ function performAttack(skill) {
                             playSound(VLAD_POWER_EMISSION_SOUND, 0.8);
                             console.log("🔊 Tocando som de emissão do poder do Vlad");
                         } else {
-                            playSound(this.currentSkill.sound_attack, 0.8);
-                            playSound(this.currentSkill.sound_effect_1, 0.8);
+                            playSoundIfNotPlaceholder(this.currentSkill.sound_attack, 0.8);
+                            playSoundIfNotPlaceholder(this.currentSkill.sound_effect_1, 0.8);
                         }
 
                         // Criar projétil
@@ -1646,8 +1661,8 @@ function performAttack(skill) {
                             playSound(VLAD_LASER_BEAM_SOUND, 0.8);
                             console.log("🔊 Tocando som do laser beam do Vlad");
                         } else {
-                            playSound(this.currentSkill.sound_attack, 0.8);
-                            playSound(this.currentSkill.sound_effect_1, 0.8);
+                            playSoundIfNotPlaceholder(this.currentSkill.sound_attack, 0.8);
+                            playSoundIfNotPlaceholder(this.currentSkill.sound_effect_1, 0.8);
                         }
 
                         // Criar beam visual
@@ -1685,8 +1700,8 @@ function performAttack(skill) {
                             playSound(VLAD_POWER_EMISSION_SOUND, 0.8);
                             console.log("🔊 Tocando som de emissão do poder do Vlad (fallback)");
                         } else {
-                            playSound(this.currentSkill.sound_attack, 0.8);
-                            playSound(this.currentSkill.sound_effect_1, 0.8);
+                            playSoundIfNotPlaceholder(this.currentSkill.sound_attack, 0.8);
+                            playSoundIfNotPlaceholder(this.currentSkill.sound_effect_1, 0.8);
                         }
 
                         // Criar projétil
@@ -1716,8 +1731,8 @@ function performAttack(skill) {
                             playSound(VLAD_LASER_BEAM_SOUND, 0.8);
                             console.log("🔊 Tocando som do laser beam do Vlad (fallback)");
                         } else {
-                            playSound(this.currentSkill.sound_attack, 0.8);
-                            playSound(this.currentSkill.sound_effect_1, 0.8);
+                            playSoundIfNotPlaceholder(this.currentSkill.sound_attack, 0.8);
+                            playSoundIfNotPlaceholder(this.currentSkill.sound_effect_1, 0.8);
                         }
 
                         // Criar beam visual
@@ -2185,25 +2200,25 @@ function performAttack(skill) {
                 if (isVladMelee) {
                     // Sons de gore-stab com timing correto:
                     // - gore-stab1x: 200ms após início da animação de ataque
-                    // - gore-stab2x: 100ms depois do gore-stab1x (300ms total)
+                    // - gore-stab2x: 500ms depois do gore-stab1x (700ms total)
                     setTimeout(() => {
                         const sfx1 = getRandomSound(VLAD_BASIC_ATTACK_SFX1);
                         playSound(sfx1, 0.8);
                         console.log(`🔊 Tocando som de ataque Vlad SFX1: ${sfx1}`);
 
-                        // Som 2: 100ms depois do sfx1
+                        // Som 2: 500ms depois do sfx1
                         setTimeout(() => {
                             const sfx2 = getRandomSound(VLAD_BASIC_ATTACK_SFX2);
                             playSound(sfx2, 0.8);
                             console.log(`🔊 Tocando som de ataque Vlad SFX2: ${sfx2}`);
-                        }, 100);
+                        }, 500);
                     }, 200);
                 } else {
-                    playSound(this.currentSkill.sound_attack, 0.8);
-                    playSound(this.currentSkill.sound_effect_1, 0.8);
+                    playSoundIfNotPlaceholder(this.currentSkill.sound_attack, 0.8);
+                    playSoundIfNotPlaceholder(this.currentSkill.sound_effect_1, 0.8);
 
                     setTimeout(() => {
-                        playSound(this.currentSkill.sound_effect_2, 0.8);
+                        playSoundIfNotPlaceholder(this.currentSkill.sound_effect_2, 0.8);
                     }, 500);
                 }
 
@@ -2237,11 +2252,11 @@ function performAttack(skill) {
                         console.log(`🔊 Tocando som de ataque Vlad SFX2 (fallback): ${sfx2}`);
                     }, 50);
                 } else {
-                    playSound(this.currentSkill.sound_attack, 0.8);
-                    playSound(this.currentSkill.sound_effect_1, 0.8);
+                    playSoundIfNotPlaceholder(this.currentSkill.sound_attack, 0.8);
+                    playSoundIfNotPlaceholder(this.currentSkill.sound_effect_1, 0.8);
 
                     setTimeout(() => {
-                        playSound(this.currentSkill.sound_effect_2, 0.8);
+                        playSoundIfNotPlaceholder(this.currentSkill.sound_effect_2, 0.8);
                     }, 500);
                 }
 
@@ -2278,11 +2293,11 @@ function performAttack(skill) {
             this.applyBossDamageEffect();
             
             // Tocar sons
-            playSound(this.currentSkill.sound_attack, 0.8);
-            playSound(this.currentSkill.sound_effect_1, 0.8);
+            playSoundIfNotPlaceholder(this.currentSkill.sound_attack, 0.8);
+            playSoundIfNotPlaceholder(this.currentSkill.sound_effect_1, 0.8);
             
             setTimeout(() => {
-                playSound(this.currentSkill.sound_effect_2, 0.8);
+                playSoundIfNotPlaceholder(this.currentSkill.sound_effect_2, 0.8);
             }, 500);
             
             this.nextPhase(800); // Tempo da animação de ataque
@@ -2305,8 +2320,8 @@ function performAttack(skill) {
             console.log("QC Fase: Projectile Launch");
             
             // Tocar sons de ataque
-            playSound(this.currentSkill.sound_attack, 0.8);
-            playSound(this.currentSkill.sound_effect_1, 0.8);
+            playSoundIfNotPlaceholder(this.currentSkill.sound_attack, 0.8);
+            playSoundIfNotPlaceholder(this.currentSkill.sound_effect_1, 0.8);
             
             // Criar projétil visual
             this.createVisualProjectile();
@@ -2323,8 +2338,8 @@ function performAttack(skill) {
             console.log("QC Fase: Projectile Launch and Follow");
             
             // Tocar sons de ataque
-            playSound(this.currentSkill.sound_attack, 0.8);
-            playSound(this.currentSkill.sound_effect_1, 0.8);
+            playSoundIfNotPlaceholder(this.currentSkill.sound_attack, 0.8);
+            playSoundIfNotPlaceholder(this.currentSkill.sound_effect_1, 0.8);
             
             // Pegar posições iniciais
             const characterRect = character.getBoundingClientRect();
@@ -3243,16 +3258,16 @@ function performAttack(skill) {
             this.createDistantEffect();
 
             // Sons: attack primeiro, depois effect_1 com delay de 500ms
-            playSound(this.currentSkill.sound_attack, 0.8);
+            playSoundIfNotPlaceholder(this.currentSkill.sound_attack, 0.8);
 
             // Effect_1 (execution.mp3) toca 500ms depois para sincronizar com a animação
             setTimeout(() => {
-                playSound(this.currentSkill.sound_effect_1, 0.8);
+                playSoundIfNotPlaceholder(this.currentSkill.sound_effect_1, 0.8);
             }, 500);
 
             // Effect_2 toca depois do effect_1
             setTimeout(() => {
-                playSound(this.currentSkill.sound_effect_2, 0.8);
+                playSoundIfNotPlaceholder(this.currentSkill.sound_effect_2, 0.8);
             }, 1200);
 
             setTimeout(() => {
@@ -3266,8 +3281,8 @@ function performAttack(skill) {
         executePhase_magic_manifestation() {
             console.log("QC Fase: Magic Manifestation");
             
-            playSound(this.currentSkill.sound_attack, 0.8);
-            playSound(this.currentSkill.sound_effect_1, 0.8);
+            playSoundIfNotPlaceholder(this.currentSkill.sound_attack, 0.8);
+            playSoundIfNotPlaceholder(this.currentSkill.sound_effect_1, 0.8);
             
             // Efeito mágico similar ao melee mas com mais FX
             this.executeGenericStrike();
@@ -3277,8 +3292,8 @@ function performAttack(skill) {
         executePhase_area_effect() {
             console.log("QC Fase: Area Effect");
             
-            playSound(this.currentSkill.sound_attack, 0.8);
-            playSound(this.currentSkill.sound_effect_1, 0.8);
+            playSoundIfNotPlaceholder(this.currentSkill.sound_attack, 0.8);
+            playSoundIfNotPlaceholder(this.currentSkill.sound_effect_1, 0.8);
             
             // Criar efeito em área
             this.createAreaEffect();
@@ -3351,8 +3366,8 @@ function performAttack(skill) {
                     }
 
                     // Tocar sons de ataque
-                    playSound(this.currentSkill.sound_attack, 0.8);
-                    playSound(this.currentSkill.sound_effect_1, 0.8);
+                    playSoundIfNotPlaceholder(this.currentSkill.sound_attack, 0.8);
+                    playSoundIfNotPlaceholder(this.currentSkill.sound_effect_1, 0.8);
 
                     // DISPARAR PROJÉTIL após 300ms (momento certo na animação de finalização)
                     setTimeout(() => {
@@ -3367,7 +3382,7 @@ function performAttack(skill) {
                             this.applyPowerHitEffect();
 
                             this.calculateAndApplyDamage();
-                            playSound(this.currentSkill.sound_effect_2, 0.8);
+                            playSoundIfNotPlaceholder(this.currentSkill.sound_effect_2, 0.8);
 
                             // Marcar que dano já foi aplicado
                             this.damageAlreadyApplied = true;
@@ -3414,11 +3429,11 @@ function performAttack(skill) {
                 playSound(executionSound, 0.8);
                 console.log(`🔊 Tocando som de execução aleatório: ${executionSound}`);
             } else {
-                playSound(this.currentSkill.sound_prep_1, 0.8);
+                playSoundIfNotPlaceholder(this.currentSkill.sound_prep_1, 0.8);
             }
 
             // Tocar som de ataque imediatamente junto com prep
-            playSound(this.currentSkill.sound_attack, 0.8);
+            playSoundIfNotPlaceholder(this.currentSkill.sound_attack, 0.8);
 
             // 500ms depois: efeito visual no boss (blood-execution)
             setTimeout(() => {
@@ -3427,7 +3442,7 @@ function performAttack(skill) {
 
             // 1000ms depois: som execution.mp3 + dano
             setTimeout(() => {
-                playSound(this.currentSkill.sound_effect_1, 0.8);
+                playSoundIfNotPlaceholder(this.currentSkill.sound_effect_1, 0.8);
                 this.calculateAndApplyDamage();
                 this.damageAlreadyApplied = true;
             }, 1000);
@@ -3475,8 +3490,8 @@ function performAttack(skill) {
                 this.beamAlreadyCreated = false; // Reset flag
             } else {
                 // Tocar sons
-                playSound(this.currentSkill.sound_attack, 0.8);
-                playSound(this.currentSkill.sound_effect_1, 0.8);
+                playSoundIfNotPlaceholder(this.currentSkill.sound_attack, 0.8);
+                playSoundIfNotPlaceholder(this.currentSkill.sound_effect_1, 0.8);
 
                 // Criar beam visual conectando personagem ao boss (NA TELA NORMAL)
                 this.createEnergyBeamVisual();
@@ -3494,7 +3509,7 @@ function performAttack(skill) {
 
             setTimeout(() => {
                 // Tocar som do impacto no momento do dano
-                playSound(this.currentSkill.sound_effect_2, 0.8);
+                playSoundIfNotPlaceholder(this.currentSkill.sound_effect_2, 0.8);
 
                 // SHADER JÁ FOI APLICADO aos 800ms dentro do createEnergyBeamVisual
                 // NÃO aplicar novamente aqui
@@ -3840,8 +3855,8 @@ function performAttack(skill) {
             console.log("QC Fase: Projectile Launch Normal");
             
             // Tocar sons
-            playSound(this.currentSkill.sound_attack, 0.8);
-            playSound(this.currentSkill.sound_effect_1, 0.8);
+            playSoundIfNotPlaceholder(this.currentSkill.sound_attack, 0.8);
+            playSoundIfNotPlaceholder(this.currentSkill.sound_effect_1, 0.8);
             
             // Pegar posições na tela normal
             const characterRect = character.getBoundingClientRect();
@@ -3962,11 +3977,11 @@ function performAttack(skill) {
             applyCharacterAnimation(characterAnimation, 'skill-attack-anim');
             
             // Tocar sons
-            playSound(this.currentSkill.sound_attack, 0.8);
-            playSound(this.currentSkill.sound_effect_1, 0.8);
+            playSoundIfNotPlaceholder(this.currentSkill.sound_attack, 0.8);
+            playSoundIfNotPlaceholder(this.currentSkill.sound_effect_1, 0.8);
             
             setTimeout(() => {
-                playSound(this.currentSkill.sound_effect_2, 0.8);
+                playSoundIfNotPlaceholder(this.currentSkill.sound_effect_2, 0.8);
             }, 500);
 
             // Aplicar efeito de dano no boss
