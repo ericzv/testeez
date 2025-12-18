@@ -1179,7 +1179,10 @@ function performAttack(skill) {
         jump_attack: ['jump_preparation', 'aerial_advance', 'focus_boss', 'aerial_strike', 'apply_damage', 'land_return', 'restore_complete'],
 
         // Ataque especial: Vlad Power com Skill Test
-        vlad_power_skill_test: ['vlad_power_skill_test', 'apply_damage', 'restore_complete']
+        vlad_power_skill_test: ['vlad_power_skill_test', 'apply_damage', 'restore_complete'],
+
+        // Ataque especial do Vlad (Abraço da Escuridão) - executa em paralelo para ser mais rápido
+        vlad_special_parallel: ['vlad_special_parallel', 'restore_complete']
     };
 
     // Sistema de execução de fases modulares
@@ -1196,9 +1199,17 @@ function performAttack(skill) {
         executeAttackSequence(skill, fxPaths, prepDelay) {
             this.currentSkill = skill;
             this.phaseData = { fxPaths, prepDelay };
-            
+
+            // Verificar se é o especial do Vlad (skill 52) - usar sequência paralela otimizada
+            const currentCharacter = getCurrentPlayerCharacter();
+            const isVladSpecial = (currentCharacter === 'Vlad' || currentCharacter === 'vlad') && skill.id === 52;
+
+            if (isVladSpecial) {
+                console.log("🧛 Vlad Special detectado - usando sequência paralela otimizada");
+                this.currentSequence = [...ATTACK_PATTERNS.vlad_special_parallel];
+            }
             // Determinar sequência: usar padrão pré-definido ou sequência customizada
-            if (typeof skill.attack_sequence === 'string' && ATTACK_PATTERNS[skill.attack_sequence]) {
+            else if (typeof skill.attack_sequence === 'string' && ATTACK_PATTERNS[skill.attack_sequence]) {
                 this.currentSequence = [...ATTACK_PATTERNS[skill.attack_sequence]];
             } else if (Array.isArray(skill.attack_sequence)) {
                 this.currentSequence = [...skill.attack_sequence];
@@ -1951,15 +1962,18 @@ function performAttack(skill) {
             // Aplicar movimento via classe CSS
             character.classList.add('moving-to-boss');
             
-            // Finalizar após movimento
+            // Finalizar após movimento - ACELERADO para Vlad
+            const currentChar = getCurrentPlayerCharacter();
+            const runDuration = (currentChar === 'Vlad' || currentChar === 'vlad') ? 500 : 1200;
+
             setTimeout(() => {
                 fxLayerA.classList.remove('animate-fx');
                 fxLayerB.classList.remove('animate-fx');
                 fxLayerA.style.opacity = 0;
                 fxLayerB.style.opacity = 0;
-                
+
                 this.nextPhase(0);
-            }, 1200); 
+            }, runDuration); 
         }
 
         // Fase: Avanço aéreo (para ataques com salto)
@@ -2243,78 +2257,535 @@ function performAttack(skill) {
         createVisualProjectile() {
             console.log("🎯 Criando projétil visual");
 
-            // Pegar posição do personagem (origem)
             const characterRect = character.getBoundingClientRect();
             const startX = characterRect.left + characterRect.width / 2;
             const startY = characterRect.top + characterRect.height / 2;
 
-            // Pegar posição do boss como alvo
             const bossRect = boss.getBoundingClientRect();
             const endX = bossRect.left + bossRect.width / 2;
             const endY = bossRect.top + bossRect.height / 2;
 
-            // Criar elemento projétil
+            const skillTestResult = this.currentSkill?.skillTestResult;
+            // CORRIGIDO: usar 'value' ao invés de 'score' (é assim que o skill test retorna)
+            const score = skillTestResult?.value || 5;
+
+            // DEBUG: Log detalhado para verificar score
+            console.log("🔍 DEBUG PROJÉTIL:");
+            console.log("  - this.currentSkill:", this.currentSkill);
+            console.log("  - skillTestResult:", skillTestResult);
+            console.log("  - skillTestResult.value:", skillTestResult?.value);
+            console.log("  - score final:", score);
+            console.log(`🎯 Criando projétil com score ${score} - Tipo: ${score <= 3 ? 'FRACO' : score <= 6 ? 'NORMAL' : score <= 8 ? 'FORTE' : 'ÉPICO'}`);
+
+            // ===== PROJÉTEIS COMPLETAMENTE DIFERENTES POR SCORE =====
+
+            if (score <= 3) {
+                // SCORE BAIXO (1-3): Projétil pequeno, fraco, sem efeitos
+                this.createWeakProjectile(startX, startY, endX, endY, score);
+            } else if (score <= 6) {
+                // SCORE MÉDIO (4-6): Projétil normal com algumas partículas
+                this.createNormalProjectile(startX, startY, endX, endY, score);
+            } else if (score <= 8) {
+                // SCORE ALTO (7-8): Projétil forte com trilha e anel
+                this.createStrongProjectile(startX, startY, endX, endY, score);
+            } else {
+                // SCORE PERFEITO (9-10): Projétil épico com múltiplos efeitos
+                this.createEpicProjectile(startX, startY, endX, endY, score);
+            }
+        }
+
+        // SCORE 1-3: Projétil fraco - pequeno, roxo escuro, mas visível
+        createWeakProjectile(startX, startY, endX, endY, score) {
+            const size = 14 + score * 2; // 16-20px
+
             const projectile = document.createElement('div');
             projectile.style.cssText = `
                 position: fixed;
                 left: ${startX}px;
                 top: ${startY}px;
-                width: 25px;
-                height: 25px;
-                background: radial-gradient(circle, #00ffff 0%, #0088ff 100%);
+                width: ${size}px;
+                height: ${size}px;
+                background: radial-gradient(circle, #9370db 0%, #6a5acd 50%, #483d8b 100%);
                 border-radius: 50%;
                 z-index: 100;
-                box-shadow: 0 0 30px #00ffff;
-                transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                box-shadow: 0 0 15px #6a5acd;
+                transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                opacity: 0.95;
             `;
-
             document.body.appendChild(projectile);
 
-            // Animar projétil até o boss MAIS RÁPIDO
             setTimeout(() => {
                 projectile.style.left = `${endX}px`;
                 projectile.style.top = `${endY}px`;
-                projectile.style.transform = 'scale(1.5)';
             }, 50);
 
-            // Remover projétil MAIS RÁPIDO
             setTimeout(() => {
-                if (projectile.parentNode) {
-                    projectile.style.opacity = '0';
-                    projectile.style.transform = 'scale(0)';
-                    setTimeout(() => projectile.remove(), 200);
-                }
-            }, 900); // Reduzido de 1300 para 900
+                projectile.style.opacity = '0';
+                setTimeout(() => projectile.remove(), 200);
+            }, 800);
         }
 
-        // ===== FUNÇÃO PARA CRIAR BEAM VISUAL IMPRESSIONANTE =====
-        createEnergyBeamVisual() {
-            console.log("⚡ Criando raio de energia visual ÉPICO");
-            
-            // Determinar tipo de beam baseado na skill
-            let beamType = "energy_beam";
-            if (this.currentSkill.beam_type && BEAM_TYPES[this.currentSkill.beam_type]) {
-                beamType = this.currentSkill.beam_type;
+        // SCORE 4-6: Projétil normal - tamanho médio, roxo, com algumas partículas
+        createNormalProjectile(startX, startY, endX, endY, score) {
+            const size = 22 + (score - 4) * 4; // 22-30px
+
+            const projectile = document.createElement('div');
+            projectile.style.cssText = `
+                position: fixed;
+                left: ${startX}px;
+                top: ${startY}px;
+                width: ${size}px;
+                height: ${size}px;
+                background: radial-gradient(circle, #da70d6 0%, #9400d3 60%, #4b0082 100%);
+                border-radius: 50%;
+                z-index: 100;
+                box-shadow: 0 0 20px #9400d3, 0 0 35px #6b238e;
+                transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            `;
+            document.body.appendChild(projectile);
+
+            // Algumas partículas (2-4)
+            const particleCount = score - 2;
+            for (let i = 0; i < particleCount; i++) {
+                setTimeout(() => {
+                    this.createSingleParticle(startX, startY, endX, endY, '#da70d6', '#9400d3', 6);
+                }, i * 60);
             }
-            
-            const config = BEAM_TYPES[beamType];
-            console.log(`⚡ Usando beam tipo: ${beamType}`, config);
-            
+
+            setTimeout(() => {
+                projectile.style.left = `${endX}px`;
+                projectile.style.top = `${endY}px`;
+                projectile.style.transform = 'scale(1.3)';
+            }, 50);
+
+            setTimeout(() => {
+                projectile.style.opacity = '0';
+                projectile.style.transform = 'scale(0)';
+                setTimeout(() => projectile.remove(), 200);
+            }, 800);
+        }
+
+        // SCORE 7-8: Projétil forte - grande, com anel externo e trilha
+        createStrongProjectile(startX, startY, endX, endY, score) {
+            const size = 35 + (score - 7) * 5; // 35-40px
+
+            // Container para o projétil e o anel
+            const container = document.createElement('div');
+            container.style.cssText = `
+                position: fixed;
+                left: ${startX}px;
+                top: ${startY}px;
+                width: ${size}px;
+                height: ${size}px;
+                z-index: 100;
+                transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            `;
+
+            // Núcleo do projétil - ROXO vibrante
+            const core = document.createElement('div');
+            core.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: ${size * 0.7}px;
+                height: ${size * 0.7}px;
+                background: radial-gradient(circle, #da70d6 0%, #9400d3 50%, #6b238e 100%);
+                border-radius: 50%;
+                box-shadow: 0 0 30px #9400d3, 0 0 50px #6b238e;
+            `;
+
+            // Anel externo girando - ROXO
+            const ring = document.createElement('div');
+            ring.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: ${size}px;
+                height: ${size}px;
+                border: 3px solid #9400d3;
+                border-top-color: transparent;
+                border-radius: 50%;
+                animation: projectileRingSpin 0.3s linear infinite;
+                box-shadow: 0 0 15px #9400d3;
+            `;
+
+            // Adicionar keyframes se não existir
+            if (!document.getElementById('projectile-ring-style')) {
+                const style = document.createElement('style');
+                style.id = 'projectile-ring-style';
+                style.textContent = `
+                    @keyframes projectileRingSpin {
+                        from { transform: translate(-50%, -50%) rotate(0deg); }
+                        to { transform: translate(-50%, -50%) rotate(360deg); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            container.appendChild(ring);
+            container.appendChild(core);
+            document.body.appendChild(container);
+
+            // Trilha de partículas (6-8) - ROXAS
+            const particleCount = 4 + score;
+            for (let i = 0; i < particleCount; i++) {
+                setTimeout(() => {
+                    this.createSingleParticle(startX, startY, endX, endY, '#da70d6', '#9400d3', 8 + Math.random() * 4);
+                }, i * 40);
+            }
+
+            setTimeout(() => {
+                container.style.left = `${endX}px`;
+                container.style.top = `${endY}px`;
+                container.style.transform = 'scale(1.5)';
+            }, 50);
+
+            setTimeout(() => {
+                container.style.opacity = '0';
+                setTimeout(() => container.remove(), 200);
+            }, 800);
+        }
+
+        // SCORE 9-10: Projétil ÉPICO - muito grande, múltiplos anéis, muitas partículas, pulsando
+        createEpicProjectile(startX, startY, endX, endY, score) {
+            const size = 50 + (score - 9) * 10; // 50-60px
+
+            // Container principal
+            const container = document.createElement('div');
+            container.style.cssText = `
+                position: fixed;
+                left: ${startX}px;
+                top: ${startY}px;
+                width: ${size}px;
+                height: ${size}px;
+                z-index: 100;
+                transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            `;
+
+            // Aura externa pulsando - ROXA
+            const aura = document.createElement('div');
+            aura.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: ${size * 1.5}px;
+                height: ${size * 1.5}px;
+                background: radial-gradient(circle, rgba(148,0,211,0.5) 0%, transparent 70%);
+                border-radius: 50%;
+                animation: projectileAuraPulse 0.2s ease-in-out infinite alternate;
+            `;
+
+            // Anel externo girando (sentido horário) - ROXO
+            const outerRing = document.createElement('div');
+            outerRing.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: ${size}px;
+                height: ${size}px;
+                border: 4px solid #9400d3;
+                border-top-color: transparent;
+                border-bottom-color: transparent;
+                border-radius: 50%;
+                animation: projectileRingSpin 0.25s linear infinite;
+                box-shadow: 0 0 20px #9400d3, 0 0 40px #da70d6;
+            `;
+
+            // Anel interno girando (sentido anti-horário) - ROXO CLARO
+            const innerRing = document.createElement('div');
+            innerRing.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: ${size * 0.7}px;
+                height: ${size * 0.7}px;
+                border: 3px solid #da70d6;
+                border-left-color: transparent;
+                border-right-color: transparent;
+                border-radius: 50%;
+                animation: projectileRingSpinReverse 0.2s linear infinite;
+                box-shadow: 0 0 15px #da70d6;
+            `;
+
+            // Núcleo brilhante com centro branco e bordas ROXAS
+            const core = document.createElement('div');
+            core.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: ${size * 0.4}px;
+                height: ${size * 0.4}px;
+                background: radial-gradient(circle, #ffffff 0%, #da70d6 40%, #9400d3 70%, #6b238e 100%);
+                border-radius: 50%;
+                box-shadow: 0 0 40px #ffffff, 0 0 60px #9400d3, 0 0 80px #6b238e;
+                animation: projectileCorePulse 0.15s ease-in-out infinite alternate;
+            `;
+
+            // Adicionar keyframes épicos se não existir
+            if (!document.getElementById('projectile-epic-style')) {
+                const style = document.createElement('style');
+                style.id = 'projectile-epic-style';
+                style.textContent = `
+                    @keyframes projectileRingSpinReverse {
+                        from { transform: translate(-50%, -50%) rotate(360deg); }
+                        to { transform: translate(-50%, -50%) rotate(0deg); }
+                    }
+                    @keyframes projectileAuraPulse {
+                        from { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+                        to { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+                    }
+                    @keyframes projectileCorePulse {
+                        from { transform: translate(-50%, -50%) scale(1); }
+                        to { transform: translate(-50%, -50%) scale(1.15); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            container.appendChild(aura);
+            container.appendChild(outerRing);
+            container.appendChild(innerRing);
+            container.appendChild(core);
+            document.body.appendChild(container);
+
+            // MUITAS partículas (12-15) - ROXAS
+            const particleCount = 10 + score;
+            for (let i = 0; i < particleCount; i++) {
+                setTimeout(() => {
+                    const colors = ['#ffffff', '#da70d6', '#9400d3', '#6b238e'];
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    this.createSingleParticle(startX, startY, endX, endY, color, '#9400d3', 8 + Math.random() * 8);
+                }, i * 30);
+            }
+
+            // Criar explosão de partículas no início - ROXAS
+            for (let i = 0; i < 8; i++) {
+                const burstParticle = document.createElement('div');
+                const angle = (i / 8) * Math.PI * 2;
+                const distance = 30;
+                burstParticle.style.cssText = `
+                    position: fixed;
+                    left: ${startX}px;
+                    top: ${startY}px;
+                    width: 6px;
+                    height: 6px;
+                    background: #da70d6;
+                    border-radius: 50%;
+                    z-index: 99;
+                    box-shadow: 0 0 10px #9400d3;
+                    transition: all 0.3s ease-out;
+                `;
+                document.body.appendChild(burstParticle);
+
+                setTimeout(() => {
+                    burstParticle.style.left = `${startX + Math.cos(angle) * distance}px`;
+                    burstParticle.style.top = `${startY + Math.sin(angle) * distance}px`;
+                    burstParticle.style.opacity = '0';
+                }, 10);
+
+                setTimeout(() => burstParticle.remove(), 350);
+            }
+
+            setTimeout(() => {
+                container.style.left = `${endX}px`;
+                container.style.top = `${endY}px`;
+                container.style.transform = 'scale(1.8)';
+            }, 50);
+
+            // Explosão no impacto - ROXA
+            setTimeout(() => {
+                // Criar flash de impacto
+                const flash = document.createElement('div');
+                flash.style.cssText = `
+                    position: fixed;
+                    left: ${endX}px;
+                    top: ${endY}px;
+                    width: 100px;
+                    height: 100px;
+                    transform: translate(-50%, -50%);
+                    background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(148,0,211,0.5) 50%, transparent 70%);
+                    border-radius: 50%;
+                    z-index: 101;
+                    animation: impactFlash 0.3s ease-out forwards;
+                `;
+
+                if (!document.getElementById('impact-flash-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'impact-flash-style';
+                    style.textContent = `
+                        @keyframes impactFlash {
+                            from { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+                            to { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+
+                document.body.appendChild(flash);
+                setTimeout(() => flash.remove(), 350);
+
+                container.style.opacity = '0';
+                setTimeout(() => container.remove(), 200);
+            }, 750);
+        }
+
+        // Criar uma única partícula
+        createSingleParticle(startX, startY, endX, endY, coreColor, glowColor, size) {
+            const particle = document.createElement('div');
+            const offsetX = (Math.random() - 0.5) * 50;
+            const offsetY = (Math.random() - 0.5) * 50;
+
+            particle.style.cssText = `
+                position: fixed;
+                left: ${startX + offsetX}px;
+                top: ${startY + offsetY}px;
+                width: ${size}px;
+                height: ${size}px;
+                background: radial-gradient(circle, ${coreColor} 0%, ${glowColor} 100%);
+                border-radius: 50%;
+                z-index: 99;
+                box-shadow: 0 0 ${size}px ${glowColor};
+                transition: all ${0.5 + Math.random() * 0.3}s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                opacity: 0.9;
+            `;
+
+            document.body.appendChild(particle);
+
+            setTimeout(() => {
+                particle.style.left = `${endX + (Math.random() - 0.5) * 60}px`;
+                particle.style.top = `${endY + (Math.random() - 0.5) * 60}px`;
+                particle.style.opacity = '0';
+                particle.style.transform = 'scale(0.2)';
+            }, 30);
+
+            setTimeout(() => particle.remove(), 900);
+        }
+
+        // ===== FUNÇÃO PARA CRIAR BEAM VISUAL OTIMIZADO =====
+        // Versão otimizada com escalonamento visual baseado em blood_stacks
+        createEnergyBeamVisual() {
+            console.log("⚡ Criando beam otimizado");
+
+            const config = BEAM_TYPES["dark_beam"]; // Vlad usa dark_beam
+
+            // ===== SISTEMA DE TIERS BASEADO EM BLOOD_STACKS =====
+            const bloodStacks = gameState?.boss?.bloodStacks || 5;
+            console.log(`🩸 Blood Stacks no momento da Suprema: ${bloodStacks}`);
+
+            // Determinar tier e configurações visuais
+            let tier, beamScale, impactScale, ringCount, flashIntensity, shakeIntensity;
+
+            if (bloodStacks >= 20) {
+                // Tier 5: DEVASTADOR (20+)
+                tier = 5;
+                beamScale = 2.0;
+                impactScale = 1.8;
+                ringCount = 6;
+                flashIntensity = 0.7;
+                shakeIntensity = 8;
+                console.log("💀 TIER 5: DEVASTADOR!");
+            } else if (bloodStacks >= 16) {
+                // Tier 4: Muito Forte (16-19)
+                tier = 4;
+                beamScale = 1.6;
+                impactScale = 1.5;
+                ringCount = 5;
+                flashIntensity = 0.55;
+                shakeIntensity = 5;
+                console.log("🔥 TIER 4: Muito Forte!");
+            } else if (bloodStacks >= 12) {
+                // Tier 3: Forte (12-15)
+                tier = 3;
+                beamScale = 1.45;
+                impactScale = 1.35;
+                ringCount = 4;
+                flashIntensity = 0.5;
+                shakeIntensity = 3;
+                console.log("⚡ TIER 3: Forte!");
+            } else if (bloodStacks >= 8) {
+                // Tier 2: Moderado (8-11)
+                tier = 2;
+                beamScale = 1.3;
+                impactScale = 1.2;
+                ringCount = 4;
+                flashIntensity = 0.45;
+                shakeIntensity = 2;
+                console.log("✨ TIER 2: Moderado");
+            } else {
+                // Tier 1: Normal (5-7)
+                tier = 1;
+                beamScale = 1.0;
+                impactScale = 1.0;
+                ringCount = 3;
+                flashIntensity = 0.4;
+                shakeIntensity = 0;
+                console.log("🔹 TIER 1: Normal");
+            }
+
+            // Dimensões base escaladas
+            const baseGlowHeight = 60 * beamScale;
+            const baseCoreHeight = 24 * beamScale;
+            const baseTravelHeight = 16 * beamScale;
+            const baseImpactSize = 160 * impactScale;
+            const baseChargeSize = 120 * beamScale;
+
             // Pegar posições atuais na tela
             const characterRect = character.getBoundingClientRect();
             const bossRect = boss.getBoundingClientRect();
-            
+
             const startX = characterRect.left + characterRect.width / 2;
             const startY = characterRect.top + characterRect.height / 2;
             const endX = bossRect.left + bossRect.width / 2;
             const endY = bossRect.top + bossRect.height / 2;
-            
+
             // Calcular ângulo e distância
             const deltaX = endX - startX;
             const deltaY = endY - startY;
             const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
             const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI;
-            
+
+            // Adicionar CSS animations (apenas uma vez)
+            this.addBeamAnimations();
+
+            // ===== FLASH INICIAL NA TELA =====
+            const screenFlash = document.createElement('div');
+            screenFlash.style.cssText = `
+                position: fixed;
+                inset: 0;
+                background: ${config.core};
+                opacity: 0;
+                z-index: 130;
+                pointer-events: none;
+                will-change: opacity;
+            `;
+            document.body.appendChild(screenFlash);
+
+            // ===== EFEITO DE CHARGE-UP NO PERSONAGEM (escalado) =====
+            const chargeEffect = document.createElement('div');
+            chargeEffect.style.cssText = `
+                position: fixed;
+                left: ${startX - baseChargeSize/2}px;
+                top: ${startY - baseChargeSize/2}px;
+                width: ${baseChargeSize}px;
+                height: ${baseChargeSize}px;
+                border-radius: 50%;
+                background: radial-gradient(circle,
+                    ${config.bright} 0%,
+                    ${config.core} 30%,
+                    transparent 70%);
+                opacity: 0;
+                z-index: 126;
+                pointer-events: none;
+                will-change: transform, opacity;
+            `;
+            document.body.appendChild(chargeEffect);
+
             // ===== CONTAINER PRINCIPAL DO BEAM =====
             const beamContainer = document.createElement('div');
             beamContainer.id = 'energy-beam-container';
@@ -2322,353 +2793,288 @@ function performAttack(skill) {
                 position: fixed;
                 left: ${startX}px;
                 top: ${startY}px;
-                width: ${distance}px;
+                width: 0px;
                 height: 0px;
-                transform-origin: 0 0;
+                transform-origin: 0 50%;
                 transform: rotate(${angle}deg);
                 z-index: 125;
                 pointer-events: none;
+                will-change: width, transform;
             `;
-            
-            // ===== EFEITO DE CHARGE-UP NO PERSONAGEM =====
-            this.createBeamChargeEffect(startX, startY, config);
-            
-            // ===== MÚLTIPLAS CAMADAS DO BEAM =====
-            
-            // Camada 1: Brilho externo massivo
+
+            // Camada 1: Glow externo (escalado)
             const outerGlow = document.createElement('div');
             outerGlow.style.cssText = `
                 position: absolute;
-                top: -${config.thickness.glow}px;
+                top: -${baseGlowHeight/2}px;
                 left: 0;
                 width: 100%;
-                height: ${config.thickness.glow * 2}px;
-                background: radial-gradient(ellipse closest-side, 
-                    ${config.glow} 0%, 
+                height: ${baseGlowHeight}px;
+                border-radius: ${baseGlowHeight/2}px;
+                background: radial-gradient(ellipse 100% 100% at center,
+                    ${config.core} 0%,
+                    ${config.halo} 40%,
                     transparent 70%);
-                opacity: 0;
-                filter: blur(8px);
-                animation: beamPulse 0.3s infinite alternate;
+                opacity: 0.7;
+                will-change: opacity;
             `;
-            
-            // Camada 2: Halo energético
-            const energyHalo = document.createElement('div');
-            energyHalo.style.cssText = `
-                position: absolute;
-                top: -${config.thickness.halo}px;
-                left: 0;
-                width: 100%;
-                height: ${config.thickness.halo * 2}px;
-                background: linear-gradient(90deg, 
-                    transparent 0%, 
-                    ${config.halo} 10%, 
-                    ${config.bright} 50%, 
-                    ${config.halo} 90%, 
-                    transparent 100%);
-                opacity: 0;
-                filter: blur(3px);
-                box-shadow: 0 0 40px ${config.core};
-            `;
-            
-            // Camada 3: Núcleo principal
+
+            // Camada 2: Núcleo brilhante (escalado)
             const beamCore = document.createElement('div');
             beamCore.style.cssText = `
                 position: absolute;
-                top: -${config.thickness.core}px;
+                top: -${baseCoreHeight/2}px;
                 left: 0;
                 width: 100%;
-                height: ${config.thickness.core * 2}px;
-                background: linear-gradient(90deg, 
-                    ${config.core} 0%, 
-                    ${config.bright} 30%, 
-                    ${config.bright} 70%, 
-                    ${config.core} 100%);
-                opacity: 0;
-                box-shadow: 
-                    0 0 20px ${config.core},
-                    inset 0 0 10px ${config.bright};
+                height: ${baseCoreHeight}px;
+                border-radius: ${baseCoreHeight/2}px;
+                background: radial-gradient(ellipse 100% 100% at center,
+                    #ffffff 0%,
+                    ${config.bright} 30%,
+                    ${config.core} 70%,
+                    transparent 100%);
+                box-shadow: 0 0 ${20 * beamScale}px ${config.core}, 0 0 ${40 * beamScale}px ${config.bright};
+                will-change: opacity, transform;
             `;
-            
-            // Camada 4: Energia interna cintilante
-            const innerEnergy = document.createElement('div');
-            innerEnergy.style.cssText = `
+
+            // Energia interna que "viaja" pelo beam (escalada)
+            const travelingEnergy = document.createElement('div');
+            travelingEnergy.style.cssText = `
                 position: absolute;
-                top: -${config.thickness.core / 2}px;
+                top: -${baseTravelHeight/2}px;
                 left: 0;
-                width: 100%;
-                height: ${config.thickness.core}px;
-                background: linear-gradient(90deg, 
-                    transparent 0%, 
-                    ${config.bright} 20%, 
-                    ${config.bright} 80%, 
+                width: ${80 * beamScale}px;
+                height: ${baseTravelHeight}px;
+                border-radius: ${baseTravelHeight/2}px;
+                background: radial-gradient(ellipse 100% 100% at center,
+                    #ffffff 0%,
+                    rgba(255,255,255,0.5) 50%,
                     transparent 100%);
                 opacity: 0;
-                filter: brightness(1.5);
+                will-change: transform, opacity;
             `;
-            
-            // ===== EFEITOS DE IMPACTO NO BOSS =====
-            const impactEffect = this.createBeamImpactEffect(endX, endY, config);
-            
-            // ===== PARTÍCULAS DE ENERGIA =====
-            const particles = this.createBeamParticles(startX, startY, endX, endY, config);
-            
-            // Adicionar todas as camadas
+
             beamContainer.appendChild(outerGlow);
-            beamContainer.appendChild(energyHalo);
             beamContainer.appendChild(beamCore);
-            beamContainer.appendChild(innerEnergy);
-            
+            beamContainer.appendChild(travelingEnergy);
             document.body.appendChild(beamContainer);
-            document.body.appendChild(impactEffect);
-            document.body.appendChild(particles);
-            
-            // ===== ADICIONAR ANIMAÇÕES CSS =====
-            this.addBeamAnimations();
-            
-            // ===== SEQUÊNCIA DE ANIMAÇÃO =====
 
-            // Fase 1: Apenas círculo de emissão (500ms)
-            setTimeout(() => {
-                console.log("⚡ Fase 1: Círculo de emissão");
-                outerGlow.style.opacity = '0.8';
-                outerGlow.style.transition = 'opacity 0.3s ease-out';
-            }, 500);
-
-            // Fase 2: Raio laser aparece + SHADER NO INIMIGO (800ms)
-            setTimeout(() => {
-                console.log("⚡ Fase 2: Laser disparando + SHADER!");
-                energyHalo.style.opacity = '0.9';
-                beamCore.style.opacity = '1.0';
-                innerEnergy.style.opacity = '0.7';
-                impactEffect.style.opacity = '1.0';
-                particles.style.opacity = '1.0';
-
-                energyHalo.style.transition = 'opacity 0.3s ease-out';
-                beamCore.style.transition = 'opacity 0.3s ease-out';
-                innerEnergy.style.transition = 'opacity 0.3s ease-out';
-                impactEffect.style.transition = 'opacity 0.3s ease-out';
-                particles.style.transition = 'opacity 0.3s ease-out';
-
-                // APLICAR SHADER DE IMPACTO NO INIMIGO AQUI
-                if (this.currentSkill && this.currentSkill.boss_damage_overlay) {
-                    console.log("💥 Aplicando shader no inimigo:", this.currentSkill.boss_damage_overlay);
-                    this.applyBossDamageEffect();
-                }
-            }, 800);
-
-            // Fase 3: Intensificação e pulsação (1200ms)
-            let pulseInterval = null;
-            setTimeout(() => {
-                console.log("⚡ Fase 3: Intensificação");
-                let intensity = 1;
-                let direction = 1;
-
-                pulseInterval = setInterval(() => {
-                    intensity += direction * 0.15;
-                    if (intensity >= 1.8) direction = -1;
-                    if (intensity <= 0.8) direction = 1;
-
-                    beamCore.style.filter = `brightness(${intensity}) saturate(${intensity})`;
-                    innerEnergy.style.filter = `brightness(${intensity * 1.5})`;
-                    impactEffect.style.filter = `brightness(${intensity}) scale(${intensity})`;
-
-                    // Shake sutil no beam
-                    const shake = (Math.random() - 0.3) * 2;
-                    beamContainer.style.transform = `rotate(${angle + shake}deg)`;
-
-                }, config.pulseSpeed);
-
-                // APLICAR DANO REAL no pico da intensificação (após 300ms = 1500ms total)
-                setTimeout(() => {
-                    console.log("💥 Aplicando DANO REAL no finalzinho da animação!");
-                    this.applyDamageAndEffects();
-                    this.damageAlreadyApplied = true; // Marcar que dano foi aplicado
-                }, 300);
-            }, 1200);
-
-            // Fase 4: Fade out (1800ms)
-            setTimeout(() => {
-                console.log("⚡ Fase 4: Desaparecendo");
-                if (pulseInterval) clearInterval(pulseInterval);
-
-                // Fade out de todas as camadas
-                outerGlow.style.opacity = '0';
-                energyHalo.style.opacity = '0';
-                beamCore.style.opacity = '0';
-                innerEnergy.style.opacity = '0';
-                impactEffect.style.opacity = '0';
-                particles.style.opacity = '0';
-
-                outerGlow.style.transition = 'opacity 0.4s ease-in';
-                energyHalo.style.transition = 'opacity 0.4s ease-in';
-                beamCore.style.transition = 'opacity 0.4s ease-in';
-                innerEnergy.style.transition = 'opacity 0.4s ease-in';
-                impactEffect.style.transition = 'opacity 0.4s ease-in';
-                particles.style.transition = 'opacity 0.4s ease-in';
-
-                // Remover elementos
-                setTimeout(() => {
-                    if (beamContainer.parentNode) beamContainer.remove();
-                    if (impactEffect.parentNode) impactEffect.remove();
-                    if (particles.parentNode) particles.remove();
-                }, 500);
-
-            }, 1800);
-        }
-
-        // ===== EFEITO DE CHARGE-UP NO PERSONAGEM =====
-        createBeamChargeEffect(x, y, config) {
-            const chargeEffect = document.createElement('div');
-            chargeEffect.style.cssText = `
+            // ===== EFEITO DE IMPACTO NO BOSS (escalado) =====
+            const impactEffect = document.createElement('div');
+            impactEffect.style.cssText = `
                 position: fixed;
-                left: ${x - 50}px;
-                top: ${y - 50}px;
-                width: 100px;
-                height: 100px;
+                left: ${endX - baseImpactSize/2}px;
+                top: ${endY - baseImpactSize/2}px;
+                width: ${baseImpactSize}px;
+                height: ${baseImpactSize}px;
                 border-radius: 50%;
-                background: radial-gradient(circle, 
-                    ${config.bright} 0%, 
-                    ${config.core} 25%, 
-                    rgba(255, 255, 255, 0.3) 45%, 
-                    rgba(255, 255, 255, 0.1) 65%, 
-                    transparent 85%);
+                background: radial-gradient(circle,
+                    #ffffff 0%,
+                    ${config.bright} 20%,
+                    ${config.core} 40%,
+                    transparent 70%);
                 opacity: 0;
                 z-index: 124;
-                animation: chargeUp 1.6s ease-out forwards;
                 pointer-events: none;
+                will-change: transform, opacity;
             `;
-            
-            document.body.appendChild(chargeEffect);
-            
-            // Auto-remover após animação
-            setTimeout(() => {
-                if (chargeEffect.parentNode) chargeEffect.remove();
-            }, 1000);
-        }
+            document.body.appendChild(impactEffect);
 
-        // ===== EFEITO DE IMPACTO NO BOSS =====
-        createBeamImpactEffect(x, y, config) {
-            const impact = document.createElement('div');
-            impact.style.cssText = `
-                position: fixed;
-                left: ${x - 60}px;
-                top: ${y - 60}px;
-                width: 120px;
-                height: 120px;
-                border-radius: 50%;
-                background: radial-gradient(circle, 
-                    ${config.bright} 0%, 
-                    ${config.core} 20%, 
-                    ${config.halo} 40%, 
-                    rgba(255, 255, 255, 0.3) 60%, 
-                    rgba(255, 255, 255, 0.1) 75%, 
-                    transparent 90%);
-                opacity: 0;
-                z-index: 123;
-                pointer-events: none;
-                animation: impactBurst 0.2s infinite alternate;
-            `;
-            
-            return impact;
-        }
-
-        // ===== PARTÍCULAS DE ENERGIA =====
-        createBeamParticles(startX, startY, endX, endY, config) {
-            const particleContainer = document.createElement('div');
-            particleContainer.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                pointer-events: none;
-                z-index: 122;
-                opacity: 0;
-            `;
-            
-            // Criar 10 partículas ao longo do beam
-            for (let i = 0; i < 10; i++) {
-                const progress = i / 9;
-                const particleX = startX + (endX - startX) * progress;
-                const particleY = startY + (endY - startY) * progress;
-                
-                const particle = document.createElement('div');
-                particle.style.cssText = `
-                    position: absolute;
-                    left: ${particleX}px;
-                    top: ${particleY}px;
-                    width: 6px;
-                    height: 6px;
-                    background: ${config.bright};
+            // ===== ONDAS DE IMPACTO (quantidade baseada no tier) =====
+            const impactRings = [];
+            const createImpactRing = (delay, size) => {
+                const ring = document.createElement('div');
+                ring.style.cssText = `
+                    position: fixed;
+                    left: ${endX - size/2}px;
+                    top: ${endY - size/2}px;
+                    width: ${size}px;
+                    height: ${size}px;
+                    border: ${3 * beamScale}px solid ${config.core};
                     border-radius: 50%;
-                    box-shadow: 0 0 10px ${config.core};
-                    animation: particleFloat 0.5s infinite alternate;
-                    animation-delay: ${i * 0.1}s;
+                    opacity: 0;
+                    z-index: 123;
+                    pointer-events: none;
+                    will-change: transform, opacity;
                 `;
-                
-                particleContainer.appendChild(particle);
-            }
-            
-            return particleContainer;
+                document.body.appendChild(ring);
+                impactRings.push(ring);
+
+                setTimeout(() => {
+                    ring.style.transition = 'transform 0.4s ease-out, opacity 0.4s ease-out';
+                    ring.style.opacity = '0.8';
+                    ring.style.transform = 'scale(2)';
+
+                    setTimeout(() => {
+                        ring.style.opacity = '0';
+                        setTimeout(() => ring.remove(), 400);
+                    }, 200);
+                }, delay);
+
+                return ring;
+            };
+
+            // ===== FUNÇÃO DE SCREEN SHAKE (para tiers altos) =====
+            const applyScreenShake = (intensity, duration) => {
+                if (intensity <= 0) return;
+
+                const battleContainer = document.querySelector('.battle-container') || document.body;
+                const originalTransform = battleContainer.style.transform || '';
+                let elapsed = 0;
+                const interval = 50;
+
+                const shakeInterval = setInterval(() => {
+                    elapsed += interval;
+                    if (elapsed >= duration) {
+                        clearInterval(shakeInterval);
+                        battleContainer.style.transform = originalTransform;
+                        return;
+                    }
+
+                    const x = (Math.random() - 0.5) * intensity;
+                    const y = (Math.random() - 0.5) * intensity;
+                    battleContainer.style.transform = `translate(${x}px, ${y}px)`;
+                }, interval);
+            };
+
+            // ===== SEQUÊNCIA DE ANIMAÇÃO =====
+
+            // Fase 1: Charge-up (0-600ms)
+            chargeEffect.style.transition = 'opacity 0.3s ease-out, transform 0.6s ease-out';
+            chargeEffect.style.opacity = '1';
+            chargeEffect.style.transform = `scale(${1.5 * beamScale})`;
+
+            // Fase 2: Flash + Beam dispara (600ms)
+            setTimeout(() => {
+                // Flash na tela (intensidade baseada no tier)
+                screenFlash.style.transition = 'opacity 0.1s ease-out';
+                screenFlash.style.opacity = `${flashIntensity}`;
+                setTimeout(() => {
+                    screenFlash.style.transition = 'opacity 0.3s ease-in';
+                    screenFlash.style.opacity = '0';
+                }, 100);
+
+                // Charge desaparece
+                chargeEffect.style.opacity = '0';
+                chargeEffect.style.transform = 'scale(0.5)';
+
+                // Beam "dispara" - cresce do personagem ao boss
+                beamContainer.style.transition = 'width 0.15s ease-out';
+                beamContainer.style.width = `${distance}px`;
+
+                // Screen shake no disparo (se tier >= 2)
+                if (shakeIntensity > 0) {
+                    applyScreenShake(shakeIntensity, 800);
+                }
+
+            }, 600);
+
+            // Fase 3: Impacto no boss (750ms)
+            setTimeout(() => {
+                // Efeito de impacto aparece
+                impactEffect.style.transition = 'opacity 0.1s ease-out, transform 0.3s ease-out';
+                impactEffect.style.opacity = '1';
+                impactEffect.style.transform = `scale(${1.2 * impactScale})`;
+
+                // Ondas de impacto (quantidade baseada no tier)
+                const baseRingSize = 100 * impactScale;
+                for (let i = 0; i < ringCount; i++) {
+                    createImpactRing(i * 120, baseRingSize + (i * 40 * impactScale));
+                }
+
+                // Energia viajando pelo beam
+                travelingEnergy.style.opacity = '0.9';
+                travelingEnergy.style.animation = `beamTravelEnergy ${0.3 / beamScale}s linear infinite`;
+
+                // Aplicar efeito no boss
+                if (this.currentSkill && this.currentSkill.boss_damage_overlay) {
+                    this.applyBossDamageEffect();
+                }
+
+                // Pulsação do beam via CSS (leve)
+                beamCore.style.animation = 'beamCorePulse 0.15s ease-in-out infinite alternate';
+                impactEffect.style.animation = 'impactPulse 0.2s ease-in-out infinite alternate';
+
+            }, 750);
+
+            // Fase 4: Aplicar dano (1400ms)
+            setTimeout(() => {
+                console.log(`💥 Aplicando dano! (Tier ${tier}, ${bloodStacks} stacks)`);
+                this.applyDamageAndEffects();
+                this.damageAlreadyApplied = true;
+            }, 1400);
+
+            // Fase 5: Fade out (1700ms)
+            setTimeout(() => {
+                // Parar animações
+                beamCore.style.animation = 'none';
+                travelingEnergy.style.animation = 'none';
+                impactEffect.style.animation = 'none';
+
+                // Fade out suave
+                beamContainer.style.transition = 'opacity 0.3s ease-in';
+                beamContainer.style.opacity = '0';
+                impactEffect.style.transition = 'opacity 0.3s ease-in, transform 0.3s ease-in';
+                impactEffect.style.opacity = '0';
+                impactEffect.style.transform = `scale(${2 * impactScale})`;
+
+                // Limpar elementos
+                setTimeout(() => {
+                    screenFlash.remove();
+                    chargeEffect.remove();
+                    beamContainer.remove();
+                    impactEffect.remove();
+                }, 400);
+
+            }, 1700);
         }
 
-        // ===== ADICIONAR ANIMAÇÕES CSS =====
+        // ===== ADICIONAR ANIMAÇÕES CSS (otimizadas) =====
         addBeamAnimations() {
             if (document.querySelector('#beam-animations')) return;
-            
+
             const style = document.createElement('style');
             style.id = 'beam-animations';
             style.textContent = `
-                @keyframes beamPulse {
-                    0% { filter: blur(8px) brightness(1); }
-                    100% { filter: blur(6px) brightness(1.3); }
+                @keyframes beamCorePulse {
+                    0% { opacity: 0.9; transform: scaleY(1); }
+                    100% { opacity: 1; transform: scaleY(1.3); }
                 }
-                
-                @keyframes chargeUp {
-                    0% { 
-                        opacity: 0; 
-                        transform: scale(0.3) rotate(0deg); 
-                    }
-                    50% { 
-                        opacity: 1; 
-                        transform: scale(1.2) rotate(180deg); 
-                    }
-                    100% { 
-                        opacity: 0; 
-                        transform: scale(0.8) rotate(360deg); 
-                    }
+
+                @keyframes beamTravelEnergy {
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(calc(100% + 80px)); }
                 }
-                
-                @keyframes impactBurst {
-                    0% { transform: scale(1) rotate(0deg); }
-                    100% { transform: scale(1.1) rotate(10deg); }
-                }
-                
-                @keyframes particleFloat {
-                    0% { transform: translateY(0px) scale(1); }
-                    100% { transform: translateY(-10px) scale(1.2); }
+
+                @keyframes impactPulse {
+                    0% { transform: scale(1.1); opacity: 0.9; }
+                    100% { transform: scale(1.3); opacity: 1; }
                 }
             `;
-            
+
             document.head.appendChild(style);
         }
 
         // Fase: Efeito à distância normal (para ranged_distant)
         executePhase_distant_effect_normal() {
             console.log("QC Fase: Distant Effect Normal");
-                       
+
             // Criar efeito à distância (raio do céu, etc.)
             this.createDistantEffect();
 
-            // Sons: attack primeiro, depois effect_1, depois effect_2 com delay
+            // Sons: attack primeiro, depois effect_1 com delay de 500ms
             playSound(this.currentSkill.sound_attack, 0.8);
-            playSound(this.currentSkill.sound_effect_1, 0.8);
-            
+
+            // Effect_1 (execution.mp3) toca 500ms depois para sincronizar com a animação
+            setTimeout(() => {
+                playSound(this.currentSkill.sound_effect_1, 0.8);
+            }, 500);
+
             // Effect_2 toca depois do effect_1
             setTimeout(() => {
                 playSound(this.currentSkill.sound_effect_2, 0.8);
-            }, 700);
-            
+            }, 1200);
+
             setTimeout(() => {
                 // ✅ APLICAR BOSS DAMAGE OVERLAY AQUI - momento do dano
                 this.applyBossDamageEffect();
@@ -2733,6 +3139,8 @@ function performAttack(skill) {
             if (typeof window.showSkillTestModal === 'function') {
                 window.showSkillTestModal(this.currentSkill, (result) => {
                     console.log('✅ Skill Test completado:', result);
+                    console.log('🔍 DEBUG - result.score:', result.score);
+                    console.log('🔍 DEBUG - result completo:', JSON.stringify(result));
 
                     // Aplicar modificador de dano
                     this.currentSkill.skill_test_modifier = result.damageModifier;
@@ -2771,9 +3179,13 @@ function performAttack(skill) {
                         console.log('🎯 Disparando projétil do Power Attack!');
                         this.createVisualProjectile();
 
-                        // Aplicar dano quando projétil atingir o boss (após 900ms)
+                        // Aplicar dano quando projétil atingir o boss (após 750ms - tempo do projétil 0.7s)
                         setTimeout(() => {
                             console.log('💥 Projétil atingiu o boss! Aplicando dano...');
+
+                            // Aplicar efeito de hit no boss
+                            this.applyPowerHitEffect();
+
                             this.calculateAndApplyDamage();
                             playSound(this.currentSkill.sound_effect_2, 0.8);
 
@@ -2782,7 +3194,7 @@ function performAttack(skill) {
 
                             // Avançar para próxima fase APÓS dano aplicado
                             this.nextPhase(0);
-                        }, 900);
+                        }, 750);
                     }, 300);
 
                     // Restaurar idle IMEDIATAMENTE após animação terminar (1.1s)
@@ -2803,6 +3215,46 @@ function performAttack(skill) {
                 console.error('❌ showSkillTestModal não está disponível!');
                 this.nextPhase(0);
             }
+        }
+
+        // Fase: Especial do Vlad (Abraço da Escuridão) - executa tudo em paralelo
+        executePhase_vlad_special_parallel() {
+            console.log("🧛 QC Fase: Vlad Special Parallel");
+
+            // Aplicar animação 'special' do Vlad
+            if (typeof window.applyCharacterAnimation === 'function') {
+                window.applyCharacterAnimation('special', 'vlad-special-anim');
+                console.log('✅ Animação special do Vlad aplicada');
+            }
+
+            // Tocar som de preparação imediatamente
+            playSound(this.currentSkill.sound_prep_1, 0.8);
+
+            // Tocar som de ataque imediatamente junto com prep
+            playSound(this.currentSkill.sound_attack, 0.8);
+
+            // 500ms depois: efeito visual no boss (blood-execution)
+            setTimeout(() => {
+                this.applyBossDamageEffect();
+            }, 500);
+
+            // 1000ms depois: som execution.mp3 + dano
+            setTimeout(() => {
+                playSound(this.currentSkill.sound_effect_1, 0.8);
+                this.calculateAndApplyDamage();
+                this.damageAlreadyApplied = true;
+            }, 1000);
+
+            // Restaurar idle após animação do Vlad terminar
+            // A animação 'special' tem 28 frames, 1.4s
+            setTimeout(() => {
+                restoreCharacterIdle();
+                console.log('✅ Vlad restaurado para idle após special');
+            }, 1400);
+
+            // Avançar para próxima fase (restore_complete) após tudo
+            // Tempo total reduzido: 1.4s (duração da animação) + margem
+            this.nextPhase(1600);
         }
 
         // Fase: Aplicar dano
@@ -3489,7 +3941,7 @@ function performAttack(skill) {
             let frameWidth = 111;
             let frameHeight = 186;
             let frameCount = 16;
-            let duration = 1.0; // duração padrão em segundos
+            let duration = 1.6; // duração padrão em segundos - tempo suficiente para completar
 
             if (match) {
                 frameWidth = parseInt(match[1]);
@@ -3545,7 +3997,80 @@ function performAttack(skill) {
                 console.log(`🗑️ Sprite FX do boss removido após ${animationDuration}s`);
             }, animationDuration * 1000 + 200);
         }
-        
+
+        // Efeito de hit do Power Attack do Vlad
+        applyPowerHitEffect() {
+            const boss = document.getElementById('boss');
+            if (!boss) {
+                console.error("Boss element not found for power hit effect");
+                return;
+            }
+
+            // Pegar posição do boss na tela
+            const bossRect = boss.getBoundingClientRect();
+
+            // Configuração do sprite: powerhiteffect-86x69-5f.png
+            const imageUrl = '/static/game.data/fx/powerhiteffect-86x69-5f.png';
+            const frameWidth = 86;
+            const frameHeight = 69;
+            const frameCount = 5;
+            const duration = 0.4; // 5 frames em 0.4s = animação rápida de impacto
+            const scale = 2.5; // Escala maior para impacto mais visível
+
+            const totalWidth = frameWidth * frameCount;
+            const scaledWidth = frameWidth * scale;
+
+            // Criar keyframes dinamicamente
+            const keyframeId = `power-hit-fx-${Date.now()}`;
+            const styleEl = document.createElement('style');
+            styleEl.id = keyframeId;
+            styleEl.textContent = `
+                @keyframes ${keyframeId} {
+                    from { background-position: 0 0; }
+                    to { background-position: -${totalWidth}px 0; }
+                }
+            `;
+            document.head.appendChild(styleEl);
+
+            // Posição centralizada sobre o boss (position: fixed no body)
+            const centerX = bossRect.left + bossRect.width / 2 - scaledWidth / 2;
+            const topY = bossRect.top;
+
+            // Criar elemento da sprite animation no BODY (não no boss)
+            // Isso garante z-index global acima de projéteis e outros efeitos
+            const spriteLayer = document.createElement('div');
+            spriteLayer.className = 'boss-power-hit-layer';
+            spriteLayer.style.cssText = `
+                position: fixed;
+                top: ${topY}px;
+                left: ${centerX}px;
+                transform: scale(${scale});
+                transform-origin: top left;
+                width: ${frameWidth}px;
+                height: ${frameHeight}px;
+                background-image: url("${imageUrl}");
+                background-repeat: no-repeat;
+                background-position: 0 0;
+                background-size: ${totalWidth}px ${frameHeight}px;
+                opacity: 1;
+                pointer-events: none;
+                z-index: 9999;
+                image-rendering: pixelated;
+                animation: ${keyframeId} ${duration}s steps(${frameCount}) forwards;
+            `;
+
+            document.body.appendChild(spriteLayer);
+            console.log(`✅ Power Hit Effect adicionado ao body (z-index: 9999)`);
+
+            // Remover após animação
+            setTimeout(() => {
+                spriteLayer.remove();
+                const keyframeStyle = document.getElementById(keyframeId);
+                if (keyframeStyle) keyframeStyle.remove();
+                console.log(`🗑️ Power Hit Effect removido`);
+            }, duration * 1000 + 100);
+        }
+
         createProjectileEffect() {
             console.log("🎯 Criando efeito de projétil");
             // Implementação futura usando sistema PixiJS existente

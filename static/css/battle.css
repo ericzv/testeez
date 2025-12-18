@@ -1875,13 +1875,24 @@
       transform: scale(2.8) translate(-10%, -30%) !important;
   }
 
-  /* Player moving - Vlad */
+  /* Player moving - Vlad (transição mais rápida) */
   #battle-arena.quick-cut-player .character-container[data-character="vlad"].moving-to-boss {
       transform: scale(3.5) translate(-10%, -30%) translateX(var(--movement-distance, 70%)) !important;
+      transition: transform 0.5s linear !important;
   }
 
   #battle-arena.quick-cut-player .character-container[data-character="vlad"].moving-back {
       transform: scale(2.8) translate(-25%, -30%) translateX(0%) !important;
+      transition: transform 0.6s linear !important;
+  }
+
+  /* Vlad movimento geral - mais rápido */
+  .character-container[data-character="vlad"].moving-to-boss {
+      transition: transform 0.5s linear !important;
+  }
+
+  .character-container[data-character="vlad"].moving-back {
+      transition: transform 0.6s linear !important;
   }
 
   /* ========================================

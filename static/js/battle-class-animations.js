@@ -225,7 +225,7 @@ const CHARACTER_ANIMATIONS = {
             },
             frames: 24,
             totalWidth: 4224,
-            duration: "1.8s",
+            duration: "1.0s",
             steps: 24,
             scale: 1.0,
             loop: "forwards"
