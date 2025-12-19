@@ -92,13 +92,39 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a0f; f
 <script>
 function openMapPopup() {
     console.log('🗺️ Abrindo mapa...');
-    if (typeof playMapSheetSound === 'function') playMapSheetSound();
-    if (typeof openDialog === 'function') openDialog('#map-popup');
-    if (typeof loadMap === 'function') loadMap();
+    console.log('openDialog disponível:', typeof openDialog);
+    console.log('loadMap disponível:', typeof loadMap);
+    console.log('playMapSheetSound disponível:', typeof playMapSheetSound);
+
+    // Tocar som
+    if (typeof playMapSheetSound === 'function') {
+        playMapSheetSound();
+    }
+
+    // Abrir popup - deve funcionar pois script carregou
+    const popup = document.getElementById('map-popup');
+    if (popup) {
+        popup.style.display = 'flex';
+        popup.dataset.open = "1";
+        console.log('✅ Popup aberto via DOM direto');
+    } else {
+        console.error('❌ Popup #map-popup não encontrado');
+    }
+
+    // Carregar mapa
+    if (typeof loadMap === 'function') {
+        loadMap();
+    } else {
+        console.error('❌ loadMap não está definida');
+    }
 }
 
 function closeMapPopup() {
-    if (typeof closeDialog === 'function') closeDialog('#map-popup');
+    const popup = document.getElementById('map-popup');
+    if (popup) {
+        popup.style.display = 'none';
+        popup.dataset.open = "";
+    }
 }
 </script>
 </head>
