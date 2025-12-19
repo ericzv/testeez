@@ -542,16 +542,18 @@ def select_node(node_id):
     node.is_available = False
     node.visited_at = datetime.utcnow()
 
-    # Marcar nós acima como disponíveis
-    connections_up = node.get_connections_up()
-    for (up_x, up_y) in connections_up:
-        next_node = MapNode.query.filter_by(
-            map_id=node.map_id,
-            x=up_x,
-            y=up_y
-        ).first()
-        if next_node and not next_node.is_visited:
-            next_node.is_available = True
+    # Marcar nós acima como disponíveis APENAS para nós que não requerem combate
+    # Para battle/elite/boss, os próximos nós só ficam disponíveis após vencer
+    if node.node_type not in ['battle', 'elite', 'boss']:
+        connections_up = node.get_connections_up()
+        for (up_x, up_y) in connections_up:
+            next_node = MapNode.query.filter_by(
+                map_id=node.map_id,
+                x=up_x,
+                y=up_y
+            ).first()
+            if next_node and not next_node.is_visited:
+                next_node.is_available = True
 
     # Marcar todos os outros nós no mesmo nível como indisponíveis
     same_level_nodes = MapNode.query.filter_by(
@@ -616,6 +618,18 @@ def complete_current_node():
 
     # Marcar como completado
     node.is_completed = True
+
+    # Para nós de combate, marcar próximos nós como disponíveis após vitória
+    if node.node_type in ['battle', 'elite']:
+        connections_up = node.get_connections_up()
+        for (up_x, up_y) in connections_up:
+            next_node = MapNode.query.filter_by(
+                map_id=node.map_id,
+                x=up_x,
+                y=up_y
+            ).first()
+            if next_node and not next_node.is_visited:
+                next_node.is_available = True
 
     # Atualizar estatísticas
     if node.node_type == 'battle':

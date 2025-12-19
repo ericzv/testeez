@@ -673,6 +673,12 @@ window.SPA = {
         this.showLoading('Voltando ao hub...');
 
         try {
+            // Esconder fast-battle-container (só deve aparecer na batalha)
+            const fastBattleContainer = document.querySelector('.fast-battle-container');
+            if (fastBattleContainer) {
+                fastBattleContainer.style.display = 'none';
+            }
+
             // Executar transição
             await this.transition('battle', 'hub');
 
@@ -781,8 +787,8 @@ window.SPA = {
             updateStats();
         }
 
-        // 5. Restaurar sprites e garantir visibilidade
-        setTimeout(() => {
+        // 5. Restaurar sprites e garantir visibilidade (múltiplas tentativas)
+        const forceVisibility = () => {
             // Restaurar sprite do personagem
             if (typeof restoreCharacterIdle === 'function') {
                 restoreCharacterIdle();
@@ -793,6 +799,13 @@ window.SPA = {
             if (bossContainer) {
                 bossContainer.style.opacity = '1';
                 bossContainer.style.visibility = 'visible';
+                bossContainer.style.display = '';
+                bossContainer.style.transform = '';
+                // Forçar visibilidade das layers internas
+                bossContainer.querySelectorAll('.boss-sprite-layer, .boss-sprite-idle').forEach(layer => {
+                    layer.style.opacity = '1';
+                    layer.style.visibility = 'visible';
+                });
             }
 
             // Garantir que character-container está visível
@@ -801,7 +814,12 @@ window.SPA = {
                 characterContainer.style.opacity = '1';
                 characterContainer.style.visibility = 'visible';
             }
-        }, 300);
+        };
+
+        // Múltiplas tentativas para garantir visibilidade
+        setTimeout(forceVisibility, 300);
+        setTimeout(forceVisibility, 600);
+        setTimeout(forceVisibility, 1000);
 
         // 6. Popular opções de ataque
         setTimeout(() => {
@@ -817,10 +835,15 @@ window.SPA = {
         if (characterHud) characterHud.style.opacity = '1';
         if (bossHud) bossHud.style.opacity = '1';
 
-        // 8. Inicializar Fast Battle Mode
+        // 8. Inicializar Fast Battle Mode e mostrar container
         setTimeout(() => {
             if (typeof initFastBattleMode === 'function') {
                 initFastBattleMode();
+            }
+            // Garantir que fast-battle-container está visível
+            const fastBattleContainer = document.querySelector('.fast-battle-container');
+            if (fastBattleContainer) {
+                fastBattleContainer.style.display = '';
             }
         }, 600);
 
@@ -911,6 +934,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Verificar recompensas de relíquias pendentes
     checkRelicReward();
+
+    // Verificar se veio de compra de Lembrança no shop
+    const showMemorySelection = urlParams.get('show_memory_selection');
+    const memoryRarity = urlParams.get('rarity');
+    if (showMemorySelection === 'true' && memoryRarity) {
+        // Converter string de raridade para número
+        const rarityMap = { 'common': 1, 'uncommon': 2, 'rare': 3, 'epic': 4, 'legendary': 5 };
+        let numericRarity = parseInt(memoryRarity);
+        if (isNaN(numericRarity)) {
+            numericRarity = rarityMap[memoryRarity.toLowerCase()] || 1;
+        }
+        console.log('🧠 SPA: Abrindo popup de seleção de lembrança (rarity:', numericRarity, ')');
+        setTimeout(() => {
+            if (typeof showMemorySelectionPopup === 'function') {
+                showMemorySelectionPopup(numericRarity);
+            } else {
+                console.error('❌ Função showMemorySelectionPopup não encontrada');
+            }
+        }, 500);
+        // Limpar params da URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
 
     // Event listeners para sistema de relíquias
     const confirmRelicBtn = document.getElementById('confirm-relic-btn');
@@ -1174,13 +1219,30 @@ function displayActiveRelics(relics) {
     const bar = document.getElementById('relics-bar');
     const items = document.getElementById('relics-bar-items');
     if (!bar || !items) return;
-    if (!relics || relics.length === 0) { bar.style.display = 'none'; return; }
+    if (!relics || relics.length === 0) { bar.style.display = 'none'; items.innerHTML = ''; return; }
     bar.style.display = 'block';
     items.innerHTML = '';
+
+    // Mapear raridades
+    const rarityMap = { 'common': 'common', 'uncommon': 'rare', 'rare': 'rare', 'epic': 'epic', 'legendary': 'legendary' };
+
     relics.forEach(relic => {
         const item = document.createElement('div');
+        const normalizedRarity = rarityMap[relic.rarity] || 'common';
         item.className = 'relic-bar-item';
-        item.innerHTML = `<img src="/static/game.data/relics/${relic.icon}" class="relic-bar-icon" onerror="this.src='/static/game.data/relics/placeholder.png'">`;
+        item.setAttribute('data-rarity', normalizedRarity);
+        item.setAttribute('data-key', relic.name);
+        item.innerHTML = `
+            <img src="/static/game.data/relics/${relic.icon}"
+                alt="${relic.name}"
+                class="relic-bar-icon"
+                onerror="this.src='/static/game.data/relics/placeholder.png'">
+            ${relic.counter_value && relic.counter_value > 0 ? `<div class="relic-bar-counter">${relic.counter_value}</div>` : ''}
+            <div class="relic-tooltip">
+                <div class="relic-tooltip-name">${relic.name}</div>
+                <div class="relic-tooltip-desc">${relic.description}</div>
+            </div>
+        `;
         items.appendChild(item);
     });
 }
