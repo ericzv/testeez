@@ -506,6 +506,21 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a0f; f
 
 <script>
 // ============================================
+// MAP POPUP FUNCTIONS (must be defined first)
+// ============================================
+
+function openMapPopup() {
+    console.log('🗺️ Abrindo mapa...');
+    playMapSheetSound();
+    openDialog('#map-popup');
+    loadMap();
+}
+
+function closeMapPopup() {
+    closeDialog('#map-popup');
+}
+
+// ============================================
 // SISTEMA SPA - NAVEGAÇÃO UNIFICADA
 // ============================================
 
@@ -1002,21 +1017,6 @@ window.gameData = {
     playerData: { hp: {{ player_hp or 100 }}, maxHp: {{ player_max_hp or 100 }} },
     bossData: { hp: {{ boss_hp or 500 }}, maxHp: {{ boss_max_hp or 500 }} }
 };
-
-// ============================================
-// MAP POPUP FUNCTIONS
-// ============================================
-
-function openMapPopup() {
-    console.log('🗺️ Abrindo mapa...');
-    playMapSheetSound();
-    openDialog('#map-popup');
-    loadMap();
-}
-
-function closeMapPopup() {
-    closeDialog('#map-popup');
-}
 </script>
 
 <!-- Map Popup -->
