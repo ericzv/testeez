@@ -592,19 +592,28 @@ window.SPA = {
         if (specialSubmenu) specialSubmenu.classList.remove('visible');
         if (inventorySubmenu) inventorySubmenu.classList.remove('visible');
 
-        // 6. Mostrar menu de ação
+        // 6. Esconder menu de ação (só deve aparecer na zoom-view)
         if (window.actionMenu) {
-            window.actionMenu.classList.add('visible');
+            window.actionMenu.classList.remove('visible');
         }
 
-        // 7. Resetar controle de Última Graça
+        // 7. Resetar activeSubmenu
+        window.activeSubmenu = null;
+
+        // 8. Resetar controle de Última Graça
         if (window.ultimateGraceControl) {
             window.ultimateGraceControl.reset();
         }
 
-        // 8. Limpar rate limiting para carregar dados frescos
+        // 9. Limpar rate limiting para carregar dados frescos
         window.isLoadingBattleData = false;
         window.lastBattleDataUpdate = null;
+
+        // 10. Remover fast battle container anterior para reinicialização
+        const existingFastBattle = document.querySelector('.fast-battle-container');
+        if (existingFastBattle) {
+            existingFastBattle.remove();
+        }
 
         console.log('✅ Sistema de batalha resetado');
     },
@@ -772,10 +781,25 @@ window.SPA = {
             updateStats();
         }
 
-        // 5. Restaurar sprites do personagem
+        // 5. Restaurar sprites e garantir visibilidade
         setTimeout(() => {
+            // Restaurar sprite do personagem
             if (typeof restoreCharacterIdle === 'function') {
                 restoreCharacterIdle();
+            }
+
+            // Garantir que boss-container está visível
+            const bossContainer = document.getElementById('boss');
+            if (bossContainer) {
+                bossContainer.style.opacity = '1';
+                bossContainer.style.visibility = 'visible';
+            }
+
+            // Garantir que character-container está visível
+            const characterContainer = document.getElementById('character');
+            if (characterContainer) {
+                characterContainer.style.opacity = '1';
+                characterContainer.style.visibility = 'visible';
             }
         }, 300);
 
@@ -786,14 +810,19 @@ window.SPA = {
             }
         }, 400);
 
-        // 7. Mostrar HUD e menu
+        // 7. Mostrar apenas HUDs (menu aparece na zoom-view)
         const characterHud = document.querySelector('.character-hud');
         const bossHud = document.querySelector('.boss-hud');
-        const actionMenu = document.getElementById('action-menu');
 
         if (characterHud) characterHud.style.opacity = '1';
         if (bossHud) bossHud.style.opacity = '1';
-        if (actionMenu) actionMenu.classList.add('visible');
+
+        // 8. Inicializar Fast Battle Mode
+        setTimeout(() => {
+            if (typeof initFastBattleMode === 'function') {
+                initFastBattleMode();
+            }
+        }, 600);
 
         console.log('✅ Sistemas de batalha inicializados');
     },
@@ -879,6 +908,20 @@ document.addEventListener('DOMContentLoaded', function() {
     if (urlParams.get('go_battle') === 'true') {
         setTimeout(() => SPA.goToBattle(), 500);
     }
+
+    // Verificar recompensas de relíquias pendentes
+    checkRelicReward();
+
+    // Event listeners para sistema de relíquias
+    const confirmRelicBtn = document.getElementById('confirm-relic-btn');
+    if (confirmRelicBtn) {
+        confirmRelicBtn.addEventListener('click', confirmRelicSelection);
+    }
+
+    const relicRewriteBtn = document.getElementById('relic-rewrite-button');
+    if (relicRewriteBtn) {
+        relicRewriteBtn.addEventListener('click', executeRelicRewrite);
+    }
 });
 
 // ============================================
@@ -899,7 +942,178 @@ function playMemoryHoverSound() { playSound("/static/game.data/sounds/memory-hov
 function playMemoryRewardSelectionSound() { playSound("/static/game.data/sounds/memory-reward-popup-selection.wav", 0.8); }
 function playCoinGainSound() { playSound("/static/game.data/sounds/coin-use" + (4 + Math.floor(Math.random() * 4)) + ".mp3", 0.6); }
 function playMapSheetSound() { playSound("/static/game.data/sounds/map-sheet" + (1 + Math.floor(Math.random() * 9)) + ".mp3", 0.5); }
+function playRelicOptionsSound() { playSound("/static/game.data/sounds/relic_options.mp3", 0.6); }
+function playRelicHoverSound() { playSound("/static/game.data/sounds/relic_hover.mp3", 0.3); }
+function playRelicSelectionSound() { playSound("/static/game.data/sounds/relic_selection.mp3", 0.5); }
+function playRelicConfirmedSound() { playSound("/static/game.data/sounds/relic_confirmed.mp3", 0.7); }
 
+// ============================================
+// SISTEMA DE RELÍQUIAS
+// ============================================
+
+let relicOptions = [];
+let selectedRelicId = null;
+
+function checkRelicReward() {
+    console.log("🗡️ DEBUG: checkRelicReward() chamada");
+    fetch('/gamification/check_relic_reward')
+        .then(response => response.json())
+        .then(data => {
+            console.log("🗡️ DEBUG: Resposta do check_relic_reward:", data);
+            if (data.success && data.has_relic_reward) {
+                showRelicSelectionPopup(data.context, data.count);
+            }
+        })
+        .catch(error => console.error('Erro ao verificar recompensa de relíquia:', error));
+}
+
+function showRelicSelectionPopup(context, count) {
+    console.log("🗡️ DEBUG: showRelicSelectionPopup chamada", { context, count });
+    fetch('/gamification/get_relic_options')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                relicOptions = data.options;
+                displayRelicOptions();
+                selectedRelicId = null;
+                const confirmBtn = document.getElementById('confirm-relic-btn');
+                if (confirmBtn) {
+                    confirmBtn.disabled = true;
+                    confirmBtn.textContent = 'Confirmar Seleção';
+                }
+                updateRelicRewriteDivider();
+                playRelicOptionsSound();
+                document.getElementById('relic-selection-popup').style.display = 'flex';
+            }
+        })
+        .catch(error => console.error('Erro ao carregar opções de relíquia:', error));
+}
+
+function displayRelicOptions() {
+    const container = document.getElementById('relic-options-container');
+    if (!container) return;
+    container.innerHTML = '';
+    const cols = Math.min(relicOptions.length, 4);
+    container.style.gridTemplateColumns = `repeat(${cols}, 280px)`;
+    const panel = document.querySelector('.ui-panel.relic-selection-modal');
+    if (panel) panel.style.setProperty('--cols', cols);
+    const rarityNames = { 'common': 'Comum', 'uncommon': 'Rara', 'rare': 'Rara', 'epic': 'Épica', 'legendary': 'Lendária' };
+    relicOptions.forEach((option, index) => {
+        const el = document.createElement('div');
+        let rarity = option.rarity === 'uncommon' ? 'rare' : option.rarity;
+        el.className = `relic-option rarity-${rarity}`;
+        el.dataset.relicId = option.id;
+        el.innerHTML = `
+            <h3 class="relic-name">${option.name}</h3>
+            <img src="/static/game.data/relics/${option.icon}" alt="${option.name}" class="relic-icon" onerror="this.src='/static/game.data/relics/placeholder.png'">
+            <div class="relic-description">${option.description}</div>
+            <div class="relic-rarity-label rarity-${rarity}">${rarityNames[option.rarity] || rarityNames[rarity]}</div>
+        `;
+        el.addEventListener('mouseenter', () => playRelicHoverSound());
+        el.addEventListener('click', (e) => selectRelicOption(option.id, e));
+        container.appendChild(el);
+    });
+}
+
+function selectRelicOption(relicId, event) {
+    playRelicSelectionSound();
+    document.querySelectorAll('.relic-option').forEach(el => el.classList.remove('selected'));
+    const clicked = event.target.closest('.relic-option');
+    if (clicked) {
+        clicked.classList.add('selected');
+        selectedRelicId = relicId;
+        const confirmBtn = document.getElementById('confirm-relic-btn');
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            const relic = relicOptions.find(opt => opt.id === relicId);
+            confirmBtn.textContent = `Confirmar: ${relic?.name || 'Relíquia'}`;
+        }
+    }
+}
+
+function confirmRelicSelection() {
+    if (!selectedRelicId) { alert('Selecione uma relíquia primeiro!'); return; }
+    playRelicConfirmedSound();
+    const confirmBtn = document.getElementById('confirm-relic-btn');
+    if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Aplicando...'; }
+    fetch('/gamification/select_relic', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ relic_id: selectedRelicId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (data.has_more_relics) {
+                document.getElementById('relic-selection-popup').style.display = 'none';
+                setTimeout(() => showRelicSelectionPopup('last_boss', data.remaining_count), 500);
+            } else {
+                setTimeout(() => {
+                    document.getElementById('relic-selection-popup').style.display = 'none';
+                    selectedRelicId = null;
+                    updateActiveRelics();
+                }, 500);
+            }
+        } else {
+            if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirmar Seleção'; }
+        }
+    })
+    .catch(error => {
+        console.error('Erro ao selecionar relíquia:', error);
+        if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirmar Seleção'; }
+    });
+}
+
+function updateRelicRewriteDivider() {
+    fetch('/gamification/get_player_currencies')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const hourglasses = data.eternal_hourglasses || 0;
+                const rerollCount = data.relic_reroll_count || 0;
+                const cost = (rerollCount + 1) * 3;
+                const canReroll = rerollCount < 3 && hourglasses >= cost;
+                const costEl = document.getElementById('relic-rewrite-cost');
+                if (costEl) costEl.textContent = cost;
+                const divider = document.getElementById('relic-rewrite-divider');
+                const button = document.getElementById('relic-rewrite-button');
+                if (divider) divider.style.display = 'flex';
+                if (button) button.classList.toggle('disabled', !canReroll);
+            }
+        })
+        .catch(error => console.error('Erro ao obter currencies:', error));
+}
+
+async function executeRelicRewrite() {
+    const button = document.getElementById('relic-rewrite-button');
+    if (button?.classList.contains('disabled')) return;
+    if (button) button.classList.add('rewriting');
+    playSound('/static/game.data/sounds/rewrite.mp3', 0.5);
+    try {
+        const response = await fetch('/gamification/rewrite_relics', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await response.json();
+        if (data.success) {
+            const container = document.getElementById('relic-options-container');
+            if (container) {
+                container.style.opacity = '0';
+                container.style.transition = 'opacity 0.5s ease-out';
+                setTimeout(async () => {
+                    const newData = await fetch('/gamification/get_relic_options').then(r => r.json());
+                    if (newData.success) {
+                        relicOptions = newData.options;
+                        displayRelicOptions();
+                        selectedRelicId = null;
+                        const confirmBtn = document.getElementById('confirm-relic-btn');
+                        if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Confirmar Seleção'; }
+                        updateRelicRewriteDivider();
+                        updateCurrencyDisplay();
+                        setTimeout(() => { container.style.opacity = '1'; if (button) button.classList.remove('rewriting'); }, 50);
+                    }
+                }, 500);
+            }
+        } else { if (button) button.classList.remove('rewriting'); }
+    } catch (error) { console.error('Erro ao executar reroll:', error); if (button) button.classList.remove('rewriting'); }
+}
 
 // ============================================
 // CURRENCIES & BUFFS

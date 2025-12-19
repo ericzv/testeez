@@ -20,9 +20,13 @@ class FastBattleMode {
   }
 
   waitForBattleReady() {
-    // Verificar se estamos na página de batalha
-    if (!window.location.pathname.includes('/battle')) {
-      console.log('Fast Battle Mode: Não estamos na página de batalha');
+    // Verificar se estamos na página de batalha (URL ou SPA)
+    const isBattlePage = window.location.pathname.includes('/battle');
+    const isSPABattleView = document.getElementById('battle-view')?.classList.contains('active');
+
+    if (!isBattlePage && !isSPABattleView) {
+      console.log('Fast Battle Mode: Não estamos na página de batalha, aguardando SPA...');
+      // Para SPA, aguardar ser chamado manualmente via window.initFastBattleMode()
       return;
     }
 
@@ -697,7 +701,30 @@ fastBattleStyle.textContent = `
 `;
 document.head.appendChild(fastBattleStyle);
 
-// Inicializar quando DOM estiver pronto
+// Função global para inicializar/reinicializar Fast Battle Mode (usado pelo SPA)
+window.initFastBattleMode = function() {
+  console.log('🚀 Inicializando Fast Battle Mode (via SPA)...');
+
+  // Remover instância anterior se existir
+  const existingContainer = document.querySelector('.fast-battle-container');
+  if (existingContainer) {
+    existingContainer.remove();
+  }
+
+  // Criar nova instância
+  window.fastBattle = new FastBattleMode();
+
+  // Forçar inicialização imediata se já estamos na batalha
+  if (window.fastBattle && typeof window.fastBattle.init === 'function') {
+    setTimeout(() => {
+      if (!document.querySelector('.fast-battle-container')) {
+        window.fastBattle.init();
+      }
+    }, 500);
+  }
+};
+
+// Inicializar quando DOM estiver pronto (para páginas de batalha diretas)
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     window.fastBattle = new FastBattleMode();

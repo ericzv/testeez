@@ -2077,10 +2077,18 @@ function performAttack(skill) {
             const runDuration = (currentChar === 'Vlad' || currentChar === 'vlad') ? 500 : 1200;
 
             setTimeout(() => {
-                fxLayerA.classList.remove('animate-fx');
-                fxLayerB.classList.remove('animate-fx');
-                fxLayerA.style.opacity = 0;
-                fxLayerB.style.opacity = 0;
+                // Verificação de null para SPA
+                const layerA = window.fxLayerA || document.getElementById('fx-layer-a');
+                const layerB = window.fxLayerB || document.getElementById('fx-layer-b');
+
+                if (layerA) {
+                    layerA.classList.remove('animate-fx');
+                    layerA.style.opacity = 0;
+                }
+                if (layerB) {
+                    layerB.classList.remove('animate-fx');
+                    layerB.style.opacity = 0;
+                }
 
                 this.nextPhase(0);
             }, runDuration); 
