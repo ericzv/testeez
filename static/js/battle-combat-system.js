@@ -4525,8 +4525,13 @@ function handleBossDeathAnimation(hasMemoryReward, enemyRarity) {
                 localStorage.setItem('victoryData', JSON.stringify(victoryData));
                 console.log("💾 Dados de vitória salvos no localStorage:", victoryData);
 
-                // Redirecionar para o hub como fallback
-                window.location.href = '/gamification';
+                // Redirecionar para o hub - usar SPA se disponível
+                if (typeof SPA !== 'undefined' && typeof SPA.goToHub === 'function') {
+                    console.log("🏠 Usando SPA para voltar ao hub");
+                    SPA.goToHub();
+                } else {
+                    window.location.href = '/gamification';
+                }
             }
         }, 2000);
     } else {
@@ -4546,7 +4551,13 @@ function handleBossDeathAnimation(hasMemoryReward, enemyRarity) {
             localStorage.setItem('victoryData', JSON.stringify(victoryData));
             console.log("💾 Dados de vitória salvos no localStorage:", victoryData);
 
-            window.location.href = '/gamification';
+            // Usar SPA se disponível
+            if (typeof SPA !== 'undefined' && typeof SPA.goToHub === 'function') {
+                console.log("🏠 Usando SPA para voltar ao hub");
+                SPA.goToHub();
+            } else {
+                window.location.href = '/gamification';
+            }
         }, 2000);
     }
 }

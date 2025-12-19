@@ -1124,7 +1124,12 @@ function useSpecialSkill(skillId, skillName) {
                                         if (typeof handleBossDeathAnimation === 'function') {
                                             handleBossDeathAnimation(true, gameState.boss.rarity || 1);
                                         } else {
-                                            window.location.href = '/gamification';
+                                            // Usar SPA se disponível
+                                            if (typeof SPA !== 'undefined' && typeof SPA.goToHub === 'function') {
+                                                SPA.goToHub();
+                                            } else {
+                                                window.location.href = '/gamification';
+                                            }
                                         }
                                     }, 1500);
                                 }

@@ -291,15 +291,26 @@ function confirmMemorySelection() {
                 selectedMemoryType = null;
                 pendingMemoryData = null;
 
-                // Redirecionar para o hub APENAS se estiver na página de batalha
-                const isBattlePage = window.location.pathname.includes('/battle');
-                if (isBattlePage) {
-                    console.log("🏠 Redirecionando para o hub...");
-                    window.location.href = '/gamification';
+                // Voltar ao hub - usar SPA se disponível
+                if (typeof SPA !== 'undefined' && typeof SPA.goToHub === 'function') {
+                    console.log("🏠 Usando SPA para voltar ao hub...");
+                    SPA.goToHub();
                 } else {
-                    console.log("✅ Já está no hub, não precisa redirecionar");
-                    // Recarregar a página para atualizar os dados
-                    window.location.reload();
+                    // Fallback para navegação tradicional
+                    const isBattlePage = window.location.pathname.includes('/battle');
+                    if (isBattlePage) {
+                        console.log("🏠 Redirecionando para o hub...");
+                        window.location.href = '/gamification';
+                    } else {
+                        console.log("✅ Já está no hub, atualizando dados...");
+                        // Atualizar dados sem recarregar se possível
+                        if (typeof updateActiveRunBuffs === 'function') {
+                            updateActiveRunBuffs();
+                        }
+                        if (typeof updateCurrencyDisplay === 'function') {
+                            updateCurrencyDisplay();
+                        }
+                    }
                 }
             }, 1800);
         } else {
