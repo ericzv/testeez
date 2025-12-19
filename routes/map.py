@@ -215,8 +215,8 @@ def elite_battle(boss_id):
 
     db.session.commit()
 
-    # Redirecionar para a página de batalha
-    return redirect(url_for('battle.battle'))
+    # Redirecionar para SPA com batalha ativa
+    return redirect(url_for('battle.gamification_spa') + '?go_battle=true')
 
 
 @map_bp.route('/battle/boss/<int:boss_id>')
@@ -313,8 +313,8 @@ def boss_battle(boss_id):
 
     db.session.commit()
 
-    # Redirecionar para a página de batalha
-    return redirect(url_for('battle.battle'))
+    # Redirecionar para SPA com batalha ativa
+    return redirect(url_for('battle.gamification_spa') + '?go_battle=true')
 
 
 # ============================================================================

@@ -124,8 +124,8 @@ def start_battle():
 
         print(f"⚔️ MAP BATTLE: Iniciando batalha contra {enemy.name} (nível {current_node.y})")
 
-        # Redirecionar para a rota de batalha existente
-        return redirect(url_for('battle.battle'))
+        # Redirecionar para SPA com batalha ativa
+        return redirect(url_for('battle.gamification_spa') + '?go_battle=true')
 
     except Exception as e:
         print(f"❌ Erro ao iniciar batalha do mapa: {e}")
@@ -182,8 +182,8 @@ def start_boss_battle(boss_id):
 
     print(f"💀 MAP BOSS: Iniciando batalha contra {final_boss.name}")
 
-    # Redirecionar para batalha
-    return redirect(url_for('battle.battle'))
+    # Redirecionar para SPA com batalha ativa
+    return redirect(url_for('battle.gamification_spa') + '?go_battle=true')
 
 
 @map_battle_bp.route('/victory', methods=['POST'])

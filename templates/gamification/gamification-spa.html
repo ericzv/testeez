@@ -90,23 +90,31 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a0f; f
 
 <!-- Map popup functions must be defined before body HTML is parsed -->
 <script>
+// Dialog utilities - must be global
+function openDialog(el) {
+    const d = typeof el === 'string' ? document.querySelector(el) : el;
+    if (d) { d.style.display = 'flex'; d.dataset.open = "1"; }
+}
+
+function closeDialog(el) {
+    const d = typeof el === 'string' ? document.querySelector(el) : el;
+    if (d) { d.style.display = 'none'; d.dataset.open = ""; }
+}
+
 function openMapPopup() {
     console.log('🗺️ Abrindo mapa...');
-    console.log('openDialog disponível:', typeof openDialog);
-    console.log('loadMap disponível:', typeof loadMap);
-    console.log('playMapSheetSound disponível:', typeof playMapSheetSound);
 
     // Tocar som
     if (typeof playMapSheetSound === 'function') {
         playMapSheetSound();
     }
 
-    // Abrir popup - deve funcionar pois script carregou
+    // Abrir popup
     const popup = document.getElementById('map-popup');
     if (popup) {
         popup.style.display = 'flex';
         popup.dataset.open = "1";
-        console.log('✅ Popup aberto via DOM direto');
+        console.log('✅ Popup do mapa aberto');
     } else {
         console.error('❌ Popup #map-popup não encontrado');
     }
@@ -882,20 +890,6 @@ function displayActiveRelics(relics) {
         item.innerHTML = `<img src="/static/game.data/relics/${relic.icon}" class="relic-bar-icon" onerror="this.src='/static/game.data/relics/placeholder.png'">`;
         items.appendChild(item);
     });
-}
-
-// ============================================
-// DIALOG UTILS
-// ============================================
-
-function openDialog(el) {
-    const d = typeof el === 'string' ? document.querySelector(el) : el;
-    if (d) { d.style.display = 'flex'; d.dataset.open = "1"; }
-}
-
-function closeDialog(el) {
-    const d = typeof el === 'string' ? document.querySelector(el) : el;
-    if (d) { d.style.display = 'none'; d.dataset.open = ""; }
 }
 
 // ============================================
