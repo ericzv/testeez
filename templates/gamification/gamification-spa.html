@@ -12,35 +12,80 @@
 <!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-<!-- Core CSS (carregado sempre) -->
+<!-- Core CSS -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/hub.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/spa-transitions.css') }}">
 
-<!-- Battle CSS (preload para carregamento mais rápido) -->
-<link rel="preload" href="{{ url_for('static', filename='css/battle.css') }}" as="style">
-<link rel="preload" href="{{ url_for('static', filename='css/battle-turns.css') }}" as="style">
+<!-- Battle CSS (carregado sempre para evitar FOUC) -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/battle.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/battle-turns.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/fast-battle-mode.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/battle-skill-test.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/enemy-skills.css') }}">
 
 <style>
-/* Base styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a0f; font-family: 'Cinzel', serif; }
+.gamification-page { background: linear-gradient(135deg, #1a1a2e 0%, #0f0f23 50%, #1a1a2e 100%); min-height: 100vh; }
+
+/* Estilo para os dois botões centrais */
+.hub-center-buttons {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    gap: 30px;
+    z-index: 1000;
 }
 
-html, body {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #0a0a0f;
-    font-family: 'Cinzel', serif;
+.hub-main-btn {
+    padding: 25px 50px;
+    border-radius: 15px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 22px;
+    border: 3px solid #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
 }
 
-/* Gamification base */
-.gamification-page {
-    background: linear-gradient(135deg, #1a1a2e 0%, #0f0f23 50%, #1a1a2e 100%);
-    min-height: 100vh;
+.hub-main-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 40px rgba(255, 215, 0, 0.5);
 }
+
+.hub-main-btn .menu-icon {
+    font-size: 36px;
+}
+
+.hub-main-btn.mapa-btn {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #000;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.7);
+}
+
+.hub-main-btn.talentos-btn {
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    color: #fff;
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.7);
+}
+
+/* Inventory potion slots */
+.inventory-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 10px; max-width: 600px; margin: 0 auto; }
+.potion-slot { background: linear-gradient(135deg, rgba(40, 40, 40, 0.95), rgba(20, 20, 20, 0.95)); border: 2px solid rgba(100, 100, 100, 0.5); border-radius: 12px; padding: 12px; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; }
+.potion-slot:not(.empty):hover { transform: translateY(-5px) scale(1.05); border-color: rgba(16, 185, 129, 0.8); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4); }
+.potion-slot.empty { opacity: 0.5; cursor: not-allowed; }
+.slot-icon-container { width: 80px; height: 80px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.3); border-radius: 10px; }
+.slot-icon-container img { width: 64px; height: 64px; object-fit: contain; }
+.empty-slot-icon { font-size: 48px; color: rgba(150, 150, 150, 0.3); }
+.slot-info { text-align: center; }
+.slot-name { color: #fff; font-size: 14px; font-weight: bold; margin-bottom: 5px; }
+.slot-quantity { display: inline-block; padding: 4px 12px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; color: #10b981; font-size: 13px; }
 </style>
 </head>
 
@@ -107,74 +152,76 @@ html, body {
             <div class="relics-bar-items" id="relics-bar-items"></div>
         </div>
 
-        <!-- Menu Container -->
-        <div class="menu-container">
-            {% set menu = [
-                ('index', '📚', 'Flashcards'),
-                ('attributes', '✨', 'Atributos'),
-                ('game_inventory', '🎒', 'Inventário'),
-                ('items.shop', '🪙', 'Loja'),
-                ('bestiary', '📘', 'Bestiário'),
-                ('battle.battle', '⚔️', 'Batalha'),
-                ('game_profile', '🧙‍♂️', 'Perfil'),
-                ('battle.skills', '🔥', 'Habilidades'),
-                ('talents', '🌟', 'Talentos'),
-            ] %}
-
-            <a href="{{ url_for(menu[1][0]) }}" class="menu-btn btn-1">
-                <span class="menu-icon">{{ menu[1][1] }}</span>
-                <span class="menu-text">{{ menu[1][2] }}</span>
-            </a>
-
-            <a href="{{ url_for(menu[3][0]) }}" class="menu-btn btn-3">
-                <span class="menu-icon">{{ menu[3][1] }}</span>
-                <span class="menu-text">{{ menu[3][2] }}</span>
-            </a>
-
-            <!-- Botão de Batalha - SPA Navigation -->
-            <a href="#" class="menu-btn btn-5 battle-btn" onclick="SPANavigation.navigateToBattle(); return false;">
-                <span class="menu-icon">⚔️</span>
-                <span class="menu-text">Batalha</span>
-            </a>
-
-            <a href="{{ url_for(menu[6][0]) }}" class="menu-btn btn-6">
-                <span class="menu-icon">{{ menu[6][1] }}</span>
-                <span class="menu-text">{{ menu[6][2] }}</span>
-            </a>
-
-            <a href="{{ url_for(menu[7][0]) }}" class="menu-btn btn-7">
-                <span class="menu-icon">{{ menu[7][1] }}</span>
-                <span class="menu-text">{{ menu[7][2] }}</span>
-            </a>
-
-            <a href="{{ url_for('talents.talents') }}" class="menu-btn btn-8">
-                <span class="menu-icon">🌟</span>
-                <span class="menu-text">Talentos</span>
-            </a>
-
-            <!-- Botão do Mapa Procedural -->
-            <a href="#" onclick="openMapPopup(); return false;" class="menu-btn btn-9" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; padding: 20px 40px; border-radius: 15px; text-decoration: none; font-weight: bold; font-size: 20px; box-shadow: 0 0 30px rgba(255, 215, 0, 0.7); border: 3px solid #fff;">
+        <!-- Apenas dois botões: MAPA e TALENTOS -->
+        <div class="hub-center-buttons">
+            <a href="#" onclick="openMapPopup(); return false;" class="hub-main-btn mapa-btn">
                 <span class="menu-icon">🗺️</span>
                 <span class="menu-text">MAPA</span>
             </a>
+            <a href="{{ url_for('talents.talents') }}" class="hub-main-btn talentos-btn">
+                <span class="menu-icon">🌟</span>
+                <span class="menu-text">TALENTOS</span>
+            </a>
+        </div>
 
-            <!-- Notification Bell -->
-            <div class="notification-bell" id="notificationBell">
-                <span class="bell-icon">🔔</span>
-                <span class="notification-count" id="notificationCount">0</span>
+        <!-- Notification Bell -->
+        <div class="notification-bell" id="notificationBell">
+            <span class="bell-icon">🔔</span>
+            <span class="notification-count" id="notificationCount">0</span>
+        </div>
+
+        <div class="notification-panel" id="notificationPanel">
+            <div class="notification-header">
+                <h3>Notificações</h3>
+                <button id="clearNotifications">Limpar Todas</button>
             </div>
+            <div class="notification-list" id="notificationList"></div>
+        </div>
 
-            <div class="notification-panel" id="notificationPanel">
-                <div class="notification-header">
-                    <h3>Notificações</h3>
-                    <button id="clearNotifications">Limpar Todas</button>
+        <!-- Memory Selection Popup (Hub) -->
+        <div id="memory-selection-popup" class="victory-popup" style="display: none;">
+            <div class="victory-content">
+                <div class="victory-header">
+                    <img src="{{ url_for('static', filename='game.data/buffs/memory.png') }}" alt="Lembranças" class="victory-icon">
+                    <h2>Escolha uma Lembrança</h2>
+                    <p>Selecione um dos buffs abaixo para sua run atual:</p>
                 </div>
-                <div class="notification-list" id="notificationList"></div>
+                <div class="memory-options" id="memory-options-container"></div>
+                <div class="rewrite-divider" id="memory-rewrite-divider" style="display: none;">
+                    <div class="rewrite-line"></div>
+                    <div class="rewrite-button" id="memory-rewrite-button">
+                        <span class="rewrite-cost" id="memory-rewrite-cost">2</span>
+                        <img src="{{ url_for('static', filename='game.data/hourglass_small.png') }}" alt="Ampulheta Eterna" class="rewrite-icon">
+                    </div>
+                    <div class="rewrite-line"></div>
+                </div>
+                <div class="victory-actions">
+                    <button id="confirm-memory-btn" class="btn btn-primary" disabled>Confirmar Seleção</button>
+                </div>
             </div>
         </div>
 
-        <!-- Incluir conteúdo dos popups do hub (memory, relic, map, etc) -->
-        {% include 'gamification/partials/hub-popups.html' ignore missing %}
+        <!-- Relic Selection Popup -->
+        <div id="relic-selection-popup" class="ui-dialog" style="display: none;">
+            <div class="ui-panel relic-selection-modal">
+                <div class="victory-header">
+                    <img src="{{ url_for('static', filename='game.data/relics/relic_icon.png') }}" alt="Relíquia" class="relic-header-icon">
+                    <h2>Escolha uma Relíquia</h2>
+                </div>
+                <div class="relic-options" id="relic-options-container"></div>
+                <div class="rewrite-divider" id="relic-rewrite-divider" style="display: none;">
+                    <div class="rewrite-line"></div>
+                    <div class="rewrite-button" id="relic-rewrite-button">
+                        <span class="rewrite-cost" id="relic-rewrite-cost">3</span>
+                        <img src="{{ url_for('static', filename='game.data/hourglass_small.png') }}" alt="Ampulheta Eterna" class="rewrite-icon">
+                    </div>
+                    <div class="rewrite-line"></div>
+                </div>
+                <div class="victory-actions">
+                    <button id="confirm-relic-btn" class="btn btn-primary" disabled>Confirmar Seleção</button>
+                </div>
+            </div>
+        </div>
 
     </div>
 
@@ -184,20 +231,10 @@ html, body {
     <div class="spa-view" id="battle-view">
 
         <!-- Botão Voltar ao Hub (SPA) -->
-        <button class="spa-back-button" id="spa-back-to-hub" onclick="SPANavigation.navigateToHub()">
+        <button class="spa-back-button" id="spa-back-to-hub">
             <span class="arrow">&#8592;</span>
             <span>Hub</span>
         </button>
-
-        <!-- Loading Screen da Batalha -->
-        <div class="loading-screen" id="loading-screen" style="display: none;">
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
-                <div class="loading-text">Preparando para Batalha...</div>
-                <div id="progress-container" style="width: 60%; max-width: 400px; height: 20px; background: rgba(0, 0, 0, 0.5); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 10px; overflow: hidden;">
-                    <div id="progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #4CAF50, #8BC34A); transition: width 0.3s ease;"></div>
-                </div>
-            </div>
-        </div>
 
         <!-- Critical Flash Effect -->
         <div id="critical-flash"></div>
@@ -316,24 +353,15 @@ html, body {
                     <div id="inventory-options" class="inventory-grid">
                         <div class="potion-slot empty" data-slot="1" id="potion-slot-1">
                             <div class="slot-icon-container"><div class="empty-slot-icon">?</div></div>
-                            <div class="slot-info">
-                                <div class="slot-name">Vazio</div>
-                                <div class="slot-quantity">0</div>
-                            </div>
+                            <div class="slot-info"><div class="slot-name">Vazio</div><div class="slot-quantity">0</div></div>
                         </div>
                         <div class="potion-slot empty" data-slot="2" id="potion-slot-2">
                             <div class="slot-icon-container"><div class="empty-slot-icon">?</div></div>
-                            <div class="slot-info">
-                                <div class="slot-name">Vazio</div>
-                                <div class="slot-quantity">0</div>
-                            </div>
+                            <div class="slot-info"><div class="slot-name">Vazio</div><div class="slot-quantity">0</div></div>
                         </div>
                         <div class="potion-slot empty" data-slot="3" id="potion-slot-3">
                             <div class="slot-icon-container"><div class="empty-slot-icon">?</div></div>
-                            <div class="slot-info">
-                                <div class="slot-name">Vazio</div>
-                                <div class="slot-quantity">0</div>
-                            </div>
+                            <div class="slot-info"><div class="slot-name">Vazio</div><div class="slot-quantity">0</div></div>
                         </div>
                     </div>
                 </div>
@@ -343,14 +371,8 @@ html, body {
             <div class="boss-info-panel" id="boss-info-panel">
                 <div class="boss-name" id="boss-info-name">{{ boss_name or 'Inimigo' }}</div>
                 <div class="blood-stacks-container" id="blood-stacks-container" style="display: none;"></div>
-                <div class="boss-stat">
-                    <span>Vida:</span>
-                    <span id="boss-info-hp">{{ boss_hp or 100 }}/{{ boss_max_hp or 100 }}</span>
-                </div>
-                <div class="boss-stat">
-                    <span>Dano:</span>
-                    <span id="boss-info-damage">{{ boss_damage or 15 }}</span>
-                </div>
+                <div class="boss-stat"><span>Vida:</span><span id="boss-info-hp">{{ boss_hp or 100 }}/{{ boss_max_hp or 100 }}</span></div>
+                <div class="boss-stat"><span>Dano:</span><span id="boss-info-damage">{{ boss_damage or 15 }}</span></div>
                 <div class="boss-quote" id="boss-info-quote">{{ boss_quote }}</div>
             </div>
 
@@ -440,9 +462,6 @@ html, body {
     <span id="player_block_bonus">{{ player_block_bonus or 0 }}</span>
     <span id="player_damage_multiplier">{{ player_damage_multiplier or 1.0 }}</span>
     <span id="player_dodge_chance">{{ player_dodge_chance or 0 }}</span>
-    <span id="player_class">{{ player_class or 'Nenhuma' }}</span>
-    <span id="player_subclass">{{ player_subclass or 'Nenhuma' }}</span>
-    <span id="player_talents">[]</span>
 </div>
 
 <div id="character-debug-info" style="display: none;">
@@ -452,100 +471,307 @@ html, body {
     <span id="character-specials">{{ (player_special_skills or []) | tojson | safe }}</span>
 </div>
 
-<!-- Core Scripts (sempre carregados) -->
-<script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
-<script src="{{ url_for('static', filename='js/register-sw.js') }}"></script>
-<script src="{{ url_for('static', filename='js/spa-navigation.js') }}"></script>
+<!-- ============================================
+     SCRIPTS
+     ============================================ -->
 
-<!-- Hub Scripts -->
+<!-- Particles.js -->
+<script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
+
+<!-- Core Scripts -->
+<script src="{{ url_for('static', filename='js/register-sw.js') }}"></script>
+<script src="{{ url_for('static', filename='js/performance-manager.js') }}"></script>
+<script src="{{ url_for('static', filename='js/image-optimizer.js') }}"></script>
+
+<!-- Battle Scripts (carregados sempre para evitar problemas) -->
+<script defer src="{{ url_for('static', filename='js/fx-attacks.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/fx-specials.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/battle-vignette-part1.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/battle-vignette-part2.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/battle-vignette-part3.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/battle-vignette-part4.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/vignette-integration.js') }}"></script>
+<script src="{{ url_for('static', filename='js/battle-preloader.js') }}"></script>
+<script src="{{ url_for('static', filename='js/battle-class-animations.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/battle-blood-stacks.js') }}"></script>
+<script src="{{ url_for('static', filename='js/battle-base.js') }}"></script>
+<script src="{{ url_for('static', filename='js/battle-combat-system.js') }}"></script>
+<script src="{{ url_for('static', filename='js/battle-skills-system.js') }}"></script>
+<script src="{{ url_for('static', filename='js/battle-animation.js') }}"></script>
+<script src="{{ url_for('static', filename='js/battle-turns.js') }}"></script>
+<script src="{{ url_for('static', filename='js/battle-memory-system.js') }}"></script>
+<script src="{{ url_for('static', filename='js/fast-battle-mode.js') }}"></script>
+<script src="{{ url_for('static', filename='js/battle-skill-test.js') }}"></script>
+<script src="{{ url_for('static', filename='js/battle-skill-test-integration.js') }}"></script>
+
 <script>
-// Inicialização do Hub
+// ============================================
+// SISTEMA SPA - NAVEGAÇÃO UNIFICADA
+// ============================================
+
+window.SPA = {
+    currentView: 'hub',
+    isTransitioning: false,
+    battleInitialized: false,
+
+    // Navegar para batalha
+    async goToBattle() {
+        if (this.isTransitioning || this.currentView === 'battle') return;
+        this.isTransitioning = true;
+
+        console.log('🎮 SPA: Navegando para batalha...');
+
+        // Mostrar loading
+        this.showLoading('Preparando batalha...');
+
+        try {
+            // Buscar dados atualizados da batalha
+            const response = await fetch('/gamification/get_battle_data');
+            const data = await response.json();
+
+            if (!data.success || (!data.enemy && !data.boss)) {
+                this.hideLoading();
+                this.isTransitioning = false;
+                openMapPopup();
+                return;
+            }
+
+            // Atualizar dados da batalha na UI
+            this.updateBattleUI(data);
+
+            // Executar transição
+            await this.transition('hub', 'battle');
+
+            // Inicializar batalha se necessário
+            if (!this.battleInitialized) {
+                this.initBattle();
+                this.battleInitialized = true;
+            } else {
+                // Reinicializar sprites
+                if (typeof initializeCharacterContainer === 'function') {
+                    setTimeout(() => initializeCharacterContainer(), 100);
+                }
+                if (typeof initializeBossSprite === 'function') {
+                    setTimeout(() => initializeBossSprite(), 100);
+                }
+            }
+
+            this.currentView = 'battle';
+
+        } catch (error) {
+            console.error('Erro ao navegar para batalha:', error);
+        }
+
+        this.hideLoading();
+        this.isTransitioning = false;
+    },
+
+    // Navegar para hub
+    async goToHub() {
+        if (this.isTransitioning || this.currentView === 'hub') return;
+        this.isTransitioning = true;
+
+        console.log('🏠 SPA: Navegando para hub...');
+
+        this.showLoading('Voltando ao hub...');
+
+        try {
+            // Executar transição
+            await this.transition('battle', 'hub');
+
+            // Atualizar dados do hub
+            await this.refreshHubData();
+
+            this.currentView = 'hub';
+
+        } catch (error) {
+            console.error('Erro ao navegar para hub:', error);
+        }
+
+        this.hideLoading();
+        this.isTransitioning = false;
+    },
+
+    // Transição visual entre views
+    transition(from, to) {
+        return new Promise((resolve) => {
+            const fromView = document.getElementById(from + '-view');
+            const toView = document.getElementById(to + '-view');
+            const flash = document.getElementById('spa-transition-flash');
+
+            // Flash
+            if (flash) {
+                flash.classList.add('active');
+                setTimeout(() => flash.classList.remove('active'), 500);
+            }
+
+            // Animar saída
+            fromView.classList.add('exiting');
+
+            setTimeout(() => {
+                fromView.classList.remove('active', 'exiting');
+                toView.classList.add('active');
+
+                setTimeout(() => {
+                    resolve();
+                }, 400);
+            }, 300);
+        });
+    },
+
+    // Atualizar UI da batalha
+    updateBattleUI(data) {
+        const enemy = data.enemy || data.boss;
+        if (!enemy) return;
+
+        // Atualizar painel do boss
+        const nameEl = document.getElementById('boss-info-name');
+        const hpEl = document.getElementById('boss-info-hp');
+        const damageEl = document.getElementById('boss-info-damage');
+        const quoteEl = document.getElementById('boss-info-quote');
+        const bossHpText = document.getElementById('small-boss-hp-text');
+        const bossHpBar = document.getElementById('small-boss-hp-bar');
+
+        if (nameEl) nameEl.textContent = enemy.name || 'Inimigo';
+        if (hpEl) hpEl.textContent = `${enemy.hp}/${enemy.max_hp}`;
+        if (damageEl) damageEl.textContent = enemy.basic_attack_damage || enemy.damage || 15;
+        if (quoteEl) quoteEl.textContent = enemy.quote || '';
+        if (bossHpText) bossHpText.textContent = `${enemy.hp}/${enemy.max_hp}`;
+        if (bossHpBar) bossHpBar.style.width = `${(enemy.hp / enemy.max_hp) * 100}%`;
+
+        // Atualizar gameState global
+        if (window.gameState) {
+            window.gameState.boss = {
+                name: enemy.name,
+                hp: enemy.hp,
+                maxHp: enemy.max_hp
+            };
+        }
+    },
+
+    // Inicializar batalha
+    initBattle() {
+        console.log('⚔️ Inicializando sistemas de batalha...');
+
+        setTimeout(() => {
+            if (typeof initializeCharacterContainer === 'function') {
+                initializeCharacterContainer();
+            }
+            if (typeof initializeBossSprite === 'function') {
+                initializeBossSprite();
+            }
+        }, 200);
+    },
+
+    // Atualizar dados do hub
+    async refreshHubData() {
+        try {
+            await Promise.all([
+                updateCurrencyDisplay(),
+                updateActiveRunBuffs(),
+                updateActiveRelics()
+            ]);
+
+            // Verificar recompensas pendentes
+            checkForRecentVictory();
+
+        } catch (error) {
+            console.error('Erro ao atualizar hub:', error);
+        }
+    },
+
+    // Mostrar loading
+    showLoading(text) {
+        const overlay = document.getElementById('spa-loading-overlay');
+        const textEl = overlay?.querySelector('.spa-loading-text');
+        if (textEl) textEl.textContent = text || 'Carregando...';
+        if (overlay) overlay.classList.add('visible');
+    },
+
+    // Esconder loading
+    hideLoading() {
+        const overlay = document.getElementById('spa-loading-overlay');
+        if (overlay) overlay.classList.remove('visible');
+    }
+};
+
+// Alias global para compatibilidade
+window.SPANavigation = {
+    navigateToBattle: () => SPA.goToBattle(),
+    navigateToHub: () => SPA.goToHub()
+};
+
+// ============================================
+// INICIALIZAÇÃO
+// ============================================
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Botão voltar ao hub
+    const backBtn = document.getElementById('spa-back-to-hub');
+    if (backBtn) {
+        backBtn.addEventListener('click', () => SPA.goToHub());
+    }
+
     // Particles
     if (document.getElementById('particles-js')) {
         particlesJS('particles-js', {
             "particles": {
                 "number": { "value": 180 },
-                "color": { "value": ["#888888", "#aaaaaa", "#cccccc", "#999999", "#bbbbbb"] },
+                "color": { "value": ["#888888", "#aaaaaa", "#cccccc"] },
                 "shape": { "type": "circle" },
-                "opacity": {
-                    "value": 0.4,
-                    "random": true,
-                    "anim": { "enable": true, "speed": 1, "opacity_min": 0.1, "sync": false }
-                },
-                "size": {
-                    "value": 2,
-                    "random": true,
-                    "anim": { "enable": true, "speed": 2, "size_min": 0.5, "sync": false }
-                },
+                "opacity": { "value": 0.4, "random": true, "anim": { "enable": true, "speed": 1, "opacity_min": 0.1 } },
+                "size": { "value": 2, "random": true, "anim": { "enable": true, "speed": 2, "size_min": 0.5 } },
                 "line_linked": { "enable": false },
-                "move": {
-                    "enable": true,
-                    "speed": 0.3,
-                    "direction": "none",
-                    "random": true,
-                    "straight": false,
-                    "out_mode": "out",
-                    "bounce": false
-                }
+                "move": { "enable": true, "speed": 0.3, "direction": "none", "random": true, "out_mode": "out" }
             },
-            "interactivity": {
-                "detect_on": "canvas",
-                "events": { "onhover": { "enable": false } },
-                "modes": {}
-            },
+            "interactivity": { "detect_on": "canvas", "events": { "onhover": { "enable": false } } },
             "retina_detect": true
         });
     }
+
+    // Iniciar atualizações
+    updateActiveRunBuffs();
+    updateActiveRelics();
+
+    // Verificar se veio de uma batalha (redirecionamento)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('from_battle') === 'true') {
+        // Veio de uma batalha, verificar recompensas
+        checkForRecentVictory();
+    }
+
+    // Verificar se deve ir direto para batalha
+    if (urlParams.get('go_battle') === 'true') {
+        setTimeout(() => SPA.goToBattle(), 500);
+    }
 });
 
-// === SISTEMA DE SONS ===
+// ============================================
+// SISTEMA DE SONS
+// ============================================
+
 function playSound(audioPath, volume = 0.6) {
     try {
-        const cacheBuster = `?v=${Date.now()}`;
-        const audio = new Audio(audioPath + cacheBuster);
+        const audio = new Audio(audioPath + '?v=' + Date.now());
         audio.volume = volume;
-        audio.play().catch(err => console.warn("Som não pôde ser reproduzido:", audioPath, err));
-    } catch (e) {
-        console.error("Erro ao tocar som:", audioPath, e);
-    }
+        audio.play().catch(() => {});
+    } catch (e) {}
 }
 
 function playRewardPopupSound() { playSound("/static/game.data/sounds/rewardpopup.mp3", 0.7); }
-function playEnemySelectionSound() { playSound("/static/game.data/sounds/enemyselection.mp3", 0.8); }
-function playEnemySelectionCloseSound() { playSound("/static/game.data/sounds/enemyselectionclose.mp3", 0.5); }
-function playCoinGainSound() {
-    const variations = ['coin-use4.mp3', 'coin-use5.mp3', 'coin-use6.mp3', 'coin-use8.mp3'];
-    playSound(`/static/game.data/sounds/${variations[Math.floor(Math.random() * variations.length)]}`, 0.6);
-}
-function playCoinLossSound() {
-    const variations = ['coin-use1.mp3', 'coin-use2.mp3', 'coin-use3.mp3', 'coin-use9.mp3'];
-    playSound(`/static/game.data/sounds/${variations[Math.floor(Math.random() * variations.length)]}`, 0.6);
-}
-function playRelicOptionsSound() { playSound("/static/game.data/sounds/oh-options.mp3", 0.7); }
-let currentRelicHoverIndex = 1;
-function playRelicHoverSound() {
-    playSound(`/static/game.data/sounds/oh-hover${currentRelicHoverIndex}.mp3`, 0.25);
-    currentRelicHoverIndex = (currentRelicHoverIndex % 8) + 1;
-}
-function playRelicSelectionSound() { playSound("/static/game.data/sounds/oh-selection.mp3", 0.6); }
-function playRelicConfirmedSound() { playSound("/static/game.data/sounds/oh-confirmed.mp3", 0.7); }
 function playMemoryPopupOpeningSound() { playSound("/static/game.data/sounds/memory-reward-popup-openning.wav", 0.7); }
 function playMemoryHoverSound() { playSound("/static/game.data/sounds/memory-hover.mp3", 0.4); }
 function playMemoryRewardSelectionSound() { playSound("/static/game.data/sounds/memory-reward-popup-selection.wav", 0.8); }
-function playActionDenialSound() { playSound("/static/game.data/sounds/action-denial-sound.wav", 0.6); }
-function playStartRunBellSound() { playSound("/static/game.data/sounds/short-bell.mp3", 0.7); }
-function playMapSheetSound() {
-    const sounds = ['map-sheet1.mp3', 'map-sheet2.mp3', 'map-sheet3.mp3', 'map-sheet4.mp3', 'map-sheet5.mp3'];
-    playSound(`/static/game.data/sounds/${sounds[Math.floor(Math.random() * sounds.length)]}`, 0.5);
-}
+function playCoinGainSound() { playSound("/static/game.data/sounds/coin-use" + (4 + Math.floor(Math.random() * 4)) + ".mp3", 0.6); }
+function playMapSheetSound() { playSound("/static/game.data/sounds/map-sheet" + (1 + Math.floor(Math.random() * 9)) + ".mp3", 0.5); }
 
-// === NOTIFICATIONS ===
+// ============================================
+// NOTIFICATIONS
+// ============================================
+
 window.addNotification = function(message) {
     let notifications = JSON.parse(localStorage.getItem('gameNotifications') || '[]');
-    const now = new Date();
-    const timestamp = now.toLocaleTimeString() + ' ' + now.toLocaleDateString();
-    notifications.unshift({ message, timestamp, read: false });
+    notifications.unshift({ message, timestamp: new Date().toLocaleString(), read: false });
     if (notifications.length > 50) notifications.pop();
     localStorage.setItem('gameNotifications', JSON.stringify(notifications));
 
@@ -557,164 +783,244 @@ window.addNotification = function(message) {
     }
 };
 
-// === CURRENCIES UPDATE ===
-async function updateCurrencyDisplay(skipDomUpdate = false) {
+// ============================================
+// CURRENCIES & BUFFS
+// ============================================
+
+async function updateCurrencyDisplay() {
     try {
         const response = await fetch('/gamification/get_player_currencies');
         const data = await response.json();
-        if (data.success && !skipDomUpdate) {
-            const crystalsEl = document.getElementById('crystals-value');
-            const goldEl = document.getElementById('gold-value');
-            const hourglassesEl = document.getElementById('hourglasses-value');
-            if (crystalsEl) crystalsEl.textContent = data.crystals;
-            if (goldEl) goldEl.textContent = data.gold;
-            if (hourglassesEl) hourglassesEl.textContent = data.hourglasses;
+        if (data.success) {
+            document.getElementById('crystals-value').textContent = data.crystals;
+            document.getElementById('gold-value').textContent = data.gold;
+            document.getElementById('hourglasses-value').textContent = data.hourglasses;
         }
-        return data;
-    } catch (error) {
-        console.error('Erro ao atualizar currencies:', error);
-        return null;
-    }
+    } catch (error) {}
 }
 
-// === BUFFS UPDATE ===
-async function updateActiveRunBuffs(skipDomUpdate = false) {
+async function updateActiveRunBuffs() {
     try {
         const response = await fetch('/gamification/get_active_run_buffs');
         const data = await response.json();
-        if (data.success && !skipDomUpdate) {
-            displayActiveRunBuffs(data.buffs);
-        }
-        return data;
-    } catch (error) {
-        console.error('Erro ao carregar buffs ativos:', error);
-        return null;
-    }
+        if (data.success) displayActiveRunBuffs(data.buffs);
+    } catch (error) {}
 }
 
 function displayActiveRunBuffs(buffs) {
     const hud = document.getElementById('run-buffs-hud');
     if (!hud) return;
-    if (!buffs || buffs.length === 0) {
-        hud.style.display = 'none';
-        hud.innerHTML = '';
-        return;
-    }
+    if (!buffs || buffs.length === 0) { hud.style.display = 'none'; return; }
     hud.style.display = 'flex';
-    hud.innerHTML = '';
+    hud.innerHTML = '<div class="run-buffs-title"><img src="/static/game.data/buffs/memory.png" style="width:16px;height:16px;margin-right:5px;">Lembranças Ativas</div>';
     buffs.forEach(buff => {
         const item = document.createElement('div');
         item.className = 'currency-item';
-        item.setAttribute('data-key', buff.name);
-        item.innerHTML = `
-            <img src="/static/game.data/buffs/${buff.icon}" alt="${buff.name}" class="currency-icon tooltip-trigger">
-            <span class="currency-value tooltip-trigger">${buff.display_value}</span>
-            <div class="custom-tooltip">
-                <div class="tooltip-name">${buff.name}${buff.count > 1 ? ` (${buff.count})` : ''}</div>
-                <div class="tooltip-description">${buff.description}</div>
-                <div class="tooltip-value">${buff.display_value}</div>
-            </div>
-        `;
+        item.innerHTML = `<img src="/static/game.data/buffs/${buff.icon}" class="currency-icon"><span class="currency-value">${buff.display_value}</span>`;
         hud.appendChild(item);
     });
 }
 
-// === RELICS UPDATE ===
-async function updateActiveRelics(skipDomUpdate = false) {
+async function updateActiveRelics() {
     try {
         const response = await fetch('/gamification/get_player_relics');
         const data = await response.json();
-        if (data.success && !skipDomUpdate) {
-            displayActiveRelics(data.relics);
-        }
-        return data;
-    } catch (error) {
-        console.error('Erro ao carregar relíquias ativas:', error);
-        return null;
-    }
+        if (data.success) displayActiveRelics(data.relics);
+    } catch (error) {}
 }
 
 function displayActiveRelics(relics) {
     const bar = document.getElementById('relics-bar');
     const items = document.getElementById('relics-bar-items');
     if (!bar || !items) return;
-    if (!relics || relics.length === 0) {
-        bar.style.display = 'none';
-        items.innerHTML = '';
-        return;
-    }
+    if (!relics || relics.length === 0) { bar.style.display = 'none'; return; }
     bar.style.display = 'block';
     items.innerHTML = '';
     relics.forEach(relic => {
-        const rarityMap = { 'common': 'common', 'uncommon': 'rare', 'rare': 'rare', 'epic': 'epic', 'legendary': 'legendary' };
-        const normalizedRarity = rarityMap[relic.rarity] || 'common';
         const item = document.createElement('div');
         item.className = 'relic-bar-item';
-        item.setAttribute('data-rarity', normalizedRarity);
-        item.setAttribute('data-key', relic.name);
-        item.innerHTML = `
-            <img src="/static/game.data/relics/${relic.icon}" alt="${relic.name}" class="relic-bar-icon" onerror="this.src='/static/game.data/relics/placeholder.png'">
-            ${relic.counter_value && relic.counter_value > 0 ? `<div class="relic-bar-counter">${relic.counter_value}</div>` : ''}
-            <div class="relic-tooltip">
-                <div class="relic-tooltip-name">${relic.name}</div>
-                <div class="relic-tooltip-desc">${relic.description}</div>
-            </div>
-        `;
+        item.innerHTML = `<img src="/static/game.data/relics/${relic.icon}" class="relic-bar-icon" onerror="this.src='/static/game.data/relics/placeholder.png'">`;
         items.appendChild(item);
     });
 }
 
-// Init on load
-document.addEventListener('DOMContentLoaded', function() {
-    updateActiveRunBuffs();
-    updateActiveRelics();
-});
+// ============================================
+// DIALOG UTILS
+// ============================================
 
-// === DIALOG UTILS ===
 function openDialog(el) {
     const d = typeof el === 'string' ? document.querySelector(el) : el;
-    if (!d) return;
-    d.style.display = 'flex';
-    d.dataset.open = "1";
+    if (d) { d.style.display = 'flex'; d.dataset.open = "1"; }
 }
 
 function closeDialog(el) {
     const d = typeof el === 'string' ? document.querySelector(el) : el;
-    if (!d) return;
-    d.classList.add('ui-exit');
-    setTimeout(() => { d.style.display = 'none'; d.classList.remove('ui-exit'); }, 140);
-    d.dataset.open = "";
+    if (d) { d.style.display = 'none'; d.dataset.open = ""; }
 }
 
-// === MAP POPUP (stub - full implementation in hub-popups.html) ===
+// ============================================
+// VICTORY & MEMORY SYSTEM
+// ============================================
+
+async function checkForRecentVictory() {
+    if (window.victoryProcessed) return;
+
+    try {
+        const response = await fetch('/gamification/check_pending_rewards');
+        const data = await response.json();
+
+        if (data.success && data.has_pending_rewards) {
+            window.victoryProcessed = true;
+            showVictoryRewards(data.reward_data);
+        }
+    } catch (error) {}
+}
+
+function showVictoryRewards(data) {
+    playRewardPopupSound();
+
+    const popup = document.createElement('div');
+    popup.className = 'ui-dialog victory-rewards-popup';
+    popup.innerHTML = `
+        <div class="ui-panel victory-content-new">
+            <h2 class="title">${data.enemyName || 'Inimigo'} derrotado!</h2>
+            <div class="rewards-section-list">
+                <div class="rewards-list">
+                    ${data.crystalsGained ? `<div class="reward-item"><img src="/static/game.data/crystal.png" class="reward-item-icon"><span>${data.crystalsGained} Cristais</span></div>` : ''}
+                    ${data.goldGained ? `<div class="reward-item"><img src="/static/game.data/gold.png" class="reward-item-icon"><span>${data.goldGained} Ouro</span></div>` : ''}
+                    ${data.hourglassesGained ? `<div class="reward-item"><img src="/static/game.data/hourglass.png" class="reward-item-icon"><span>${data.hourglassesGained} Ampulhetas</span></div>` : ''}
+                </div>
+            </div>
+            <button class="victory-continue-btn" onclick="acceptVictoryRewards(this.parentElement.parentElement)">Receber Recompensas</button>
+        </div>
+    `;
+    document.body.appendChild(popup);
+}
+
+async function acceptVictoryRewards(popup) {
+    try {
+        await fetch('/gamification/apply_victory_rewards', { method: 'POST' });
+        popup.remove();
+        await updateCurrencyDisplay();
+        await updateActiveRunBuffs();
+        checkMemoryReward();
+    } catch (error) {}
+    window.victoryProcessed = false;
+}
+
+async function checkMemoryReward() {
+    try {
+        const response = await fetch('/gamification/check_memory_reward');
+        const data = await response.json();
+        if (data.success && data.has_memory_reward) {
+            showMemorySelectionPopup(data.enemy_rarity);
+        }
+    } catch (error) {}
+}
+
+let memoryOptions = [];
+let selectedMemoryType = null;
+
+async function showMemorySelectionPopup(rarity) {
+    try {
+        const response = await fetch('/gamification/get_memory_options');
+        const data = await response.json();
+        if (data.success) {
+            memoryOptions = data.options;
+            displayMemoryOptions();
+            playMemoryPopupOpeningSound();
+            document.getElementById('memory-selection-popup').style.display = 'flex';
+        }
+    } catch (error) {}
+}
+
+function displayMemoryOptions() {
+    const container = document.getElementById('memory-options-container');
+    container.innerHTML = '';
+    container.style.gridTemplateColumns = `repeat(${Math.min(memoryOptions.length, 4)}, 240px)`;
+
+    memoryOptions.forEach(option => {
+        const el = document.createElement('div');
+        el.className = 'memory-option';
+        el.dataset.memoryType = option.type;
+        el.innerHTML = `
+            <div class="memory-header"><h3 class="memory-name-latin">${option.name}</h3></div>
+            <img src="/static/game.data/buffs/${option.icon}" class="memory-icon">
+            <div class="memory-description">${option.description}</div>
+            <div class="memory-value">${option.formatted_value}</div>
+        `;
+        el.addEventListener('mouseenter', () => playMemoryHoverSound());
+        el.addEventListener('click', () => selectMemoryOption(option.type, el));
+        container.appendChild(el);
+    });
+}
+
+function selectMemoryOption(type, element) {
+    playMemoryRewardSelectionSound();
+    document.querySelectorAll('.memory-option').forEach(el => el.classList.remove('selected'));
+    element.classList.add('selected');
+    selectedMemoryType = type;
+    const btn = document.getElementById('confirm-memory-btn');
+    if (btn) { btn.disabled = false; btn.textContent = `Confirmar: ${memoryOptions.find(o => o.type === type)?.name}`; }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const confirmBtn = document.getElementById('confirm-memory-btn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', async () => {
+            if (!selectedMemoryType) return;
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Aplicando...';
+
+            try {
+                const response = await fetch('/gamification/select_memory', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ memory_type: selectedMemoryType, enemy_rarity: 1 })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    addNotification(data.message);
+                    document.getElementById('memory-selection-popup').style.display = 'none';
+                    await updateActiveRunBuffs();
+                }
+            } catch (error) {}
+
+            selectedMemoryType = null;
+        });
+    }
+});
+
+// ============================================
+// GAME DATA
+// ============================================
+
+window.gameData = {
+    characterId: '{{ player.character_id or "" }}',
+    attackSkills: {{ (player_attack_skills or []) | tojson | safe }},
+    specialSkills: {{ (player_special_skills or []) | tojson | safe }},
+    playerData: { hp: {{ player_hp or 100 }}, maxHp: {{ player_max_hp or 100 }} },
+    bossData: { hp: {{ boss_hp or 500 }}, maxHp: {{ boss_max_hp or 500 }} }
+};
+
+// ============================================
+// MAP POPUP FUNCTIONS
+// ============================================
+
 function openMapPopup() {
+    console.log('🗺️ Abrindo mapa...');
     playMapSheetSound();
     openDialog('#map-popup');
-    if (typeof loadMap === 'function') loadMap();
+    loadMap();
 }
 
 function closeMapPopup() {
     closeDialog('#map-popup');
 }
-
-// Global data for battle
-window.gameData = {
-    characterId: '{{ player.character_id or "" }}',
-    attackSkills: {{ (player_attack_skills or []) | tojson | safe }},
-    specialSkills: {{ (player_special_skills or []) | tojson | safe }},
-    playerData: {
-        hp: {{ player_hp or 100 }},
-        maxHp: {{ player_max_hp or 100 }}
-    },
-    bossData: {
-        hp: {{ boss_hp or 500 }},
-        maxHp: {{ boss_max_hp or 500 }}
-    }
-};
 </script>
 
-<!-- Include hub popups if they exist as separate partial -->
-{% include 'gamification/partials/hub-map-popup.html' ignore missing %}
+<!-- Map Popup -->
+{% include 'gamification/partials/hub-map-popup.html' %}
 
 </body>
 </html>

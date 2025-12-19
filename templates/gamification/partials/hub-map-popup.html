@@ -293,21 +293,24 @@ async function handleCurrentNodeClick(node) {
   switch (node.node_type) {
     case 'battle':
       if (hasBattleActive) {
-        // SPA: navegar para batalha
-        if (typeof SPANavigation !== 'undefined') {
+        // SPA: navegar para batalha já em andamento
+        if (typeof SPA !== 'undefined') {
+          SPA.goToBattle();
+        } else if (typeof SPANavigation !== 'undefined') {
           SPANavigation.navigateToBattle();
         } else {
           window.location.href = '/gamification/battle';
         }
       } else {
-        window.location.href = '/map/battle/start';
+        // SPA: preparar batalha via API e navegar
+        await prepareBattleAndNavigate('battle');
       }
       break;
     case 'elite':
-      window.location.href = `/map/battle/elite/${node.boss_id || 2}`;
+      await prepareBattleAndNavigate('elite', node.boss_id || 2);
       break;
     case 'boss':
-      window.location.href = `/map/battle/boss/${node.boss_id || 1}`;
+      await prepareBattleAndNavigate('boss', node.boss_id || 1);
       break;
     case 'shop':
       window.location.href = '/map/shop';
@@ -375,16 +378,16 @@ async function handleMapNodeClick(node) {
 
   closeMapPopup();
 
-  // Ação baseada no tipo
+  // Ação baseada no tipo - usando SPA navigation para batalhas
   switch (node.node_type) {
     case 'battle':
-      window.location.href = '/map/battle/start';
+      await prepareBattleAndNavigate('battle');
       break;
     case 'elite':
-      window.location.href = `/map/battle/elite/${node.boss_id || 2}`;
+      await prepareBattleAndNavigate('elite', node.boss_id || 2);
       break;
     case 'boss':
-      window.location.href = `/map/battle/boss/${node.boss_id || 1}`;
+      await prepareBattleAndNavigate('boss', node.boss_id || 1);
       break;
     case 'shop':
       window.location.href = '/map/shop';
@@ -395,6 +398,66 @@ async function handleMapNodeClick(node) {
     case 'rest':
       openRestArea();
       break;
+  }
+}
+
+// Preparar batalha via API e navegar usando SPA
+async function prepareBattleAndNavigate(battleType, bossId = null) {
+  try {
+    // Mostrar loading se SPA disponível
+    if (typeof SPA !== 'undefined' && SPA.showLoading) {
+      SPA.showLoading('Preparando batalha...');
+    }
+
+    // Determinar URL da API
+    let apiUrl;
+    switch (battleType) {
+      case 'battle':
+        apiUrl = '/map/battle/api/prepare';
+        break;
+      case 'elite':
+        apiUrl = `/map/battle/api/prepare-elite/${bossId}`;
+        break;
+      case 'boss':
+        apiUrl = `/map/battle/api/prepare-boss/${bossId}`;
+        break;
+      default:
+        console.error('Tipo de batalha desconhecido:', battleType);
+        return;
+    }
+
+    // Chamar API para preparar batalha
+    const response = await fetch(apiUrl, { method: 'POST' });
+    const data = await response.json();
+
+    if (!data.success) {
+      console.error('Erro ao preparar batalha:', data.error);
+      if (typeof SPA !== 'undefined' && SPA.hideLoading) {
+        SPA.hideLoading();
+      }
+      alert(data.error || 'Erro ao preparar batalha');
+      return;
+    }
+
+    console.log('🎮 Batalha preparada:', data);
+
+    // Navegar para batalha usando SPA
+    if (typeof SPA !== 'undefined') {
+      await SPA.goToBattle();
+    } else if (typeof SPANavigation !== 'undefined') {
+      await SPANavigation.navigateToBattle();
+    } else {
+      // Fallback para navegação tradicional
+      window.location.href = '/gamification/battle';
+    }
+
+  } catch (error) {
+    console.error('Erro ao preparar batalha:', error);
+    if (typeof SPA !== 'undefined' && SPA.hideLoading) {
+      SPA.hideLoading();
+    }
+    // Fallback para navegação tradicional em caso de erro
+    window.location.href = '/gamification/battle';
   }
 }
 

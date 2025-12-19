@@ -443,3 +443,271 @@ def check_map_battle_context(player_id: int) -> dict:
         'act_number': map_progress.current_act,
         'node_id': current_node.id
     }
+
+
+# ============================================================================
+# API ENDPOINTS FOR SPA - NO REDIRECTS
+# ============================================================================
+
+@map_battle_bp.route('/api/prepare', methods=['POST'])
+def api_prepare_battle():
+    """
+    API endpoint to prepare a regular battle without redirecting.
+    Used by SPA navigation.
+    Returns JSON with success status.
+    """
+    player = Player.query.first()
+    if not player:
+        return jsonify({'success': False, 'error': 'Jogador não encontrado'}), 401
+
+    # Verificar progresso no mapa
+    map_progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+    if not map_progress or not map_progress.current_node_id:
+        return jsonify({'success': False, 'error': 'Nenhum nó selecionado no mapa'}), 400
+
+    current_node = MapNode.query.get(map_progress.current_node_id)
+    if not current_node or current_node.node_type != 'battle':
+        return jsonify({'success': False, 'error': 'Nó atual não é uma batalha'}), 400
+
+    # Obter ato atual e posição Y do nó
+    act_number = map_progress.current_act or 1
+    node_y = current_node.y
+
+    try:
+        # Verificar se o node já tem um inimigo associado
+        enemy = None
+
+        if current_node.enemy_id:
+            enemy = GenericEnemy.query.get(current_node.enemy_id)
+            if enemy:
+                print(f"📌 NODE JÁ TEM INIMIGO: {enemy.name} (ID: {enemy.id})")
+            else:
+                current_node.enemy_id = None
+
+        # Se não tem inimigo associado, criar um novo
+        if not enemy:
+            used_names = get_used_enemy_names_in_run()
+            template = get_enemy_template_excluding_names(act_number, node_y, used_names)
+
+            if not template:
+                return jsonify({'success': False, 'error': 'Erro ao carregar template de inimigo'}), 500
+
+            enemy_number = map_progress.battles_won + 1
+            enemy = create_enemy_from_template(
+                template=template,
+                enemy_number=enemy_number,
+                player_id=player.id
+            )
+
+            if not enemy:
+                return jsonify({'success': False, 'error': 'Erro ao criar inimigo'}), 500
+
+            current_node.enemy_id = enemy.id
+            print(f"🆕 NOVO INIMIGO CRIADO: {enemy.name} (ID: {enemy.id}) → Node {current_node.id}")
+
+        # Gerar intenções iniciais
+        from .battle_modules.battle_turns import get_next_actions
+        next_turn_data = get_next_actions(enemy)
+        next_intentions = next_turn_data['actions']
+        enemy.next_intentions_cached = json.dumps(next_intentions)
+
+        # Atualizar progresso do jogador
+        progress = PlayerProgress.query.filter_by(player_id=player.id).first()
+        if not progress:
+            progress = PlayerProgress(player_id=player.id)
+            db.session.add(progress)
+
+        progress.selected_enemy_id = enemy.id
+        progress.selected_boss_id = None
+
+        db.session.commit()
+
+        print(f"⚔️ MAP BATTLE API: Preparado batalha contra {enemy.name}")
+
+        return jsonify({
+            'success': True,
+            'enemy': {
+                'id': enemy.id,
+                'name': enemy.name,
+                'hp': enemy.hp,
+                'max_hp': enemy.max_hp
+            }
+        })
+
+    except Exception as e:
+        print(f"❌ Erro ao preparar batalha: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@map_battle_bp.route('/api/prepare-elite/<int:boss_id>', methods=['POST'])
+def api_prepare_elite_battle(boss_id):
+    """
+    API endpoint to prepare an elite battle without redirecting.
+    Used by SPA navigation.
+    """
+    from routes.battle_modules.enemy_generation import create_boss_by_name
+
+    player = Player.query.first()
+    if not player:
+        return jsonify({'success': False, 'error': 'Jogador não encontrado'}), 401
+
+    # Mapeamento de ID para boss
+    BOSS_ID_TO_DATA = {
+        1: {'key': 'purassombra', 'display': 'Purassombra'},
+        2: {'key': 'heresiarca', 'display': 'Heresiarca'},
+        3: {'key': 'alma_negra', 'display': 'Alma Negra'},
+        4: {'key': 'formofagus', 'display': 'Formofagus'},
+        5: {'key': 'nefasto', 'display': 'Nefasto'}
+    }
+
+    if boss_id not in BOSS_ID_TO_DATA:
+        return jsonify({'success': False, 'error': 'Boss ID inválido'}), 400
+
+    boss_data = BOSS_ID_TO_DATA[boss_id]
+    boss_key = boss_data['key']
+    boss_display_name = boss_data['display']
+
+    try:
+        boss = LastBoss.query.filter_by(name=boss_display_name).first()
+
+        if not boss:
+            boss = create_boss_by_name(boss_key)
+            if boss:
+                db.session.add(boss)
+                db.session.commit()
+
+        if not boss:
+            return jsonify({'success': False, 'error': 'Não foi possível criar boss'}), 500
+
+        # Resetar estado do boss
+        boss.is_active = True
+        boss.hp = boss.max_hp
+        boss.current_hp = boss.max_hp
+        boss.blood_stacks = 0
+        boss.battle_turn_counter = 0
+        boss.action_queue = '[]'
+        boss.buff_debuff_queue = '[]'
+        boss.current_action_index = 0
+        boss.attack_skill_rotation_index = 0
+        boss.buff_debuff_rotation_index = 0
+
+        # Atualizar progresso
+        progress = PlayerProgress.query.filter_by(player_id=player.id).first()
+        if not progress:
+            progress = PlayerProgress(player_id=player.id)
+            db.session.add(progress)
+
+        progress.selected_enemy_id = None
+        progress.selected_boss_id = boss.id
+
+        # Pré-calcular intenções
+        from routes.battle import get_next_actions
+        next_turn_data = get_next_actions(boss)
+        next_intentions = next_turn_data['actions']
+        boss.next_intentions_cached = json.dumps(next_intentions)
+
+        db.session.commit()
+
+        print(f"⚔️ ELITE BATTLE API: Preparado batalha contra {boss.name}")
+
+        return jsonify({
+            'success': True,
+            'boss': {
+                'id': boss.id,
+                'name': boss.name,
+                'hp': boss.hp,
+                'max_hp': boss.max_hp
+            }
+        })
+
+    except Exception as e:
+        print(f"❌ Erro ao preparar batalha elite: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@map_battle_bp.route('/api/prepare-boss/<int:boss_id>', methods=['POST'])
+def api_prepare_boss_battle(boss_id):
+    """
+    API endpoint to prepare a boss battle without redirecting.
+    Used by SPA navigation.
+    """
+    from routes.battle_modules.enemy_generation import create_boss_by_name
+
+    player = Player.query.first()
+    if not player:
+        return jsonify({'success': False, 'error': 'Jogador não encontrado'}), 401
+
+    # Obter ato atual do mapa
+    map_progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+    if not map_progress:
+        return jsonify({'success': False, 'error': 'Progresso do mapa não encontrado'}), 400
+
+    act_number = map_progress.current_act or 1
+
+    # Mapeamento FIXO de ATO para BOSS
+    ACT_TO_BOSS = {
+        1: {'key': 'purassombra', 'display': 'Purassombra'},
+        2: {'key': 'formofagus', 'display': 'Formofagus'},
+        3: {'key': 'nefasto', 'display': 'Nefasto'}
+    }
+
+    boss_data = ACT_TO_BOSS.get(act_number, ACT_TO_BOSS[1])
+    boss_key = boss_data['key']
+    boss_display_name = boss_data['display']
+
+    try:
+        boss = LastBoss.query.filter_by(name=boss_display_name).first()
+
+        if not boss:
+            boss = create_boss_by_name(boss_key)
+            if boss:
+                db.session.add(boss)
+                db.session.commit()
+
+        if not boss:
+            return jsonify({'success': False, 'error': 'Não foi possível criar boss'}), 500
+
+        # Resetar estado do boss
+        boss.is_active = True
+        boss.hp = boss.max_hp
+        boss.current_hp = boss.max_hp
+        boss.blood_stacks = 0
+        boss.battle_turn_counter = 0
+        boss.action_queue = '[]'
+        boss.buff_debuff_queue = '[]'
+        boss.current_action_index = 0
+        boss.attack_skill_rotation_index = 0
+        boss.buff_debuff_rotation_index = 0
+
+        # Atualizar progresso
+        progress = PlayerProgress.query.filter_by(player_id=player.id).first()
+        if not progress:
+            progress = PlayerProgress(player_id=player.id)
+            db.session.add(progress)
+
+        progress.selected_enemy_id = None
+        progress.selected_boss_id = boss.id
+
+        # Pré-calcular intenções
+        from routes.battle import get_next_actions
+        next_turn_data = get_next_actions(boss)
+        next_intentions = next_turn_data['actions']
+        boss.next_intentions_cached = json.dumps(next_intentions)
+
+        db.session.commit()
+
+        print(f"💀 BOSS BATTLE API: Preparado batalha contra {boss.name} (Ato {act_number})")
+
+        return jsonify({
+            'success': True,
+            'boss': {
+                'id': boss.id,
+                'name': boss.name,
+                'hp': boss.hp,
+                'max_hp': boss.max_hp
+            }
+        })
+
+    except Exception as e:
+        print(f"❌ Erro ao preparar batalha boss: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
