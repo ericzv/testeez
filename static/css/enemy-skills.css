@@ -215,6 +215,17 @@
 
 /* ANIMAÇÕES DE HIT DOS BOSSES - CORRIGIDAS PARA DESAPARECER */
 
+/* Estilo base para todas as animações de hit */
+.hit-animation {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(4);
+    z-index: 200;
+    pointer-events: none;
+    image-rendering: pixelated;
+}
+
 /* Purassombra - blackhit */
 .hit-animation.blackhit-32-32-5f-160x32 {
     width: 32px;

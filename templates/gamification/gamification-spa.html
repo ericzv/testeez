@@ -212,19 +212,6 @@ function closeMapPopup() {
             </a>
         </div>
 
-        <!-- Notification Bell -->
-        <div class="notification-bell" id="notificationBell">
-            <span class="bell-icon">🔔</span>
-            <span class="notification-count" id="notificationCount">0</span>
-        </div>
-
-        <div class="notification-panel" id="notificationPanel">
-            <div class="notification-header">
-                <h3>Notificações</h3>
-                <button id="clearNotifications">Limpar Todas</button>
-            </div>
-            <div class="notification-list" id="notificationList"></div>
-        </div>
 
         <!-- Memory Selection Popup (Hub) -->
         <div id="memory-selection-popup" class="victory-popup" style="display: none;">
@@ -562,6 +549,66 @@ window.SPA = {
     isTransitioning: false,
     battleInitialized: false,
 
+    // Resetar completamente o sistema de batalha para novo inimigo
+    resetBattleSystem() {
+        console.log('🔄 SPA: Resetando sistema de batalha...');
+
+        // 1. Resetar estado de ação (evita travamento)
+        if (window.gameState) {
+            window.gameState.inAction = false;
+            window.gameState.isInitialized = false;
+            window.gameState.zoomedView = false;
+            window.gameState.characterView = false;
+            window.gameState.bossView = false;
+            window.gameState.enemyAttackView = false;
+        }
+
+        // 2. Resetar referências DOM críticas
+        window.qc2AttackContainer = document.getElementById('qc2-attack-animation-container');
+        window.battleArena = document.getElementById('battle-arena');
+        window.character = document.getElementById('character');
+        window.boss = document.getElementById('boss');
+        window.actionMenu = document.getElementById('action-menu');
+        window.fxLayerA = document.getElementById('fx-layer-a');
+        window.fxLayerB = document.getElementById('fx-layer-b');
+
+        // 3. Limpar container de FX
+        const fxA = document.getElementById('fx-layer-a');
+        const fxB = document.getElementById('fx-layer-b');
+        if (fxA) fxA.innerHTML = '';
+        if (fxB) fxB.innerHTML = '';
+
+        // 4. Resetar classes de view
+        if (window.battleArena) {
+            window.battleArena.classList.remove('zoom-view', 'character-view', 'boss-view',
+                'enemy-attack-view', 'zoom-view-attack', 'menu-open', 'leaving-attack-mode');
+        }
+
+        // 5. Fechar todos os submenus
+        const attackSubmenu = document.getElementById('attack-submenu');
+        const specialSubmenu = document.getElementById('special-submenu');
+        const inventorySubmenu = document.getElementById('inventory-submenu');
+        if (attackSubmenu) attackSubmenu.classList.remove('visible');
+        if (specialSubmenu) specialSubmenu.classList.remove('visible');
+        if (inventorySubmenu) inventorySubmenu.classList.remove('visible');
+
+        // 6. Mostrar menu de ação
+        if (window.actionMenu) {
+            window.actionMenu.classList.add('visible');
+        }
+
+        // 7. Resetar controle de Última Graça
+        if (window.ultimateGraceControl) {
+            window.ultimateGraceControl.reset();
+        }
+
+        // 8. Limpar rate limiting para carregar dados frescos
+        window.isLoadingBattleData = false;
+        window.lastBattleDataUpdate = null;
+
+        console.log('✅ Sistema de batalha resetado');
+    },
+
     // Navegar para batalha
     async goToBattle() {
         if (this.isTransitioning || this.currentView === 'battle') return;
@@ -573,6 +620,9 @@ window.SPA = {
         this.showLoading('Preparando batalha...');
 
         try {
+            // SEMPRE resetar sistema de batalha antes de buscar dados
+            this.resetBattleSystem();
+
             // Buscar dados atualizados da batalha
             const response = await fetch('/gamification/get_battle_data');
             const data = await response.json();
@@ -590,19 +640,9 @@ window.SPA = {
             // Executar transição
             await this.transition('hub', 'battle');
 
-            // Inicializar batalha se necessário
-            if (!this.battleInitialized) {
-                this.initBattle();
-                this.battleInitialized = true;
-            } else {
-                // Reinicializar sprites
-                if (typeof initializeCharacterContainer === 'function') {
-                    setTimeout(() => initializeCharacterContainer(), 100);
-                }
-                if (typeof initializeBossSprite === 'function') {
-                    setTimeout(() => initializeBossSprite(), 100);
-                }
-            }
+            // Inicializar batalha (sempre reinicializar sprites)
+            await this.initBattle(data);
+            this.battleInitialized = true;
 
             this.currentView = 'battle';
 
@@ -698,17 +738,64 @@ window.SPA = {
     },
 
     // Inicializar batalha
-    initBattle() {
+    async initBattle(data) {
         console.log('⚔️ Inicializando sistemas de batalha...');
 
+        // 1. Restaurar energia do jogador ao máximo (novo turno/batalha)
+        try {
+            const energyResponse = await fetch('/gamification/restore_energy', { method: 'POST' });
+            const energyData = await energyResponse.json();
+            if (energyData.success) {
+                console.log(`⚡ Energia restaurada: ${energyData.energy}/${energyData.max_energy}`);
+            }
+        } catch (e) {
+            console.error('Erro ao restaurar energia:', e);
+        }
+
+        // 2. Reinicializar referências DOM do battle-base.js
+        if (typeof initializeDOMReferences === 'function') {
+            initializeDOMReferences();
+        }
+
+        // 3. Carregar dados da batalha via loadBattleData (que renderiza sprites)
+        if (typeof loadBattleData === 'function') {
+            try {
+                await loadBattleData();
+                console.log('✅ Dados de batalha carregados');
+            } catch (e) {
+                console.error('Erro ao carregar dados de batalha:', e);
+            }
+        }
+
+        // 4. Atualizar estatísticas na interface
+        if (typeof updateStats === 'function') {
+            updateStats();
+        }
+
+        // 5. Restaurar sprites do personagem
         setTimeout(() => {
-            if (typeof initializeCharacterContainer === 'function') {
-                initializeCharacterContainer();
+            if (typeof restoreCharacterIdle === 'function') {
+                restoreCharacterIdle();
             }
-            if (typeof initializeBossSprite === 'function') {
-                initializeBossSprite();
+        }, 300);
+
+        // 6. Popular opções de ataque
+        setTimeout(() => {
+            if (typeof populateAttackOptions === 'function') {
+                populateAttackOptions();
             }
-        }, 200);
+        }, 400);
+
+        // 7. Mostrar HUD e menu
+        const characterHud = document.querySelector('.character-hud');
+        const bossHud = document.querySelector('.boss-hud');
+        const actionMenu = document.getElementById('action-menu');
+
+        if (characterHud) characterHud.style.opacity = '1';
+        if (bossHud) bossHud.style.opacity = '1';
+        if (actionMenu) actionMenu.classList.add('visible');
+
+        console.log('✅ Sistemas de batalha inicializados');
     },
 
     // Atualizar dados do hub
@@ -813,23 +900,6 @@ function playMemoryRewardSelectionSound() { playSound("/static/game.data/sounds/
 function playCoinGainSound() { playSound("/static/game.data/sounds/coin-use" + (4 + Math.floor(Math.random() * 4)) + ".mp3", 0.6); }
 function playMapSheetSound() { playSound("/static/game.data/sounds/map-sheet" + (1 + Math.floor(Math.random() * 9)) + ".mp3", 0.5); }
 
-// ============================================
-// NOTIFICATIONS
-// ============================================
-
-window.addNotification = function(message) {
-    let notifications = JSON.parse(localStorage.getItem('gameNotifications') || '[]');
-    notifications.unshift({ message, timestamp: new Date().toLocaleString(), read: false });
-    if (notifications.length > 50) notifications.pop();
-    localStorage.setItem('gameNotifications', JSON.stringify(notifications));
-
-    const count = document.getElementById('notificationCount');
-    if (count) {
-        const unread = notifications.filter(n => !n.read).length;
-        count.textContent = unread;
-        count.style.display = unread > 0 ? 'flex' : 'none';
-    }
-};
 
 // ============================================
 // CURRENCIES & BUFFS
@@ -858,13 +928,22 @@ async function updateActiveRunBuffs() {
 function displayActiveRunBuffs(buffs) {
     const hud = document.getElementById('run-buffs-hud');
     if (!hud) return;
-    if (!buffs || buffs.length === 0) { hud.style.display = 'none'; return; }
+    if (!buffs || buffs.length === 0) { hud.style.display = 'none'; hud.innerHTML = ''; return; }
     hud.style.display = 'flex';
     hud.innerHTML = '<div class="run-buffs-title"><img src="/static/game.data/buffs/memory.png" style="width:16px;height:16px;margin-right:5px;">Lembranças Ativas</div>';
     buffs.forEach(buff => {
         const item = document.createElement('div');
         item.className = 'currency-item';
-        item.innerHTML = `<img src="/static/game.data/buffs/${buff.icon}" class="currency-icon"><span class="currency-value">${buff.display_value}</span>`;
+        item.setAttribute('data-key', buff.name);
+        item.innerHTML = `
+            <img src="/static/game.data/buffs/${buff.icon}" alt="${buff.name}" class="currency-icon tooltip-trigger">
+            <span class="currency-value tooltip-trigger">${buff.display_value}</span>
+            <div class="custom-tooltip">
+                <div class="tooltip-name">${buff.name}${buff.count > 1 ? ' (' + buff.count + ')' : ''}</div>
+                <div class="tooltip-description">${buff.description}</div>
+                <div class="tooltip-value">${buff.display_value}</div>
+            </div>
+        `;
         hud.appendChild(item);
     });
 }

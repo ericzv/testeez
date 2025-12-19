@@ -253,7 +253,8 @@ window.populateSpecialOptions = function() {
 };
 
 // Função para inicializar todas as referências DOM de forma centralizada
-function initializeDOMReferences() {
+// Exposta globalmente para uso via SPA
+window.initializeDOMReferences = function() {
     console.log("Inicializando referências DOM...");
     
     // Elementos principais da arena

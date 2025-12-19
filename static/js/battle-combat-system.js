@@ -3451,9 +3451,12 @@ function performAttack(skill) {
         executePhase_apply_damage() {
             console.log("QC Fase: Apply Damage");
 
-            // Esconder container de ataque QC2
-            qc2AttackContainer.style.opacity = '0';
-            qc2AttackContainer.innerHTML = '';
+            // Esconder container de ataque QC2 (com verificação de null para SPA)
+            const container = window.qc2AttackContainer || document.getElementById('qc2-attack-animation-container');
+            if (container) {
+                container.style.opacity = '0';
+                container.innerHTML = '';
+            }
 
             // Verificar se dano já foi aplicado (para skills de beam)
             if (this.damageAlreadyApplied) {
