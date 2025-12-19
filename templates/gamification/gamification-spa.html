@@ -952,78 +952,8 @@ async function checkMemoryReward() {
     } catch (error) {}
 }
 
-let memoryOptions = [];
-let selectedMemoryType = null;
-
-async function showMemorySelectionPopup(rarity) {
-    try {
-        const response = await fetch('/gamification/get_memory_options');
-        const data = await response.json();
-        if (data.success) {
-            memoryOptions = data.options;
-            displayMemoryOptions();
-            playMemoryPopupOpeningSound();
-            document.getElementById('memory-selection-popup').style.display = 'flex';
-        }
-    } catch (error) {}
-}
-
-function displayMemoryOptions() {
-    const container = document.getElementById('memory-options-container');
-    container.innerHTML = '';
-    container.style.gridTemplateColumns = `repeat(${Math.min(memoryOptions.length, 4)}, 240px)`;
-
-    memoryOptions.forEach(option => {
-        const el = document.createElement('div');
-        el.className = 'memory-option';
-        el.dataset.memoryType = option.type;
-        el.innerHTML = `
-            <div class="memory-header"><h3 class="memory-name-latin">${option.name}</h3></div>
-            <img src="/static/game.data/buffs/${option.icon}" class="memory-icon">
-            <div class="memory-description">${option.description}</div>
-            <div class="memory-value">${option.formatted_value}</div>
-        `;
-        el.addEventListener('mouseenter', () => playMemoryHoverSound());
-        el.addEventListener('click', () => selectMemoryOption(option.type, el));
-        container.appendChild(el);
-    });
-}
-
-function selectMemoryOption(type, element) {
-    playMemoryRewardSelectionSound();
-    document.querySelectorAll('.memory-option').forEach(el => el.classList.remove('selected'));
-    element.classList.add('selected');
-    selectedMemoryType = type;
-    const btn = document.getElementById('confirm-memory-btn');
-    if (btn) { btn.disabled = false; btn.textContent = `Confirmar: ${memoryOptions.find(o => o.type === type)?.name}`; }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    const confirmBtn = document.getElementById('confirm-memory-btn');
-    if (confirmBtn) {
-        confirmBtn.addEventListener('click', async () => {
-            if (!selectedMemoryType) return;
-            confirmBtn.disabled = true;
-            confirmBtn.textContent = 'Aplicando...';
-
-            try {
-                const response = await fetch('/gamification/select_memory', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ memory_type: selectedMemoryType, enemy_rarity: 1 })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    addNotification(data.message);
-                    document.getElementById('memory-selection-popup').style.display = 'none';
-                    await updateActiveRunBuffs();
-                }
-            } catch (error) {}
-
-            selectedMemoryType = null;
-        });
-    }
-});
+// Memory system is handled by battle-memory-system.js
+// No duplicate declarations needed here
 
 // ============================================
 // GAME DATA
