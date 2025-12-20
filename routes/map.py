@@ -1057,34 +1057,6 @@ def generate_shop_inventory():
         }
     ]
 
-    # Gerar 2 lembranças (vales lembrança com raridades)
-    memory_rarities = ['common', 'rare', 'epic', 'legendary']
-    memory_weights = [40, 35, 20, 5]  # Pesos de probabilidade
-    memories = []
-
-    for i in range(2):
-        rarity = random.choices(memory_rarities, weights=memory_weights)[0]
-
-        # Preço baseado na raridade
-        price_ranges = {
-            'common': (24, 36),
-            'rare': (42, 59),
-            'epic': (66, 78),
-            'legendary': (84, 97)
-        }
-
-        price = random.randint(*price_ranges[rarity])
-
-        memories.append({
-            'type': 'memory',
-            'id': f'memory_{i+1}',
-            'name': 'Lembrança',
-            'description': 'Adquira uma nova lembrança',
-            'icon': 'resources/memory-icon.png',
-            'price': price,
-            'rarity': rarity
-        })
-
     # Gerar 3 relíquias
     all_relics = get_all_relics()
 
@@ -1140,8 +1112,8 @@ def generate_shop_inventory():
             'rarity': relic['rarity']
         })
 
-    # Salvar no banco de dados
-    all_items = potions + memories + selected_relics
+    # Salvar no banco de dados (só poções e relíquias, sem lembranças)
+    all_items = potions + selected_relics
 
     for item in all_items:
         shop_item = ShopInventory(
@@ -1235,19 +1207,6 @@ def get_shop_inventory():
                 'icon': data.get('icon', 'resources/potion.png'),
                 'price': shop_item.price,
                 'rarity': None
-            })
-
-        elif shop_item.item_type == 'memory':
-            # Lembranças
-            items.append({
-                'id': shop_item.id,
-                'type': 'memory',
-                'item_id': shop_item.item_id,
-                'name': 'Lembrança',
-                'description': 'Adquira uma nova lembrança',
-                'icon': 'resources/memory-icon.png',
-                'price': shop_item.price,
-                'rarity': shop_item.rarity
             })
 
         elif shop_item.item_type == 'relic':
@@ -1354,18 +1313,6 @@ def buy_shop_item(shop_item_id):
 
         result_message = f'Poção adicionada ao inventário'
         redirect_needed = False
-
-    elif shop_item.item_type == 'memory':
-        # Gerar opções de lembranças baseado na raridade
-        shop_item.is_purchased = True
-        db.session.commit()
-
-        return jsonify({
-            'success': True,
-            'requires_redirect': True,
-            'redirect_url': f'/gamification?show_memory_selection=true&rarity={shop_item.rarity}',
-            'player_gold': player.run_gold
-        })
 
     elif shop_item.item_type == 'relic':
         # Adicionar relíquia ao jogador

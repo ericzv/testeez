@@ -609,7 +609,21 @@ window.SPA = {
         window.isLoadingBattleData = false;
         window.lastBattleDataUpdate = null;
 
-        // 10. Remover fast battle container anterior para reinicialização
+        // 10. LIMPAR sprites do boss anterior para forçar nova renderização
+        const bossContainer = document.getElementById('boss');
+        if (bossContainer) {
+            // Remover todos os sprites antigos
+            bossContainer.querySelectorAll('.boss-sprite-layer, .boss-sprite-idle').forEach(el => el.remove());
+            // Remover classes de boss específico
+            bossContainer.classList.remove('last-boss', 'boss-purassombra', 'boss-heresiarca',
+                'boss-alma_negra', 'boss-formofagus', 'boss-nefasto');
+            // Garantir visibilidade
+            bossContainer.style.opacity = '1';
+            bossContainer.style.visibility = 'visible';
+            bossContainer.style.display = '';
+        }
+
+        // 11. Remover fast battle container anterior para reinicialização
         const existingFastBattle = document.querySelector('.fast-battle-container');
         if (existingFastBattle) {
             existingFastBattle.remove();
@@ -788,7 +802,9 @@ window.SPA = {
         }
 
         // 5. Restaurar sprites e garantir visibilidade (múltiplas tentativas)
-        const forceVisibility = () => {
+        const forceVisibility = (attempt = 1) => {
+            console.log(`🔍 forceVisibility tentativa ${attempt}`);
+
             // Restaurar sprite do personagem
             if (typeof restoreCharacterIdle === 'function') {
                 restoreCharacterIdle();
@@ -801,8 +817,23 @@ window.SPA = {
                 bossContainer.style.visibility = 'visible';
                 bossContainer.style.display = '';
                 bossContainer.style.transform = '';
+
+                // Verificar se sprites existem
+                const sprites = bossContainer.querySelectorAll('.boss-sprite-layer, .boss-sprite-idle');
+                console.log(`🔍 Sprites encontrados: ${sprites.length}`);
+
+                if (sprites.length === 0 && attempt <= 3) {
+                    // Sprites não encontrados, tentar recarregar dados da batalha
+                    console.log('⚠️ Nenhum sprite encontrado, recarregando dados...');
+                    window.isLoadingBattleData = false;
+                    window.lastBattleDataUpdate = null;
+                    if (typeof loadBattleData === 'function') {
+                        loadBattleData();
+                    }
+                }
+
                 // Forçar visibilidade das layers internas
-                bossContainer.querySelectorAll('.boss-sprite-layer, .boss-sprite-idle').forEach(layer => {
+                sprites.forEach(layer => {
                     layer.style.opacity = '1';
                     layer.style.visibility = 'visible';
                 });
@@ -817,9 +848,9 @@ window.SPA = {
         };
 
         // Múltiplas tentativas para garantir visibilidade
-        setTimeout(forceVisibility, 300);
-        setTimeout(forceVisibility, 600);
-        setTimeout(forceVisibility, 1000);
+        setTimeout(() => forceVisibility(1), 300);
+        setTimeout(() => forceVisibility(2), 800);
+        setTimeout(() => forceVisibility(3), 1500);
 
         // 6. Popular opções de ataque
         setTimeout(() => {
