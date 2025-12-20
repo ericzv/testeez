@@ -4515,6 +4515,16 @@ function handleBossDeathAnimation(hasMemoryReward, enemyRarity) {
     // Criar e mostrar banner de vitória
     createVictoryBanner(enemyName);
 
+    // IMPORTANTE: Marcar nó como completo para liberar próximos nodes
+    fetch('/map/api/complete-node', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            console.log("✅ Nó de batalha marcado como completo:", data);
+        })
+        .catch(error => {
+            console.error("❌ Erro ao marcar nó como completo:", error);
+        });
+
     // Se houver recompensa de memória, mostrar pop-up após animação
     if (hasMemoryReward && enemyRarity) {
         setTimeout(() => {
