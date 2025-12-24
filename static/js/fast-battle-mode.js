@@ -150,6 +150,9 @@ class FastBattleMode {
     // Adicionar ao body
     document.body.appendChild(container);
 
+    // Criar o novo menu de ataques Dark Fantasy
+    this.createAttacksMenu();
+
     // Event listeners
     container.querySelectorAll('.fast-battle-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -160,8 +163,326 @@ class FastBattleMode {
 
     // Fechar submenu ao clicar fora
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.fast-battle-container')) {
+      if (!e.target.closest('.fast-battle-container') && !e.target.closest('.fast-attacks-wrapper')) {
         this.closeSubmenu();
+      }
+    });
+  }
+
+  // Mapear skill_type para posição do card
+  getSkillByType(skillType) {
+    return this.attacks.find(a => a.skill_type === skillType);
+  }
+
+  // Criar o novo menu de ataques Dark Fantasy
+  createAttacksMenu() {
+    // Remover menu anterior se existir
+    const existingMenu = document.querySelector('.fast-attacks-wrapper');
+    if (existingMenu) existingMenu.remove();
+
+    // Organizar attacks por tipo
+    const attackByType = {
+      attack: this.getSkillByType('attack'),
+      power: this.getSkillByType('power'),
+      special: this.getSkillByType('special'),
+      ultimate: this.getSkillByType('ultimate')
+    };
+
+    // Criar wrapper
+    const wrapper = document.createElement('div');
+    wrapper.className = 'fast-attacks-wrapper';
+
+    // Criar container principal (2x2 grid)
+    const main = document.createElement('div');
+    main.className = 'fast-attacks-main';
+
+    // Esfera de contenção (selo mágico)
+    main.innerHTML = `
+      <div class="unification-sphere"></div>
+      <div class="center-symbol">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
+        </svg>
+      </div>
+    `;
+
+    // Linha superior (attack + power)
+    const upRow = document.createElement('div');
+    upRow.className = 'up';
+
+    // Linha inferior (special + ultimate)
+    const downRow = document.createElement('div');
+    downRow.className = 'down';
+
+    // Ordem dos cards: card1=attack, card2=power, card3=special, card4=ultimate
+    const cardConfig = [
+      { type: 'attack', cardClass: 'card1', row: upRow },
+      { type: 'power', cardClass: 'card2', row: upRow },
+      { type: 'special', cardClass: 'card3', row: downRow },
+      { type: 'ultimate', cardClass: 'card4', row: downRow }
+    ];
+
+    cardConfig.forEach(config => {
+      const skill = attackByType[config.type];
+      const card = this.createAttackCard(skill, config.cardClass, config.type);
+      config.row.appendChild(card);
+    });
+
+    main.appendChild(upRow);
+    main.appendChild(downRow);
+    wrapper.appendChild(main);
+
+    // Criar painel de informações
+    const infoPanel = document.createElement('div');
+    infoPanel.className = 'fast-attacks-info-panel';
+
+    // Criar um info-content para cada skill
+    cardConfig.forEach(config => {
+      const skill = attackByType[config.type];
+      const infoContent = this.createInfoContent(skill, config.cardClass);
+      infoPanel.appendChild(infoContent);
+    });
+
+    wrapper.appendChild(infoPanel);
+
+    // Adicionar ao body (posicionado fixo)
+    wrapper.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 900;
+    `;
+    document.body.appendChild(wrapper);
+
+    // Adicionar event listeners para hover nos cards
+    this.setupCardHoverListeners(wrapper);
+  }
+
+  // Criar um card de ataque
+  createAttackCard(skill, cardClass, skillType) {
+    const card = document.createElement('button');
+    card.className = `attack-card ${cardClass}`;
+    card.dataset.skillType = skillType;
+
+    if (skill) {
+      card.dataset.skillId = skill.id;
+      card.dataset.skillName = skill.name;
+
+      // Verificar se está desabilitado
+      const isDisabled = skill.is_disabled || !this.checkResources(skill, 'attacks');
+      if (isDisabled) {
+        card.classList.add('disabled');
+      }
+
+      // Partículas
+      card.innerHTML = `
+        <div class="container-stars">
+          <div class="stars-infinite"></div>
+          <div class="stars-infinite-sm"></div>
+        </div>
+        <div class="glow"><div class="circle"></div><div class="circle"></div></div>
+        <img class="skill-icon-img" src="${skill.icon || '/static/game.data/icons/default_skill.png'}" alt="${skill.name}">
+        <div class="energy-cost-badge">
+          <img src="/static/game.data/energy.webp" alt="Energia">
+          <span>${skill.energy_cost || 1}</span>
+        </div>
+      `;
+
+      // Event listener para executar ataque
+      if (!isDisabled) {
+        card.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.executeAction(skill, 'attacks');
+        });
+      }
+    } else {
+      // Skill não disponível
+      card.classList.add('disabled');
+      card.innerHTML = `
+        <div class="container-stars">
+          <div class="stars-infinite"></div>
+          <div class="stars-infinite-sm"></div>
+        </div>
+        <div class="glow"><div class="circle"></div><div class="circle"></div></div>
+        <img class="skill-icon-img" src="/static/game.data/icons/default_skill.png" alt="Bloqueado">
+      `;
+    }
+
+    return card;
+  }
+
+  // Criar conteúdo de informações para uma skill
+  createInfoContent(skill, cardClass) {
+    const content = document.createElement('div');
+    content.className = `fast-attacks-info-content info-${cardClass}`;
+
+    if (!skill) {
+      content.innerHTML = `
+        <div class="container-stars">
+          <div class="stars-infinite"></div>
+          <div class="stars-infinite-sm"></div>
+        </div>
+        <h3 class="info-skill-name">Bloqueado</h3>
+        <p class="info-desc">Skill não disponível</p>
+      `;
+      return content;
+    }
+
+    // Construir stats
+    let statsHTML = '';
+    const cache = skill.cache_data || {};
+
+    // Dano
+    if (cache.base_damage) {
+      statsHTML += `
+        <span class="stat-tag damage">
+          <img src="/static/game.data/icons/damage.png" alt="Dano">
+          ${cache.base_damage}
+        </span>
+      `;
+    }
+
+    // Energia
+    if (skill.energy_cost) {
+      statsHTML += `
+        <span class="stat-tag energy">
+          <img src="/static/game.data/energy.webp" alt="Energia">
+          ${skill.energy_cost}
+        </span>
+      `;
+    }
+
+    // Crítico
+    if (cache.base_crit_chance && cache.base_crit_chance > 0) {
+      statsHTML += `
+        <span class="stat-tag crit">
+          <img src="/static/game.data/icons/critchance.png" alt="Crítico">
+          ${(cache.base_crit_chance * 100).toFixed(0)}%
+        </span>
+      `;
+    }
+
+    // Vampirismo
+    if (cache.lifesteal_percent && cache.lifesteal_percent > 0) {
+      statsHTML += `
+        <span class="stat-tag vamp">
+          <img src="/static/game.data/icons/vampirism.png" alt="Vampirismo">
+          ${(cache.lifesteal_percent * 100).toFixed(0)}%
+        </span>
+      `;
+    }
+
+    // Barreira
+    if (cache.effect_type === 'barrier') {
+      const barrierValue = Math.ceil((cache.base_damage * (cache.effect_value || 0)) + (cache.effect_bonus || 0));
+      statsHTML += `
+        <span class="stat-tag barrier">
+          <img src="/static/game.data/icons/barrier.png" alt="Barreira">
+          ${barrierValue}
+        </span>
+      `;
+    }
+
+    // Blood stacks bonus (Ultimate Vlad)
+    if (skill.blood_stacks_bonus && skill.blood_stacks_bonus > 0) {
+      statsHTML += `
+        <span class="stat-tag damage">
+          <img src="/static/game.data/icons/bloodexplosion.png" alt="Sangue">
+          +${skill.blood_stacks_bonus}
+        </span>
+      `;
+    }
+
+    // Relíquias
+    let relicsHTML = '';
+    if (skill.applicable_relics && skill.applicable_relics.length > 0) {
+      relicsHTML = '<div class="info-relics-row">';
+      skill.applicable_relics.forEach(relic => {
+        const iconSrc = relic.icon.startsWith('/') || relic.icon.startsWith('http')
+          ? relic.icon
+          : `/static/game.data/relics/${relic.icon}`;
+        relicsHTML += `<img class="relic-icon" src="${iconSrc}" alt="${relic.name}" title="${relic.name}: ${relic.modifier.description}">`;
+      });
+      relicsHTML += '</div>';
+    }
+
+    content.innerHTML = `
+      <div class="container-stars">
+        <div class="stars-infinite"></div>
+        <div class="stars-infinite-sm"></div>
+      </div>
+      <h3 class="info-skill-name">${skill.name}</h3>
+      <div class="info-stats-row">${statsHTML}</div>
+      ${skill.description ? `<p class="info-desc">${skill.description}</p>` : ''}
+      ${relicsHTML}
+    `;
+
+    return content;
+  }
+
+  // Configurar listeners de hover para mostrar/ocultar painéis de info
+  setupCardHoverListeners(wrapper) {
+    const cards = wrapper.querySelectorAll('.attack-card');
+    const infoPanels = wrapper.querySelectorAll('.fast-attacks-info-content');
+
+    cards.forEach(card => {
+      const cardClass = [...card.classList].find(c => c.startsWith('card'));
+
+      card.addEventListener('mouseenter', () => {
+        // Ocultar todos os painéis
+        infoPanels.forEach(p => p.classList.remove('visible'));
+        // Mostrar painel correspondente
+        const targetPanel = wrapper.querySelector(`.info-${cardClass}`);
+        if (targetPanel) {
+          targetPanel.classList.add('visible');
+        }
+      });
+
+      card.addEventListener('mouseleave', () => {
+        // Pequeno delay para permitir transição suave
+        setTimeout(() => {
+          const hoveredCard = wrapper.querySelector('.attack-card:hover');
+          if (!hoveredCard) {
+            infoPanels.forEach(p => p.classList.remove('visible'));
+          }
+        }, 100);
+      });
+    });
+  }
+
+  // Atualizar o menu de ataques com dados atualizados
+  async refreshAttacksMenu() {
+    await this.loadAttacks();
+    this.createAttacksMenu();
+  }
+
+  // Atualizar apenas os estados dos cards (energia, disabled) sem recriar
+  updateAttackCardsState() {
+    if (!window.gameState || !window.gameState.player) return;
+
+    const wrapper = document.querySelector('.fast-attacks-wrapper');
+    if (!wrapper) return;
+
+    const cards = wrapper.querySelectorAll('.attack-card');
+    const playerEnergy = window.gameState.player.energy;
+
+    cards.forEach(card => {
+      const skillId = parseInt(card.dataset.skillId);
+      if (!skillId) return;
+
+      const skill = this.attacks.find(a => a.id === skillId);
+      if (!skill) return;
+
+      const energyCost = skill.energy_cost || 1;
+      const hasEnough = playerEnergy >= energyCost;
+      const isDisabled = skill.is_disabled || !hasEnough;
+
+      if (isDisabled) {
+        card.classList.add('disabled');
+        card.style.pointerEvents = 'none';
+      } else {
+        card.classList.remove('disabled');
+        card.style.pointerEvents = 'auto';
       }
     });
   }
@@ -561,6 +882,11 @@ class FastBattleMode {
         if (window.updateBloodStacksDisplay && data.blood_stacks !== undefined) {
           window.updateBloodStacksDisplay(data.blood_stacks);
         }
+
+        // Atualizar menu de ataques Dark Fantasy (com delay para dados estabilizarem)
+        setTimeout(() => {
+          this.refreshAttacksMenu();
+        }, 500);
       }
     } catch (error) {
       console.error('Erro ao atualizar HUD:', error);
