@@ -228,23 +228,16 @@ function populateAttackOptions() {
                     const topLine = document.createElement('div');
                     topLine.className = 'skill-top-line';
 
-                    // Ícone do tipo de ataque (pequeno, sem círculo)
+                    // Ícone específico da skill (não mais genérico por tipo)
                     const typeIconContainer = document.createElement('div');
                     typeIconContainer.className = 'attack-type-icon-container';
 
                     const attackTypeIcon = document.createElement('img');
                     attackTypeIcon.className = 'attack-type-icon';
 
-                    const typeIconMap = {
-                        'attack': 'atk1.png',
-                        'power': 'atk2.png',
-                        'special': 'atk3.png',
-                        'ultimate': 'atk4.png'
-                    };
-
-                    const iconFile = typeIconMap[skill.skill_type] || 'atk1.png';
-                    attackTypeIcon.src = `/static/game.data/icons/${iconFile}`;
-                    attackTypeIcon.alt = skill.skill_type || 'attack';
+                    // Usar ícone específico da skill que vem do backend
+                    attackTypeIcon.src = skill.icon || '/static/game.data/icons/default_skill.png';
+                    attackTypeIcon.alt = skill.name || 'attack';
 
                     typeIconContainer.appendChild(attackTypeIcon);
                     topLine.appendChild(typeIconContainer);

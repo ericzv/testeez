@@ -81,25 +81,8 @@ class FastBattleMode {
       const data = await response.json();
 
       if (data.success && data.attacks) {
-        this.attacks = data.attacks.map(attack => {
-          // Mapear tipo de skill para ícone correto
-          let icon = '/static/game.data/icons/attack.png';
-
-          if (attack.skill_type === 'attack') {
-            icon = '/static/game.data/icons/atk1.png';
-          } else if (attack.skill_type === 'power') {
-            icon = '/static/game.data/icons/atk2.png';
-          } else if (attack.skill_type === 'special') {
-            icon = '/static/game.data/icons/atk3.png';
-          } else if (attack.skill_type === 'ultimate') {
-            icon = '/static/game.data/icons/atk4.png';
-          }
-
-          return {
-            ...attack,
-            icon: icon
-          };
-        });
+        // Usar o ícone específico de cada skill que vem do backend
+        this.attacks = data.attacks;
       } else {
         this.attacks = [];
       }
