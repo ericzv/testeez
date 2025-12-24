@@ -2077,10 +2077,18 @@ function performAttack(skill) {
             const runDuration = (currentChar === 'Vlad' || currentChar === 'vlad') ? 500 : 1200;
 
             setTimeout(() => {
-                fxLayerA.classList.remove('animate-fx');
-                fxLayerB.classList.remove('animate-fx');
-                fxLayerA.style.opacity = 0;
-                fxLayerB.style.opacity = 0;
+                // Verificação de null para SPA
+                const layerA = window.fxLayerA || document.getElementById('fx-layer-a');
+                const layerB = window.fxLayerB || document.getElementById('fx-layer-b');
+
+                if (layerA) {
+                    layerA.classList.remove('animate-fx');
+                    layerA.style.opacity = 0;
+                }
+                if (layerB) {
+                    layerB.classList.remove('animate-fx');
+                    layerB.style.opacity = 0;
+                }
 
                 this.nextPhase(0);
             }, runDuration); 
@@ -3451,9 +3459,12 @@ function performAttack(skill) {
         executePhase_apply_damage() {
             console.log("QC Fase: Apply Damage");
 
-            // Esconder container de ataque QC2
-            qc2AttackContainer.style.opacity = '0';
-            qc2AttackContainer.innerHTML = '';
+            // Esconder container de ataque QC2 (com verificação de null para SPA)
+            const container = window.qc2AttackContainer || document.getElementById('qc2-attack-animation-container');
+            if (container) {
+                container.style.opacity = '0';
+                container.innerHTML = '';
+            }
 
             // Verificar se dano já foi aplicado (para skills de beam)
             if (this.damageAlreadyApplied) {
@@ -4504,6 +4515,16 @@ function handleBossDeathAnimation(hasMemoryReward, enemyRarity) {
     // Criar e mostrar banner de vitória
     createVictoryBanner(enemyName);
 
+    // IMPORTANTE: Marcar nó como completo para liberar próximos nodes
+    fetch('/map/api/complete-node', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            console.log("✅ Nó de batalha marcado como completo:", data);
+        })
+        .catch(error => {
+            console.error("❌ Erro ao marcar nó como completo:", error);
+        });
+
     // Se houver recompensa de memória, mostrar pop-up após animação
     if (hasMemoryReward && enemyRarity) {
         setTimeout(() => {
@@ -4525,8 +4546,13 @@ function handleBossDeathAnimation(hasMemoryReward, enemyRarity) {
                 localStorage.setItem('victoryData', JSON.stringify(victoryData));
                 console.log("💾 Dados de vitória salvos no localStorage:", victoryData);
 
-                // Redirecionar para o hub como fallback
-                window.location.href = '/gamification';
+                // Redirecionar para o hub - usar SPA se disponível
+                if (typeof SPA !== 'undefined' && typeof SPA.goToHub === 'function') {
+                    console.log("🏠 Usando SPA para voltar ao hub");
+                    SPA.goToHub();
+                } else {
+                    window.location.href = '/gamification';
+                }
             }
         }, 2000);
     } else {
@@ -4546,7 +4572,13 @@ function handleBossDeathAnimation(hasMemoryReward, enemyRarity) {
             localStorage.setItem('victoryData', JSON.stringify(victoryData));
             console.log("💾 Dados de vitória salvos no localStorage:", victoryData);
 
-            window.location.href = '/gamification';
+            // Usar SPA se disponível
+            if (typeof SPA !== 'undefined' && typeof SPA.goToHub === 'function') {
+                console.log("🏠 Usando SPA para voltar ao hub");
+                SPA.goToHub();
+            } else {
+                window.location.href = '/gamification';
+            }
         }, 2000);
     }
 }

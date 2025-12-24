@@ -106,271 +106,246 @@ def get_current_battle_enemy(player_id):
     
     return None
 
+def _get_gamification_data():
+    """Helper function to get all gamification data for templates."""
+    # Atualizar proporções dos temas
+    update_theme_proportions()
+
+    # Check if player exists, create if not
+    player = Player.query.first()
+
+    # NOVA VERIFICAÇÃO: Se não tem player ou não tem personagem escolhido
+    if not player or not player.character_id:
+        return None, None, None
+
+    # Verificar se existem bosses, se não, criar o primeiro
+    boss_count = Boss.query.count()
+    if boss_count == 0:
+        # Criar o primeiro boss
+        first_boss = Boss(
+            name="Goblin da Confusão",
+            hp=100,
+            max_hp=100,
+            description="Um pequeno goblin que causa confusão na mente dos estudiosos.",
+            region=1,
+            image='boss1.png'
+        )
+        db.session.add(first_boss)
+        db.session.commit()
+
+        # Atualizar o jogador para apontar para este boss
+        player.current_boss_id = first_boss.id
+        db.session.commit()
+
+    # Inicializar temas de inimigos
+    initialize_enemy_themes()
+
+    # Verificar se o jogador tem progresso inicializado
+    progress = PlayerProgress.query.filter_by(player_id=player.id).first()
+    if not progress:
+        progress = initialize_game_for_new_player(player.id)
+
+    # Obter o boss atual
+    current_boss = db.session.get(Boss, player.current_boss_id)
+
+    # Se ainda não houver boss, criar um padrão
+    if not current_boss:
+        current_boss = Boss(
+            name="Goblin da Confusão",
+            hp=100,
+            max_hp=100,
+            description="Um pequeno goblin que causa confusão na mente dos estudiosos.",
+            region=1,
+            image='boss1.png'
+        )
+        db.session.add(current_boss)
+        db.session.commit()
+
+        player.current_boss_id = current_boss.id
+        db.session.commit()
+
+    # Calculate time orb progress
+    time_orb_minutes = (player.study_time_total % 1800) // 60
+    time_orb_percent = (player.study_time_total % 1800) / 1800 * 100
+    time_to_reward = 30 - time_orb_minutes
+
+    # Calculate eras hourglass progress
+    eras_total_hours = player.study_time_total // 3600
+    next_milestone = 0
+    if eras_total_hours < 20:
+        next_milestone = 20
+        eras_percent = (eras_total_hours / 20) * 100
+    elif eras_total_hours < 50:
+        next_milestone = 50
+        eras_percent = ((eras_total_hours - 20) / 30) * 100
+    elif eras_total_hours < 100:
+        next_milestone = 100
+        eras_percent = ((eras_total_hours - 50) / 50) * 100
+    else:
+        next_milestone = (eras_total_hours // 100 + 1) * 100
+        eras_percent = ((eras_total_hours % 100) / 100) * 100
+
+    hub_data = {
+        'player': player,
+        'boss': current_boss,
+        'get_exp_for_next_level': get_exp_for_next_level,
+        'time_orb_percent': time_orb_percent,
+        'time_to_reward': time_to_reward,
+        'eras_percent': eras_percent,
+        'next_milestone': next_milestone,
+        'eras_total_hours': eras_total_hours
+    }
+
+    return player, current_boss, hub_data
+
+
+def _get_battle_data_for_template(player):
+    """Helper function to get battle-specific data for templates."""
+    # Buscar progresso
+    progress = PlayerProgress.query.filter_by(player_id=player.id).first()
+    if not progress:
+        progress = PlayerProgress(
+            player_id=player.id,
+            generic_enemies_defeated=0,
+            current_boss_phase=1,
+            selected_enemy_id=None
+        )
+        db.session.add(progress)
+        db.session.commit()
+
+    # Buscar inimigo atual
+    current_enemy = get_current_battle_enemy(player.id)
+
+    # Se não há inimigo, retornar valores padrão
+    if not current_enemy:
+        return {
+            'player_hp': player.hp,
+            'player_max_hp': player.max_hp,
+            'session_points': session.get('session_revision_count', 0),
+            'boss_hp': 100,
+            'boss_max_hp': 100,
+            'boss_name': 'Inimigo',
+            'boss_damage': 15,
+            'boss_quote': '',
+            'player_strength': player.strength,
+            'player_damage_bonus': player.damage_bonus,
+            'player_luck': player.luck,
+            'player_crit_bonus': 0.05,
+            'player_resistance': player.resistance,
+            'player_block_bonus': 0,
+            'player_damage_multiplier': player.damage_multiplier,
+            'player_dodge_chance': 0,
+            'player_class': 'Nenhuma',
+            'player_subclass': 'Nenhuma',
+            'player_attack_skills': [],
+            'player_special_skills': []
+        }
+
+    # Carregar skills
+    try:
+        attack_skills = get_player_attacks(player.id) or []
+        special_skills = get_player_specials(player.id) or []
+    except:
+        attack_skills = []
+        special_skills = []
+
+    # Extrair dados do inimigo
+    boss_name = current_enemy.name
+    boss_quote = ''
+    boss_damage = current_enemy.damage
+
+    try:
+        equipment_mods = json.loads(current_enemy.equipment_modifiers_applied or '{}')
+        boss_quote = equipment_mods.get('_typical_phrase', '')
+    except:
+        pass
+
+    try:
+        if current_enemy.next_intentions_cached:
+            intentions = json.loads(current_enemy.next_intentions_cached)
+            for action in intentions:
+                if action.get('type') == 'attack':
+                    boss_damage = action.get('damage', current_enemy.damage)
+                    break
+    except:
+        pass
+
+    return {
+        'player_hp': player.hp,
+        'player_max_hp': player.max_hp,
+        'session_points': session.get('session_revision_count', 0),
+        'boss_hp': current_enemy.hp,
+        'boss_max_hp': current_enemy.max_hp,
+        'boss_name': boss_name,
+        'boss_damage': boss_damage,
+        'boss_quote': boss_quote,
+        'player_strength': player.strength,
+        'player_damage_bonus': player.damage_bonus,
+        'player_luck': player.luck,
+        'player_crit_bonus': 0.05,
+        'player_resistance': player.resistance,
+        'player_block_bonus': 0,
+        'player_damage_multiplier': player.damage_multiplier,
+        'player_dodge_chance': 0,
+        'player_class': 'Nenhuma',
+        'player_subclass': 'Nenhuma',
+        'player_attack_skills': attack_skills[:4],
+        'player_special_skills': special_skills[:4]
+    }
+
+
 @battle_bp.route("")
 def gamification():
-    """Main gamification hub page."""
-    try:
-        # Atualizar proporções dos temas
-        update_theme_proportions()
-        
-        # Check if player exists, create if not
-        player = Player.query.first()
-        
-        # NOVA VERIFICAÇÃO: Se não tem player ou não tem personagem escolhido
-        if not player or not player.character_id:
-            return redirect(url_for('choose_character_route'))
-        
-        # Verificar se existem bosses, se não, criar o primeiro
-        boss_count = Boss.query.count()
-        if boss_count == 0:
-            # Criar o primeiro boss
-            first_boss = Boss(
-                name="Goblin da Confusão",
-                hp=100,
-                max_hp=100,
-                description="Um pequeno goblin que causa confusão na mente dos estudiosos.",
-                region=1,
-                image='boss1.png'
-            )
-            db.session.add(first_boss)
-            db.session.commit()
-            
-            # Atualizar o jogador para apontar para este boss
-            player.current_boss_id = first_boss.id
-            db.session.commit()
-        
-        # INSERIR AQUI: Inicializar temas de inimigos
-        initialize_enemy_themes()
+    """Main gamification hub page - redireciona para SPA unificada."""
+    # Redirecionar para a página SPA unificada
+    return redirect(url_for('battle.gamification_spa'))
 
-        # INSERIR AQUI: Verificar se o jogador tem progresso inicializado
-        progress = PlayerProgress.query.filter_by(player_id=player.id).first()
-        if not progress:
-            progress = initialize_game_for_new_player(player.id)
-        
-        # Obter o boss atual
-        current_boss = db.session.get(Boss, player.current_boss_id)
-        
-        # Se ainda não houver boss, criar um padrão
-        if not current_boss:
-            current_boss = Boss(
-                name="Goblin da Confusão",
-                hp=100,
-                max_hp=100,
-                description="Um pequeno goblin que causa confusão na mente dos estudiosos.",
-                region=1,
-                image='boss1.png'
-            )
-            db.session.add(current_boss)
-            db.session.commit()
-            
-            player.current_boss_id = current_boss.id
-            db.session.commit()
-        
-        # Calculate time orb progress
-        time_orb_minutes = (player.study_time_total % 1800) // 60
-        time_orb_percent = (player.study_time_total % 1800) / 1800 * 100
-        time_to_reward = 30 - time_orb_minutes
-        
-        # Calculate eras hourglass progress
-        eras_total_hours = player.study_time_total // 3600
-        next_milestone = 0
-        if eras_total_hours < 20:
-            next_milestone = 20
-            eras_percent = (eras_total_hours / 20) * 100
-        elif eras_total_hours < 50:
-            next_milestone = 50
-            eras_percent = ((eras_total_hours - 20) / 30) * 100
-        elif eras_total_hours < 100:
-            next_milestone = 100
-            eras_percent = ((eras_total_hours - 50) / 50) * 100
-        else:
-            next_milestone = (eras_total_hours // 100 + 1) * 100
-            eras_percent = ((eras_total_hours % 100) / 100) * 100
-        
-        return render_template('gamification/hub.html', 
-                            player=player, 
-                            boss=current_boss, 
-                            get_exp_for_next_level=get_exp_for_next_level, 
-                            time_orb_percent=time_orb_percent,
-                            time_to_reward=time_to_reward,
-                            eras_percent=eras_percent,
-                            next_milestone=next_milestone,
-                            eras_total_hours=eras_total_hours)
-                            
+
+@battle_bp.route("/spa")
+def gamification_spa():
+    """Página SPA unificada (Hub + Battle na mesma página)."""
+    try:
+        player, current_boss, hub_data = _get_gamification_data()
+
+        if not player:
+            return redirect(url_for('choose_character_route'))
+
+        # Obter dados de batalha também
+        battle_data = _get_battle_data_for_template(player)
+
+        # Combinar todos os dados
+        template_data = {**hub_data, **battle_data}
+
+        return render_template('gamification/gamification-spa.html', **template_data)
+
     except Exception as e:
-        # Em caso de erro, renderizar template de fallback com mensagem de erro
+        print(f"Erro na inicialização da SPA: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return render_template('gamification/hub_fallback.html', error=str(e))
+
+
+@battle_bp.route("/hub-legacy")
+def gamification_legacy():
+    """Hub page legado (versão antiga separada)."""
+    try:
+        player, current_boss, hub_data = _get_gamification_data()
+
+        if not player:
+            return redirect(url_for('choose_character_route'))
+
+        return render_template('gamification/hub.html', **hub_data)
+
+    except Exception as e:
         print(f"Erro na inicialização da gamificação: {str(e)}")
         return render_template('gamification/hub_fallback.html', error=str(e))
 
 @battle_bp.route('/battle')
 def battle():
-    """Rota da batalha - versão simplificada"""
-    try:
-        # Buscar jogador
-        player = Player.query.first()
-        if not player:
-            flash('Jogador não encontrado.', 'error')
-            return redirect(url_for('battle.gamification'))
-        
-        print(f"🎮 BATTLE: Player {player.id} acessando batalha")
-        
-        # Verificar personagem
-        if not player.character_id:
-            flash('Escolha um personagem primeiro!', 'warning')
-            return redirect(url_for('choose_character_route'))
-        
-        # Buscar progresso (criar se não existir)
-        progress = PlayerProgress.query.filter_by(player_id=player.id).first()
-        if not progress:
-            progress = PlayerProgress(
-                player_id=player.id,
-                generic_enemies_defeated=0,
-                current_boss_phase=1,
-                selected_enemy_id=None
-            )
-            db.session.add(progress)
-            db.session.commit()
+    """Rota da batalha - redireciona para SPA com batalha ativa"""
+    # Redirecionar para SPA com parâmetro para mostrar batalha
+    return redirect(url_for('battle.gamification_spa') + '?go_battle=true')
 
-        # Verificar se tem boss ou inimigo selecionado
-        has_boss_selected = progress.selected_boss_id is not None
-        has_enemy_selected = progress.selected_enemy_id is not None
-
-        # Se não tem inimigo NEM boss, criar um de teste
-        if not has_enemy_selected and not has_boss_selected:
-            available_enemy = GenericEnemy.query.filter_by(is_available=True).first()
-            
-            if not available_enemy:
-                # Criar inimigo de teste
-                available_enemy = GenericEnemy(
-                    name="Goblin de Teste",
-                    enemy_number=1,
-                    rarity=1,
-                    hp=100,
-                    max_hp=100,
-                    damage=15,
-                    posture=50,
-                    block_percentage=10,
-                    theme_id=1,
-                    rounds_remaining=3,
-                    initial_rounds=3,
-                    is_available=True,
-                    is_new=False,
-                    sprite_back=None,
-                    sprite_body="body1.png",
-                    sprite_head="head1.png", 
-                    sprite_weapon="weapon1.png",
-                    equipment_rank="D",
-                    reward_type="crystals",
-                    reward_icon="crystal.png"
-                )
-                db.session.add(available_enemy)
-                db.session.commit()
-            
-            progress.selected_enemy_id = available_enemy.id
-
-            # RESETAR CONTADOR DE TURNOS (primeira batalha)
-            available_enemy.battle_turn_counter = 0
-
-            db.session.commit()
-        
-        # Buscar inimigo atual (LastBoss OU GenericEnemy)
-        current_enemy = get_current_battle_enemy(player.id)
-        if not current_enemy:
-            flash('Nenhum inimigo ou boss disponível!', 'error')
-            return redirect(url_for('battle.gamification'))
-
-        # Verificar se é uma batalha NOVA ou apenas reload (F5)
-        last_enemy_id = session.get('last_battle_enemy_id')
-        is_new_battle = (last_enemy_id != current_enemy.id)
-
-        if is_new_battle:
-            print(f"🆕 NOVA BATALHA iniciada contra {current_enemy.name}")
-            session['last_battle_enemy_id'] = current_enemy.id
-
-            # Hooks de relíquias apenas em batalha NOVA (reseta energia)
-            relic_hooks.on_combat_start(player, current_enemy)
-
-            # Resetar skills especiais (last_used_at_enemy_turn)
-            from characters import PlayerSkill
-            special_skills_reset = PlayerSkill.query.filter_by(
-                player_id=player.id,
-                skill_type="special"
-            ).all()
-            for skill in special_skills_reset:
-                skill.last_used_at_enemy_turn = None
-            db.session.commit()
-            print(f"♻️ Skills especiais resetadas para nova batalha")
-        else:
-            print(f"🔄 Reload de batalha existente contra {current_enemy.name} - energia mantida")
-
-        # Carregar skills
-        try:
-            attack_skills = get_player_attacks(player.id) or []
-            special_skills = get_player_specials(player.id) or []
-        except:
-            attack_skills = []
-            special_skills = []
-
-        # Calcular dados do boss para o painel de informações
-        boss_name = current_enemy.name
-        boss_quote = ''
-        boss_damage = current_enemy.damage  # Fallback
-
-        # Extrair fala típica dos equipment_modifiers
-        try:
-            equipment_mods = json.loads(current_enemy.equipment_modifiers_applied or '{}')
-            boss_quote = equipment_mods.get('_typical_phrase', '')
-        except:
-            pass
-
-        # Calcular dano real do ataque básico a partir das intenções
-        try:
-            if current_enemy.next_intentions_cached:
-                intentions = json.loads(current_enemy.next_intentions_cached)
-                for action in intentions:
-                    if action.get('type') == 'attack':
-                        boss_damage = action.get('damage', current_enemy.damage)
-                        break
-        except:
-            pass
-
-        print(f"📊 Boss Info Panel: Nome={boss_name}, HP={current_enemy.hp}/{current_enemy.max_hp}, Dano={boss_damage}, Quote='{boss_quote}'")
-
-        # Renderizar template
-        return render_template('gamification/battle.html',
-            player=player,
-            player_attack_skills=attack_skills[:4],
-            player_special_skills=special_skills[:4],
-            current_boss={
-                'id': current_enemy.id,
-                'name': current_enemy.name,
-                'hp': current_enemy.hp,
-                'max_hp': current_enemy.max_hp
-            },
-            player_hp=player.hp,
-            player_max_hp=player.max_hp,
-            session_points=session.get('session_revision_count', 0),
-            boss_hp=current_enemy.hp,
-            boss_max_hp=current_enemy.max_hp,
-            boss_name=boss_name,
-            boss_damage=boss_damage,
-            boss_quote=boss_quote,
-            player_strength=player.strength,
-            player_damage_bonus=player.damage_bonus,
-            player_luck=player.luck,
-            player_crit_bonus=0.05,
-            player_resistance=player.resistance,
-            player_block_bonus=0,
-            player_damage_multiplier=player.damage_multiplier,
-            player_dodge_chance=0,
-            player_class='Nenhuma',
-            player_subclass='Nenhuma'
-        )
-        
-    except Exception as e:
-        print(f"❌ ERRO na batalha: {e}")
-        flash(f'Erro: {str(e)}', 'error')
-        return redirect(url_for('battle.gamification'))
 
 @battle_bp.route('/generate_initial_enemies')
 def generate_initial_enemies():
