@@ -624,13 +624,26 @@ window.SPA = {
         if (bossContainer) {
             // Remover todos os sprites antigos
             bossContainer.querySelectorAll('.boss-sprite-layer, .boss-sprite-idle').forEach(el => el.remove());
-            // Remover classes de boss específico
+
+            // Remover classes de boss específico E a classe boss-defeated
             bossContainer.classList.remove('last-boss', 'boss-purassombra', 'boss-heresiarca',
-                'boss-alma_negra', 'boss-formofagus', 'boss-nefasto');
-            // Garantir visibilidade
+                'boss-alma_negra', 'boss-formofagus', 'boss-nefasto', 'boss-defeated');
+
+            // CRÍTICO: Remover TODOS os estilos inline que foram aplicados com !important
+            // pelo applyBossFadeOut() quando o boss anterior foi derrotado
+            bossContainer.style.removeProperty('opacity');
+            bossContainer.style.removeProperty('visibility');
+            bossContainer.style.removeProperty('transition');
+            bossContainer.style.removeProperty('display');
+            bossContainer.style.removeProperty('transform');
+            bossContainer.style.removeProperty('filter');
+
+            // Agora aplicar estilos de visibilidade APÓS remover os antigos
             bossContainer.style.opacity = '1';
             bossContainer.style.visibility = 'visible';
             bossContainer.style.display = '';
+
+            console.log('🧹 Boss container limpo - opacity:', bossContainer.style.opacity, 'visibility:', bossContainer.style.visibility);
         }
 
         // 11. Remover fast battle container anterior para reinicialização
@@ -862,6 +875,15 @@ window.SPA = {
             // Garantir que boss-container está visível
             const bossContainer = document.getElementById('boss');
             if (bossContainer) {
+                // CRÍTICO: Remover classe boss-defeated que tem !important
+                bossContainer.classList.remove('boss-defeated');
+
+                // Remover estilos inline aplicados pelo applyBossFadeOut
+                bossContainer.style.removeProperty('opacity');
+                bossContainer.style.removeProperty('visibility');
+                bossContainer.style.removeProperty('transition');
+
+                // Agora aplicar visibilidade
                 bossContainer.style.opacity = '1';
                 bossContainer.style.visibility = 'visible';
                 bossContainer.style.display = '';
@@ -869,7 +891,7 @@ window.SPA = {
 
                 // Verificar se sprites existem
                 const sprites = bossContainer.querySelectorAll('.boss-sprite-layer, .boss-sprite-idle');
-                console.log(`🔍 Sprites encontrados: ${sprites.length}`);
+                console.log(`🔍 Sprites encontrados: ${sprites.length}, boss-defeated removed: ${!bossContainer.classList.contains('boss-defeated')}`);
 
                 if (sprites.length === 0 && attempt <= 3) {
                     // Sprites não encontrados, tentar recarregar dados da batalha
@@ -1075,10 +1097,10 @@ function playMemoryHoverSound() { playSound("/static/game.data/sounds/memory-hov
 function playMemoryRewardSelectionSound() { playSound("/static/game.data/sounds/memory-reward-popup-selection.wav", 0.8); }
 function playCoinGainSound() { playSound("/static/game.data/sounds/coin-use" + (4 + Math.floor(Math.random() * 4)) + ".mp3", 0.6); }
 function playMapSheetSound() { playSound("/static/game.data/sounds/map-sheet" + (1 + Math.floor(Math.random() * 9)) + ".mp3", 0.5); }
-function playRelicOptionsSound() { playSound("/static/game.data/sounds/rewardpopup.mp3", 0.6); }
-function playRelicHoverSound() { playSound("/static/game.data/sounds/choose-character-hover.mp3", 0.3); }
-function playRelicSelectionSound() { playSound("/static/game.data/sounds/choose-character-click.mp3", 0.5); }
-function playRelicConfirmedSound() { playSound("/static/game.data/sounds/currency-up.mp3", 0.7); }
+function playRelicOptionsSound() { playSound("/static/game.data/sounds/oh-options.mp3", 0.6); }
+function playRelicHoverSound() { playSound("/static/game.data/sounds/oh-hover" + (1 + Math.floor(Math.random() * 8)) + ".mp3", 0.3); }
+function playRelicSelectionSound() { playSound("/static/game.data/sounds/oh-selection.mp3", 0.5); }
+function playRelicConfirmedSound() { playSound("/static/game.data/sounds/oh-confirmed.mp3", 0.7); }
 
 // ============================================
 // SISTEMA DE RELÍQUIAS
