@@ -135,9 +135,9 @@ function setupSkillMappings() {
         
         // ✅ ADICIONAR SKILLS DO VLAD:
         "Energia Escura": "vampiric_bite_vignette",
-        "Garras Sangrentas": "bloody_claws_vignette", 
-        "Abraço da Escuridão": "embrace_of_darkness_vignette",
-        "Beijo da Morte": "kiss_of_death_vignette"
+        "Garras Sangrentas": "bloody_claws_vignette",
+        "Execução": "embrace_of_darkness_vignette",
+        "Sombra da Morte": "kiss_of_death_vignette"
     };
     
     console.log(`🗺️ Mapeamento de ${Object.keys(window.SKILL_TO_VIGNETTE_MAP).length} skills configurado`);

@@ -28,6 +28,15 @@
 html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a0f; font-family: 'Cinzel', serif; }
 .gamification-page { background: linear-gradient(135deg, #1a1a2e 0%, #0f0f23 50%, #1a1a2e 100%); min-height: 100vh; }
 
+/* Background do Hub */
+#hub-view {
+    background-image: url('/static/game.data/a_castle.png');
+    background-size: auto 100%;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-color: #0a0a0f;
+}
+
 /* Estilo para os dois botões centrais */
 .hub-center-buttons {
     position: fixed;
@@ -35,44 +44,50 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a0f; f
     left: 50%;
     transform: translate(-50%, -50%);
     display: flex;
-    gap: 30px;
+    gap: 40px;
     z-index: 1000;
 }
 
-.hub-main-btn {
-    padding: 25px 50px;
-    border-radius: 15px;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 22px;
-    border: 3px solid #fff;
+.hub-icon-btn {
+    display: block;
     cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
+    transition: transform 0.2s ease, filter 0.2s ease;
+    text-decoration: none;
 }
 
-.hub-main-btn:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 40px rgba(255, 215, 0, 0.5);
+.hub-icon-btn img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    /* Outline preto ao redor do conteúdo do ícone */
+    filter: drop-shadow(1px 0 0 #000)
+            drop-shadow(-1px 0 0 #000)
+            drop-shadow(0 1px 0 #000)
+            drop-shadow(0 -1px 0 #000)
+            drop-shadow(1px 1px 0 #000)
+            drop-shadow(-1px -1px 0 #000)
+            drop-shadow(1px -1px 0 #000)
+            drop-shadow(-1px 1px 0 #000);
 }
 
-.hub-main-btn .menu-icon {
-    font-size: 36px;
+.hub-icon-btn:hover {
+    transform: scale(1.15);
 }
 
-.hub-main-btn.mapa-btn {
-    background: linear-gradient(135deg, #ffd700, #ff8c00);
-    color: #000;
-    box-shadow: 0 0 30px rgba(255, 215, 0, 0.7);
+.hub-icon-btn:hover img {
+    filter: drop-shadow(1px 0 0 #000)
+            drop-shadow(-1px 0 0 #000)
+            drop-shadow(0 1px 0 #000)
+            drop-shadow(0 -1px 0 #000)
+            drop-shadow(1px 1px 0 #000)
+            drop-shadow(-1px -1px 0 #000)
+            drop-shadow(1px -1px 0 #000)
+            drop-shadow(-1px 1px 0 #000)
+            drop-shadow(0 0 20px rgba(255, 215, 0, 0.9));
 }
 
-.hub-main-btn.talentos-btn {
-    background: linear-gradient(135deg, #8b5cf6, #6366f1);
-    color: #fff;
-    box-shadow: 0 0 30px rgba(139, 92, 246, 0.7);
+.hub-icon-btn:active {
+    transform: scale(0.95);
 }
 
 /* Inventory potion slots */
@@ -202,13 +217,11 @@ function closeMapPopup() {
 
         <!-- Apenas dois botões: MAPA e TALENTOS -->
         <div class="hub-center-buttons">
-            <a href="#" onclick="openMapPopup(); return false;" class="hub-main-btn mapa-btn">
-                <span class="menu-icon">🗺️</span>
-                <span class="menu-text">MAPA</span>
+            <a href="#" onclick="openMapPopup(); return false;" class="hub-icon-btn" title="Mapa">
+                <img src="{{ url_for('static', filename='game.data/icons/map_icon.png') }}" alt="Mapa">
             </a>
-            <a href="{{ url_for('talents.talents') }}" class="hub-main-btn talentos-btn">
-                <span class="menu-icon">🌟</span>
-                <span class="menu-text">TALENTOS</span>
+            <a href="{{ url_for('talents.talents') }}" class="hub-icon-btn" title="Talentos">
+                <img src="{{ url_for('static', filename='game.data/icons/talents_icon.png') }}" alt="Talentos">
             </a>
         </div>
 

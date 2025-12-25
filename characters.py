@@ -172,9 +172,9 @@ CHARACTERS = {
         "sprite_reference": "Vlad",
         "skills": {
             "ataque": 51,      # Garras Sangrentas
-            "poder": 50,       # Energia Escura  
-            "ataque_especial": 52,  # Abraço da Escuridão
-            "ultimate": 53     # Beijo da Morte
+            "poder": 50,       # Energia Escura
+            "ataque_especial": 52,  # Execução
+            "ultimate": 53     # Sombra da Morte
         },
         "special_abilities": [138, 139, 140, 141]
     },
@@ -209,7 +209,7 @@ VLAD_ATTACK_SKILLS_DATA = [
         "animation_attack": "",
         "boss_damage_overlay": "necrotic_damage",
         "sound_activation": "/static/game.data/sounds/vamp-start.mp3",
-        "icon": "/static/game.data/icons/icon2.png",
+        "icon": "/static/game.data/icons/vlad_attack2.png",
         "sound_prep_1": "",
         "sound_prep_2": "",
         "sound_effect_1": "",
@@ -227,7 +227,7 @@ VLAD_ATTACK_SKILLS_DATA = [
         "animation_fx_b": "garras_sangrentas_back",
         "animation_attack": "",
         "boss_damage_overlay": "feral_damage",
-        "icon": "/static/game.data/icons/icon2.png",
+        "icon": "/static/game.data/icons/vlad_attack1.png",
         "sound_prep_1": "",
         "sound_prep_2": "",
         "sound_effect_1": "",
@@ -236,7 +236,7 @@ VLAD_ATTACK_SKILLS_DATA = [
     },
     {
         "id": 52,
-        "name": "Abraço da Escuridão",
+        "name": "Execução",
         "description": "Execução sanguinária que atinge o inimigo",
         "effect_type": "crit_chance",
         "effect_value": 0.20,
@@ -244,7 +244,7 @@ VLAD_ATTACK_SKILLS_DATA = [
         "animation_fx_b": "",
         "animation_attack": "",
         "boss_damage_overlay": "/static/game.data/fx/blood-execution-111x186px-16f.png",
-        "icon": "/static/game.data/icons/icon2.png",
+        "icon": "/static/game.data/icons/vlad_attack3.png",
         "sound_prep_1": "",
         "sound_prep_2": "",
         "sound_effect_1": "/static/game.data/sounds/execution.mp3",
@@ -253,14 +253,14 @@ VLAD_ATTACK_SKILLS_DATA = [
     },
     {
         "id": 53,
-        "name": "Beijo da Morte",
+        "name": "Sombra da Morte",
         "description": "O ultimate vampírico - feixe sombrio que drena toda essência vital",
         "effect_type": "",
         "effect_value": 0.0,
         "animation_fx_a": "beijo_morte_front",
         "animation_fx_b": "beijo_morte_back",
         "animation_attack": "",
-        "icon": "/static/game.data/icons/icon2.png",
+        "icon": "/static/game.data/icons/vlad_attack4.png",
         "boss_damage_overlay": "darkness_embrace_distant",
         "sound_prep_1": "",
         "sound_prep_2": "",
@@ -286,7 +286,7 @@ VLAD_SPECIAL_SKILLS_DATA = [
         "duration_value": 1,  # Bônus de dano válido por 1 ataque
         "animation_activate_1": "",
         "animation_activate_2": "",
-        "icon": "/static/game.data/icons/sk1.png",
+        "icon": "/static/game.data/icons/vlad_special1.png",
         "sound_prep_1": "",
         "sound_effect_1": "/static/game.data/sounds/autofagia.mp3"
     },
@@ -304,7 +304,7 @@ VLAD_SPECIAL_SKILLS_DATA = [
         "duration_value": 0,
         "animation_activate_1": "/static/game.data/fx/blood-blade-128x128px-12f.png",
         "animation_activate_2": "",
-        "icon": "/static/game.data/icons/sk2.png",
+        "icon": "/static/game.data/icons/vlad_special2.png",
         "sound_prep_1": "",
         "sound_effect_1": "/static/game.data/sounds/blood_blade.mp3"
     },
@@ -322,7 +322,7 @@ VLAD_SPECIAL_SKILLS_DATA = [
         "duration_value": 0,
         "animation_activate_1": "/static/game.data/fx/blood_barrier-24f-48x64.png",
         "animation_activate_2": "",
-        "icon": "/static/game.data/icons/sk3.png",
+        "icon": "/static/game.data/icons/vlad_special3.png",
         "sound_prep_1": "",
         "sound_effect_1": "/static/game.data/sounds/blood-barrier.mp3"
     },
@@ -340,7 +340,7 @@ VLAD_SPECIAL_SKILLS_DATA = [
         "duration_value": 0,
         "animation_activate_1": "/static/game.data/fx/regeneration-24f-48x64.png",
         "animation_activate_2": "",
-        "icon": "/static/game.data/icons/sk3.png",
+        "icon": "/static/game.data/icons/vlad_special4.png",
         "sound_prep_1": "",
         "sound_effect_1": "/static/game.data/sounds/vlad-regen.mp3"
     }

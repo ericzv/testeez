@@ -186,7 +186,7 @@ const VLAD_BASIC_ATTACK_SFX2 = [
 // Som de dash/corrida
 const VLAD_WIND_DASH_SOUND = '/static/game.data/sounds/wind-dash.mp3';
 
-// Sons de execução (Abraço da Escuridão) - variam aleatoriamente
+// Sons de execução (Execução) - variam aleatoriamente
 const VLAD_EXECUTION_ORDER_SOUNDS = [
     '/static/game.data/sounds/execution-order1.mp3',
     '/static/game.data/sounds/execution-order2.mp3',
@@ -197,7 +197,7 @@ const VLAD_EXECUTION_ORDER_SOUNDS = [
     '/static/game.data/sounds/execution-order7.mp3'
 ];
 
-// Sons do Ultimate (Beijo da Morte)
+// Sons do Ultimate (Sombra da Morte)
 const VLAD_LASER_CHARGE_SOUND = '/static/game.data/sounds/laser-charge.mp3';
 const VLAD_LASER_BEAM_SOUND = '/static/game.data/sounds/laser-beam.mp3';
 
@@ -223,9 +223,9 @@ function getPowerImpactSound(score) {
 const VLAD_SKILL_ANIMATIONS = {
     // Skills de ataque do Vlad
     50: 'power',        // Energia Escura
-    51: 'bloodattack',  // Garras Sangrentas  
-    52: 'special',      // Abraço da Escuridão
-    53: 'ultimate',     // Beijo da Morte
+    51: 'bloodattack',  // Garras Sangrentas
+    52: 'special',      // Execução
+    53: 'ultimate',     // Sombra da Morte
     
     // Skills especiais do Vlad
     138: 'autofagia',   // Autofagia
@@ -1246,7 +1246,7 @@ function performAttack(skill) {
         // Ataque especial: Vlad Power com Skill Test
         vlad_power_skill_test: ['vlad_power_skill_test', 'apply_damage', 'restore_complete'],
 
-        // Ataque especial do Vlad (Abraço da Escuridão) - executa em paralelo para ser mais rápido
+        // Ataque especial do Vlad (Execução) - executa em paralelo para ser mais rápido
         vlad_special_parallel: ['vlad_special_parallel', 'restore_complete']
     };
 
@@ -1631,7 +1631,7 @@ function performAttack(skill) {
                     // Antecipar criação do beam em 1000ms
                     const beamStartTime = Math.max(0, duration - 1000);
 
-                    // Para Vlad skill 53 (Beijo da Morte): tocar laser-charge no início do carregamento
+                    // Para Vlad skill 53 (Sombra da Morte): tocar laser-charge no início do carregamento
                     const isVladUltimate = (currentCharacter === 'Vlad' || currentCharacter === 'vlad') && this.currentSkill?.id === 53;
                     if (isVladUltimate) {
                         playSound(VLAD_LASER_CHARGE_SOUND, 0.8);
@@ -3408,7 +3408,7 @@ function performAttack(skill) {
             }
         }
 
-        // Fase: Especial do Vlad (Abraço da Escuridão) - executa tudo em paralelo
+        // Fase: Especial do Vlad (Execução) - executa tudo em paralelo
         executePhase_vlad_special_parallel() {
             console.log("🧛 QC Fase: Vlad Special Parallel");
 
