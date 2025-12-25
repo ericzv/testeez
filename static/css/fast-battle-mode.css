@@ -783,7 +783,7 @@
 
 /* Painel de Informações */
 .fast-attacks-info-panel {
-  width: 220px;
+  width: 280px;
   min-height: 120px;
   position: relative;
   perspective: 1000px;
@@ -794,12 +794,12 @@
   top: 0;
   left: 0;
   width: 100%;
-  background: rgba(17, 17, 17, 0.95);
-  border: 2px solid #444;
+  background: rgba(30, 5, 5, 0.95);
+  border: 2px solid #8a1a0a;
   border-radius: 4px;
-  padding: 12px 15px;
+  padding: 8px 15px 12px;
   box-sizing: border-box;
-  color: #ccc;
+  color: #ffaaaa;
   opacity: 0;
   transform: translateX(-20px);
   transition: all 0.3s ease;
@@ -807,7 +807,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.8);
+  box-shadow: 0 5px 20px rgba(100,0,0,0.8);
   overflow: hidden;
 }
 
@@ -837,19 +837,19 @@
   transform: translateX(-50%);
   width: 80%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, #555, transparent);
+  background: linear-gradient(90deg, transparent, #8a1a0a, transparent);
   z-index: 2;
 }
 
 /* Nome da skill */
 .fast-attacks-info-content .info-skill-name {
-  margin: 0;
-  font-size: 0.95rem;
+  margin: 0 0 2px 0;
+  font-size: 1rem;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: #d4af37;
-  text-shadow: 0 1px 2px black;
-  padding-top: 5px;
+  color: #ff4444;
+  text-shadow: 0 1px 2px black, 0 0 10px rgba(255,50,50,0.6);
+  padding-top: 2px;
 }
 
 /* Container de stats */

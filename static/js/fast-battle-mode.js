@@ -448,6 +448,7 @@ class FastBattleMode {
       const isDisabled = skill.is_disabled || !hasEnoughEnergy || !hasBloodStacks || usedThisTurn;
       if (isDisabled) {
         card.classList.add('disabled');
+        card.style.pointerEvents = 'none';
       }
 
       // Badge de custo - só mostra se tiver custo de energia
@@ -470,13 +471,22 @@ class FastBattleMode {
         ${energyBadgeHTML}
       `;
 
-      // Event listener para executar skill especial
-      if (!isDisabled) {
-        card.addEventListener('click', (e) => {
-          e.stopPropagation();
+      // Event listener SEMPRE adicionado - verificação de recursos feita no momento do clique
+      card.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Verificar recursos no momento do clique
+        const currentEnergy = (window.gameState && window.gameState.player) ? window.gameState.player.energy : 0;
+        const currentBloodStacks = (window.gameState && window.gameState.boss) ? (window.gameState.boss.bloodStacks || 0) : 0;
+
+        const hasEnergy = (skill.energy_cost || 0) === 0 || currentEnergy >= (skill.energy_cost || 0);
+        const hasStacks = !skill.requires_blood_stacks || currentBloodStacks > 0;
+
+        if (hasEnergy && hasStacks && !skill.is_disabled && !skill.used_this_turn) {
           this.executeAction(skill, 'specials');
-        });
-      }
+        } else {
+          console.log('⚠️ Recursos insuficientes para usar esta skill especial');
+        }
+      });
     } else {
       // Skill não disponível
       card.classList.add('disabled');
@@ -701,6 +711,7 @@ class FastBattleMode {
       const isDisabled = skill.is_disabled || !this.checkResources(skill, 'attacks');
       if (isDisabled) {
         card.classList.add('disabled');
+        card.style.pointerEvents = 'none';
       }
 
       // Partículas
@@ -717,13 +728,16 @@ class FastBattleMode {
         </div>
       `;
 
-      // Event listener para executar ataque
-      if (!isDisabled) {
-        card.addEventListener('click', (e) => {
-          e.stopPropagation();
+      // Event listener SEMPRE adicionado - verificação de recursos feita no momento do clique
+      card.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Verificar recursos no momento do clique (estado atual)
+        if (this.checkResources(skill, 'attacks') && !skill.is_disabled) {
           this.executeAction(skill, 'attacks');
-        });
-      }
+        } else {
+          console.log('⚠️ Recursos insuficientes para usar esta skill');
+        }
+      });
     } else {
       // Skill não disponível
       card.classList.add('disabled');
