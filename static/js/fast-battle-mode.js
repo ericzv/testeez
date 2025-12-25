@@ -99,9 +99,6 @@ class FastBattleMode {
       // Detectar se energia AUMENTOU (indica novo turno - energia foi restaurada)
       const energyIncreased = this.lastKnownEnergy !== null && currentEnergy > this.lastKnownEnergy;
 
-      // Detectar se blood_stacks AUMENTOU (pode habilitar Ultimate)
-      const bloodStacksIncreased = this.lastKnownBloodStacks !== null && currentBloodStacks > this.lastKnownBloodStacks;
-
       if (energyChanged || bloodStacksChanged) {
         console.log(`🔄 Estado mudou! Energia: ${this.lastKnownEnergy} → ${currentEnergy}, Blood Stacks: ${this.lastKnownBloodStacks} → ${currentBloodStacks}`);
 
@@ -109,9 +106,10 @@ class FastBattleMode {
         this.updateAttackCardsState();
         this.updateSpecialCardsState();
 
-        // Se blood_stacks AUMENTOU, recarregar ataques do backend (Ultimate pode ficar disponível)
-        if (bloodStacksIncreased) {
-          console.log('🔄 Blood stacks aumentou! Recarregando ataques do backend');
+        // Se blood_stacks MUDOU (aumentou ou diminuiu), recarregar ataques do backend
+        // Isso atualiza a disponibilidade do Ultimate baseado nos blood_stacks atuais
+        if (bloodStacksChanged) {
+          console.log('🔄 Blood stacks mudou! Recarregando ataques do backend');
           this.refreshAttacksMenu();
         }
 
