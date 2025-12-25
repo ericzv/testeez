@@ -4,6 +4,7 @@ let memoryOptions = [];
 let selectedMemoryType = null;
 let pendingMemoryData = null;
 let memoryRerollCount = 0; // Rastreador local de rerolls
+let memoryAutoRedirectTimer = null; // Timer para auto-redirect se o jogador não interagir
 
 // Função para tocar sons de memórias
 function playMemoryOptionsSound() {
@@ -58,6 +59,31 @@ function showMemorySelectionPopup(enemyRarity) {
 
                 console.log("🧠 DEBUG: Mostrando pop-up");
                 document.getElementById('memory-selection-popup').style.display = 'flex';
+
+                // Iniciar timer de auto-redirect (8 segundos após popup aparecer)
+                // Se o jogador não interagir, vai automaticamente para o hub
+                if (memoryAutoRedirectTimer) {
+                    clearTimeout(memoryAutoRedirectTimer);
+                }
+                memoryAutoRedirectTimer = setTimeout(() => {
+                    console.log("⏰ Auto-redirect: jogador não interagiu com popup de memória");
+
+                    // Fechar popup
+                    const popup = document.getElementById('memory-selection-popup');
+                    if (popup) popup.style.display = 'none';
+
+                    // Reset estado
+                    selectedMemoryType = null;
+                    pendingMemoryData = null;
+
+                    // Voltar ao hub
+                    if (typeof SPA !== 'undefined' && typeof SPA.goToHub === 'function') {
+                        console.log("🏠 Auto-redirect para hub via SPA");
+                        SPA.goToHub();
+                    } else {
+                        window.location.href = '/gamification';
+                    }
+                }, 8000);
             }
         })
         .catch(error => {
@@ -244,6 +270,12 @@ function confirmMemorySelection() {
     if (!selectedMemoryType) {
         alert('Selecione uma lembrança primeiro!');
         return;
+    }
+
+    // Cancelar timer de auto-redirect pois o jogador está interagindo
+    if (memoryAutoRedirectTimer) {
+        clearTimeout(memoryAutoRedirectTimer);
+        memoryAutoRedirectTimer = null;
     }
 
     // Obter raridade do inimigo da sessão
