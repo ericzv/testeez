@@ -98,10 +98,29 @@ class FastBattleMode {
       const data = await response.json();
 
       if (data.success && data.specials) {
-        this.specials = data.specials.map(special => ({
-          ...special,
-          icon: special.icon || special.animation_fx_a || '/static/game.data/icons/special.png'
-        }));
+        this.specials = data.specials.map(special => {
+          // Extrair energy_cost do positive_effect.value (é um JSON string)
+          let energyCost = 0;
+          let requiresBloodStacks = false;
+
+          if (special.positive_effect && special.positive_effect.value) {
+            try {
+              const effectValue = JSON.parse(special.positive_effect.value);
+              energyCost = effectValue.energy_cost || 0;
+              // Skills que consomem blood_stacks (todas exceto autofagia)
+              requiresBloodStacks = effectValue.damage_per_stack || effectValue.barrier_per_stack || effectValue.heal_per_stack;
+            } catch (e) {
+              console.warn('Erro ao parsear positive_effect.value:', e);
+            }
+          }
+
+          return {
+            ...special,
+            energy_cost: energyCost,
+            requires_blood_stacks: !!requiresBloodStacks,
+            icon: special.icon || special.animation_fx_a || '/static/game.data/icons/special.png'
+          };
+        });
       } else {
         this.specials = [];
       }
@@ -354,10 +373,27 @@ class FastBattleMode {
       card.dataset.skillName = skill.name;
 
       // Verificar se está desabilitado
-      const isDisabled = skill.is_disabled || !this.checkResources(skill, 'specials');
+      const playerEnergy = (window.gameState && window.gameState.player) ? window.gameState.player.energy : 0;
+      const enemyBloodStacks = (window.gameState && window.gameState.enemy) ? (window.gameState.enemy.blood_stacks || 0) : 0;
+
+      const energyCost = skill.energy_cost || 0;
+      const hasEnoughEnergy = energyCost === 0 || playerEnergy >= energyCost;
+      const needsBloodStacks = skill.requires_blood_stacks;
+      const hasBloodStacks = !needsBloodStacks || enemyBloodStacks > 0;
+      const usedThisTurn = skill.used_this_turn;
+
+      const isDisabled = skill.is_disabled || !hasEnoughEnergy || !hasBloodStacks || usedThisTurn;
       if (isDisabled) {
         card.classList.add('disabled');
       }
+
+      // Badge de custo - só mostra se tiver custo de energia
+      const energyBadgeHTML = energyCost > 0 ? `
+        <div class="energy-cost-badge">
+          <img src="/static/game.data/energy.webp" alt="Energia">
+          <span>${energyCost}</span>
+        </div>
+      ` : '';
 
       // Partículas arcanas (3 camadas)
       card.innerHTML = `
@@ -368,10 +404,7 @@ class FastBattleMode {
         </div>
         <div class="glow"><div class="circle"></div><div class="circle"></div></div>
         <img class="skill-icon-img" src="${skill.icon || '/static/game.data/icons/default_skill.png'}" alt="${skill.name}">
-        <div class="energy-cost-badge">
-          <img src="/static/game.data/energy.webp" alt="Energia">
-          <span>${skill.energy_cost || 1}</span>
-        </div>
+        ${energyBadgeHTML}
       `;
 
       // Event listener para executar skill especial
@@ -552,6 +585,8 @@ class FastBattleMode {
 
     const cards = wrapper.querySelectorAll('.special-card');
     const playerEnergy = window.gameState.player.energy;
+    // Blood stacks do inimigo atual (armazenado em gameState.enemy.blood_stacks)
+    const enemyBloodStacks = (window.gameState.enemy && window.gameState.enemy.blood_stacks) || 0;
 
     cards.forEach(card => {
       const skillId = parseInt(card.dataset.skillId);
@@ -560,9 +595,17 @@ class FastBattleMode {
       const skill = this.specials.find(s => s.id === skillId);
       if (!skill) return;
 
-      const energyCost = skill.energy_cost || 1;
-      const hasEnough = playerEnergy >= energyCost;
-      const isDisabled = skill.is_disabled || !hasEnough;
+      const energyCost = skill.energy_cost || 0;
+      const hasEnoughEnergy = energyCost === 0 || playerEnergy >= energyCost;
+
+      // Verificar se requer blood_stacks e se há suficiente
+      const needsBloodStacks = skill.requires_blood_stacks;
+      const hasBloodStacks = !needsBloodStacks || enemyBloodStacks > 0;
+
+      // Verificar se já foi usada neste turno
+      const usedThisTurn = skill.used_this_turn;
+
+      const isDisabled = skill.is_disabled || !hasEnoughEnergy || !hasBloodStacks || usedThisTurn;
 
       if (isDisabled) {
         card.classList.add('disabled');
@@ -1199,9 +1242,15 @@ class FastBattleMode {
           window.updateBloodStacksDisplay(data.blood_stacks);
         }
 
-        // Atualizar menu de ataques Dark Fantasy (com delay para dados estabilizarem)
+        // Atualizar gameState.enemy.blood_stacks para verificação local
+        if (window.gameState && window.gameState.enemy && data.blood_stacks !== undefined) {
+          window.gameState.enemy.blood_stacks = data.blood_stacks;
+        }
+
+        // Atualizar menus Dark Fantasy e Arcane Blue (com delay para dados estabilizarem)
         setTimeout(() => {
           this.refreshAttacksMenu();
+          this.refreshSpecialsMenu();
         }, 500);
       }
     } catch (error) {
