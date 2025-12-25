@@ -749,15 +749,15 @@ function createTurnParticle(toggle, track) {
         particle.style.boxShadow = `0 0 10px rgba(100, 255, 255, 0.8)`;
     }
 
-    const randomY = (Math.random() - 0.5) * 30;
+    const randomY = (Math.random() - 0.5) * 40;
     let startX, startY;
 
     if (isEnemyTurn) {
-        startX = 170; // Posição do knob na direita
+        startX = 220; // Posição do knob na direita (maior)
     } else {
-        startX = 30;  // Posição do knob na esquerda
+        startX = 40;  // Posição do knob na esquerda
     }
-    startY = 30 + randomY;
+    startY = 40 + randomY;
 
     particle.style.left = `${startX}px`;
     particle.style.top = `${startY}px`;

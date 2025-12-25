@@ -211,10 +211,11 @@
 /* Container Principal do Switch de Turno */
 .turn-switch-container {
     position: fixed;
-    bottom: 30px;
-    right: 30px;
-    width: 200px;
-    height: 60px;
+    top: 40%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 260px;
+    height: 80px;
     z-index: 10000;
 }
 
@@ -271,8 +272,8 @@
     position: absolute;
     top: 5px;
     left: 5px;
-    width: 50px;
-    height: 50px;
+    width: 70px;
+    height: 70px;
     background: linear-gradient(135deg, #2b3242 0%, #15181e 100%);
     border-radius: 50%;
     border: 2px solid #444;
@@ -303,8 +304,8 @@
 }
 
 .knob-icon {
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
     transition: all 0.3s ease;
     position: relative;
     z-index: 12;
@@ -386,7 +387,7 @@
 
 /* Estados quando CHECKED (Turno do Inimigo) */
 .turn-checkbox:checked ~ .turn-track .turn-knob {
-    transform: translateX(140px) rotate(360deg);
+    transform: translateX(180px) rotate(360deg);
     border-color: #ff3333;
     box-shadow: 0 0 20px rgba(255, 51, 51, 0.4);
 }
@@ -437,38 +438,37 @@
     100% { transform: scale(1.15); }
 }
 
-/* Labels de Turno nas laterais */
+/* Label de Turno - Texto Único Centralizado */
 .turn-label {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%);
     font-family: 'Cinzel', serif;
-    font-size: 10px;
+    font-size: 14px;
     font-weight: bold;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    opacity: 0.6;
-    transition: opacity 0.3s ease;
+    letter-spacing: 2px;
+    white-space: nowrap;
     pointer-events: none;
     z-index: 2;
+    transition: opacity 0.3s ease, color 0.3s ease;
 }
 
 .turn-label-player {
-    left: 60px;
-    color: #a6f0ff;
-    text-shadow: 0 0 5px rgba(0, 217, 255, 0.5);
+    color: #00d9ff;
+    text-shadow: 0 0 10px rgba(0, 217, 255, 0.8), 0 0 20px rgba(0, 217, 255, 0.4);
 }
 
 .turn-label-enemy {
-    right: 60px;
-    color: #ff6666;
-    text-shadow: 0 0 5px rgba(255, 51, 51, 0.5);
+    color: #ff4444;
+    text-shadow: 0 0 10px rgba(255, 68, 68, 0.8), 0 0 20px rgba(255, 68, 68, 0.4);
 }
 
-/* Highlight do label ativo */
+/* Mostrar apenas o label correto baseado no estado */
 .turn-checkbox:not(:checked) ~ .turn-track .turn-label-player { opacity: 1; }
-.turn-checkbox:not(:checked) ~ .turn-track .turn-label-enemy { opacity: 0.3; }
-.turn-checkbox:checked ~ .turn-track .turn-label-player { opacity: 0.3; }
+.turn-checkbox:not(:checked) ~ .turn-track .turn-label-enemy { opacity: 0; display: none; }
+.turn-checkbox:checked ~ .turn-track .turn-label-player { opacity: 0; display: none; }
 .turn-checkbox:checked ~ .turn-track .turn-label-enemy { opacity: 1; }
 
 /* Compatibilidade com botão antigo (fallback) */
@@ -479,47 +479,39 @@
 /* Responsivo */
 @media (max-width: 768px) {
     .turn-switch-container {
-        width: 160px;
-        height: 50px;
-        bottom: 20px;
-        right: 20px;
+        width: 220px;
+        height: 70px;
+        top: 35%;
     }
 
     .turn-knob {
-        width: 40px;
-        height: 40px;
+        width: 60px;
+        height: 60px;
     }
 
     .turn-checkbox:checked ~ .turn-track .turn-knob {
-        transform: translateX(110px) rotate(360deg);
+        transform: translateX(150px) rotate(360deg);
     }
 
     .knob-icon {
-        width: 22px;
-        height: 22px;
+        width: 30px;
+        height: 30px;
     }
 
     .turn-label {
-        font-size: 8px;
-    }
-
-    .turn-label-player {
-        left: 48px;
-    }
-
-    .turn-label-enemy {
-        right: 48px;
+        font-size: 11px;
+        bottom: -30px;
     }
 
     .lock-indicator {
-        width: 24px;
-        height: 24px;
-        top: -30px;
+        width: 26px;
+        height: 26px;
+        top: -32px;
     }
 
     .lock-icon-svg {
-        width: 12px;
-        height: 12px;
+        width: 13px;
+        height: 13px;
     }
 }
 
