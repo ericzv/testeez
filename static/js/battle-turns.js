@@ -8,7 +8,8 @@ console.log('🎮 Sistema de Turnos (Switch) carregado');
 window.turnState = {
     isPlayerTurn: true,
     isProcessing: false,
-    isLocked: false
+    isLocked: false,
+    isAutoExecuting: false  // Flag para indicar execução automática em andamento
 };
 
 /**
@@ -86,22 +87,20 @@ async function endPlayerTurn() {
         if (data.success) {
             console.log('✅ Turno do inimigo processado:', data);
 
-            // Atualizar HUD unificado de ações
+            // Atualizar HUD unificado de ações (sem alterar switch durante auto-execução)
             await updateEnemyActionsHUD();
-
-            // Mostrar feedback
-            showTurnFeedback(data);
 
             // Se tem ações, executar automaticamente o turno do inimigo
             if (data.has_actions) {
                 console.log('⚔️ Inimigo tem ações disponíveis! Executando automaticamente...');
                 turnState.isLocked = true;
                 turnState.isPlayerTurn = false;
+                turnState.isAutoExecuting = true;  // Marcar antes para evitar oscilação
 
-                // Aguardar um momento para o feedback ser exibido
+                // Executar imediatamente (sem delay desnecessário)
                 setTimeout(async () => {
                     await executeEnemyTurnAutomatically();
-                }, 1500);
+                }, 300);
             } else {
                 // Sem ações, voltar para turno do jogador
                 setTurnToPlayer();
@@ -131,6 +130,9 @@ async function endPlayerTurn() {
 async function executeEnemyTurnAutomatically() {
     console.log('🤖 Executando turno do inimigo automaticamente...');
 
+    // Marcar que estamos em execução automática (impede oscilação do switch)
+    turnState.isAutoExecuting = true;
+
     try {
         // 1. Esconder menu de ação se estiver visível
         const actionMenu = document.getElementById('action-menu');
@@ -150,14 +152,14 @@ async function executeEnemyTurnAutomatically() {
         }
 
         // 3. Aguardar um momento após smokeout
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise(resolve => setTimeout(resolve, 600));
 
         // 4. Transição para enemy-attack-view
         if (typeof toggleEnemyAttackView === 'function') {
             console.log('🎬 Transição para enemy-attack-view...');
             toggleEnemyAttackView();
             // Aguardar a transição completar
-            await new Promise(resolve => setTimeout(resolve, 1200));
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
         // 5. Executar skills de buff/debuff (se houver)
@@ -165,7 +167,7 @@ async function executeEnemyTurnAutomatically() {
             console.log('🔮 Executando buff/debuff skills...');
             await executeBuffDebuffSkillsSequence();
             // Aguardar um momento após os buffs/debuffs
-            await new Promise(resolve => setTimeout(resolve, 800));
+            await new Promise(resolve => setTimeout(resolve, 500));
         }
 
         // 6. Verificar se há ataques pendentes
@@ -201,6 +203,9 @@ async function executeEnemyTurnAutomatically() {
 function finishEnemyTurn() {
     console.log('🔄 Finalizando turno do inimigo...');
 
+    // Limpar flag de execução automática
+    turnState.isAutoExecuting = false;
+
     // Restaurar visibilidade do boss
     if (typeof restoreBossVisibility === 'function') {
         restoreBossVisibility();
@@ -212,8 +217,9 @@ function finishEnemyTurn() {
         battleArena.classList.remove('enemy-attack-view');
     }
 
-    // Habilitar turno do jogador
-    enableEndTurnButton();
+    // Habilitar turno do jogador (sem feedback "Seu Turno")
+    setTurnToPlayer();
+    restorePlayerEnergy();
 }
 
 /**
@@ -628,21 +634,20 @@ async function updateEnemyActionsHUD() {
         });
 
         // ===== CONTROLE DO SWITCH DE TURNO =====
-        if (isCurrentTurn && actionsToShow.length > 0) {
-            // Turno do inimigo - manter switch na posição inimigo e bloqueado
-            console.log('🔒 Switch bloqueado - Inimigo tem ações pendentes');
-            turnState.isLocked = true;
-            turnState.isPlayerTurn = false;
-            // Garantir que o switch está na posição correta
-            const toggle = document.getElementById('turn-toggle');
-            if (toggle && !toggle.checked) {
-                toggle.checked = true;
-            }
-        } else {
-            // Turno do jogador - liberar switch para posição do jogador
-            console.log('✅ Switch liberado - Turno do jogador');
-            // Só mudar se estava no turno do inimigo
-            if (!turnState.isPlayerTurn) {
+        // NÃO alterar o switch durante execução automática (evita oscilação)
+        if (!turnState.isAutoExecuting) {
+            if (isCurrentTurn && actionsToShow.length > 0) {
+                // Turno do inimigo - manter switch na posição inimigo e bloqueado
+                console.log('🔒 Switch bloqueado - Inimigo tem ações pendentes');
+                turnState.isLocked = true;
+                turnState.isPlayerTurn = false;
+                const toggle = document.getElementById('turn-toggle');
+                if (toggle && !toggle.checked) {
+                    toggle.checked = true;
+                }
+            } else if (!isCurrentTurn && !turnState.isPlayerTurn) {
+                // Sem ações atuais e não está no turno do jogador - liberar
+                console.log('✅ Switch liberado - Turno do jogador');
                 setTurnToPlayer();
             }
         }
@@ -943,6 +948,7 @@ function resetTurnState() {
     turnState.isPlayerTurn = true;
     turnState.isProcessing = false;
     turnState.isLocked = false;
+    turnState.isAutoExecuting = false;
     setTurnToPlayer();
     console.log('🔄 Estado do turno resetado');
 }
