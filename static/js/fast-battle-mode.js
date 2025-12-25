@@ -71,8 +71,47 @@ class FastBattleMode {
     // Criar UI
     this.createUI();
 
+    // Iniciar observador de estado para atualizações em tempo real
+    this.startStateWatcher();
+
     this.active = true;
     console.log('✅ Modo Rápido de Batalha ativado!');
+  }
+
+  // Observador de estado para atualizar menus em tempo real
+  startStateWatcher() {
+    // Armazenar últimos valores conhecidos
+    this.lastKnownEnergy = null;
+    this.lastKnownBloodStacks = null;
+
+    // Verificar mudanças a cada 300ms
+    this.stateWatcherInterval = setInterval(() => {
+      if (!window.gameState || !window.gameState.player) return;
+
+      const currentEnergy = window.gameState.player.energy;
+      const currentBloodStacks = (window.gameState.enemy && window.gameState.enemy.blood_stacks) || 0;
+
+      // Detectar mudanças
+      const energyChanged = this.lastKnownEnergy !== null && this.lastKnownEnergy !== currentEnergy;
+      const bloodStacksChanged = this.lastKnownBloodStacks !== null && this.lastKnownBloodStacks !== currentBloodStacks;
+
+      if (energyChanged || bloodStacksChanged) {
+        console.log(`🔄 Estado mudou! Energia: ${this.lastKnownEnergy} → ${currentEnergy}, Blood Stacks: ${this.lastKnownBloodStacks} → ${currentBloodStacks}`);
+
+        // Atualizar estados dos cards (sem recriar)
+        this.updateAttackCardsState();
+        this.updateSpecialCardsState();
+
+        // Se blood_stacks mudou, recriar menu de especiais para atualizar event listeners
+        if (bloodStacksChanged) {
+          this.refreshSpecialsMenu();
+        }
+      }
+
+      // Atualizar valores conhecidos
+      this.lastKnownEnergy = currentEnergy;
+      this.lastKnownBloodStacks = currentBloodStacks;
+    }, 300);
   }
 
   async loadAttacks() {
@@ -98,7 +137,7 @@ class FastBattleMode {
       const data = await response.json();
 
       if (data.success && data.specials) {
-        this.specials = data.specials.map(special => {
+        this.specials = data.specials.map((special, index) => {
           // Extrair energy_cost do positive_effect.value (é um JSON string)
           let energyCost = 0;
           let requiresBloodStacks = false;
@@ -114,6 +153,8 @@ class FastBattleMode {
             }
           }
 
+          console.log(`🔮 Special [${index}] ${special.name}: energy_cost=${energyCost}, requires_blood_stacks=${requiresBloodStacks}`);
+
           return {
             ...special,
             energy_cost: energyCost,
@@ -121,6 +162,7 @@ class FastBattleMode {
             icon: special.icon || special.animation_fx_a || '/static/game.data/icons/special.png'
           };
         });
+        console.log('🔮 Specials carregados:', this.specials);
       } else {
         this.specials = [];
       }
@@ -286,13 +328,20 @@ class FastBattleMode {
     const existingMenu = document.querySelector('.fast-specials-wrapper');
     if (existingMenu) existingMenu.remove();
 
-    // Organizar specials por índice (0=Autofagia, 1=Lâmina, 2=Barreira, 3=Regeneração)
+    // Mapear specials por tipo (positive_effect.type)
+    const getSpecialByType = (type) => {
+      return this.specials.find(s => s.positive_effect && s.positive_effect.type === type);
+    };
+
+    // Organizar specials por tipo específico
     const specialsOrder = [
-      this.specials[0], // Autofagia (card1)
-      this.specials[1], // Lâmina de Sangue (card2)
-      this.specials[2], // Barreira de Sangue (card3)
-      this.specials[3]  // Regeneração (card4)
+      getSpecialByType('autofagia'),    // Autofagia (card1) - usa HP, gera blood_stacks
+      getSpecialByType('blood_blade'),  // Lâmina de Sangue (card2) - consome blood_stacks, causa dano
+      getSpecialByType('blood_barrier'), // Barreira de Sangue (card3) - consome blood_stacks, gera barreira
+      getSpecialByType('blood_regen')   // Regeneração (card4) - consome blood_stacks, cura
     ];
+
+    console.log('🔮 Specials ordenados:', specialsOrder.map(s => s ? `${s.name} (custo: ${s.energy_cost})` : 'null'));
 
     // Criar wrapper
     const wrapper = document.createElement('div');
