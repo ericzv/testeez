@@ -153,6 +153,9 @@ class FastBattleMode {
     // Criar o novo menu de ataques Dark Fantasy
     this.createAttacksMenu();
 
+    // Criar o menu de skills especiais Arcano Azul
+    this.createSpecialsMenu();
+
     // Event listeners
     container.querySelectorAll('.fast-battle-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -163,7 +166,7 @@ class FastBattleMode {
 
     // Fechar submenu ao clicar fora
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.fast-battle-container') && !e.target.closest('.fast-attacks-wrapper')) {
+      if (!e.target.closest('.fast-battle-container') && !e.target.closest('.fast-attacks-wrapper') && !e.target.closest('.fast-specials-wrapper')) {
         this.closeSubmenu();
       }
     });
@@ -245,7 +248,90 @@ class FastBattleMode {
 
     wrapper.appendChild(infoPanel);
 
-    // Adicionar ao body (posicionado fixo)
+    // Adicionar ao body (posicionado fixo - mais acima para dar espaço ao menu de especiais)
+    wrapper.style.cssText = `
+      position: fixed;
+      bottom: 200px;
+      left: 20px;
+      z-index: 900;
+    `;
+    document.body.appendChild(wrapper);
+
+    // Adicionar event listeners para hover nos cards
+    this.setupCardHoverListeners(wrapper);
+  }
+
+  // Criar o menu de skills especiais - Tema Arcano Azul
+  createSpecialsMenu() {
+    // Remover menu anterior se existir
+    const existingMenu = document.querySelector('.fast-specials-wrapper');
+    if (existingMenu) existingMenu.remove();
+
+    // Organizar specials por índice (0=Autofagia, 1=Lâmina, 2=Barreira, 3=Regeneração)
+    const specialsOrder = [
+      this.specials[0], // Autofagia (card1)
+      this.specials[1], // Lâmina de Sangue (card2)
+      this.specials[2], // Barreira de Sangue (card3)
+      this.specials[3]  // Regeneração (card4)
+    ];
+
+    // Criar wrapper
+    const wrapper = document.createElement('div');
+    wrapper.className = 'fast-specials-wrapper';
+
+    // Criar container principal (2x2 grid)
+    const main = document.createElement('div');
+    main.className = 'fast-specials-main';
+
+    // Esfera de contenção arcana (selo mágico azul) com símbolo de olho
+    main.innerHTML = `
+      <div class="unification-sphere"></div>
+      <div class="center-symbol">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+        </svg>
+      </div>
+    `;
+
+    // Linha superior (card1 + card2)
+    const upRow = document.createElement('div');
+    upRow.className = 'up';
+
+    // Linha inferior (card3 + card4)
+    const downRow = document.createElement('div');
+    downRow.className = 'down';
+
+    // Configuração dos cards
+    const cardConfig = [
+      { index: 0, cardClass: 'card1', row: upRow },
+      { index: 1, cardClass: 'card2', row: upRow },
+      { index: 2, cardClass: 'card3', row: downRow },
+      { index: 3, cardClass: 'card4', row: downRow }
+    ];
+
+    cardConfig.forEach(config => {
+      const skill = specialsOrder[config.index];
+      const card = this.createSpecialCard(skill, config.cardClass);
+      config.row.appendChild(card);
+    });
+
+    main.appendChild(upRow);
+    main.appendChild(downRow);
+    wrapper.appendChild(main);
+
+    // Criar painel de informações
+    const infoPanel = document.createElement('div');
+    infoPanel.className = 'fast-specials-info-panel';
+
+    cardConfig.forEach(config => {
+      const skill = specialsOrder[config.index];
+      const infoContent = this.createSpecialInfoContent(skill, config.cardClass);
+      infoPanel.appendChild(infoContent);
+    });
+
+    wrapper.appendChild(infoPanel);
+
+    // Adicionar ao body (posicionado fixo - abaixo do menu de ataques)
     wrapper.style.cssText = `
       position: fixed;
       bottom: 20px;
@@ -255,7 +341,237 @@ class FastBattleMode {
     document.body.appendChild(wrapper);
 
     // Adicionar event listeners para hover nos cards
-    this.setupCardHoverListeners(wrapper);
+    this.setupSpecialCardHoverListeners(wrapper);
+  }
+
+  // Criar um card de skill especial
+  createSpecialCard(skill, cardClass) {
+    const card = document.createElement('button');
+    card.className = `special-card ${cardClass}`;
+
+    if (skill) {
+      card.dataset.skillId = skill.id;
+      card.dataset.skillName = skill.name;
+
+      // Verificar se está desabilitado
+      const isDisabled = skill.is_disabled || !this.checkResources(skill, 'specials');
+      if (isDisabled) {
+        card.classList.add('disabled');
+      }
+
+      // Partículas arcanas (3 camadas)
+      card.innerHTML = `
+        <div class="container-stars">
+          <div class="stars-infinite"></div>
+          <div class="stars-infinite-sm"></div>
+          <div class="stars-infinite-xs"></div>
+        </div>
+        <div class="glow"><div class="circle"></div><div class="circle"></div></div>
+        <img class="skill-icon-img" src="${skill.icon || '/static/game.data/icons/default_skill.png'}" alt="${skill.name}">
+        <div class="energy-cost-badge">
+          <img src="/static/game.data/energy.webp" alt="Energia">
+          <span>${skill.energy_cost || 1}</span>
+        </div>
+      `;
+
+      // Event listener para executar skill especial
+      if (!isDisabled) {
+        card.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.executeAction(skill, 'specials');
+        });
+      }
+    } else {
+      // Skill não disponível
+      card.classList.add('disabled');
+      card.innerHTML = `
+        <div class="container-stars">
+          <div class="stars-infinite"></div>
+          <div class="stars-infinite-sm"></div>
+          <div class="stars-infinite-xs"></div>
+        </div>
+        <div class="glow"><div class="circle"></div><div class="circle"></div></div>
+        <img class="skill-icon-img" src="/static/game.data/icons/default_skill.png" alt="Bloqueado">
+      `;
+    }
+
+    return card;
+  }
+
+  // Criar conteúdo de informações para uma skill especial
+  createSpecialInfoContent(skill, cardClass) {
+    const content = document.createElement('div');
+    content.className = `fast-specials-info-content info-${cardClass}`;
+
+    if (!skill) {
+      content.innerHTML = `
+        <div class="container-stars">
+          <div class="stars-infinite"></div>
+          <div class="stars-infinite-sm"></div>
+        </div>
+        <h3 class="info-skill-name">Bloqueado</h3>
+        <p class="info-desc">Skill não disponível</p>
+      `;
+      return content;
+    }
+
+    // Construir stats
+    let statsHTML = '';
+    const cache = skill.cache_data || {};
+
+    // Cura
+    if (cache.heal_amount) {
+      statsHTML += `
+        <span class="stat-tag heal">
+          <img src="/static/game.data/icons/healing.png" alt="Cura">
+          ${cache.heal_amount}
+        </span>
+      `;
+    }
+
+    // Energia
+    if (skill.energy_cost) {
+      statsHTML += `
+        <span class="stat-tag energy">
+          <img src="/static/game.data/energy.webp" alt="Energia">
+          ${skill.energy_cost}
+        </span>
+      `;
+    }
+
+    // Escudo/Barreira
+    if (cache.shield_amount || cache.barrier_amount) {
+      const shieldVal = cache.shield_amount || cache.barrier_amount;
+      statsHTML += `
+        <span class="stat-tag shield">
+          <img src="/static/game.data/icons/barrier.png" alt="Escudo">
+          ${shieldVal}
+        </span>
+      `;
+    }
+
+    // Dano (algumas skills especiais causam dano também)
+    if (cache.base_damage && cache.base_damage > 0) {
+      statsHTML += `
+        <span class="stat-tag damage">
+          <img src="/static/game.data/icons/damage.png" alt="Dano">
+          ${cache.base_damage}
+        </span>
+      `;
+    }
+
+    // Vampirismo
+    if (cache.lifesteal_percent && cache.lifesteal_percent > 0) {
+      statsHTML += `
+        <span class="stat-tag heal">
+          <img src="/static/game.data/icons/vampirism.png" alt="Vampirismo">
+          ${(cache.lifesteal_percent * 100).toFixed(0)}%
+        </span>
+      `;
+    }
+
+    // Buff/Debuff
+    if (cache.effect_type === 'buff') {
+      statsHTML += `
+        <span class="stat-tag buff">
+          <img src="/static/game.data/icons/buff.png" alt="Buff">
+          ${cache.effect_value || 'Ativo'}
+        </span>
+      `;
+    }
+
+    // Relíquias
+    let relicsHTML = '';
+    if (skill.applicable_relics && skill.applicable_relics.length > 0) {
+      relicsHTML = '<div class="info-relics-row">';
+      skill.applicable_relics.forEach(relic => {
+        const iconSrc = relic.icon.startsWith('/') || relic.icon.startsWith('http')
+          ? relic.icon
+          : `/static/game.data/relics/${relic.icon}`;
+        relicsHTML += `<img class="relic-icon" src="${iconSrc}" alt="${relic.name}" title="${relic.name}: ${relic.modifier.description}">`;
+      });
+      relicsHTML += '</div>';
+    }
+
+    content.innerHTML = `
+      <div class="container-stars">
+        <div class="stars-infinite"></div>
+        <div class="stars-infinite-sm"></div>
+      </div>
+      <h3 class="info-skill-name">${skill.name}</h3>
+      <div class="info-stats-row">${statsHTML}</div>
+      ${skill.description ? `<p class="info-desc">${skill.description}</p>` : ''}
+      ${relicsHTML}
+    `;
+
+    return content;
+  }
+
+  // Configurar listeners de hover para os cards de especiais
+  setupSpecialCardHoverListeners(wrapper) {
+    const cards = wrapper.querySelectorAll('.special-card');
+    const infoPanels = wrapper.querySelectorAll('.fast-specials-info-content');
+
+    cards.forEach(card => {
+      const cardClass = [...card.classList].find(c => c.startsWith('card'));
+
+      card.addEventListener('mouseenter', () => {
+        // Ocultar todos os painéis
+        infoPanels.forEach(p => p.classList.remove('visible'));
+        // Mostrar painel correspondente
+        const targetPanel = wrapper.querySelector(`.info-${cardClass}`);
+        if (targetPanel) {
+          targetPanel.classList.add('visible');
+        }
+      });
+
+      card.addEventListener('mouseleave', () => {
+        // Pequeno delay para permitir transição suave
+        setTimeout(() => {
+          const hoveredCard = wrapper.querySelector('.special-card:hover');
+          if (!hoveredCard) {
+            infoPanels.forEach(p => p.classList.remove('visible'));
+          }
+        }, 100);
+      });
+    });
+  }
+
+  // Atualizar o menu de especiais com dados atualizados
+  async refreshSpecialsMenu() {
+    await this.loadSpecials();
+    this.createSpecialsMenu();
+  }
+
+  // Atualizar apenas os estados dos cards de especiais
+  updateSpecialCardsState() {
+    if (!window.gameState || !window.gameState.player) return;
+
+    const wrapper = document.querySelector('.fast-specials-wrapper');
+    if (!wrapper) return;
+
+    const cards = wrapper.querySelectorAll('.special-card');
+    const playerEnergy = window.gameState.player.energy;
+
+    cards.forEach(card => {
+      const skillId = parseInt(card.dataset.skillId);
+      if (!skillId) return;
+
+      const skill = this.specials.find(s => s.id === skillId);
+      if (!skill) return;
+
+      const energyCost = skill.energy_cost || 1;
+      const hasEnough = playerEnergy >= energyCost;
+      const isDisabled = skill.is_disabled || !hasEnough;
+
+      if (isDisabled) {
+        card.classList.add('disabled');
+        card.style.pointerEvents = 'none';
+      } else {
+        card.classList.remove('disabled');
+        card.style.pointerEvents = 'auto';
+      }
+    });
   }
 
   // Criar um card de ataque

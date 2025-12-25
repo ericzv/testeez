@@ -952,3 +952,489 @@
     padding: 10px 15px;
   }
 }
+
+/* ================================================================================
+   MENU DE SKILLS ESPECIAIS - Tema Arcano Azul
+   ================================================================================
+*/
+
+/* Wrapper principal do menu de especiais */
+.fast-specials-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+}
+
+/* Container dos 4 botões em grade 2x2 */
+.fast-specials-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  transition: gap 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+  z-index: 10;
+  width: 160px;
+  height: 160px;
+}
+
+.fast-specials-main .up,
+.fast-specials-main .down {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  transition: gap 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Esfera de Contenção Arcana - Selo Mágico Azul */
+.fast-specials-main .unification-sphere {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  z-index: 50;
+  pointer-events: none;
+  background-color: #050a15;
+  background-image: repeating-radial-gradient(
+    #050a15 0,
+    #050a15 2px,
+    #0a1525 3px,
+    #0a1525 4px
+  );
+  border: 1px solid #1a3a5a;
+  box-shadow: inset 0 0 30px #000;
+  transition: transform 0.4s ease, opacity 0.3s ease;
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Anel de Energia Arcana */
+.fast-specials-main .unification-sphere::before {
+  content: '';
+  position: absolute;
+  top: 5px; left: 5px; right: 5px; bottom: 5px;
+  border-radius: 50%;
+  border: 2px dashed #0a5a8a;
+  opacity: 0.7;
+  animation: fastSealRotate 20s linear infinite;
+}
+
+/* Segundo anel instável azul */
+.fast-specials-main .unification-sphere::after {
+  content: '';
+  position: absolute;
+  top: 15px; left: 15px; right: 15px; bottom: 15px;
+  border-radius: 50%;
+  border-top: 2px solid #00aaff;
+  border-bottom: 2px solid #00aaff;
+  border-left: 2px solid transparent;
+  border-right: 2px solid transparent;
+  animation: fastSealRotateReverse 10s linear infinite;
+  box-shadow: 0 0 10px rgba(0, 100, 200, 0.2);
+}
+
+/* Símbolo Central - Olho Arcano */
+.fast-specials-main .center-symbol {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px;
+  height: 36px;
+  z-index: 100;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.3s ease;
+  opacity: 0.8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.fast-specials-main .center-symbol svg {
+  width: 100%;
+  height: 100%;
+  fill: #4488bb;
+  filter: drop-shadow(0 0 2px black);
+}
+
+/* Estilo Geral dos Cards de Especiais */
+.fast-specials-main .special-card {
+  width: 80px;
+  height: 80px;
+  outline: none;
+  border: none;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  overflow: hidden;
+  background-color: #080c18;
+  background-image: repeating-radial-gradient(
+    #080c18 0,
+    #080c18 2px,
+    #0c1220 3px,
+    #0c1220 4px
+  );
+  transition: border-radius 0.4s ease, transform 0.2s ease, background 0.2s, box-shadow 0.2s;
+}
+
+/* Ícone da skill dentro do card */
+.fast-specials-main .special-card .skill-icon-img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  z-index: 10;
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.8));
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Cantos arredondados específicos */
+.fast-specials-main .special-card.card1 { border-radius: 90px 0 0 0; }
+.fast-specials-main .special-card.card2 { border-radius: 0 90px 0 0; }
+.fast-specials-main .special-card.card3 { border-radius: 0 0 0 90px; }
+.fast-specials-main .special-card.card4 { border-radius: 0 0 90px 0; }
+
+/* Posição do ícone em cada card */
+.fast-specials-main .special-card.card1 .skill-icon-img { margin-top: 1.2em; margin-left: 1em; }
+.fast-specials-main .special-card.card2 .skill-icon-img { margin-top: 1.2em; margin-left: -0.7em; }
+.fast-specials-main .special-card.card3 .skill-icon-img { margin-top: -0.5em; margin-left: 1em; }
+.fast-specials-main .special-card.card4 .skill-icon-img { margin-top: -0.7em; margin-left: -1em; }
+
+/* Container de partículas - movendo para ESQUERDA */
+.fast-specials-main .container-stars {
+  position: absolute;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+/* Partículas Arcanas - 3 camadas */
+.fast-specials-main .stars-infinite {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    radial-gradient(1px 1px at 20px 30px, #00ccff, transparent),
+    radial-gradient(1px 1px at 40px 70px, #00aaff, transparent),
+    radial-gradient(1px 1px at 50px 160px, #0088ff, transparent),
+    radial-gradient(1px 1px at 80px 120px, #00ccff, transparent),
+    radial-gradient(1.5px 1.5px at 10px 150px, #00aaff, transparent),
+    radial-gradient(1.5px 1.5px at 60px 20px, #0088ff, transparent),
+    radial-gradient(1.5px 1.5px at 90px 80px, #00ccff, transparent);
+  background-size: 200px 200px;
+  background-repeat: repeat;
+  animation: fastArcaneScrollBg 4s linear infinite;
+}
+
+.fast-specials-main .stars-infinite-sm {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    radial-gradient(1px 1px at 15px 10px, rgba(0,204,255,0.8), transparent),
+    radial-gradient(1px 1px at 35px 150px, rgba(0,170,255,0.8), transparent),
+    radial-gradient(1px 1px at 75px 50px, rgba(0,136,255,0.8), transparent),
+    radial-gradient(1.5px 1.5px at 55px 100px, rgba(0,204,255,0.6), transparent);
+  background-size: 200px 200px;
+  background-repeat: repeat;
+  animation: fastArcaneScrollBg 2.5s linear infinite;
+}
+
+.fast-specials-main .stars-infinite-xs {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    radial-gradient(1px 1px at 25px 40px, rgba(0,204,255,0.5), transparent),
+    radial-gradient(1px 1px at 65px 90px, rgba(0,170,255,0.5), transparent),
+    radial-gradient(1px 1px at 45px 130px, rgba(0,136,255,0.5), transparent);
+  background-size: 200px 200px;
+  background-repeat: repeat;
+  animation: fastArcaneScrollBg 6s linear infinite;
+}
+
+@keyframes fastArcaneScrollBg {
+  0% { background-position: 0 0; }
+  100% { background-position: -200px 0; }
+}
+
+/* Glow Central Azul */
+.fast-specials-main .glow {
+  position: absolute;
+  display: flex;
+  width: 10rem;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.fast-specials-main .circle {
+  width: 100%;
+  height: 30px;
+  filter: blur(2rem);
+  animation: fastPulseGlow 4s infinite;
+  z-index: -1;
+}
+
+.fast-specials-main .circle:nth-of-type(1) { background: rgba(0, 100, 200, 0.4); }
+.fast-specials-main .circle:nth-of-type(2) { background: rgba(0, 170, 255, 0.4); }
+
+/* Animação de Abertura */
+.fast-specials-main:hover { gap: 0.7em; }
+.fast-specials-main:hover .up,
+.fast-specials-main:hover .down { gap: 0.7em; }
+
+.fast-specials-main:hover .unification-sphere {
+  opacity: 0;
+  transform: scale(1.15);
+}
+
+.fast-specials-main:hover .center-symbol {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(1.5);
+}
+
+.fast-specials-main:hover .special-card .skill-icon-img { opacity: 1; }
+.fast-specials-main:hover .container-stars { opacity: 1; }
+.fast-specials-main:hover .glow { opacity: 1; }
+
+.fast-specials-main:hover .special-card.card1 { border-radius: 90px 5px 5px 5px; }
+.fast-specials-main:hover .special-card.card2 { border-radius: 5px 90px 5px 5px; }
+.fast-specials-main:hover .special-card.card3 { border-radius: 5px 5px 5px 90px; }
+.fast-specials-main:hover .special-card.card4 { border-radius: 5px 5px 90px 5px; }
+
+/* Hover Individual */
+.fast-specials-main .special-card:hover {
+  transform: scale(1.1);
+  z-index: 20;
+  background: #0a1830;
+  box-shadow: 0 0 0 2px #0a5a8a;
+}
+
+.fast-specials-main .special-card:hover .skill-icon-img {
+  filter: drop-shadow(0 0 5px rgba(0,170,255,0.5));
+}
+
+/* Clique */
+.fast-specials-main .special-card:active { animation: fastRecoil 0.3s ease-out; }
+.fast-specials-main .special-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #0088ff;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 50;
+  mix-blend-mode: overlay;
+}
+.fast-specials-main .special-card:active::after { animation: fastFlash 0.2s ease-out; }
+
+/* Estado desabilitado */
+.fast-specials-main .special-card.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.fast-specials-main .special-card.disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.fast-specials-main .special-card.disabled .skill-icon-img {
+  opacity: 0.3 !important;
+}
+
+/* Custo de energia no card */
+.fast-specials-main .special-card .energy-cost-badge {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #00ccff;
+  text-shadow: 0 0 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7);
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.fast-specials-main:hover .special-card .energy-cost-badge {
+  opacity: 1;
+}
+
+.fast-specials-main .special-card .energy-cost-badge img {
+  width: 18px;
+  height: 18px;
+}
+
+/* Painel de Informações - Especiais */
+.fast-specials-info-panel {
+  width: 220px;
+  min-height: 120px;
+  position: relative;
+  perspective: 1000px;
+}
+
+.fast-specials-info-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(5, 15, 30, 0.95);
+  border: 2px solid #0a5a8a;
+  border-radius: 4px;
+  padding: 12px 15px;
+  box-sizing: border-box;
+  color: #88ccff;
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 5px 20px rgba(0,50,100,0.8);
+  overflow: hidden;
+}
+
+.fast-specials-info-content.visible {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+/* Partículas no painel */
+.fast-specials-info-content .container-stars {
+  opacity: 0.3;
+}
+
+/* Texto acima das partículas */
+.fast-specials-info-content > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Linha decorativa */
+.fast-specials-info-content::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #0a5a8a, transparent);
+  z-index: 2;
+}
+
+/* Nome da skill */
+.fast-specials-info-content .info-skill-name {
+  margin: 0;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #00ccff;
+  text-shadow: 0 1px 2px black, 0 0 10px rgba(0,170,255,0.5);
+  padding-top: 5px;
+}
+
+/* Container de stats */
+.fast-specials-info-content .info-stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-family: monospace;
+}
+
+/* Tags de stats */
+.fast-specials-info-content .stat-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  padding: 3px 6px;
+  border: 1px solid #0a3a5a;
+  border-radius: 3px;
+  color: #66aacc;
+  background: rgba(0,20,40,0.3);
+}
+
+.fast-specials-info-content .stat-tag img {
+  width: 14px;
+  height: 14px;
+}
+
+.fast-specials-info-content .stat-tag.heal {
+  color: #55cc77;
+  border-color: #0a5a3a;
+}
+
+.fast-specials-info-content .stat-tag.shield {
+  color: #55aaff;
+  border-color: #0a4a7a;
+}
+
+.fast-specials-info-content .stat-tag.energy {
+  color: #f1c40f;
+  border-color: #5a4a0a;
+}
+
+.fast-specials-info-content .stat-tag.buff {
+  color: #aa88ff;
+  border-color: #3a2a6a;
+}
+
+.fast-specials-info-content .stat-tag.debuff {
+  color: #ff8866;
+  border-color: #5a2a1a;
+}
+
+/* Descrição */
+.fast-specials-info-content .info-desc {
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: #88aacc;
+  font-style: italic;
+  border-left: 2px solid #0a5a8a;
+  padding-left: 8px;
+  margin-top: 4px;
+}
+
+/* Container de relíquias */
+.fast-specials-info-content .info-relics-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.fast-specials-info-content .relic-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1px solid #0a5a8a;
+  background: rgba(0,20,40,0.5);
+}
