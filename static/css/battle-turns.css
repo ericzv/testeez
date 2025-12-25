@@ -211,7 +211,7 @@
 /* Container Principal do Switch de Turno */
 .turn-switch-container {
     position: fixed;
-    top: 40%;
+    top: 12%;
     left: 50%;
     transform: translateX(-50%);
     width: 260px;
@@ -251,7 +251,7 @@
         inset 0 0 15px rgba(0, 0, 0, 0.2);
 
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    overflow: hidden;
+    overflow: visible;
     z-index: 1;
 }
 
@@ -441,11 +441,11 @@
 /* Label de Turno - Texto Único Centralizado */
 .turn-label {
     position: absolute;
-    bottom: -35px;
+    bottom: -25px;
     left: 50%;
     transform: translateX(-50%);
     font-family: 'Cinzel', serif;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 2px;
