@@ -126,13 +126,41 @@ async function endPlayerTurn() {
 
 /**
  * Executar o turno do inimigo automaticamente
- * Executa buff/debuffs primeiro, depois ataques
+ * Executa smokeout, transição para enemy-attack-view, buff/debuffs e ataques
  */
 async function executeEnemyTurnAutomatically() {
     console.log('🤖 Executando turno do inimigo automaticamente...');
 
     try {
-        // 1. Primeiro, executar skills de buff/debuff (se houver)
+        // 1. Esconder menu de ação se estiver visível
+        const actionMenu = document.getElementById('action-menu');
+        if (actionMenu) {
+            actionMenu.classList.remove('visible');
+        }
+
+        // 2. Executar animação de smokeout
+        if (typeof playSmokeoutAnimation === 'function') {
+            console.log('💨 Iniciando smokeout animation...');
+            await new Promise(resolve => {
+                playSmokeoutAnimation(() => {
+                    console.log('💨 Smokeout concluído');
+                    resolve();
+                });
+            });
+        }
+
+        // 3. Aguardar um momento após smokeout
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        // 4. Transição para enemy-attack-view
+        if (typeof toggleEnemyAttackView === 'function') {
+            console.log('🎬 Transição para enemy-attack-view...');
+            toggleEnemyAttackView();
+            // Aguardar a transição completar
+            await new Promise(resolve => setTimeout(resolve, 1200));
+        }
+
+        // 5. Executar skills de buff/debuff (se houver)
         if (typeof executeBuffDebuffSkillsSequence === 'function') {
             console.log('🔮 Executando buff/debuff skills...');
             await executeBuffDebuffSkillsSequence();
@@ -140,7 +168,7 @@ async function executeEnemyTurnAutomatically() {
             await new Promise(resolve => setTimeout(resolve, 800));
         }
 
-        // 2. Verificar se há ataques pendentes
+        // 6. Verificar se há ataques pendentes
         const statusResponse = await fetch('/gamification/enemy_attack_status');
         const statusData = await statusResponse.json();
 
@@ -157,14 +185,35 @@ async function executeEnemyTurnAutomatically() {
         } else {
             console.log('✅ Sem ataques pendentes');
             // Turno do inimigo acabou, voltar para o jogador
-            enableEndTurnButton();
+            finishEnemyTurn();
         }
 
     } catch (error) {
         console.error('❌ Erro ao executar turno do inimigo:', error);
         // Em caso de erro, tentar restaurar o turno do jogador
-        enableEndTurnButton();
+        finishEnemyTurn();
     }
+}
+
+/**
+ * Finalizar turno do inimigo e voltar para o jogador
+ */
+function finishEnemyTurn() {
+    console.log('🔄 Finalizando turno do inimigo...');
+
+    // Restaurar visibilidade do boss
+    if (typeof restoreBossVisibility === 'function') {
+        restoreBossVisibility();
+    }
+
+    // Sair da enemy-attack-view se estiver nela
+    const battleArena = document.getElementById('battle-arena');
+    if (battleArena && battleArena.classList.contains('enemy-attack-view')) {
+        battleArena.classList.remove('enemy-attack-view');
+    }
+
+    // Habilitar turno do jogador
+    enableEndTurnButton();
 }
 
 /**
@@ -211,7 +260,7 @@ async function executeEnemyAttacksLoop() {
 
     // Turno do inimigo acabou
     console.log('✅ Todos os ataques executados');
-    enableEndTurnButton();
+    finishEnemyTurn();
 }
 
 /**
@@ -932,6 +981,7 @@ window.initTurnSwitch = initTurnSwitch;
 window.stopTurnParticles = stopTurnParticles;
 window.executeEnemyTurnAutomatically = executeEnemyTurnAutomatically;
 window.executeEnemyAttacksLoop = executeEnemyAttacksLoop;
+window.finishEnemyTurn = finishEnemyTurn;
 window.updateEnemyIntentions = updateEnemyIntentions; // Legado
 window.updateEnemyActionsHUD = updateEnemyActionsHUD; // Novo unificado
 window.updateChargesHUD = updateChargesHUD;
