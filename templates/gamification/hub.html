@@ -93,15 +93,14 @@
   <span class="menu-text">{{ menu[7][2] }}</span>
 </a>
 
-<a href="{{ url_for('talents.talents') }}" class="menu-btn btn-8">
-  <span class="menu-icon">🌟</span>
-  <span class="menu-text">Talentos</span>
+<!-- Botão de Talentos (ícone) -->
+<a href="{{ url_for('talents.talents') }}" class="hub-icon-btn talents-btn" title="Talentos">
+  <img src="{{ url_for('static', filename='game.data/icons/talents_icon.png') }}" alt="Talentos">
 </a>
 
-<!-- Botão do Mapa Procedural -->
-<a href="#" onclick="openMapPopup(); return false;" class="menu-btn btn-9" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; padding: 20px 40px; border-radius: 15px; text-decoration: none; font-weight: bold; font-size: 20px; box-shadow: 0 0 30px rgba(255, 215, 0, 0.7); border: 3px solid #fff;">
-  <span class="menu-icon">🗺️</span>
-  <span class="menu-text">MAPA</span>
+<!-- Botão do Mapa (ícone) -->
+<a href="#" onclick="openMapPopup(); return false;" class="hub-icon-btn map-btn" title="Mapa">
+  <img src="{{ url_for('static', filename='game.data/icons/map_icon.png') }}" alt="Mapa">
 </a>
 
 <!-- Notification Bell Icon -->
@@ -3310,6 +3309,77 @@ function hideMapTooltip() {
 </script>
 
 <style>
+/* === Botões de Ícone do Hub (Mapa e Talentos) === */
+.hub-icon-btn {
+  position: fixed;
+  z-index: 1000;
+  display: block;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  text-decoration: none;
+}
+
+.hub-icon-btn img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  /* Outline preto ao redor do conteúdo do ícone (não da imagem toda) */
+  filter: drop-shadow(1px 0 0 #000)
+          drop-shadow(-1px 0 0 #000)
+          drop-shadow(0 1px 0 #000)
+          drop-shadow(0 -1px 0 #000)
+          drop-shadow(1px 1px 0 #000)
+          drop-shadow(-1px -1px 0 #000)
+          drop-shadow(1px -1px 0 #000)
+          drop-shadow(-1px 1px 0 #000);
+}
+
+.hub-icon-btn:hover {
+  transform: scale(1.15);
+}
+
+.hub-icon-btn:hover img {
+  filter: drop-shadow(1px 0 0 #000)
+          drop-shadow(-1px 0 0 #000)
+          drop-shadow(0 1px 0 #000)
+          drop-shadow(0 -1px 0 #000)
+          drop-shadow(1px 1px 0 #000)
+          drop-shadow(-1px -1px 0 #000)
+          drop-shadow(1px -1px 0 #000)
+          drop-shadow(-1px 1px 0 #000)
+          drop-shadow(0 0 15px rgba(255, 215, 0, 0.8));
+}
+
+.hub-icon-btn:active {
+  transform: scale(0.95);
+}
+
+/* Posição do botão de Talentos */
+.hub-icon-btn.talents-btn {
+  top: 20px;
+  right: 120px;
+}
+
+/* Posição do botão de Mapa */
+.hub-icon-btn.map-btn {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.hub-icon-btn.map-btn:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+}
+
+.hub-icon-btn.map-btn:active {
+  transform: translate(-50%, -50%) scale(0.95);
+}
+
+.hub-icon-btn.map-btn img {
+  width: 100px;
+  height: 100px;
+}
+
 /* Animações do mapa */
 @keyframes mapNodePulse {
   0%, 100% {
