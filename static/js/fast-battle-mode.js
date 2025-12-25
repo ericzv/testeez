@@ -96,6 +96,9 @@ class FastBattleMode {
       const energyChanged = this.lastKnownEnergy !== null && this.lastKnownEnergy !== currentEnergy;
       const bloodStacksChanged = this.lastKnownBloodStacks !== null && this.lastKnownBloodStacks !== currentBloodStacks;
 
+      // Detectar se energia AUMENTOU (indica novo turno - energia foi restaurada)
+      const energyIncreased = this.lastKnownEnergy !== null && currentEnergy > this.lastKnownEnergy;
+
       if (energyChanged || bloodStacksChanged) {
         console.log(`🔄 Estado mudou! Energia: ${this.lastKnownEnergy} → ${currentEnergy}, Blood Stacks: ${this.lastKnownBloodStacks} → ${currentBloodStacks}`);
 
@@ -103,8 +106,10 @@ class FastBattleMode {
         this.updateAttackCardsState();
         this.updateSpecialCardsState();
 
-        // Se blood_stacks mudou, recriar menu de especiais para atualizar event listeners
-        if (bloodStacksChanged) {
+        // Se blood_stacks mudou OU energia aumentou (novo turno), recarregar specials do backend
+        // Isso reseta o used_this_turn para as skills especiais
+        if (bloodStacksChanged || energyIncreased) {
+          console.log('🔄 Recarregando specials do backend (novo turno ou blood_stacks mudou)');
           this.refreshSpecialsMenu();
         }
       }

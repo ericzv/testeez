@@ -765,6 +765,12 @@
   transition: opacity 0.3s ease;
 }
 
+/* Card4 (inferior direito) tem canto curvo no bottom-right, mover badge para bottom-left */
+.fast-attacks-main .attack-card.card4 .energy-cost-badge {
+  right: auto;
+  left: 2px;
+}
+
 .fast-attacks-main:hover .attack-card .energy-cost-badge {
   opacity: 1;
 }
@@ -1278,6 +1284,12 @@
   z-index: 20;
   opacity: 0;
   transition: opacity 0.3s ease;
+}
+
+/* Card4 (inferior direito) tem canto curvo no bottom-right, mover badge para bottom-left */
+.fast-specials-main .special-card.card4 .energy-cost-badge {
+  right: auto;
+  left: 2px;
 }
 
 .fast-specials-main:hover .special-card .energy-cost-badge {
