@@ -4556,9 +4556,9 @@ function handleBossDeathAnimation(hasMemoryReward, enemyRarity) {
             }
         }, 2000);
     } else {
-        // Redirecionar após 2 segundos (bosses não têm memória)
+        // Redirecionar após 5 segundos (após banner de vitória de 4.5s terminar)
         setTimeout(() => {
-            console.log("🏠 Boss derrotado - indo para HUB");
+            console.log("🏠 Inimigo derrotado - indo automaticamente para HUB");
 
             // SALVAR DADOS DE VITÓRIA NO LOCALSTORAGE ANTES DE REDIRECIONAR
             const victoryData = {
@@ -4579,7 +4579,7 @@ function handleBossDeathAnimation(hasMemoryReward, enemyRarity) {
             } else {
                 window.location.href = '/gamification';
             }
-        }, 2000);
+        }, 5000);
     }
 }
 
