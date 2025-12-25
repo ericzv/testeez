@@ -92,15 +92,20 @@ async function endPlayerTurn() {
             // Mostrar feedback
             showTurnFeedback(data);
 
-            // Se tem ações, manter bloqueado até resolver
+            // Se tem ações, executar automaticamente o turno do inimigo
             if (data.has_actions) {
-                console.log('⚔️ Inimigo tem ações disponíveis!');
+                console.log('⚔️ Inimigo tem ações disponíveis! Executando automaticamente...');
                 turnState.isLocked = true;
                 turnState.isPlayerTurn = false;
-                console.log('🔒 Switch bloqueado - Aguardando resolução das ações do inimigo');
+
+                // Aguardar um momento para o feedback ser exibido
+                setTimeout(async () => {
+                    await executeEnemyTurnAutomatically();
+                }, 1500);
             } else {
                 // Sem ações, voltar para turno do jogador
                 setTurnToPlayer();
+                restorePlayerEnergy();
             }
         } else {
             console.error('❌ Erro ao processar turno:', data.message);
@@ -117,6 +122,96 @@ async function endPlayerTurn() {
     }
 
     turnState.isProcessing = false;
+}
+
+/**
+ * Executar o turno do inimigo automaticamente
+ * Executa buff/debuffs primeiro, depois ataques
+ */
+async function executeEnemyTurnAutomatically() {
+    console.log('🤖 Executando turno do inimigo automaticamente...');
+
+    try {
+        // 1. Primeiro, executar skills de buff/debuff (se houver)
+        if (typeof executeBuffDebuffSkillsSequence === 'function') {
+            console.log('🔮 Executando buff/debuff skills...');
+            await executeBuffDebuffSkillsSequence();
+            // Aguardar um momento após os buffs/debuffs
+            await new Promise(resolve => setTimeout(resolve, 800));
+        }
+
+        // 2. Verificar se há ataques pendentes
+        const statusResponse = await fetch('/gamification/enemy_attack_status');
+        const statusData = await statusResponse.json();
+
+        if (statusData.success && statusData.status.has_charges) {
+            console.log('⚔️ Executando ataques do inimigo...');
+
+            // Executar sequência de ataques do inimigo
+            if (typeof executeEnemyAttackSequence === 'function') {
+                await executeEnemyAttackSequence();
+            } else {
+                // Fallback: executar ataques um por um
+                await executeEnemyAttacksLoop();
+            }
+        } else {
+            console.log('✅ Sem ataques pendentes');
+            // Turno do inimigo acabou, voltar para o jogador
+            enableEndTurnButton();
+        }
+
+    } catch (error) {
+        console.error('❌ Erro ao executar turno do inimigo:', error);
+        // Em caso de erro, tentar restaurar o turno do jogador
+        enableEndTurnButton();
+    }
+}
+
+/**
+ * Fallback: Loop de execução de ataques do inimigo
+ */
+async function executeEnemyAttacksLoop() {
+    let hasMoreAttacks = true;
+
+    while (hasMoreAttacks) {
+        try {
+            // Verificar status
+            const statusResponse = await fetch('/gamification/enemy_attack_status');
+            const statusData = await statusResponse.json();
+
+            if (!statusData.success || !statusData.status.has_charges) {
+                hasMoreAttacks = false;
+                break;
+            }
+
+            // Executar um ataque
+            const attackResponse = await fetch('/gamification/execute_enemy_attack', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            const attackData = await attackResponse.json();
+
+            if (attackData.success) {
+                console.log('💥 Ataque executado:', attackData);
+
+                // Atualizar HUD
+                await updateEnemyActionsHUD();
+
+                // Aguardar entre ataques
+                await new Promise(resolve => setTimeout(resolve, 1200));
+            } else {
+                hasMoreAttacks = false;
+            }
+
+        } catch (error) {
+            console.error('❌ Erro no loop de ataques:', error);
+            hasMoreAttacks = false;
+        }
+    }
+
+    // Turno do inimigo acabou
+    console.log('✅ Todos os ataques executados');
+    enableEndTurnButton();
 }
 
 /**
@@ -835,6 +930,8 @@ window.setTurnToPlayer = setTurnToPlayer;
 window.resetTurnState = resetTurnState;
 window.initTurnSwitch = initTurnSwitch;
 window.stopTurnParticles = stopTurnParticles;
+window.executeEnemyTurnAutomatically = executeEnemyTurnAutomatically;
+window.executeEnemyAttacksLoop = executeEnemyAttacksLoop;
 window.updateEnemyIntentions = updateEnemyIntentions; // Legado
 window.updateEnemyActionsHUD = updateEnemyActionsHUD; // Novo unificado
 window.updateChargesHUD = updateChargesHUD;
