@@ -89,7 +89,8 @@ class FastBattleMode {
       if (!window.gameState || !window.gameState.player) return;
 
       const currentEnergy = window.gameState.player.energy;
-      const currentBloodStacks = (window.gameState.enemy && window.gameState.enemy.blood_stacks) || 0;
+      // Blood stacks está em gameState.boss.bloodStacks (não enemy.blood_stacks)
+      const currentBloodStacks = (window.gameState.boss && window.gameState.boss.bloodStacks) || 0;
 
       // Detectar mudanças
       const energyChanged = this.lastKnownEnergy !== null && this.lastKnownEnergy !== currentEnergy;
@@ -423,7 +424,8 @@ class FastBattleMode {
 
       // Verificar se está desabilitado
       const playerEnergy = (window.gameState && window.gameState.player) ? window.gameState.player.energy : 0;
-      const enemyBloodStacks = (window.gameState && window.gameState.enemy) ? (window.gameState.enemy.blood_stacks || 0) : 0;
+      // Blood stacks está em gameState.boss.bloodStacks
+      const enemyBloodStacks = (window.gameState && window.gameState.boss) ? (window.gameState.boss.bloodStacks || 0) : 0;
 
       const energyCost = skill.energy_cost || 0;
       const hasEnoughEnergy = energyCost === 0 || playerEnergy >= energyCost;
@@ -634,8 +636,8 @@ class FastBattleMode {
 
     const cards = wrapper.querySelectorAll('.special-card');
     const playerEnergy = window.gameState.player.energy;
-    // Blood stacks do inimigo atual (armazenado em gameState.enemy.blood_stacks)
-    const enemyBloodStacks = (window.gameState.enemy && window.gameState.enemy.blood_stacks) || 0;
+    // Blood stacks está em gameState.boss.bloodStacks
+    const enemyBloodStacks = (window.gameState.boss && window.gameState.boss.bloodStacks) || 0;
 
     cards.forEach(card => {
       const skillId = parseInt(card.dataset.skillId);
@@ -673,6 +675,7 @@ class FastBattleMode {
     card.dataset.skillType = skillType;
 
     if (skill) {
+      console.log(`⚔️ Criando card ${cardClass} (${skillType}): ${skill.name}, energy_cost=${skill.energy_cost}`);
       card.dataset.skillId = skill.id;
       card.dataset.skillName = skill.name;
 
@@ -1291,9 +1294,10 @@ class FastBattleMode {
           window.updateBloodStacksDisplay(data.blood_stacks);
         }
 
-        // Atualizar gameState.enemy.blood_stacks para verificação local
-        if (window.gameState && window.gameState.enemy && data.blood_stacks !== undefined) {
-          window.gameState.enemy.blood_stacks = data.blood_stacks;
+        // Atualizar gameState.boss.bloodStacks para verificação local
+        if (window.gameState && data.blood_stacks !== undefined) {
+          if (!window.gameState.boss) window.gameState.boss = {};
+          window.gameState.boss.bloodStacks = data.blood_stacks;
         }
 
         // Atualizar menus Dark Fantasy e Arcane Blue (com delay para dados estabilizarem)
