@@ -1,100 +1,163 @@
 // ==========================================
-// SISTEMA DE TURNOS - JavaScript
+// SISTEMA DE TURNOS - JavaScript (Switch Version)
 // ==========================================
 
-console.log('🎮 Sistema de Turnos carregado');
+console.log('🎮 Sistema de Turnos (Switch) carregado');
+
+// Estado global do turno
+window.turnState = {
+    isPlayerTurn: true,
+    isProcessing: false,
+    isLocked: false
+};
+
+/**
+ * Inicializar o sistema de switch de turno
+ */
+function initTurnSwitch() {
+    const toggle = document.getElementById('turn-toggle');
+    const track = document.getElementById('turn-track');
+
+    if (!toggle || !track) {
+        console.warn('⚠️ Elementos do Turn Switch não encontrados');
+        return;
+    }
+
+    // Prevenir comportamento padrão do checkbox - só mudamos via JavaScript
+    toggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    });
+
+    // Evento de clique no track (label)
+    track.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Se já está processando ou está no turno do inimigo, não fazer nada
+        if (turnState.isProcessing || turnState.isLocked || !turnState.isPlayerTurn) {
+            console.warn('⚠️ Switch bloqueado - Turno do inimigo ou processando');
+            return;
+        }
+
+        // Processar fim do turno do jogador
+        await endPlayerTurn();
+    });
+
+    // Iniciar sistema de partículas
+    initTurnParticles(toggle, track);
+
+    console.log('✅ Turn Switch inicializado');
+}
 
 /**
  * Terminar turno do jogador e processar turno do inimigo
  */
 async function endPlayerTurn() {
-    const btn = document.getElementById('end-turn-btn');
-    if (!btn) {
-        console.error('❌ Botão end-turn-btn não encontrado');
+    const toggle = document.getElementById('turn-toggle');
+
+    if (!toggle) {
+        console.error('❌ Turn toggle não encontrado');
         return;
     }
-    
+
     // Verificar se já está processando
-    if (btn.disabled) {
+    if (turnState.isProcessing || turnState.isLocked) {
         console.warn('⚠️ Turno já está sendo processado');
         return;
     }
-    
-    // CAPTURAR HTML ORIGINAL ANTES DE MODIFICAR
-    const originalHTML = btn.innerHTML;
-    
-    // Desabilitar botão temporariamente
-    btn.disabled = true;
-    btn.querySelector('.turn-icon-img').style.filter = 'grayscale(100%)';
-    btn.querySelector('.turn-icon-img').style.animation = 'none';
-    
+
+    // Marcar como processando
+    turnState.isProcessing = true;
+
     try {
         console.log('🎮 Jogador terminando turno...');
-        
+
+        // Mover switch para direita (turno do inimigo)
+        setTurnToEnemy();
+
         const response = await fetch('/gamification/end_player_turn', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'}
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             console.log('✅ Turno do inimigo processado:', data);
-            
+
             // Atualizar HUD unificado de ações
             await updateEnemyActionsHUD();
 
             // Mostrar feedback
             showTurnFeedback(data);
 
-            // Se tem ações, habilitar sistemas de combate
+            // Se tem ações, manter bloqueado até resolver
             if (data.has_actions) {
                 console.log('⚔️ Inimigo tem ações disponíveis!');
-                
-                // DESABILITAR BOTÃO ATÉ JOGADOR RESOLVER AS AÇÕES DO INIMIGO
-                btn.disabled = true;
-                btn.querySelector('.turn-icon-img').style.filter = 'drop-shadow(0 0 15px rgba(255, 68, 68, 0.8)) grayscale(30%)';
-                btn.querySelector('.turn-icon-img').style.animation = 'rotateSlow 10s linear infinite';
-                
-                console.log('🔒 Botão desabilitado - Aguardando resolução das ações do inimigo');
+                turnState.isLocked = true;
+                turnState.isPlayerTurn = false;
+                console.log('🔒 Switch bloqueado - Aguardando resolução das ações do inimigo');
             } else {
-                // Sem ações, reabilitar botão
-                btn.disabled = false;
-                btn.innerHTML = originalHTML;
+                // Sem ações, voltar para turno do jogador
+                setTurnToPlayer();
             }
         } else {
             console.error('❌ Erro ao processar turno:', data.message);
             alert('Erro: ' + data.message);
-            // Reabilitar em caso de erro
-            btn.disabled = false;
-            btn.innerHTML = originalHTML;
+            // Reverter para turno do jogador em caso de erro
+            setTurnToPlayer();
         }
-        
+
     } catch (error) {
         console.error('❌ Erro na requisição:', error);
         alert('Erro ao processar turno!');
-        // Reabilitar em caso de erro
-        btn.disabled = false;
-        btn.innerHTML = originalHTML;
+        // Reverter para turno do jogador em caso de erro
+        setTurnToPlayer();
+    }
+
+    turnState.isProcessing = false;
+}
+
+/**
+ * Mover switch para fase do inimigo (direita)
+ */
+function setTurnToEnemy() {
+    const toggle = document.getElementById('turn-toggle');
+    if (toggle) {
+        toggle.checked = true;
+        turnState.isPlayerTurn = false;
+        turnState.isLocked = true;
+        console.log('🔴 Switch movido para TURNO DO INIMIGO');
+    }
+}
+
+/**
+ * Mover switch para fase do jogador (esquerda)
+ */
+function setTurnToPlayer() {
+    const toggle = document.getElementById('turn-toggle');
+    if (toggle) {
+        toggle.checked = false;
+        turnState.isPlayerTurn = true;
+        turnState.isLocked = false;
+        console.log('🔵 Switch movido para TURNO DO JOGADOR');
     }
 }
 
 /**
  * Reabilitar botão de terminar turno (chamar quando jogador resolver ações do inimigo)
+ * Agora move o switch de volta para o lado do jogador
  */
 function enableEndTurnButton() {
-    const btn = document.getElementById('end-turn-btn');
-    if (!btn) return;
-    
-    btn.disabled = false;
-    btn.querySelector('.turn-icon-img').style.filter = 'drop-shadow(0 0 10px rgba(102, 126, 234, 0.6))';
-    btn.querySelector('.turn-icon-img').style.animation = 'rotateSlow 10s linear infinite';
-    
-    console.log('✅ Botão de terminar turno reabilitado');
-    
+    console.log('✅ Habilitando turno do jogador...');
+
+    // Mover switch de volta para o lado do jogador
+    setTurnToPlayer();
+
     // ===== FEEDBACK VISUAL: "SEU TURNO!" =====
     showYourTurnFeedback();
-    
+
     // ===== RESTAURAR ENERGIA DO JOGADOR =====
     restorePlayerEnergy();
 }
@@ -420,21 +483,23 @@ async function updateEnemyActionsHUD() {
             }
         });
 
-        // ===== CONTROLE DO BOTÃO END TURN =====
-        const btn = document.getElementById('end-turn-btn');
-        if (btn) {
-            if (isCurrentTurn && actionsToShow.length > 0) {
-                // Turno do inimigo - desabilitar botão
-                console.log('🔒 Botão desabilitado - Inimigo tem ações pendentes');
-                btn.disabled = true;
-                btn.querySelector('.turn-icon-img').style.filter = 'drop-shadow(0 0 15px rgba(255, 68, 68, 0.8)) grayscale(30%)';
-                btn.querySelector('.turn-icon-img').style.animation = 'rotateSlow 10s linear infinite';
-            } else {
-                // Turno do jogador - habilitar botão
-                console.log('✅ Botão habilitado - Turno do jogador');
-                btn.disabled = false;
-                btn.querySelector('.turn-icon-img').style.filter = 'drop-shadow(0 0 10px rgba(102, 126, 234, 0.6))';
-                btn.querySelector('.turn-icon-img').style.animation = 'rotateSlow 10s linear infinite';
+        // ===== CONTROLE DO SWITCH DE TURNO =====
+        if (isCurrentTurn && actionsToShow.length > 0) {
+            // Turno do inimigo - manter switch na posição inimigo e bloqueado
+            console.log('🔒 Switch bloqueado - Inimigo tem ações pendentes');
+            turnState.isLocked = true;
+            turnState.isPlayerTurn = false;
+            // Garantir que o switch está na posição correta
+            const toggle = document.getElementById('turn-toggle');
+            if (toggle && !toggle.checked) {
+                toggle.checked = true;
+            }
+        } else {
+            // Turno do jogador - liberar switch para posição do jogador
+            console.log('✅ Switch liberado - Turno do jogador');
+            // Só mudar se estava no turno do inimigo
+            if (!turnState.isPlayerTurn) {
+                setTurnToPlayer();
             }
         }
 
@@ -638,21 +703,123 @@ function showTurnFeedback(data) {
 }
 
 // ==========================================
+// SISTEMA DE PARTÍCULAS DO SWITCH
+// ==========================================
+
+let particleInterval = null;
+
+/**
+ * Inicializar sistema de partículas do switch de turno
+ */
+function initTurnParticles(toggle, track) {
+    // Limpar intervalo anterior se existir
+    if (particleInterval) {
+        clearInterval(particleInterval);
+    }
+
+    // Criar partículas periodicamente
+    particleInterval = setInterval(() => {
+        const count = toggle.checked ? 4 : 5;
+        for (let i = 0; i < count; i++) {
+            setTimeout(() => createTurnParticle(toggle, track), Math.random() * 100);
+        }
+    }, 100);
+}
+
+/**
+ * Criar uma partícula individual
+ */
+function createTurnParticle(toggle, track) {
+    if (!track) return;
+
+    const particle = document.createElement('div');
+    particle.classList.add('turn-particle');
+
+    const isEnemyTurn = toggle.checked;
+
+    const size = Math.random() * 4 + 2;
+    particle.style.width = `${size}px`;
+    particle.style.height = `${size}px`;
+
+    if (isEnemyTurn) {
+        particle.style.background = `rgba(255, ${Math.random() * 50}, 50, 0.8)`;
+        particle.style.boxShadow = `0 0 8px rgba(255, 0, 0, 0.6)`;
+    } else {
+        particle.style.background = `rgba(200, 255, 255, 0.9)`;
+        particle.style.boxShadow = `0 0 10px rgba(100, 255, 255, 0.8)`;
+    }
+
+    const randomY = (Math.random() - 0.5) * 30;
+    let startX, startY;
+
+    if (isEnemyTurn) {
+        startX = 170; // Posição do knob na direita
+    } else {
+        startX = 30;  // Posição do knob na esquerda
+    }
+    startY = 30 + randomY;
+
+    particle.style.left = `${startX}px`;
+    particle.style.top = `${startY}px`;
+
+    const moveDistance = Math.random() * 60 + 30;
+    const duration = Math.random() * 1 + 0.5;
+
+    track.appendChild(particle);
+
+    const destinationX = isEnemyTurn ? startX - moveDistance : startX + moveDistance;
+
+    const animation = particle.animate([
+        { transform: `translate(0, 0) scale(1)`, opacity: isEnemyTurn ? 0.6 : 0.9 },
+        { transform: `translate(${destinationX - startX}px, ${(Math.random() - 0.5) * 20}px) scale(0)`, opacity: 0 }
+    ], {
+        duration: duration * 1000,
+        easing: 'ease-out'
+    });
+
+    animation.onfinish = () => {
+        particle.remove();
+    };
+}
+
+/**
+ * Parar sistema de partículas (limpar ao sair da batalha)
+ */
+function stopTurnParticles() {
+    if (particleInterval) {
+        clearInterval(particleInterval);
+        particleInterval = null;
+    }
+}
+
+/**
+ * Resetar estado do turno (para nova batalha)
+ */
+function resetTurnState() {
+    turnState.isPlayerTurn = true;
+    turnState.isProcessing = false;
+    turnState.isLocked = false;
+    setTurnToPlayer();
+    console.log('🔄 Estado do turno resetado');
+}
+
+// ==========================================
 // INICIALIZAÇÃO
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🎮 Inicializando sistema de turnos...');
-    
-    // Event listener para o botão
+
+    // Inicializar Turn Switch (novo)
+    initTurnSwitch();
+
+    // Fallback: Event listener para botão antigo (compatibilidade)
     const endTurnBtn = document.getElementById('end-turn-btn');
     if (endTurnBtn) {
         endTurnBtn.addEventListener('click', endPlayerTurn);
-        console.log('✅ Botão de terminar turno configurado');
-    } else {
-        console.warn('⚠️ Botão end-turn-btn não encontrado no DOM');
+        console.log('✅ Fallback: Botão antigo configurado');
     }
-    
+
     // Atualizar HUD unificado de ações ao carregar a página
     setTimeout(() => {
         updateEnemyActionsHUD();
@@ -662,6 +829,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Expor funções globalmente para outros scripts
 window.endPlayerTurn = endPlayerTurn;
+window.enableEndTurnButton = enableEndTurnButton;
+window.setTurnToEnemy = setTurnToEnemy;
+window.setTurnToPlayer = setTurnToPlayer;
+window.resetTurnState = resetTurnState;
+window.initTurnSwitch = initTurnSwitch;
+window.stopTurnParticles = stopTurnParticles;
 window.updateEnemyIntentions = updateEnemyIntentions; // Legado
 window.updateEnemyActionsHUD = updateEnemyActionsHUD; // Novo unificado
 window.updateChargesHUD = updateChargesHUD;

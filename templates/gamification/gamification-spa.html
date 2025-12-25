@@ -433,8 +433,51 @@ function closeMapPopup() {
             <div id="intentions-icons" class="intentions-icons"></div>
         </div>
 
-        <!-- End Turn Button -->
-        <button id="end-turn-btn" class="end-turn-btn">
+        <!-- Turn Switch Button -->
+        <div class="turn-switch-container" id="turn-switch-container">
+            <input type="checkbox" id="turn-toggle" class="turn-checkbox">
+
+            <!-- Cadeado Flutuante (fora do label para usar sibling selector) -->
+            <div class="lock-indicator">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lock-icon-svg">
+                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+            </div>
+
+            <label for="turn-toggle" class="turn-track" id="turn-track">
+                <!-- Labels de Turno -->
+                <span class="turn-label turn-label-player">Você</span>
+                <span class="turn-label turn-label-enemy">Inimigo</span>
+
+                <div class="turn-knob" id="turn-knob">
+                    <div class="knob-inner-pulse">
+                        <div class="knob-light-blue"></div>
+                        <div class="knob-glow-red"></div>
+
+                        <!-- Ícone Espada (Turno do Jogador) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="knob-icon icon-sword">
+                            <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"></polyline>
+                            <line x1="13" x2="19" y1="19" y2="13"></line>
+                            <line x1="16" x2="20" y1="16" y2="20"></line>
+                            <line x1="19" x2="21" y1="21" y2="19"></line>
+                        </svg>
+
+                        <!-- Ícone Caveira (Turno do Inimigo) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="knob-icon icon-skull">
+                            <circle cx="9" cy="12" r="1"></circle>
+                            <circle cx="15" cy="12" r="1"></circle>
+                            <path d="M8 20v2h8v-2"></path>
+                            <path d="m12.5 17-.5-1-.5 1h1z"></path>
+                            <path d="M16 20a2 2 0 0 0 1.56-3.25 8 8 0 1 0-11.12 0A2 2 0 0 0 8 20"></path>
+                        </svg>
+                    </div>
+                </div>
+            </label>
+        </div>
+
+        <!-- Botão antigo mantido como fallback invisível para compatibilidade -->
+        <button id="end-turn-btn" class="end-turn-btn" style="display: none;">
             <img src="/static/game.data/turn.png" alt="Turno" class="turn-icon-img">
             <span class="turn-text">Terminar Turno</span>
         </button>
@@ -626,6 +669,12 @@ window.SPA = {
         if (window.skillTestSystem) {
             window.skillTestSystem.usesThisTurn = 0;
             window.skillTestSystem.currentDifficulty = 1;
+        }
+
+        // 8.2. Resetar estado do Turn Switch
+        if (typeof resetTurnState === 'function') {
+            resetTurnState();
+            console.log('🔄 Turn Switch resetado para nova batalha');
         }
 
         // 9. Limpar rate limiting para carregar dados frescos
