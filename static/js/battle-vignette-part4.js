@@ -1190,7 +1190,7 @@ Object.assign(window.ATTACK_VIGNETTES, {
     },
 
     "embrace_of_darkness_vignette": {
-        name: "Abraço da Escuridão",
+        name: "Execução",
         duration: 2500, // OTIMIZADO: 5000ms → 2500ms (-50%)
         particles: {
             count: VIGNETTE_LOD.getParticleCount(160),

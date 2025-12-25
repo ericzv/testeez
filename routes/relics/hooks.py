@@ -98,7 +98,7 @@ def before_attack(player, skill_data, attack_data):
 
     # ===== SISTEMA DE BLOOD STACKS DO VLAD - ULTIMATE =====
     skill_id = skill_data.get('id')
-    if skill_id == 53 and player.character_id == 'vlad':  # ID 53 = Beijo da Morte (Ultimate)
+    if skill_id == 53 and player.character_id == 'vlad':  # ID 53 = Sombra da Morte (Ultimate)
         current_enemy = get_current_battle_enemy(player.id)
         if current_enemy:
             blood_stacks = current_enemy.blood_stacks or 0
@@ -147,12 +147,12 @@ def after_attack(player, attack_result):
                 current_enemy.blood_stacks = (current_enemy.blood_stacks or 0) + 2
                 print(f"🩸 Blood Stacks: +2 (Ataque Básico) | Total: {current_enemy.blood_stacks}")
 
-            # ID 50 (Energia Escura - Poder) ou ID 52 (Abraço da Escuridão - Especial) = +1 Blood Stack
+            # ID 50 (Energia Escura - Poder) ou ID 52 (Execução - Especial) = +1 Blood Stack
             elif skill_id in [50, 52]:
                 current_enemy.blood_stacks = (current_enemy.blood_stacks or 0) + 1
                 print(f"🩸 Blood Stacks: +1 (Poder/Especial) | Total: {current_enemy.blood_stacks}")
 
-            # ID 53 (Beijo da Morte - Ultimate) = CONSOME todos e adiciona +4 dano por stack
+            # ID 53 (Sombra da Morte - Ultimate) = CONSOME todos e adiciona +4 dano por stack
             elif skill_id == 53:
                 blood_stacks = current_enemy.blood_stacks or 0
                 if blood_stacks > 0:

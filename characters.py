@@ -172,9 +172,9 @@ CHARACTERS = {
         "sprite_reference": "Vlad",
         "skills": {
             "ataque": 51,      # Garras Sangrentas
-            "poder": 50,       # Energia Escura  
-            "ataque_especial": 52,  # Abraço da Escuridão
-            "ultimate": 53     # Beijo da Morte
+            "poder": 50,       # Energia Escura
+            "ataque_especial": 52,  # Execução
+            "ultimate": 53     # Sombra da Morte
         },
         "special_abilities": [138, 139, 140, 141]
     },
@@ -236,7 +236,7 @@ VLAD_ATTACK_SKILLS_DATA = [
     },
     {
         "id": 52,
-        "name": "Abraço da Escuridão",
+        "name": "Execução",
         "description": "Execução sanguinária que atinge o inimigo",
         "effect_type": "crit_chance",
         "effect_value": 0.20,
@@ -253,7 +253,7 @@ VLAD_ATTACK_SKILLS_DATA = [
     },
     {
         "id": 53,
-        "name": "Beijo da Morte",
+        "name": "Sombra da Morte",
         "description": "O ultimate vampírico - feixe sombrio que drena toda essência vital",
         "effect_type": "",
         "effect_value": 0.0,

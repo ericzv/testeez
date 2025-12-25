@@ -44,8 +44,8 @@ def get_skill_type_by_id(skill_id):
     skill_type_mapping = {
         51: 'attack',    # Garras Sangrentas
         50: 'power',     # Energia Escura
-        52: 'special',   # Abraço da Escuridão
-        53: 'ultimate'   # Beijo da Morte
+        52: 'special',   # Execução
+        53: 'ultimate'   # Sombra da Morte
     }
     
     return skill_type_mapping.get(skill_id, 'attack')  # Default: attack

@@ -1997,7 +1997,7 @@ def player_attacks():
 
                 for attack in attacks:
                     print(f"🩸 [DEBUG] Verificando attack ID {attack.get('id')} - Nome: {attack.get('name')}")
-                    if attack.get('id') == 53:  # Beijo da Morte (Suprema)
+                    if attack.get('id') == 53:  # Sombra da Morte (Suprema)
                         if blood_stacks < 5:
                             attack['is_disabled'] = True
                             attack['disabled_reason'] = f'Requer 5 Blood Stacks ({blood_stacks}/5)'

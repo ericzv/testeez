@@ -1047,7 +1047,7 @@ const ATTACK_EFFECTS = {
         }
     },
     
-    // Abraço da Escuridão - Envolvimento sombrio
+    // Execução - Envolvimento sombrio
     "abraco_escuridao_front": {
         type: "combined",
         duration: 775, // OTIMIZADO: 1550ms → 775ms (-50%)
