@@ -5190,9 +5190,11 @@ async function executeEnemyAttackSequence() {
         
     } catch (error) {
         console.error("Erro na sequência de ataques:", error);
-        // Restaurar estado em caso de erro
-        gameState.inAction = false;
-        restoreToInitialState();
+        // Restaurar estado em caso de erro, MAS NÃO se o jogador morreu
+        if (!gameState.playerDied) {
+            gameState.inAction = false;
+            restoreToInitialState();
+        }
     }
 }
 
@@ -5230,6 +5232,7 @@ async function executeAttackLoop() {
         // Se jogador morreu, parar loop e retornar true
         if (attackResult && attackResult.player_died) {
             console.log("Jogador morreu, parando loop de ataques");
+            gameState.playerDied = true; // Flag para evitar restauração de estado
             await handlePlayerDeath();
             return true; // Indica que jogador morreu
         }
@@ -5639,8 +5642,14 @@ function showDefeatScreen() {
 }
 
 async function handleSequenceEnd() {
+    // NÃO finalizar se o jogador morreu
+    if (gameState.playerDied) {
+        console.log("handleSequenceEnd bloqueado - jogador morreu");
+        return;
+    }
+
     console.log("Finalizando sequência de ataques");
-    
+
     // Aguardar um momento
     await new Promise(resolve => setTimeout(resolve, 1000));
     
@@ -6367,8 +6376,14 @@ async function updateEnemyActiveBuffs() {
 }
 
 async function restoreToInitialState() {
+    // NÃO restaurar se o jogador morreu (deixar na tela de derrota)
+    if (gameState.playerDied) {
+        console.log("Restauração bloqueada - jogador morreu");
+        return;
+    }
+
     console.log("Executando restauração completa para tela inicial");
-    
+
     // Reset de todos os estados
     gameState.enemyAttackView = false;
     gameState.zoomedView = false;
