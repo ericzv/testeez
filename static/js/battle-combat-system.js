@@ -5173,11 +5173,17 @@ async function executeEnemyAttackSequence() {
         
         // Aguardar estabilização da nova view (OTIMIZADO: 1000ms → 500ms, -50%)
         await new Promise(resolve => setTimeout(resolve, 500));
-        
+
         console.log("3. Iniciando loop de ataques");
-        // Loop de ataques
-        await executeAttackLoop();
-        
+        // Loop de ataques - retorna true se jogador morreu
+        const playerDied = await executeAttackLoop();
+
+        // Se jogador morreu, NÃO restaurar estado normal (deixar na tela de derrota)
+        if (playerDied) {
+            console.log("4. Jogador morreu - não restaurar estado normal");
+            return;
+        }
+
         console.log("4. Finalizando sequência");
         // CORREÇÃO: Restaurar estado SEM loop
         await handleSequenceEnd();
@@ -5221,16 +5227,19 @@ async function executeAttackLoop() {
         // Executar um ataque
         const attackResult = await executeSingleEnemyAttack();
         
-        // Se jogador morreu, parar loop
+        // Se jogador morreu, parar loop e retornar true
         if (attackResult && attackResult.player_died) {
             console.log("Jogador morreu, parando loop de ataques");
             await handlePlayerDeath();
-            return;
+            return true; // Indica que jogador morreu
         }
         
         // Intervalo após o ataque (OTIMIZADO: 1200ms → 600ms, -50%)
         await new Promise(resolve => setTimeout(resolve, 600));
     }
+
+    // Loop terminou normalmente (jogador sobreviveu)
+    return false;
 }
 
 async function executeSingleEnemyAttack() {
