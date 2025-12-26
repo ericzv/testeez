@@ -2186,12 +2186,17 @@ def reset_player_run(player_id):
         # ===== RESETAR PROGRESSO DO MAPA =====
         from models_map import PlayerMapProgress, MapNode, ProceduralMap
         map_progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+
+        # Deletar TODOS os mapas do jogador (não apenas o atual)
+        # Isso previne mapas órfãos de runs anteriores
+        all_player_maps = ProceduralMap.query.filter_by(player_id=player.id).all()
+        for old_map in all_player_maps:
+            MapNode.query.filter_by(map_id=old_map.id).delete()
+            db.session.delete(old_map)
+        maps_deleted = len(all_player_maps)
+        print(f"🗺️ {maps_deleted} mapa(s) antigo(s) deletado(s)")
+
         if map_progress:
-            # Deletar nós do mapa antigo
-            if map_progress.current_map_id:
-                MapNode.query.filter_by(map_id=map_progress.current_map_id).delete()
-                # Deletar o mapa em si
-                ProceduralMap.query.filter_by(id=map_progress.current_map_id).delete()
             # Resetar progresso do mapa
             map_progress.current_map_id = None
             map_progress.current_node_id = None
@@ -2203,7 +2208,7 @@ def reset_player_run(player_id):
             map_progress.events_completed = 0
             map_progress.shops_visited = 0
             map_progress.rests_taken = 0
-            print(f"🗺️ Progresso do mapa resetado")
+            print(f"🗺️ Progresso do mapa resetado para ato 1")
 
         # ===== DELETAR RELÍQUIAS E LEMBRANÇAS =====
         from models import PlayerRelic, EnemySkillDebuff
