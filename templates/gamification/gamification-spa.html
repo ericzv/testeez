@@ -1464,7 +1464,12 @@ async function acceptVictoryRewards(popup) {
         popup.remove();
         await updateCurrencyDisplay();
         await updateActiveRunBuffs();
-        checkMemoryReward();
+        // Verificar memória primeiro, depois relíquias
+        const hasMemory = await checkMemoryReward();
+        if (!hasMemory) {
+            // Se não há memória, verificar relíquias diretamente
+            setTimeout(() => checkRelicReward(), 300);
+        }
     } catch (error) {}
     window.victoryProcessed = false;
 }
@@ -1475,8 +1480,12 @@ async function checkMemoryReward() {
         const data = await response.json();
         if (data.success && data.has_memory_reward) {
             showMemorySelectionPopup(data.enemy_rarity);
+            return true;
         }
-    } catch (error) {}
+        return false;
+    } catch (error) {
+        return false;
+    }
 }
 
 // Memory system is handled by battle-memory-system.js

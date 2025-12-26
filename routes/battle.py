@@ -1336,15 +1336,15 @@ def damage_boss():
             
             # Gerar recompensa de relíquia após boss
             boss_number = player.run_bosses_defeated
-            base_relic_count = min(boss_number, 5)  # Base: 1-5 relíquias
-            
+            base_relic_count = 1  # Base: sempre 1 relíquia por boss
+
             # Verificar ID 48: +1 relíquia de boss
             bonus_boss_relic = PlayerRelic.query.filter_by(
                 player_id=player.id,
                 relic_id='48',
                 is_active=True
             ).first()
-            
+
             if bonus_boss_relic:
                 base_relic_count += 1
                 print(f"⚜️ Relicário de Helena: +1 relíquia de boss")

@@ -551,6 +551,12 @@
                   selectedMemoryType = null;
                   window.__pendingMemoryData = null;
 
+                  // 6) Verificar se há relíquias pendentes (de boss)
+                  console.log("🗡️ DEBUG: Verificando relíquias pendentes após memória");
+                  setTimeout(() => {
+                      checkRelicReward();
+                  }, 100);
+
               }, 300);
           } else {
               addNotification('Erro: ' + data.message);
@@ -1618,6 +1624,12 @@
               }, 300);
           } else {
               console.log("❌ DEBUG: Nenhuma memória pendente para mostrar");
+
+              // Se não há memória, verificar se há relíquias pendentes (de boss)
+              console.log("🗡️ DEBUG: Verificando relíquias pendentes (sem memória)");
+              setTimeout(() => {
+                  checkRelicReward();
+              }, 300);
           }
           
           // 9) Resetar flags
