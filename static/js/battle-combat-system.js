@@ -5552,19 +5552,19 @@ function showBarrierAbsorbedMarker(damageAbsorbed) {
 
 async function handlePlayerDeath() {
     console.log("Processando morte do jogador");
-    
-    // Aguardar animação de morte terminar (OTIMIZADO: 3400ms → 1700ms, -50%)
-    await new Promise(resolve => setTimeout(resolve, 1700));
-    
+
+    // Aguardar animação de morte terminar (deathdamage = 4200ms, +200ms margem)
+    await new Promise(resolve => setTimeout(resolve, 4400));
+
     // Personagem desaparece
     const character = document.getElementById('character');
     if (character) {
         character.style.opacity = '0';
     }
-    
+
     // Mostrar tela de derrota COM BOTÃO
     showDefeatScreen();
-    
+
     // Tocar som de derrota
     playDefeatSound();
 }
