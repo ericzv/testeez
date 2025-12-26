@@ -1209,6 +1209,8 @@ function applySpecialSkillVisualEffect(animationData, skillId = null) {
     // Determinar onde aplicar o efeito (player ou enemy)
     const effectTarget = animationData.target || "player";
     let targetElement = null;
+    let wasInCharacterView = false; // Flag para restaurar view após efeito no inimigo
+
     if (effectTarget === "enemy") {
         targetElement = document.getElementById('boss');
         console.log("🎯 [VISUAL FX] Efeito será aplicado no INIMIGO");
@@ -1217,6 +1219,7 @@ function applySpecialSkillVisualEffect(animationData, skillId = null) {
         const isCharacterView = document.querySelector('.battle-arena.character-view') !== null;
         if (isCharacterView) {
             console.log("⚠️ [VISUAL FX] Estamos na character-view! Trocando para view padrão...");
+            wasInCharacterView = true; // Marcar para restaurar depois
 
             // Trocar para view padrão onde o inimigo aparece
             if (typeof toggleCharacterView === 'function' && window.gameState.characterView) {
@@ -1226,7 +1229,7 @@ function applySpecialSkillVisualEffect(animationData, skillId = null) {
             // Aguardar a transição e então aplicar o efeito
             setTimeout(() => {
                 console.log("✅ [VISUAL FX] View trocada! Agora aplicando efeito no inimigo...");
-                processRestOfEffect();
+                processRestOfEffect(wasInCharacterView);
             }, 600); // Esperar transição da camera
             return; // Sair para não processar duas vezes
         }
@@ -1236,9 +1239,9 @@ function applySpecialSkillVisualEffect(animationData, skillId = null) {
     }
 
     // Processar o resto do efeito normalmente
-    processRestOfEffect();
+    processRestOfEffect(wasInCharacterView);
 
-    function processRestOfEffect() {
+    function processRestOfEffect(shouldRestoreCharacterView = false) {
         // Re-obter targetElement caso tenha mudado de view
         if (effectTarget === "enemy") {
             targetElement = document.getElementById('boss');
@@ -1310,7 +1313,7 @@ function applySpecialSkillVisualEffect(animationData, skillId = null) {
     if (effectTarget === "enemy") {
         // Para efeitos no inimigo, NÃO precisamos mudar de view (já foi tratado acima)
         console.log("🎯 Aplicando efeito no INIMIGO na view atual");
-        processSpecialEffects();
+        processSpecialEffects(shouldRestoreCharacterView);
     } else if (!isInCharacterView) {
         // Para efeitos no jogador, forçar character-view
         console.log("Forçando character-view para animação no jogador...");
@@ -1338,22 +1341,23 @@ function applySpecialSkillVisualEffect(animationData, skillId = null) {
             return;
         }
     } else {
-        processSpecialEffects();
+        processSpecialEffects(false);
     }
-    
+
     // Função para processar efeitos especiais
-    function processSpecialEffects() {
+    function processSpecialEffects(restoreViewAfter = false) {
         console.log("Processando efeitos especiais de skill especial");
         console.log("🎯 Target element:", targetElement?.id || "não encontrado");
+        console.log("🔄 Restaurar view após efeito:", restoreViewAfter);
 
         // ANIMATION_ACTIVATE_1 - Efeito frontal
         if (hasVisualEffect1) {
             console.log("🖼️ Aplicando sprite activate_1:", hasVisualEffect1, "no target:", targetElement?.id);
             // Usar sistema existente de sprites - agora com TARGET correto
-            // delay * 1 = 500ms (1.5 segundos antes do original delay * 3 = 1500ms)
+            // baseDelay * 1 = 500ms (1.5 segundos antes do original baseDelay * 3 = 1500ms)
             setTimeout(() => {
                 createSpriteAnimationLayers(hasVisualEffect1, 'front', targetElement);
-            }, delay * 1);
+            }, baseDelay * 1);
         }
 
         // ANIMATION_ACTIVATE_2 - Efeito traseiro
@@ -1362,7 +1366,18 @@ function applySpecialSkillVisualEffect(animationData, skillId = null) {
             // Usar sistema existente de sprites
             setTimeout(() => {
                 createSpriteAnimationLayers(hasVisualEffect2, 'back', targetElement);
-            }, delay * 3);
+            }, baseDelay * 3);
+        }
+
+        // RESTAURAR VIEW ANTERIOR após efeito no inimigo
+        if (restoreViewAfter) {
+            // Aguardar animação terminar e então voltar para character-view
+            setTimeout(() => {
+                console.log("🔄 Restaurando character-view após efeito no inimigo...");
+                if (typeof toggleCharacterView === 'function' && !window.gameState.characterView) {
+                    toggleCharacterView();
+                }
+            }, 2500); // 2.5s para animação terminar
         }
     }
     

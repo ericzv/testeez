@@ -4525,62 +4525,31 @@ function handleBossDeathAnimation(hasMemoryReward, enemyRarity) {
             console.error("❌ Erro ao marcar nó como completo:", error);
         });
 
-    // Se houver recompensa de memória, mostrar pop-up após animação
-    if (hasMemoryReward && enemyRarity) {
-        setTimeout(() => {
-            console.log("🧠 Mostrando pop-up de seleção de memória");
-            if (typeof showMemorySelectionPopup === 'function') {
-                showMemorySelectionPopup(enemyRarity);
-            } else {
-                console.error("❌ Função showMemorySelectionPopup não encontrada!");
+    // Auto-redirect para o hub após 5 segundos (após banner de vitória de 4.5s terminar)
+    // O hub irá verificar se há recompensa de memória pendente via checkPendingMemoryReward
+    setTimeout(() => {
+        console.log("🏠 Inimigo derrotado - indo automaticamente para HUB");
 
-                // SALVAR DADOS DE VITÓRIA NO LOCALSTORAGE ANTES DE REDIRECIONAR
-                const victoryData = {
-                    enemyName: enemyName,
-                    rewardType: window.lastVictoryRewardType || 'crystals',
-                    crystalsGained: window.lastVictoryCrystals || 0,
-                    goldGained: window.lastVictoryGold || 0,
-                    hourglassesGained: window.lastVictoryHourglasses || 0
-                };
-                localStorage.setItem('lastVictoryTime', Date.now().toString());
-                localStorage.setItem('victoryData', JSON.stringify(victoryData));
-                console.log("💾 Dados de vitória salvos no localStorage:", victoryData);
+        // SALVAR DADOS DE VITÓRIA NO LOCALSTORAGE ANTES DE REDIRECIONAR
+        const victoryData = {
+            enemyName: enemyName,
+            rewardType: window.lastVictoryRewardType || 'crystals',
+            crystalsGained: window.lastVictoryCrystals || 0,
+            goldGained: window.lastVictoryGold || 0,
+            hourglassesGained: window.lastVictoryHourglasses || 0
+        };
+        localStorage.setItem('lastVictoryTime', Date.now().toString());
+        localStorage.setItem('victoryData', JSON.stringify(victoryData));
+        console.log("💾 Dados de vitória salvos no localStorage:", victoryData);
 
-                // Redirecionar para o hub - usar SPA se disponível
-                if (typeof SPA !== 'undefined' && typeof SPA.goToHub === 'function') {
-                    console.log("🏠 Usando SPA para voltar ao hub");
-                    SPA.goToHub();
-                } else {
-                    window.location.href = '/gamification';
-                }
-            }
-        }, 2000);
-    } else {
-        // Redirecionar após 2 segundos (bosses não têm memória)
-        setTimeout(() => {
-            console.log("🏠 Boss derrotado - indo para HUB");
-
-            // SALVAR DADOS DE VITÓRIA NO LOCALSTORAGE ANTES DE REDIRECIONAR
-            const victoryData = {
-                enemyName: enemyName,
-                rewardType: window.lastVictoryRewardType || 'crystals',
-                crystalsGained: window.lastVictoryCrystals || 0,
-                goldGained: window.lastVictoryGold || 0,
-                hourglassesGained: window.lastVictoryHourglasses || 0
-            };
-            localStorage.setItem('lastVictoryTime', Date.now().toString());
-            localStorage.setItem('victoryData', JSON.stringify(victoryData));
-            console.log("💾 Dados de vitória salvos no localStorage:", victoryData);
-
-            // Usar SPA se disponível
-            if (typeof SPA !== 'undefined' && typeof SPA.goToHub === 'function') {
-                console.log("🏠 Usando SPA para voltar ao hub");
-                SPA.goToHub();
-            } else {
-                window.location.href = '/gamification';
-            }
-        }, 2000);
-    }
+        // Usar SPA se disponível
+        if (typeof SPA !== 'undefined' && typeof SPA.goToHub === 'function') {
+            console.log("🏠 Usando SPA para voltar ao hub");
+            SPA.goToHub();
+        } else {
+            window.location.href = '/gamification';
+        }
+    }, 5000);
 }
 
 // Criar animação de impacto de morte

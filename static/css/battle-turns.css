@@ -204,112 +204,314 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
-/* Botão Terminar Turno */
-.end-turn-btn {
+/* ==========================================
+   BOTÃO DE TURNO - SWITCH SLIDER
+   ========================================== */
+
+/* Container Principal do Switch de Turno */
+.turn-switch-container {
     position: fixed;
-    bottom: 30px;
-    right: 30px;
-    padding: 0;
-    width: 90px;
-    height: 90px;
-    font-weight: bold;
-    font-family: 'Cinzel', serif;
-    background: none;
-    color: white;
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Imagem do ícone de turno */
-.turn-icon-img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.6));
-    animation: rotateSlow 10s linear infinite;
-    transition: all 0.3s ease;
-}
-
-@keyframes rotateSlow {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.end-turn-btn:hover .turn-icon-img {
-    filter: drop-shadow(0 0 25px rgba(102, 126, 234, 1));
-    animation: rotateFast 3s linear infinite;
-}
-
-@keyframes rotateFast {
-    0% { transform: rotate(0deg) scale(1.1); }
-    100% { transform: rotate(360deg) scale(1.1); }
-}
-
-/* Texto "Terminar Turno" aparece apenas no hover */
-.turn-text {
-    position: absolute;
-    bottom: -40px;
+    top: 12%;
     left: 50%;
     transform: translateX(-50%);
-    
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
-    border: 2px solid #ffffff;
-    border-radius: 10px;
-    padding: 10px 18px;
-    
-    font-size: 14px;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    white-space: nowrap;
-    
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
-    
+    width: 260px;
+    height: 80px;
+    z-index: 10000;
+}
+
+/* Checkbox invisível */
+.turn-checkbox {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+/* Trilho estilo Liquid Glass */
+.turn-track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    cursor: pointer;
+
+    box-shadow:
+        0 15px 35px rgba(0, 0, 0, 0.5),
+        inset 0 0 15px rgba(0, 0, 0, 0.2);
+
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: visible;
+    z-index: 1;
+}
+
+.turn-track::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.05), transparent);
+    border-radius: 30px 30px 0 0;
+    pointer-events: none;
+}
+
+/* O "Knob" (O botão que desliza) */
+.turn-knob {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #2b3242 0%, #15181e 100%);
+    border-radius: 50%;
+    border: 2px solid #444;
+    z-index: 10;
+
+    transition:
+        transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+        border-color 0.15s ease-out,
+        box-shadow 0.15s ease-out;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    box-shadow:
+        0 5px 15px rgba(0,0,0,0.5),
+        0 0 20px rgba(0, 217, 255, 0.4);
+}
+
+.knob-inner-pulse {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.knob-icon {
+    width: 36px;
+    height: 36px;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 12;
+}
+
+/* Cadeado Flutuante */
+.lock-indicator {
+    position: absolute;
+    left: 50%;
+    top: -35px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+
+    opacity: 0;
+    transform: translateX(-50%) scale(0.5) translateY(20px);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    width: 28px;
+    height: 28px;
+    background: #1a1d24;
+    border: 2px solid #ff3333;
+    border-radius: 50%;
+    box-shadow:
+        0 5px 15px rgba(0,0,0,0.5),
+        0 0 15px rgba(255, 51, 51, 0.6);
+
+    pointer-events: none;
+}
+
+.lock-icon-svg {
+    width: 14px;
+    height: 14px;
+    color: #ffffff;
+    filter: drop-shadow(0 0 2px #ff0000);
+}
+
+/* Luzes Internas */
+.knob-light-blue {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    box-shadow:
+        inset 0 0 20px rgba(0, 217, 255, 0.8),
+        0 0 10px rgba(0, 217, 255, 0.3);
+    z-index: 10;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    will-change: opacity;
+}
+
+.knob-glow-red {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    box-shadow:
+        inset 0 0 25px rgba(255, 51, 51, 1),
+        0 0 35px rgba(255, 51, 51, 0.8);
+    background: radial-gradient(circle, rgba(255,50,50,0.2) 0%, transparent 70%);
+    z-index: 11;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    will-change: opacity;
 }
 
-.end-turn-btn:hover .turn-text {
-    opacity: 1;
-    transform: translateX(-50%) translateY(-5px);
+/* Partículas do Switch */
+.turn-particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 5;
+    mix-blend-mode: screen;
 }
 
-.end-turn-btn:active .turn-icon-img {
-    transform: scale(0.95);
+/* Estados quando CHECKED (Turno do Inimigo) */
+.turn-checkbox:checked ~ .turn-track .turn-knob {
+    transform: translateX(180px) rotate(360deg);
+    border-color: #ff3333;
+    box-shadow: 0 0 20px rgba(255, 51, 51, 0.4);
 }
 
-.end-turn-btn:disabled {
-    opacity: 0.5;
+.turn-checkbox:checked ~ .turn-track .turn-knob .knob-inner-pulse {
+    animation: knob-scale-pulse 0.6s infinite alternate;
+}
+
+.turn-checkbox:checked ~ .turn-track .turn-knob .knob-light-blue { opacity: 0; }
+.turn-checkbox:checked ~ .turn-track .turn-knob .knob-glow-red { animation: opacity-pulse 0.6s infinite alternate; }
+
+.turn-checkbox:checked ~ .turn-track {
+    border-color: rgba(255, 50, 50, 0.15);
+    background: rgba(40, 0, 0, 0.1);
     cursor: not-allowed;
 }
 
-.end-turn-btn:disabled .turn-icon-img {
-    animation: none;
-    filter: drop-shadow(0 0 5px rgba(100, 100, 100, 0.3)) grayscale(50%);
+/* Animação do Cadeado Flutuante */
+.turn-checkbox:checked ~ .lock-indicator {
+    opacity: 1;
+    transform: translateX(-50%) scale(1) translateY(0);
 }
 
-.end-turn-btn:disabled:hover .turn-text {
-    opacity: 0;
+/* Ícones */
+.icon-skull {
+    display: none;
+    color: #ff3333;
+    filter: drop-shadow(0 0 8px rgba(255, 51, 51, 0.8));
+}
+
+.icon-sword {
+    display: block;
+    color: #a6f0ff;
+    filter: drop-shadow(0 0 10px rgba(0, 217, 255, 1));
+}
+
+.turn-checkbox:checked ~ .turn-track .icon-sword { display: none; }
+.turn-checkbox:checked ~ .turn-track .icon-skull { display: block; }
+
+/* Animações do Switch */
+@keyframes opacity-pulse {
+    0% { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+
+@keyframes knob-scale-pulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.15); }
+}
+
+/* Label de Turno - Texto Único Centralizado */
+.turn-label {
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Cinzel', serif;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 2;
+    transition: opacity 0.3s ease, color 0.3s ease;
+}
+
+.turn-label-player {
+    color: #00d9ff;
+    text-shadow: 0 0 10px rgba(0, 217, 255, 0.8), 0 0 20px rgba(0, 217, 255, 0.4);
+}
+
+.turn-label-enemy {
+    color: #ff4444;
+    text-shadow: 0 0 10px rgba(255, 68, 68, 0.8), 0 0 20px rgba(255, 68, 68, 0.4);
+}
+
+/* Mostrar apenas o label correto baseado no estado */
+.turn-checkbox:not(:checked) ~ .turn-track .turn-label-player { opacity: 1; }
+.turn-checkbox:not(:checked) ~ .turn-track .turn-label-enemy { opacity: 0; display: none; }
+.turn-checkbox:checked ~ .turn-track .turn-label-player { opacity: 0; display: none; }
+.turn-checkbox:checked ~ .turn-track .turn-label-enemy { opacity: 1; }
+
+/* Compatibilidade com botão antigo (fallback) */
+.end-turn-btn {
+    display: none;
 }
 
 /* Responsivo */
 @media (max-width: 768px) {
-    .end-turn-btn {
-        bottom: 20px;
-        right: 20px;
-        width: 70px;
+    .turn-switch-container {
+        width: 220px;
         height: 70px;
+        top: 35%;
     }
-    
-    .turn-text {
-        font-size: 12px;
-        padding: 8px 14px;
+
+    .turn-knob {
+        width: 60px;
+        height: 60px;
+    }
+
+    .turn-checkbox:checked ~ .turn-track .turn-knob {
+        transform: translateX(150px) rotate(360deg);
+    }
+
+    .knob-icon {
+        width: 30px;
+        height: 30px;
+    }
+
+    .turn-label {
+        font-size: 11px;
+        bottom: -30px;
+    }
+
+    .lock-indicator {
+        width: 26px;
+        height: 26px;
+        top: -32px;
+    }
+
+    .lock-icon-svg {
+        width: 13px;
+        height: 13px;
     }
 }
 
