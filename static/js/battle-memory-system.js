@@ -310,6 +310,13 @@ function confirmMemorySelection() {
                         if (typeof updateCurrencyDisplay === 'function') {
                             updateCurrencyDisplay();
                         }
+                        // Verificar se há relíquias pendentes (de boss)
+                        console.log("🗡️ DEBUG: Verificando relíquias pendentes após memória (battle-memory-system)");
+                        setTimeout(() => {
+                            if (typeof checkRelicReward === 'function') {
+                                checkRelicReward();
+                            }
+                        }, 100);
                     }
                 }
             }, 1800);

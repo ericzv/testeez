@@ -337,7 +337,8 @@ def choose_character_route():
     elif request.method == 'POST':
         character_id = request.form.get('character_id')
         from_death = request.form.get('from_death', 'false')
-        
+        print(f"🎮 POST /choose-character: character_id={character_id}, from_death={from_death}")
+
         if not character_id:
             flash("Personagem inválido.", "danger")
             return redirect(url_for('choose_character_route'))
