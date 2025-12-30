@@ -249,11 +249,11 @@ async function executeEnemyAttacksLoop() {
             if (attackData.success) {
                 console.log('💥 Ataque executado:', attackData);
 
-                // Atualizar HUD
-                await updateEnemyActionsHUD();
+                // Remover primeiro ícone com animação
+                await removeFirstActionIcon();
 
                 // Aguardar entre ataques
-                await new Promise(resolve => setTimeout(resolve, 1200));
+                await new Promise(resolve => setTimeout(resolve, 800));
             } else {
                 hasMoreAttacks = false;
             }
@@ -512,10 +512,8 @@ window.enableEndTurnButton = enableEndTurnButton;
  */
 async function updateEnemyActionsHUD() {
     try {
-        console.log('🔄 Buscando ações do inimigo...');
         const response = await fetch('/gamification/enemy_attack_status');
         const data = await response.json();
-        console.log('📊 Resposta da API:', data);
 
         if (!data.success) {
             console.warn('⚠️ Não foi possível obter ações do inimigo:', data.message);
@@ -523,36 +521,12 @@ async function updateEnemyActionsHUD() {
         }
 
         const status = data.status;
-        console.log('📋 Status:', status);
-        console.log('📋 Next Intentions:', status.next_intentions);
-        console.log('📋 Action Queue:', status.action_queue);
-
-        // Usar novo container dentro do boss-info-panel
         const container = document.getElementById('boss-actions-icons');
         const hudContainer = document.getElementById('boss-actions-container');
 
-        console.log('🎯 Container boss-actions-icons:', container);
-        console.log('🎯 Container boss-actions-container:', hudContainer);
-
         if (!container || !hudContainer) {
             console.error('❌ Containers de ações não encontrados!');
-            console.error('   boss-actions-icons:', container);
-            console.error('   boss-actions-container:', hudContainer);
             return;
-        }
-
-        // ===== ANIMAÇÃO DE SAÍDA COM SHAKE DOS ÍCONES ATUAIS =====
-        const currentIcons = container.querySelectorAll('.intention-icon');
-        if (currentIcons.length > 0) {
-            // Aplicar animação de shake/consumo aos ícones atuais
-            currentIcons.forEach((icon, index) => {
-                setTimeout(() => {
-                    icon.style.animation = 'iconConsumeShake 0.5s ease-out forwards';
-                }, index * 80); // Cascata de saída
-            });
-
-            // Aguardar animação de shake terminar antes de limpar
-            await new Promise(resolve => setTimeout(resolve, 600));
         }
 
         // Prioridade: action_queue (ações atuais) > next_intentions (próximas ações)
@@ -570,51 +544,41 @@ async function updateEnemyActionsHUD() {
                 name: action.data?.name || (action.type === 'attack' ? 'Ataque Básico' : 'Ação'),
                 icon: action.icon || '/static/game.data/icons/attackcharge.png',
                 damage: action.data?.calculated_damage || action.data?.damage,
-                id: action.id || Math.random() // ID único para remover depois
+                id: action.id || Math.random()
             }));
             isCurrentTurn = true;
-            console.log('⚔️ Mostrando AÇÕES ATUAIS (turno do inimigo):', actionsToShow);
         } else {
             // Sem ações atuais - mostrar próximas intenções
             actionsToShow = nextIntentions;
             isCurrentTurn = false;
-            console.log('🎯 Mostrando PRÓXIMAS AÇÕES (próximo turno):', actionsToShow);
         }
 
-        // Limpar container (após animação de saída)
+        // Verificar se o conteúdo mudou (comparar IDs ou quantidade)
+        const currentIcons = container.querySelectorAll('.intention-icon');
+        const currentIds = Array.from(currentIcons).map(icon => icon.getAttribute('data-action-id'));
+        const newIds = actionsToShow.map(a => String(a.id));
+
+        // Se é a mesma lista, não precisa re-renderizar
+        if (currentIds.length === newIds.length && currentIds.every((id, i) => id === newIds[i])) {
+            return;
+        }
+
+        // Limpar container SEM animação de shake (apenas limpar)
         container.innerHTML = '';
 
-        // NÃO mostrar "Aguardando..." durante transição - apenas deixar vazio
         if (actionsToShow.length === 0) {
-            // Sem ações e sem próximas intenções - esconder HUD
-            console.log('⚠️ Sem ações para mostrar - escondendo HUD');
             hudContainer.classList.remove('visible');
             return;
         }
 
-        // Mostrar HUD se houver ações
-        console.log(`✅ Adicionando classe 'visible' ao container. Ações: ${actionsToShow.length}`);
         hudContainer.classList.add('visible');
 
-        // ===== PEQUENO DELAY ANTES DE MOSTRAR NOVOS ÍCONES =====
-        await new Promise(resolve => setTimeout(resolve, 200));
-
-        console.log('🎨 Criando ícones para ações:', actionsToShow);
-
-        // Criar ícone para cada ação (com animação de entrada)
+        // Criar ícones com animação de fade in suave (SEM shake)
         actionsToShow.forEach((action, index) => {
-            console.log(`  → Criando ícone ${index + 1}: ${action.type} - ${action.name}`);
             const iconDiv = document.createElement('div');
-
-            // Classe CSS baseada no tipo
             iconDiv.className = `intention-icon ${action.type}`;
+            iconDiv.setAttribute('data-action-id', String(action.id));
 
-            // Adicionar atributo data-action-id para remoção posterior
-            if (action.id) {
-                iconDiv.setAttribute('data-action-id', action.id);
-            }
-
-            // Ícone
             const iconPath = action.icon;
             if (iconPath) {
                 iconDiv.style.backgroundImage = `url('${iconPath}')`;
@@ -622,7 +586,7 @@ async function updateEnemyActionsHUD() {
                 iconDiv.style.backgroundImage = `url('/static/game.data/icons/attackcharge.png')`;
             }
 
-            // Badge de dano (embaixo do ícone) - para ataques
+            // Badge de dano - para ataques
             if ((action.type === 'attack' || action.type === 'attack_skill') && action.damage) {
                 const damageBadge = document.createElement('div');
                 damageBadge.className = 'damage-badge';
@@ -630,7 +594,7 @@ async function updateEnemyActionsHUD() {
                 iconDiv.appendChild(damageBadge);
             }
 
-            // Badge de Buff/Debuff (embaixo do ícone) - para skills de buff/debuff
+            // Badge de Buff/Debuff
             if (action.type === 'buff') {
                 const buffBadge = document.createElement('div');
                 buffBadge.className = 'buff-debuff-badge buff';
@@ -649,11 +613,18 @@ async function updateEnemyActionsHUD() {
                 tooltip += ` (Dano: ${action.damage})`;
             }
 
-            // Aplicar animação de fade in suave via CSS
-            iconDiv.style.animation = `iconFadeIn 0.5s ease-out forwards ${index * 0.1}s`;
+            // Animação de fade in suave (sem shake)
             iconDiv.style.opacity = '0';
+            iconDiv.style.transform = 'scale(0.8)';
+            iconDiv.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
 
             container.appendChild(iconDiv);
+
+            // Aplicar fade in com delay escalonado
+            setTimeout(() => {
+                iconDiv.style.opacity = '1';
+                iconDiv.style.transform = 'scale(1)';
+            }, index * 100);
 
             // Tooltip estilizado
             if (typeof addStyledTooltip === 'function') {
@@ -663,12 +634,9 @@ async function updateEnemyActionsHUD() {
             }
         });
 
-        // ===== CONTROLE DO SWITCH DE TURNO =====
-        // NÃO alterar o switch durante execução automática (evita oscilação)
+        // Controle do switch de turno
         if (!turnState.isAutoExecuting) {
             if (isCurrentTurn && actionsToShow.length > 0) {
-                // Turno do inimigo - manter switch na posição inimigo e bloqueado
-                console.log('🔒 Switch bloqueado - Inimigo tem ações pendentes');
                 turnState.isLocked = true;
                 turnState.isPlayerTurn = false;
                 const toggle = document.getElementById('turn-toggle');
@@ -676,8 +644,6 @@ async function updateEnemyActionsHUD() {
                     toggle.checked = true;
                 }
             } else if (!isCurrentTurn && !turnState.isPlayerTurn) {
-                // Sem ações atuais e não está no turno do jogador - liberar
-                console.log('✅ Switch liberado - Turno do jogador');
                 setTurnToPlayer();
             }
         }
@@ -686,6 +652,36 @@ async function updateEnemyActionsHUD() {
         console.error('❌ Erro ao atualizar ações do inimigo:', error);
     }
 }
+
+/**
+ * Remove o PRIMEIRO ícone de ação com animação de shake
+ * Chamado quando uma ação do inimigo é consumida
+ */
+async function removeFirstActionIcon() {
+    const container = document.getElementById('boss-actions-icons');
+    if (!container) return;
+
+    const firstIcon = container.querySelector('.intention-icon');
+    if (!firstIcon) return;
+
+    // Aplicar animação de shake/consumo apenas neste ícone
+    firstIcon.style.animation = 'iconConsumeShake 0.4s ease-out forwards';
+
+    // Aguardar animação e remover
+    await new Promise(resolve => setTimeout(resolve, 400));
+    firstIcon.remove();
+
+    // Se não sobrou nenhum ícone, esconder o container
+    if (container.querySelectorAll('.intention-icon').length === 0) {
+        const hudContainer = document.getElementById('boss-actions-container');
+        if (hudContainer) {
+            hudContainer.classList.remove('visible');
+        }
+    }
+}
+
+// Expor globalmente
+window.removeFirstActionIcon = removeFirstActionIcon;
 
 /**
  * Esconder HUD de ações do inimigo (chamado ao vencer/perder)

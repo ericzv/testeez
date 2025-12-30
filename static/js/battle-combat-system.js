@@ -5267,10 +5267,10 @@ async function executeSingleEnemyAttack() {
             // Remover carga do HUD visualmente (legado)
             removeChargeFromHUD();
 
-            // ATUALIZAR HUD UNIFICADO: Remover ícone da ação executada
-            if (typeof window.updateEnemyActionsHUD === 'function') {
-                await window.updateEnemyActionsHUD();
-                console.log('✅ HUD unificado atualizado após ação do inimigo');
+            // REMOVER PRIMEIRO ÍCONE com animação de shake
+            if (typeof window.removeFirstActionIcon === 'function') {
+                await window.removeFirstActionIcon();
+                console.log('✅ Primeiro ícone removido com animação');
             }
 
             // NOVA LÓGICA: Verificar se é qualquer tipo de skill ou ataque normal
