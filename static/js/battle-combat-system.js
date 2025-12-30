@@ -5675,6 +5675,12 @@ async function handleSequenceEnd() {
     
     // CORREÇÃO: Restauração completa para tela inicial
     await restoreToInitialState();
+
+    // ATUALIZAR HUD para mostrar próximas intenções do inimigo
+    if (typeof window.updateEnemyActionsHUD === 'function') {
+        await window.updateEnemyActionsHUD();
+        console.log('🎯 Próximas intenções do inimigo atualizadas após sequência');
+    }
 }
 
 // ===== SISTEMA DE EXECUÇÃO DE SKILLS =====
