@@ -1547,7 +1547,7 @@
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  overflow: hidden;
+  overflow: visible;
   border-radius: 20px 20px 45px 45px;
   background-color: #1a2639;
   background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 4px);

@@ -791,7 +791,7 @@ class FastBattleMode {
       <div class="container-stars"><div class="gold-dust"></div></div>
       <h3 class="info-item-name">${item.name}</h3>
       <div class="info-stats-row">
-        <span class="stat-tag ${typeClass}">QTD: ${item.quantity}</span>
+        <span class="stat-tag ${typeClass}">Quantidade: ${item.quantity}</span>
       </div>
       <p class="info-desc">${item.description || 'Uma poção mágica com efeitos restauradores.'}</p>
       <div class="info-effect">${effectText}</div>

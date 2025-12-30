@@ -231,12 +231,13 @@
 .boss-actions-container {
     margin-top: 12px;
     padding-top: 10px;
+    padding-bottom: 15px;
     border-top: 1px solid rgba(255, 215, 0, 0.3);
     opacity: 0;
     visibility: hidden;
     max-height: 0;
     transition: all 0.4s ease;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .boss-actions-container.visible {
