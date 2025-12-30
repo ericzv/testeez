@@ -516,6 +516,7 @@ window.enableEndTurnButton = enableEndTurnButton;
  */
 async function updateEnemyActionsHUD() {
     try {
+        console.log('🔄 updateEnemyActionsHUD() chamado');
         const response = await fetch('/gamification/enemy_attack_status');
         const data = await response.json();
 
@@ -525,6 +526,12 @@ async function updateEnemyActionsHUD() {
         }
 
         const status = data.status;
+        console.log('📊 Status recebido:', {
+            action_queue: status.action_queue?.length || 0,
+            next_intentions: status.next_intentions?.length || 0,
+            next_intentions_data: status.next_intentions
+        });
+
         const container = document.getElementById('boss-actions-icons');
         const hudContainer = document.getElementById('boss-actions-container');
 
@@ -551,20 +558,30 @@ async function updateEnemyActionsHUD() {
                 id: action.id || Math.random()
             }));
             isCurrentTurn = true;
+            console.log('⚔️ Usando action_queue:', actionsToShow.length, 'ações');
         } else {
             // Sem ações atuais - mostrar próximas intenções
             actionsToShow = nextIntentions;
             isCurrentTurn = false;
+            console.log('🎯 Usando next_intentions:', actionsToShow.length, 'ações');
         }
 
         // Verificar se o conteúdo mudou (comparar IDs ou quantidade)
         const currentIcons = container.querySelectorAll('.intention-icon');
-        const currentIds = Array.from(currentIcons).map(icon => icon.getAttribute('data-action-id'));
-        const newIds = actionsToShow.map(a => String(a.id));
+        const currentCount = currentIcons.length;
+        const newCount = actionsToShow.length;
 
-        // Se é a mesma lista, não precisa re-renderizar
-        if (currentIds.length === newIds.length && currentIds.every((id, i) => id === newIds[i])) {
-            return;
+        console.log(`📋 Ícones atuais: ${currentCount}, Novas ações: ${newCount}`);
+
+        // Se o container está vazio e temos ações, sempre renderizar
+        // Se temos a mesma quantidade e mesmos IDs, não re-renderizar
+        if (currentCount > 0 && currentCount === newCount) {
+            const currentIds = Array.from(currentIcons).map(icon => icon.getAttribute('data-action-id'));
+            const newIds = actionsToShow.map(a => String(a.id));
+            if (currentIds.every((id, i) => id === newIds[i])) {
+                console.log('⏭️ Lista igual, pulando re-renderização');
+                return;
+            }
         }
 
         // Limpar container SEM animação de shake (apenas limpar)
