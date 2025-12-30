@@ -55,8 +55,8 @@
 
         .sprite-container {
             position: relative;
-            width: 64px;
-            height: 64px;
+            width: 128px;
+            height: 128px;
             filter: drop-shadow(0 0 0 black)
                     drop-shadow(2px 0 0 black)
                     drop-shadow(-2px 0 0 black)
@@ -70,6 +70,8 @@
             height: 64px;
             image-rendering: pixelated;
             background-size: auto 64px;
+            transform: scale(2);
+            transform-origin: top left;
             animation: sprite-animation 0.8s steps(11) infinite;
         }
 
@@ -79,8 +81,8 @@
         }
 
         .hit-sprite-preview {
-            width: 64px;
-            height: 64px;
+            width: 32px;
+            height: 32px;
             image-rendering: pixelated;
             background-size: auto 32px;
             background-repeat: no-repeat;
