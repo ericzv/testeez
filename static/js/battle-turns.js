@@ -577,11 +577,18 @@ async function updateEnemyActionsHUD() {
         // Se temos a mesma quantidade e mesmos IDs, não re-renderizar
         if (currentCount > 0 && currentCount === newCount) {
             const currentIds = Array.from(currentIcons).map(icon => icon.getAttribute('data-action-id'));
-            const newIds = actionsToShow.map(a => String(a.id));
-            if (currentIds.every((id, i) => id === newIds[i])) {
+            const newIds = actionsToShow.map(a => String(a.id || ''));
+            console.log('🔍 Comparando IDs:', { currentIds, newIds });
+
+            // Só pular se TODOS os IDs forem iguais E não forem vazios/undefined
+            const allIdsValid = newIds.every(id => id && id !== 'undefined' && id !== 'null');
+            const idsMatch = allIdsValid && currentIds.every((id, i) => id === newIds[i]);
+
+            if (idsMatch) {
                 console.log('⏭️ Lista igual, pulando re-renderização');
                 return;
             }
+            console.log('🔄 IDs diferentes ou inválidos, re-renderizando');
         }
 
         // Limpar container SEM animação de shake (apenas limpar)
