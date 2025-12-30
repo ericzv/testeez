@@ -1477,6 +1477,8 @@
   z-index: 10;
   width: 160px;
   height: 160px;
+  border-radius: 50%;
+  overflow: hidden;
 }
 
 .fast-inventory-main .up,
@@ -1569,16 +1571,7 @@
   pointer-events: none;
 }
 
-/* Ícone SVG para slots vazios */
-.fast-inventory-main .inventory-card .empty-icon {
-  width: 32px;
-  height: 32px;
-  z-index: 10;
-  fill: #c0a080;
-  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.8));
-  transition: transform 0.2s ease, fill 0.2s;
-  opacity: 0;
-}
+/* Slots vazios não têm ícone visível */
 
 /* Badge de quantidade */
 .fast-inventory-main .inventory-card .quantity-badge {
@@ -1611,6 +1604,10 @@
 }
 
 /* Animação de abertura do manto */
+.fast-inventory-main:hover {
+  overflow: visible;
+}
+
 .fast-inventory-main:hover .cloak-left {
   transform: translateX(-100%) rotate(5deg);
   opacity: 0;
@@ -1621,22 +1618,27 @@
   opacity: 0;
 }
 
-.fast-inventory-main:hover .inventory-card .item-icon-img,
-.fast-inventory-main:hover .inventory-card .empty-icon {
+/* Apenas cards com itens mostram ícone e badge */
+.fast-inventory-main:hover .inventory-card:not(.disabled) .item-icon-img {
   opacity: 1;
   transition-delay: 0.1s;
 }
 
-.fast-inventory-main:hover .inventory-card .quantity-badge {
+.fast-inventory-main:hover .inventory-card:not(.disabled) .quantity-badge {
   opacity: 1;
   transition-delay: 0.15s;
 }
 
-/* Posições dos 4 bolsos (Grid 2x2) */
-.fast-inventory-main:hover .inventory-card.card1 { transform: translate(-10px, -10px); }
-.fast-inventory-main:hover .inventory-card.card2 { transform: translate(10px, -10px); }
-.fast-inventory-main:hover .inventory-card.card3 { transform: translate(-10px, 10px); }
-.fast-inventory-main:hover .inventory-card.card4 { transform: translate(10px, 10px); }
+/* Posições dos 4 bolsos (Grid 2x2) - APENAS cards com itens se movem */
+.fast-inventory-main:hover .inventory-card.card1:not(.disabled) { transform: translate(-10px, -10px); }
+.fast-inventory-main:hover .inventory-card.card2:not(.disabled) { transform: translate(10px, -10px); }
+.fast-inventory-main:hover .inventory-card.card3:not(.disabled) { transform: translate(-10px, 10px); }
+.fast-inventory-main:hover .inventory-card.card4:not(.disabled) { transform: translate(10px, 10px); }
+
+/* Slots disabled (vazios) ficam travados - sem movimento */
+.fast-inventory-main:hover .inventory-card.disabled {
+  transform: none !important;
+}
 
 /* Hover individual nos cards */
 .fast-inventory-main .inventory-card:hover:not(.disabled) {
@@ -1651,9 +1653,7 @@
 .fast-inventory-main:hover .inventory-card.card3:hover:not(.disabled) { transform: translate(-10px, 10px) scale(1.1); }
 .fast-inventory-main:hover .inventory-card.card4:hover:not(.disabled) { transform: translate(10px, 10px) scale(1.1); }
 
-.fast-inventory-main .inventory-card:hover:not(.disabled) .item-icon-img,
-.fast-inventory-main .inventory-card:hover:not(.disabled) .empty-icon {
-  fill: #fff;
+.fast-inventory-main .inventory-card:hover:not(.disabled) .item-icon-img {
   filter: drop-shadow(0 0 5px #ffd700);
   transform: scale(1.15);
 }
@@ -1704,7 +1704,7 @@
   opacity: 0.3 !important;
 }
 
-/* Partículas douradas (Loot Dust) */
+/* Partículas douradas (Loot Dust) - APENAS em cards com itens */
 .fast-inventory-main .container-stars {
   position: absolute;
   inset: 0;
@@ -1716,8 +1716,14 @@
   overflow: hidden;
 }
 
-.fast-inventory-main:hover .container-stars {
+/* Partículas apenas em cards não-disabled */
+.fast-inventory-main:hover .inventory-card:not(.disabled) .container-stars {
   opacity: 1;
+}
+
+/* Slots disabled nunca mostram partículas */
+.fast-inventory-main .inventory-card.disabled .container-stars {
+  display: none;
 }
 
 .fast-inventory-main .gold-dust {

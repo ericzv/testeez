@@ -741,23 +741,25 @@ class FastBattleMode {
     const isEmpty = !item || !item.potion_type || item.quantity <= 0;
 
     if (isEmpty) {
+      // Slot vazio: sem ícone, sem badge, sem partículas - fica travado
       card.classList.add('disabled');
-      card.innerHTML = `
-        <div class="container-stars"><div class="gold-dust"></div></div>
-        <svg class="empty-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-4H8v-2h2V7h2v4h2v2h-2v4z"/>
-        </svg>
-        <div class="quantity-badge">0</div>
-      `;
+      // Card vazio não tem conteúdo visual
     } else {
       card.dataset.slotNumber = item.slot_number;
       card.dataset.itemName = item.name;
       card.dataset.potionType = item.potion_type;
 
       // Determinar o ícone baseado no tipo de poção
-      const iconPath = item.icon
-        ? `/static/game.data/${item.icon}`
-        : `/static/game.data/resources/potion-${item.potion_type}.png`;
+      // item.icon já vem com caminho relativo (ex: "resources/potion-vital.png")
+      let iconPath;
+      if (item.icon) {
+        // Se icon já começa com "/static", usar direto; senão, adicionar prefixo
+        iconPath = item.icon.startsWith('/static') || item.icon.startsWith('http')
+          ? item.icon
+          : `/static/game.data/${item.icon}`;
+      } else {
+        iconPath = `/static/game.data/resources/potion-${item.potion_type}.png`;
+      }
 
       card.innerHTML = `
         <div class="container-stars"><div class="gold-dust"></div></div>
