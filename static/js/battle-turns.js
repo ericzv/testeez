@@ -512,21 +512,32 @@ window.enableEndTurnButton = enableEndTurnButton;
  */
 async function updateEnemyActionsHUD() {
     try {
+        console.log('🔄 Buscando ações do inimigo...');
         const response = await fetch('/gamification/enemy_attack_status');
         const data = await response.json();
+        console.log('📊 Resposta da API:', data);
 
         if (!data.success) {
-            console.warn('⚠️ Não foi possível obter ações do inimigo');
+            console.warn('⚠️ Não foi possível obter ações do inimigo:', data.message);
             return;
         }
 
         const status = data.status;
+        console.log('📋 Status:', status);
+        console.log('📋 Next Intentions:', status.next_intentions);
+        console.log('📋 Action Queue:', status.action_queue);
+
         // Usar novo container dentro do boss-info-panel
         const container = document.getElementById('boss-actions-icons');
         const hudContainer = document.getElementById('boss-actions-container');
 
+        console.log('🎯 Container boss-actions-icons:', container);
+        console.log('🎯 Container boss-actions-container:', hudContainer);
+
         if (!container || !hudContainer) {
-            console.error('❌ Containers de ações não encontrados');
+            console.error('❌ Containers de ações não encontrados!');
+            console.error('   boss-actions-icons:', container);
+            console.error('   boss-actions-container:', hudContainer);
             return;
         }
 
@@ -576,18 +587,23 @@ async function updateEnemyActionsHUD() {
         // NÃO mostrar "Aguardando..." durante transição - apenas deixar vazio
         if (actionsToShow.length === 0) {
             // Sem ações e sem próximas intenções - esconder HUD
+            console.log('⚠️ Sem ações para mostrar - escondendo HUD');
             hudContainer.classList.remove('visible');
             return;
         }
 
         // Mostrar HUD se houver ações
+        console.log(`✅ Adicionando classe 'visible' ao container. Ações: ${actionsToShow.length}`);
         hudContainer.classList.add('visible');
 
         // ===== PEQUENO DELAY ANTES DE MOSTRAR NOVOS ÍCONES =====
         await new Promise(resolve => setTimeout(resolve, 200));
 
+        console.log('🎨 Criando ícones para ações:', actionsToShow);
+
         // Criar ícone para cada ação (com animação de entrada)
         actionsToShow.forEach((action, index) => {
+            console.log(`  → Criando ícone ${index + 1}: ${action.type} - ${action.name}`);
             const iconDiv = document.createElement('div');
 
             // Classe CSS baseada no tipo

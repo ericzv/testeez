@@ -236,14 +236,15 @@
     opacity: 0;
     visibility: hidden;
     max-height: 0;
-    transition: all 0.4s ease;
-    overflow: visible;
+    overflow: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease, max-height 0.4s ease;
 }
 
 .boss-actions-container.visible {
     opacity: 1;
     visibility: visible;
-    max-height: 100px;
+    max-height: 150px;
+    overflow: visible;
 }
 
 /* Grid de ícones de ações */
