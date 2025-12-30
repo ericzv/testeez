@@ -422,16 +422,16 @@ function closeMapPopup() {
                 <div class="boss-stat"><span>Vida:</span><span id="boss-info-hp">{{ boss_hp or 100 }}/{{ boss_max_hp or 100 }}</span></div>
                 <div class="boss-stat"><span>Dano:</span><span id="boss-info-damage">{{ boss_damage or 15 }}</span></div>
                 <div class="boss-quote" id="boss-info-quote">{{ boss_quote }}</div>
+                <!-- Container de ações do inimigo (dentro do boss-info-panel) -->
+                <div id="boss-actions-container" class="boss-actions-container">
+                    <div id="boss-actions-icons" class="boss-actions-icons"></div>
+                </div>
             </div>
 
             <div class="boss-view-background"></div>
         </div>
 
-        <!-- Enemy Intentions Container -->
-        <div id="enemy-intentions-container" class="enemy-intentions-container">
-            <div class="intentions-header">⚔️ Ações do Inimigo</div>
-            <div id="intentions-icons" class="intentions-icons"></div>
-        </div>
+        <!-- Área de Ações do Inimigo - REMOVIDO (agora está dentro do boss-info-panel) -->
 
         <!-- Turn Switch Button -->
         <div class="turn-switch-container" id="turn-switch-container">
