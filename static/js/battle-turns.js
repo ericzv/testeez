@@ -521,11 +521,12 @@ async function updateEnemyActionsHUD() {
         }
 
         const status = data.status;
-        const container = document.getElementById('intentions-icons');
-        const hudContainer = document.getElementById('enemy-intentions-container');
+        // Usar novo container dentro do boss-info-panel
+        const container = document.getElementById('boss-actions-icons');
+        const hudContainer = document.getElementById('boss-actions-container');
 
         if (!container || !hudContainer) {
-            console.error('❌ Containers não encontrados');
+            console.error('❌ Containers de ações não encontrados');
             return;
         }
 
@@ -605,12 +606,20 @@ async function updateEnemyActionsHUD() {
                 iconDiv.style.backgroundImage = `url('/static/game.data/icons/attackcharge.png')`;
             }
 
-            // Badge de ordem
+            // Badge de ordem (apenas se houver mais de 1 ação)
             if (actionsToShow.length > 1) {
                 const badge = document.createElement('div');
                 badge.className = 'intention-badge';
                 badge.textContent = index + 1;
                 iconDiv.appendChild(badge);
+            }
+
+            // Badge de dano (embaixo do ícone) - para ataques
+            if ((action.type === 'attack' || action.type === 'attack_skill') && action.damage) {
+                const damageBadge = document.createElement('div');
+                damageBadge.className = 'damage-badge';
+                damageBadge.textContent = action.damage;
+                iconDiv.appendChild(damageBadge);
             }
 
             // Tooltip
@@ -661,7 +670,7 @@ async function updateEnemyActionsHUD() {
  * Esconder HUD de ações do inimigo (chamado ao vencer/perder)
  */
 function hideEnemyActionsHUD() {
-    const hudContainer = document.getElementById('enemy-intentions-container');
+    const hudContainer = document.getElementById('boss-actions-container');
     if (hudContainer) {
         hudContainer.classList.remove('visible');
         console.log('👻 HUD de ações do inimigo escondido');

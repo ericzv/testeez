@@ -206,24 +206,6 @@ class FastBattleMode {
   }
 
   createUI() {
-    // Container principal dos botões de atalho
-    const container = document.createElement('div');
-    container.className = 'fast-battle-container';
-    container.innerHTML = `
-      <div class="fast-battle-btn attacks" data-type="attacks" title="Atalho de Ataques">
-        Ataques
-      </div>
-      <div class="fast-battle-btn specials" data-type="specials" title="Atalho de Especiais">
-        Especiais
-      </div>
-      <div class="fast-battle-btn inventory" data-type="inventory" title="Atalho de Inventário">
-        Inventário
-      </div>
-    `;
-
-    // Adicionar ao body
-    document.body.appendChild(container);
-
     // Criar o novo menu de ataques Dark Fantasy
     this.createAttacksMenu();
 
@@ -233,17 +215,9 @@ class FastBattleMode {
     // Criar o menu de inventário Manto do Viajante
     this.createInventoryMenu();
 
-    // Event listeners
-    container.querySelectorAll('.fast-battle-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.toggleSubmenu(e.target.dataset.type);
-      });
-    });
-
-    // Fechar submenu ao clicar fora
+    // Fechar submenu ao clicar fora dos menus
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.fast-battle-container') && !e.target.closest('.fast-attacks-wrapper') && !e.target.closest('.fast-specials-wrapper') && !e.target.closest('.fast-inventory-wrapper')) {
+      if (!e.target.closest('.fast-attacks-wrapper') && !e.target.closest('.fast-specials-wrapper') && !e.target.closest('.fast-inventory-wrapper')) {
         this.closeSubmenu();
       }
     });
@@ -856,6 +830,15 @@ class FastBattleMode {
     });
   }
 
+  // Tocar som de poção aleatório
+  playPotionSound() {
+    const soundIndex = Math.floor(Math.random() * 10) + 1; // 1-10
+    const soundPath = `/static/game.data/sounds/pot-drink${soundIndex}.mp3`;
+    const audio = new Audio(soundPath);
+    audio.volume = 0.5;
+    audio.play().catch(err => console.warn('Erro ao tocar som de poção:', err));
+  }
+
   // Usar item do inventário
   async useInventoryItem(slotNumber) {
     if (this.isExecuting) {
@@ -877,6 +860,9 @@ class FastBattleMode {
 
       if (data.success) {
         console.log('✅ Item usado:', data.message);
+
+        // Tocar som de poção
+        this.playPotionSound();
 
         // Mostrar feedback visual IMEDIATAMENTE baseado no tipo
         if (data.message.includes('vida') || data.message.includes('HP')) {

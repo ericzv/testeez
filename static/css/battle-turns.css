@@ -204,6 +204,79 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
+/* Badge de dano (embaixo do ícone) */
+.damage-badge {
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #ff4444 0%, #8b0000 100%);
+    color: white;
+    border-radius: 8px;
+    padding: 2px 8px;
+    font-size: 12px;
+    font-weight: bold;
+    font-family: 'Cinzel', serif;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    white-space: nowrap;
+    z-index: 10;
+}
+
+/* ==========================================
+   AÇÕES DO INIMIGO DENTRO DO BOSS-INFO-PANEL
+   ========================================== */
+
+/* Container de ações dentro do boss panel */
+.boss-actions-container {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 215, 0, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    max-height: 0;
+    transition: all 0.4s ease;
+    overflow: hidden;
+}
+
+.boss-actions-container.visible {
+    opacity: 1;
+    visibility: visible;
+    max-height: 100px;
+}
+
+/* Grid de ícones de ações */
+.boss-actions-icons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    padding: 4px 0;
+}
+
+/* Ícones menores para caber no painel */
+.boss-actions-icons .intention-icon {
+    width: 44px;
+    height: 44px;
+    border-width: 2px;
+    margin-bottom: 8px;
+}
+
+.boss-actions-icons .intention-icon .damage-badge {
+    font-size: 11px;
+    padding: 1px 6px;
+    bottom: -10px;
+}
+
+.boss-actions-icons .intention-badge {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    top: -8px;
+    right: -8px;
+}
+
 /* ==========================================
    BOTÃO DE TURNO - SWITCH SLIDER
    ========================================== */
