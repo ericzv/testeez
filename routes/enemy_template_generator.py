@@ -1,5 +1,5 @@
 """
-Enemy Template Generator - Ferramenta para gerar e salvar templates de inimigos
+Enemy Template Generator - Ferramenta para configurar hit effects dos inimigos
 """
 from flask import Blueprint, render_template, jsonify, request
 import json
@@ -12,6 +12,8 @@ enemy_template_bp = Blueprint('enemy_template', __name__)
 # Caminhos
 TEMPLATES_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'game.data', 'enemy_templates.json')
 CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'game.data', 'enemy_themes_config.json')
+HIT_SPRITES_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'game.data', 'enemies', 'hits')
+HIT_SOUNDS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'game.data', 'sounds', 'hit-sounds')
 
 def load_templates():
     """Carrega templates salvos"""
@@ -88,6 +90,37 @@ def get_all_equipment():
             'weapon_options': [],
             'back_options': [],
             'equipment_tiers': {}
+        })
+
+@enemy_template_bp.route('/gamification/get_hit_assets')
+def get_hit_assets():
+    """Retorna sprites de hit e sons de hit disponíveis"""
+    try:
+        # Listar sprites de hit
+        hit_sprites = []
+        if os.path.exists(HIT_SPRITES_PATH):
+            for f in os.listdir(HIT_SPRITES_PATH):
+                if f.endswith('.png') and not os.path.isdir(os.path.join(HIT_SPRITES_PATH, f)):
+                    hit_sprites.append(f)
+        hit_sprites.sort()
+
+        # Listar sons de hit
+        hit_sounds = []
+        if os.path.exists(HIT_SOUNDS_PATH):
+            for f in os.listdir(HIT_SOUNDS_PATH):
+                if f.endswith(('.mp3', '.wav', '.ogg')):
+                    hit_sounds.append(f)
+        hit_sounds.sort()
+
+        return jsonify({
+            'hit_sprites': hit_sprites,
+            'hit_sounds': hit_sounds
+        })
+    except Exception as e:
+        print(f"Erro ao carregar hit assets: {e}")
+        return jsonify({
+            'hit_sprites': [],
+            'hit_sounds': []
         })
 
 @enemy_template_bp.route('/gamification/generate_enemy_preview', methods=['POST'])
