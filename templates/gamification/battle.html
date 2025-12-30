@@ -461,7 +461,12 @@
     <span id="boss-info-damage">{{ boss_damage or 15 }}</span>
   </div>
   <div class="boss-quote" id="boss-info-quote">{{ boss_quote }}</div>
-  <!-- DEBUG: boss_quote='{{ boss_quote }}' len={{ boss_quote|length if boss_quote else 0 }} -->
+  <!-- Container de ações do inimigo (dentro do boss-info-panel) -->
+  <div id="boss-actions-container" class="boss-actions-container">
+    <div id="boss-actions-icons" class="boss-actions-icons">
+      <!-- Ícones das ações aparecerão aqui -->
+    </div>
+  </div>
 </div>
 
 
@@ -728,15 +733,7 @@ document.addEventListener('DOMContentLoaded', function() {
      SISTEMA DE TURNOS - HUD EXTERNO
      ======================================== -->
      
-<!-- Área de Ações do Inimigo (Unificado - mostra ações atuais OU próximas) -->
-<div id="enemy-intentions-container" class="enemy-intentions-container">
-    <div class="intentions-header">
-        ⚔️ Ações do Inimigo
-    </div>
-    <div id="intentions-icons" class="intentions-icons">
-        <!-- Ícones das ações aparecerão aqui -->
-    </div>
-</div>
+<!-- Área de Ações do Inimigo - REMOVIDO (agora está dentro do boss-info-panel) -->
 
 <!-- Turn Switch Button -->
 <div class="turn-switch-container" id="turn-switch-container">

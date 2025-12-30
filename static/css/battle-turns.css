@@ -204,6 +204,115 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
+/* Badge de dano (embaixo do ícone) */
+.damage-badge {
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #ff4444 0%, #8b0000 100%);
+    color: white;
+    border-radius: 8px;
+    padding: 2px 8px;
+    font-size: 12px;
+    font-weight: bold;
+    font-family: 'Cinzel', serif;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    white-space: nowrap;
+    z-index: 10;
+}
+
+/* ==========================================
+   AÇÕES DO INIMIGO DENTRO DO BOSS-INFO-PANEL
+   ========================================== */
+
+/* Container de ações dentro do boss panel */
+.boss-actions-container {
+    margin-top: 12px;
+    padding-top: 10px;
+    padding-bottom: 15px;
+    border-top: 1px solid rgba(255, 215, 0, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease, max-height 0.4s ease;
+}
+
+.boss-actions-container.visible {
+    opacity: 1;
+    visibility: visible;
+    max-height: 150px;
+    overflow: visible;
+}
+
+/* Grid de ícones de ações */
+.boss-actions-icons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    padding: 4px 0;
+}
+
+/* Ícones para caber no painel */
+.boss-actions-icons .intention-icon {
+    width: 62px;
+    height: 62px;
+    border-width: 1px;
+    margin-bottom: -16px;
+}
+
+.boss-actions-icons .intention-icon .damage-badge {
+    font-size: 11px;
+    padding: 1px 6px;
+    bottom: -10px;
+}
+
+/* Badge de Buff/Debuff */
+.buff-debuff-badge {
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 8px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: bold;
+    font-family: 'Cinzel', serif;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    white-space: nowrap;
+    z-index: 10;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.buff-debuff-badge.buff {
+    background: linear-gradient(135deg, #44ff44 0%, #228b22 100%);
+    color: white;
+}
+
+.buff-debuff-badge.debuff {
+    background: linear-gradient(135deg, #9944ff 0%, #4b0082 100%);
+    color: white;
+}
+
+.boss-actions-icons .intention-icon .buff-debuff-badge {
+    font-size: 9px;
+    padding: 1px 6px;
+    bottom: -10px;
+}
+
+/* Tooltip centralizado para intenções do inimigo */
+.boss-actions-icons .styled-tooltip,
+.intention-icon .styled-tooltip {
+    text-align: center;
+    min-width: 120px;
+}
+
 /* ==========================================
    BOTÃO DE TURNO - SWITCH SLIDER
    ========================================== */
