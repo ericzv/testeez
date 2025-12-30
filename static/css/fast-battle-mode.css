@@ -1452,3 +1452,411 @@
   border: 1px solid #0a5a8a;
   background: rgba(0,20,40,0.5);
 }
+
+/* ================================================================================
+   MENU DE INVENTÁRIO - Manto do Viajante (Tema Dourado)
+   ================================================================================
+*/
+
+/* Wrapper principal do menu de inventário */
+.fast-inventory-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+}
+
+/* Container dos 4 botões em grade 2x2 */
+.fast-inventory-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  transition: gap 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+  z-index: 10;
+  width: 160px;
+  height: 160px;
+}
+
+.fast-inventory-main .up,
+.fast-inventory-main .down {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  transition: gap 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* O Manto (Capa Azul Circular) */
+.fast-inventory-main .cloak-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 60;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  filter: drop-shadow(0 10px 15px rgba(0,0,0,0.8));
+  transition: opacity 0.4s ease;
+}
+
+/* Metades do Manto (Semicírculos) */
+.fast-inventory-main .cloak-half {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  background-color: #0a122a;
+  background-image:
+    linear-gradient(to bottom, rgba(255,255,255,0.15) 0%, transparent 50%),
+    linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px),
+    radial-gradient(#152040 15%, transparent 16%);
+  background-size: 100% 100%, 100% 4px, 4px 4px;
+  transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.fast-inventory-main .cloak-left {
+  left: 0;
+  border-right: 6px solid #ffd700;
+  border-radius: 100px 0 0 100px;
+  transform-origin: center left;
+  box-shadow: inset -5px 0 15px rgba(0,0,0,0.6);
+}
+
+.fast-inventory-main .cloak-right {
+  right: 0;
+  border-left: 6px solid #ffd700;
+  border-radius: 0 100px 100px 0;
+  transform-origin: center right;
+  box-shadow: inset 5px 0 15px rgba(0,0,0,0.6);
+}
+
+/* Cards de Inventário (Bolsinhas) */
+.fast-inventory-main .inventory-card {
+  width: 80px;
+  height: 80px;
+  outline: none;
+  border: none;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 20px 20px 45px 45px;
+  background-color: #1a2639;
+  background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 4px);
+  border: 2px solid #0d1420;
+  box-shadow:
+    inset 0 0 15px rgba(0,0,0,0.8),
+    0 5px 10px rgba(0,0,0,0.5);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s, border-color 0.2s, background-color 0.2s;
+  z-index: 5;
+}
+
+/* Ícone do item dentro do card */
+.fast-inventory-main .inventory-card .item-icon-img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  z-index: 10;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.8));
+  transition: opacity 0.2s ease, transform 0.2s ease, fill 0.2s;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Ícone SVG para slots vazios */
+.fast-inventory-main .inventory-card .empty-icon {
+  width: 32px;
+  height: 32px;
+  z-index: 10;
+  fill: #c0a080;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.8));
+  transition: transform 0.2s ease, fill 0.2s;
+  opacity: 0;
+}
+
+/* Badge de quantidade */
+.fast-inventory-main .inventory-card .quantity-badge {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  background: linear-gradient(135deg, #16a085, #1abc9c);
+  border: 2px solid #fff;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Badge para slot vazio */
+.fast-inventory-main .inventory-card.disabled .quantity-badge {
+  background: linear-gradient(135deg, #555, #666);
+  border-color: #888;
+  color: #aaa;
+}
+
+/* Animação de abertura do manto */
+.fast-inventory-main:hover .cloak-left {
+  transform: translateX(-100%) rotate(5deg);
+  opacity: 0;
+}
+
+.fast-inventory-main:hover .cloak-right {
+  transform: translateX(100%) rotate(-5deg);
+  opacity: 0;
+}
+
+.fast-inventory-main:hover .inventory-card .item-icon-img,
+.fast-inventory-main:hover .inventory-card .empty-icon {
+  opacity: 1;
+  transition-delay: 0.1s;
+}
+
+.fast-inventory-main:hover .inventory-card .quantity-badge {
+  opacity: 1;
+  transition-delay: 0.15s;
+}
+
+/* Posições dos 4 bolsos (Grid 2x2) */
+.fast-inventory-main:hover .inventory-card.card1 { transform: translate(-10px, -10px); }
+.fast-inventory-main:hover .inventory-card.card2 { transform: translate(10px, -10px); }
+.fast-inventory-main:hover .inventory-card.card3 { transform: translate(-10px, 10px); }
+.fast-inventory-main:hover .inventory-card.card4 { transform: translate(10px, 10px); }
+
+/* Hover individual nos cards */
+.fast-inventory-main .inventory-card:hover:not(.disabled) {
+  z-index: 20;
+  filter: brightness(1.3);
+  border-color: #ffd700;
+  background-color: #253550;
+}
+
+.fast-inventory-main:hover .inventory-card.card1:hover:not(.disabled) { transform: translate(-10px, -10px) scale(1.1); }
+.fast-inventory-main:hover .inventory-card.card2:hover:not(.disabled) { transform: translate(10px, -10px) scale(1.1); }
+.fast-inventory-main:hover .inventory-card.card3:hover:not(.disabled) { transform: translate(-10px, 10px) scale(1.1); }
+.fast-inventory-main:hover .inventory-card.card4:hover:not(.disabled) { transform: translate(10px, 10px) scale(1.1); }
+
+.fast-inventory-main .inventory-card:hover:not(.disabled) .item-icon-img,
+.fast-inventory-main .inventory-card:hover:not(.disabled) .empty-icon {
+  fill: #fff;
+  filter: drop-shadow(0 0 5px #ffd700);
+  transform: scale(1.15);
+}
+
+/* Clique: Pulso */
+.fast-inventory-main:hover .inventory-card.card1:active { transform: translate(-10px, -10px) scale(0.95); filter: brightness(1.6); }
+.fast-inventory-main:hover .inventory-card.card2:active { transform: translate(10px, -10px) scale(0.95); filter: brightness(1.6); }
+.fast-inventory-main:hover .inventory-card.card3:active { transform: translate(-10px, 10px) scale(0.95); filter: brightness(1.6); }
+.fast-inventory-main:hover .inventory-card.card4:active { transform: translate(10px, 10px) scale(0.95); filter: brightness(1.6); }
+
+/* Flash de clique */
+.fast-inventory-main .inventory-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 20px 20px 45px 45px;
+  background: rgba(100, 200, 255, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 50;
+  mix-blend-mode: overlay;
+}
+
+.fast-inventory-main .inventory-card:active::after {
+  animation: fastInventoryFlash 0.2s ease-out;
+}
+
+@keyframes fastInventoryFlash {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Estado desabilitado */
+.fast-inventory-main .inventory-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.8);
+}
+
+.fast-inventory-main .inventory-card.disabled:hover {
+  transform: none;
+  filter: grayscale(0.8);
+  border-color: #0d1420;
+  background-color: #1a2639;
+}
+
+.fast-inventory-main .inventory-card.disabled .item-icon-img {
+  opacity: 0.3 !important;
+}
+
+/* Partículas douradas (Loot Dust) */
+.fast-inventory-main .container-stars {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+.fast-inventory-main:hover .container-stars {
+  opacity: 1;
+}
+
+.fast-inventory-main .gold-dust {
+  position: absolute;
+  width: 100%;
+  height: 200%;
+  background-image:
+    radial-gradient(1px 1px at 10px 10px, #ffd700, transparent),
+    radial-gradient(1.5px 1.5px at 30px 50px, #fff, transparent),
+    radial-gradient(1px 1px at 60px 80px, #daa520, transparent);
+  background-size: 80px 80px;
+  background-repeat: repeat;
+  animation: fastGoldRise 4s linear infinite;
+}
+
+@keyframes fastGoldRise {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 -80px; }
+}
+
+/* Painel de Informações - Inventário (Estilo Pergaminho Escuro) */
+.fast-inventory-info-panel {
+  width: 240px;
+  min-height: 120px;
+  position: relative;
+  perspective: 1000px;
+}
+
+.fast-inventory-info-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: #1a100a;
+  border: 2px solid #5a3a20;
+  border-radius: 4px;
+  padding: 15px 20px;
+  box-sizing: border-box;
+  color: #d0b090;
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.8);
+  overflow: hidden;
+}
+
+.fast-inventory-info-content.visible {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+/* Partículas no painel */
+.fast-inventory-info-content .container-stars {
+  opacity: 0.3 !important;
+  z-index: 1;
+  position: absolute;
+  inset: 0;
+}
+
+.fast-inventory-info-content .gold-dust {
+  background-image: radial-gradient(1px 1px at 10px 10px, #8b4513, transparent);
+}
+
+.fast-inventory-info-content > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Nome do item */
+.fast-inventory-info-content .info-item-name {
+  margin: 0 0 5px 0;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #ffd700;
+  text-shadow: 0 1px 2px black, 0 0 8px rgba(255,215,0,0.4);
+  border-bottom: 1px solid #5a3a20;
+  padding-bottom: 5px;
+}
+
+/* Container de stats */
+.fast-inventory-info-content .info-stats-row {
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: #b8860b;
+  font-weight: bold;
+}
+
+.fast-inventory-info-content .stat-tag {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border: 1px solid #5a3a20;
+  background: #2f1810;
+  border-radius: 4px;
+  color: #d4a76a;
+}
+
+/* Cores por tipo de poção */
+.fast-inventory-info-content .stat-tag.vital {
+  color: #ef4444;
+  border-color: #8b0000;
+  background: rgba(139, 0, 0, 0.2);
+}
+
+.fast-inventory-info-content .stat-tag.protective {
+  color: #3b82f6;
+  border-color: #1e3a8a;
+  background: rgba(30, 58, 138, 0.2);
+}
+
+.fast-inventory-info-content .stat-tag.energetic {
+  color: #fbbf24;
+  border-color: #92400e;
+  background: rgba(146, 64, 14, 0.2);
+}
+
+/* Descrição */
+.fast-inventory-info-content .info-desc {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #a08070;
+  font-style: italic;
+}
+
+/* Efeito do item */
+.fast-inventory-info-content .info-effect {
+  font-size: 0.75rem;
+  color: #10b981;
+  font-weight: bold;
+  padding: 4px 8px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 4px;
+}

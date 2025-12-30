@@ -230,6 +230,9 @@ class FastBattleMode {
     // Criar o menu de skills especiais Arcano Azul
     this.createSpecialsMenu();
 
+    // Criar o menu de inventário Manto do Viajante
+    this.createInventoryMenu();
+
     // Event listeners
     container.querySelectorAll('.fast-battle-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -240,7 +243,7 @@ class FastBattleMode {
 
     // Fechar submenu ao clicar fora
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.fast-battle-container') && !e.target.closest('.fast-attacks-wrapper') && !e.target.closest('.fast-specials-wrapper')) {
+      if (!e.target.closest('.fast-battle-container') && !e.target.closest('.fast-attacks-wrapper') && !e.target.closest('.fast-specials-wrapper') && !e.target.closest('.fast-inventory-wrapper')) {
         this.closeSubmenu();
       }
     });
@@ -647,6 +650,287 @@ class FastBattleMode {
   async refreshSpecialsMenu() {
     await this.loadSpecials();
     this.createSpecialsMenu();
+  }
+
+  // ================================================================================
+  // MENU DE INVENTÁRIO - Manto do Viajante
+  // ================================================================================
+
+  // Criar o menu de inventário - Tema Manto do Viajante
+  createInventoryMenu() {
+    // Remover menu anterior se existir
+    const existingMenu = document.querySelector('.fast-inventory-wrapper');
+    if (existingMenu) existingMenu.remove();
+
+    // Criar wrapper
+    const wrapper = document.createElement('div');
+    wrapper.className = 'fast-inventory-wrapper';
+
+    // Criar container principal (2x2 grid)
+    const main = document.createElement('div');
+    main.className = 'fast-inventory-main';
+
+    // O Manto (capa azul circular que abre)
+    main.innerHTML = `
+      <div class="cloak-container">
+        <div class="cloak-half cloak-left"></div>
+        <div class="cloak-half cloak-right"></div>
+      </div>
+    `;
+
+    // Linha superior (slot1 + slot2)
+    const upRow = document.createElement('div');
+    upRow.className = 'up';
+
+    // Linha inferior (slot3 + slot4)
+    const downRow = document.createElement('div');
+    downRow.className = 'down';
+
+    // Configuração dos 4 slots (mapeando para os 3 slots de poções + 1 vazio)
+    // items[0] = slot 1, items[1] = slot 2, items[2] = slot 3, items[3] = vazio
+    const cardConfig = [
+      { index: 0, cardClass: 'card1', row: upRow },
+      { index: 1, cardClass: 'card2', row: upRow },
+      { index: 2, cardClass: 'card3', row: downRow },
+      { index: 3, cardClass: 'card4', row: downRow }
+    ];
+
+    cardConfig.forEach(config => {
+      const item = this.items[config.index] || null;
+      const card = this.createInventoryCard(item, config.cardClass, config.index);
+      config.row.appendChild(card);
+    });
+
+    main.appendChild(upRow);
+    main.appendChild(downRow);
+    wrapper.appendChild(main);
+
+    // Criar painel de informações
+    const infoPanel = document.createElement('div');
+    infoPanel.className = 'fast-inventory-info-panel';
+
+    cardConfig.forEach(config => {
+      const item = this.items[config.index] || null;
+      const infoContent = this.createInventoryInfoContent(item, config.cardClass, config.index);
+      infoPanel.appendChild(infoContent);
+    });
+
+    wrapper.appendChild(infoPanel);
+
+    // Adicionar ao body (posicionado fixo - acima dos outros menus)
+    wrapper.style.cssText = `
+      position: fixed;
+      bottom: 380px;
+      left: 20px;
+      z-index: 900;
+    `;
+    document.body.appendChild(wrapper);
+
+    // Adicionar event listeners para hover nos cards
+    this.setupInventoryCardHoverListeners(wrapper);
+
+    console.log('🎒 Menu de inventário criado com', this.items.length, 'itens');
+  }
+
+  // Criar um card de inventário
+  createInventoryCard(item, cardClass, slotIndex) {
+    const card = document.createElement('button');
+    card.className = `inventory-card ${cardClass}`;
+    card.dataset.slotIndex = slotIndex;
+
+    const isEmpty = !item || !item.potion_type || item.quantity <= 0;
+
+    if (isEmpty) {
+      card.classList.add('disabled');
+      card.innerHTML = `
+        <div class="container-stars"><div class="gold-dust"></div></div>
+        <svg class="empty-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-4H8v-2h2V7h2v4h2v2h-2v4z"/>
+        </svg>
+        <div class="quantity-badge">0</div>
+      `;
+    } else {
+      card.dataset.slotNumber = item.slot_number;
+      card.dataset.itemName = item.name;
+      card.dataset.potionType = item.potion_type;
+
+      // Determinar o ícone baseado no tipo de poção
+      const iconPath = item.icon
+        ? `/static/game.data/${item.icon}`
+        : `/static/game.data/resources/potion-${item.potion_type}.png`;
+
+      card.innerHTML = `
+        <div class="container-stars"><div class="gold-dust"></div></div>
+        <img class="item-icon-img" src="${iconPath}" alt="${item.name}" onerror="this.src='/static/game.data/resources/placeholder.png'">
+        <div class="quantity-badge">x${item.quantity}</div>
+      `;
+
+      // Event listener para usar o item
+      card.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (item && item.slot_number && item.quantity > 0) {
+          this.useInventoryItem(item.slot_number);
+        }
+      });
+    }
+
+    return card;
+  }
+
+  // Criar conteúdo de informações para um item do inventário
+  createInventoryInfoContent(item, cardClass, slotIndex) {
+    const content = document.createElement('div');
+    content.className = `fast-inventory-info-content info-${cardClass}`;
+
+    const isEmpty = !item || !item.potion_type || item.quantity <= 0;
+
+    if (isEmpty) {
+      content.innerHTML = `
+        <div class="container-stars"><div class="gold-dust"></div></div>
+        <h3 class="info-item-name">Slot Vazio</h3>
+        <p class="info-desc">Nenhum item neste slot. Compre poções na loja!</p>
+      `;
+      return content;
+    }
+
+    // Determinar efeito baseado no tipo de poção
+    let effectText = '';
+    let typeClass = item.potion_type;
+
+    switch (item.potion_type) {
+      case 'vital':
+        effectText = '+20 HP';
+        break;
+      case 'protective':
+        effectText = '+16 Barreira';
+        break;
+      case 'energetic':
+        effectText = '+5 Energia';
+        break;
+      default:
+        effectText = 'Efeito desconhecido';
+    }
+
+    content.innerHTML = `
+      <div class="container-stars"><div class="gold-dust"></div></div>
+      <h3 class="info-item-name">${item.name}</h3>
+      <div class="info-stats-row">
+        <span class="stat-tag ${typeClass}">QTD: ${item.quantity}</span>
+      </div>
+      <p class="info-desc">${item.description || 'Uma poção mágica com efeitos restauradores.'}</p>
+      <div class="info-effect">${effectText}</div>
+    `;
+
+    return content;
+  }
+
+  // Configurar listeners de hover para os cards de inventário
+  setupInventoryCardHoverListeners(wrapper) {
+    const cards = wrapper.querySelectorAll('.inventory-card');
+    const infoPanels = wrapper.querySelectorAll('.fast-inventory-info-content');
+
+    cards.forEach(card => {
+      const cardClass = [...card.classList].find(c => c.startsWith('card'));
+
+      card.addEventListener('mouseenter', () => {
+        // Ocultar todos os painéis
+        infoPanels.forEach(p => p.classList.remove('visible'));
+        // Mostrar painel correspondente
+        const targetPanel = wrapper.querySelector(`.info-${cardClass}`);
+        if (targetPanel) {
+          targetPanel.classList.add('visible');
+        }
+      });
+
+      card.addEventListener('mouseleave', () => {
+        // Pequeno delay para permitir transição suave
+        setTimeout(() => {
+          const hoveredCard = wrapper.querySelector('.inventory-card:hover');
+          if (!hoveredCard) {
+            infoPanels.forEach(p => p.classList.remove('visible'));
+          }
+        }, 100);
+      });
+    });
+  }
+
+  // Usar item do inventário
+  async useInventoryItem(slotNumber) {
+    if (this.isExecuting) {
+      console.log('⏸️ Aguarde a ação anterior terminar...');
+      return;
+    }
+
+    this.isExecuting = true;
+
+    try {
+      const response = await fetch(`/gamification/use_potion/${slotNumber}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        console.log('✅ Item usado:', data.message);
+
+        // Mostrar feedback visual IMEDIATAMENTE baseado no tipo
+        if (data.message.includes('vida') || data.message.includes('HP')) {
+          const healAmount = parseInt(data.message.match(/\d+/)?.[0] || 20);
+          showFloatingText(`+${healAmount} HP`, 'heal');
+        } else if (data.message.includes('barreira') || data.message.includes('Barreira')) {
+          const barrierAmount = parseInt(data.message.match(/\d+/)?.[0] || 16);
+          showFloatingText(`+${barrierAmount} Barreira`, 'barrier');
+        } else if (data.message.includes('energia') || data.message.includes('Energia')) {
+          const energyAmount = parseInt(data.message.match(/\d+/)?.[0] || 5);
+          showFloatingText(`+${energyAmount} Energia`, 'energy');
+        } else {
+          showFloatingText(data.message, 'info');
+        }
+
+        // Atualizar HUD IMEDIATAMENTE
+        this.updateHUDFromServer();
+
+        // Forçar update do HUD do sistema de batalha também
+        if (window.updatePlayerHUD) {
+          window.updatePlayerHUD();
+        }
+
+        // Recarregar inventário e atualizar menu
+        await this.loadItems();
+        this.createInventoryMenu();
+
+        // Atualizar HUD novamente após delays curtos (garantir sincronização)
+        setTimeout(() => {
+          this.updateHUDFromServer();
+          if (window.updatePlayerHUD) window.updatePlayerHUD();
+        }, 200);
+
+        setTimeout(() => {
+          this.updateHUDFromServer();
+          if (window.updatePlayerHUD) window.updatePlayerHUD();
+        }, 500);
+
+      } else {
+        showFloatingText(data.error || 'Erro ao usar item', 'error');
+      }
+    } catch (error) {
+      console.error('❌ Erro ao usar item:', error);
+      showFloatingText('Erro ao usar item', 'error');
+    } finally {
+      // Desbloquear após um curto delay
+      setTimeout(() => {
+        this.isExecuting = false;
+      }, 500);
+    }
+  }
+
+  // Atualizar o menu de inventário com dados atualizados
+  async refreshInventoryMenu() {
+    await this.loadItems();
+    this.createInventoryMenu();
   }
 
   // Atualizar o menu de ataques com dados atualizados (para quando blood_stacks mudar)
