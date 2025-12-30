@@ -257,12 +257,12 @@
     padding: 4px 0;
 }
 
-/* Ícones menores para caber no painel */
+/* Ícones para caber no painel */
 .boss-actions-icons .intention-icon {
-    width: 44px;
-    height: 44px;
-    border-width: 2px;
-    margin-bottom: 8px;
+    width: 62px;
+    height: 62px;
+    border-width: 1px;
+    margin-bottom: -16px;
 }
 
 .boss-actions-icons .intention-icon .damage-badge {
@@ -271,12 +271,46 @@
     bottom: -10px;
 }
 
-.boss-actions-icons .intention-badge {
-    width: 18px;
-    height: 18px;
+/* Badge de Buff/Debuff */
+.buff-debuff-badge {
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 8px;
+    padding: 2px 8px;
     font-size: 10px;
-    top: -8px;
-    right: -8px;
+    font-weight: bold;
+    font-family: 'Cinzel', serif;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    white-space: nowrap;
+    z-index: 10;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.buff-debuff-badge.buff {
+    background: linear-gradient(135deg, #44ff44 0%, #228b22 100%);
+    color: white;
+}
+
+.buff-debuff-badge.debuff {
+    background: linear-gradient(135deg, #9944ff 0%, #4b0082 100%);
+    color: white;
+}
+
+.boss-actions-icons .intention-icon .buff-debuff-badge {
+    font-size: 9px;
+    padding: 1px 6px;
+    bottom: -10px;
+}
+
+/* Tooltip centralizado para intenções do inimigo */
+.boss-actions-icons .styled-tooltip,
+.intention-icon .styled-tooltip {
+    text-align: center;
+    min-width: 120px;
 }
 
 /* ==========================================

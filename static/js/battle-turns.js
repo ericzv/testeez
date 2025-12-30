@@ -622,20 +622,25 @@ async function updateEnemyActionsHUD() {
                 iconDiv.style.backgroundImage = `url('/static/game.data/icons/attackcharge.png')`;
             }
 
-            // Badge de ordem (apenas se houver mais de 1 ação)
-            if (actionsToShow.length > 1) {
-                const badge = document.createElement('div');
-                badge.className = 'intention-badge';
-                badge.textContent = index + 1;
-                iconDiv.appendChild(badge);
-            }
-
             // Badge de dano (embaixo do ícone) - para ataques
             if ((action.type === 'attack' || action.type === 'attack_skill') && action.damage) {
                 const damageBadge = document.createElement('div');
                 damageBadge.className = 'damage-badge';
                 damageBadge.textContent = action.damage;
                 iconDiv.appendChild(damageBadge);
+            }
+
+            // Badge de Buff/Debuff (embaixo do ícone) - para skills de buff/debuff
+            if (action.type === 'buff') {
+                const buffBadge = document.createElement('div');
+                buffBadge.className = 'buff-debuff-badge buff';
+                buffBadge.textContent = 'Buff';
+                iconDiv.appendChild(buffBadge);
+            } else if (action.type === 'debuff') {
+                const debuffBadge = document.createElement('div');
+                debuffBadge.className = 'buff-debuff-badge debuff';
+                debuffBadge.textContent = 'Debuff';
+                iconDiv.appendChild(debuffBadge);
             }
 
             // Tooltip
