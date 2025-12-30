@@ -200,7 +200,7 @@ async function executeEnemyTurnAutomatically() {
 /**
  * Finalizar turno do inimigo e voltar para o jogador
  */
-function finishEnemyTurn() {
+async function finishEnemyTurn() {
     console.log('🔄 Finalizando turno do inimigo...');
 
     // Limpar flag de execução automática
@@ -220,6 +220,10 @@ function finishEnemyTurn() {
     // Habilitar turno do jogador (sem feedback "Seu Turno")
     setTurnToPlayer();
     restorePlayerEnergy();
+
+    // ATUALIZAR HUD para mostrar próximas intenções do inimigo
+    await updateEnemyActionsHUD();
+    console.log('🎯 Próximas intenções do inimigo atualizadas');
 }
 
 /**
