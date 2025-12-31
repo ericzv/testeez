@@ -213,95 +213,40 @@
 }
 
 
-/* ANIMAÇÕES DE HIT DOS BOSSES - CORRIGIDAS PARA DESAPARECER */
-
-/* Estilo base para todas as animações de hit */
-.hit-animation {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(4);
-    z-index: 200;
-    pointer-events: none;
-    image-rendering: pixelated;
-}
+/* SPRITES DE HIT DOS BOSSES - Usam a animação base definida em battle.css */
 
 /* Purassombra - blackhit */
 .hit-animation.blackhit-32-32-5f-160x32 {
-    width: 32px;
-    height: 32px;
     background-image: url('/static/game.data/enemies/hits/blackhit-32-32-5f-160x32.png');
     background-size: 160px 32px;
-    animation: blackhit-animation 0.5s steps(5);
-    image-rendering: pixelated;
-}
-
-@keyframes blackhit-animation {
-    0% { background-position-x: 0; opacity: 1; }
-    90% { background-position-x: -128px; opacity: 1; }
-    100% { background-position-x: -160px; opacity: 0; }
 }
 
 /* Heresiarca - yellowhit */
 .hit-animation.yellowhit-32-32-5f-160x32 {
-    width: 32px;
-    height: 32px;
     background-image: url('/static/game.data/enemies/hits/yellowhit-32-32-5f-160x32.png');
     background-size: 160px 32px;
-    animation: yellowhit-animation 0.5s steps(5);
-    image-rendering: pixelated;
-}
-
-@keyframes yellowhit-animation {
-    0% { background-position-x: 0; opacity: 1; }
-    90% { background-position-x: -128px; opacity: 1; }
-    100% { background-position-x: -160px; opacity: 0; }
 }
 
 /* Alma Negra - greenhit */
 .hit-animation.greenhit-32-32-5f-160x32 {
-    width: 32px;
-    height: 32px;
     background-image: url('/static/game.data/enemies/hits/greenhit-32-32-5f-160x32.png');
     background-size: 160px 32px;
-    animation: greenhit-animation 0.5s steps(5);
-    image-rendering: pixelated;
-}
-
-@keyframes greenhit-animation {
-    0% { background-position-x: 0; opacity: 1; }
-    90% { background-position-x: -128px; opacity: 1; }
-    100% { background-position-x: -160px; opacity: 0; }
 }
 
 /* Formofagus - purplehit */
 .hit-animation.purplehit-32-32-5f-160x32 {
-    width: 32px;
-    height: 32px;
     background-image: url('/static/game.data/enemies/hits/purplehit-32-32-5f-160x32.png');
     background-size: 160px 32px;
-    animation: purplehit-animation 0.5s steps(5);
-    image-rendering: pixelated;
-}
-
-@keyframes purplehit-animation {
-    0% { background-position-x: 0; opacity: 1; }
-    90% { background-position-x: -128px; opacity: 1; }
-    100% { background-position-x: -160px; opacity: 0; }
 }
 
 /* Nefasto - redhit */
 .hit-animation.redhit-32-32-5f-160x32 {
-    width: 32px;
-    height: 32px;
     background-image: url('/static/game.data/enemies/hits/redhit-32-32-5f-160x32.png');
     background-size: 160px 32px;
-    animation: redhit-animation 0.5s steps(5);
-    image-rendering: pixelated;
 }
 
-@keyframes redhit-animation {
-    0% { background-position-x: 0; opacity: 1; }
-    90% { background-position-x: -128px; opacity: 1; }
-    100% { background-position-x: -160px; opacity: 0; }
+/* whitehit */
+.hit-animation.whitehit-32-32-5f-160x32 {
+    background-image: url('/static/game.data/enemies/hits/whitehit-32-32-5f-160x32.png');
+    background-size: 160px 32px;
 }

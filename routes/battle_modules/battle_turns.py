@@ -272,13 +272,26 @@ def process_enemy_turn(enemy, player_id=None):
         
         if action_type == 'attack':
             # Ataque básico
+            # Escolher som aleatório do array de sons (se disponível)
+            attack_sfx = None
+            hit_sounds_json = getattr(enemy, 'hit_sounds_json', None)
+            if hit_sounds_json:
+                try:
+                    hit_sounds_list = json.loads(hit_sounds_json)
+                    if hit_sounds_list:
+                        attack_sfx = random.choice(hit_sounds_list)
+                except:
+                    pass
+            if not attack_sfx:
+                attack_sfx = getattr(enemy, 'hit_sound', None) or getattr(enemy, 'attack_sfx', None)
+
             action_queue.append({
                 "type": "attack",
                 "icon": intention_object.get('icon', '/static/game.data/icons/attackcharge.png'),
                 "data": {
                     "damage": intention_object.get('damage', enemy.damage),
                     "hit_animation": enemy.hit_animation,
-                    "attack_sfx": getattr(enemy, 'hit_sound', None) or getattr(enemy, 'attack_sfx', None)
+                    "attack_sfx": attack_sfx
                 }
             })
             print(f"   ✅ Ataque básico adicionado (dano: {intention_object.get('damage', enemy.damage)})")

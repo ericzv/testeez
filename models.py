@@ -524,8 +524,9 @@ class GenericEnemy(db.Model):
     is_new = db.Column(db.Boolean, default=True)
 
     # Sistema de hits visuais e sonoros
-    hit_animation = db.Column(db.String(10), nullable=False, default='hit1')  # hit1, hit2, hit3
-    attack_sfx = db.Column(db.String(100), nullable=True)  # caminho do som (vazio por ora)
+    hit_animation = db.Column(db.String(50), nullable=False, default='hit1')  # hit1, hit2, hit3, etc
+    attack_sfx = db.Column(db.String(100), nullable=True)  # caminho do som atual (fallback)
+    hit_sounds_json = db.Column(db.Text, nullable=True)  # JSON array de sons disponíveis para alternância
     
     # Sistema de cargas de ataque
     attack_charges_count = db.Column(db.Integer, nullable=False, default=0)  # cargas disponíveis
