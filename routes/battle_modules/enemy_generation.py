@@ -638,6 +638,10 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
     behavior_pattern = template.get('behavior_pattern', 'default')
     typical_phrase = template.get('typical_phrase', '')  # Fala típica do inimigo
 
+    # Hit effects do template
+    template_hit_sprite = template.get('hit_sprite')  # ex: "hit1.png"
+    template_hit_sounds = template.get('hit_sounds', [])  # ex: ["sword-hit.mp3", "sword-hit2.mp3"]
+
     # Sprites
     sprite_body = sprite_layers.get('body', 'body1.png')
     sprite_head = sprite_layers.get('head', 'head1.png')
@@ -1805,20 +1809,37 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
     
     print(f"🎁 Recompensa definida: {reward_type} ({reward_icon})")
 
-    # Determinar animação de hit baseado no tier da weapon
-    weapon_file = final_equipment.get('weapon', '')
-    if weapon_file:
-        weapon_tier = get_equipment_tier_from_json(weapon_file)
-        if weapon_tier <= 2:
-            hit_animation = 'hit1'
-        elif weapon_tier <= 4:
-            hit_animation = 'hit2'
-        else:
-            hit_animation = 'hit3'
+    # Determinar animação de hit e som de ataque
+    # Prioridade: usar do template, senão calcular baseado no tier da weapon
+    if template_hit_sprite:
+        # Usar hit sprite do template (remover extensão .png se necessário)
+        hit_animation = template_hit_sprite.replace('.png', '')
+        print(f"🎯 Hit animation do template: {hit_animation}")
     else:
-        hit_animation = 'hit1'  # fallback
-    
-    print(f"🎯 Hit animation definida: {hit_animation} (weapon tier: {weapon_tier if weapon_file else 'N/A'})")
+        # Fallback: calcular baseado no tier da weapon
+        weapon_file = final_equipment.get('weapon', '')
+        if weapon_file:
+            weapon_tier = get_equipment_tier_from_json(weapon_file)
+            if weapon_tier <= 2:
+                hit_animation = 'hit1'
+            elif weapon_tier <= 4:
+                hit_animation = 'hit2'
+            else:
+                hit_animation = 'hit3'
+        else:
+            hit_animation = 'hit1'  # fallback
+        print(f"🎯 Hit animation calculada: {hit_animation} (weapon tier: {weapon_tier if weapon_file else 'N/A'})")
+
+    # Determinar sons de ataque (armazenar array para alternância)
+    attack_sfx = None
+    hit_sounds_json = None
+    if template_hit_sounds and len(template_hit_sounds) > 0:
+        # Construir lista de caminhos completos
+        hit_sounds_list = [f"/static/game.data/sounds/hit-sounds/{s}" for s in template_hit_sounds]
+        hit_sounds_json = json.dumps(hit_sounds_list)
+        # Escolher um som inicial aleatório (fallback)
+        attack_sfx = random.choice(hit_sounds_list)
+        print(f"🔊 Attack SFX do template: {len(hit_sounds_list)} sons disponíveis")
 
     # ===== GERAR SKILLS DO INIMIGO =====
     # SEMPRE inicializar as variáveis primeiro (mesmo vazias)
@@ -1911,7 +1932,8 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
         reward_type=reward_type,
         reward_icon=reward_icon,
         hit_animation=hit_animation,
-        attack_sfx=None,  # Por enquanto vazio
+        attack_sfx=attack_sfx,  # Som do ataque do template (ou None)
+        hit_sounds_json=hit_sounds_json,  # Array de sons para alternância
         attack_charges_count=0,  # Inicia sem cargas
         action_queue='[]',
         enemy_skills=enemy_skills_json,
