@@ -723,18 +723,35 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
     }
     reward_type, reward_icon = reward_mappings.get(rarity, ('gold', '💰'))
 
-    # Hit animation baseado no grupo
-    group_idx = template.get('group_index', 0)  # Default para grupo 0 se não especificado
-    if group_idx in [0, 1]:  # Grupos 1 e 2
-        hit_animation = "hit1.png"
-    elif group_idx in [2, 3]:  # Grupos 3 e 4
-        hit_animation = "hit2.png"
-    elif group_idx in [4, 5]:  # Grupos 5 e 6
-        hit_animation = "hit3.png"
-    else:  # Grupo 7 (índice 6)
-        hit_animation = "blackhit-32-32-5f-160x32.png"
+    # Hit animation e sons do template
+    template_hit_sprite = template.get('hit_sprite')  # ex: "hit1.png"
+    template_hit_sounds = template.get('hit_sounds', [])  # ex: ["sword-hit.mp3"]
 
-    print(f"🎨 Animação de hit: {hit_animation} (Grupo {group_idx+1})")
+    # Usar hit sprite do template se disponível
+    if template_hit_sprite:
+        hit_animation = template_hit_sprite.replace('.png', '')
+        print(f"🎨 Animação de hit do template: {hit_animation}")
+    else:
+        # Fallback: baseado no grupo
+        group_idx = template.get('group_index', 0)
+        if group_idx in [0, 1]:  # Grupos 1 e 2
+            hit_animation = "hit1"
+        elif group_idx in [2, 3]:  # Grupos 3 e 4
+            hit_animation = "hit2"
+        elif group_idx in [4, 5]:  # Grupos 5 e 6
+            hit_animation = "hit3"
+        else:  # Grupo 7 (índice 6)
+            hit_animation = "blackhit-32-32-5f-160x32"
+        print(f"🎨 Animação de hit fallback: {hit_animation} (Grupo {group_idx+1})")
+
+    # Sons de ataque do template
+    attack_sfx = None
+    hit_sounds_json = None
+    if template_hit_sounds and len(template_hit_sounds) > 0:
+        hit_sounds_list = [f"/static/game.data/sounds/hit-sounds/{s}" for s in template_hit_sounds]
+        hit_sounds_json = json.dumps(hit_sounds_list)
+        attack_sfx = random.choice(hit_sounds_list)
+        print(f"🔊 Sons de ataque: {len(hit_sounds_list)} disponíveis")
 
     # Gerar skills baseado nos equipamentos
     selected_skills, skill_cooldown_reductions = generate_enemy_skills(enemy_number, rarity, sprite_layers)
@@ -778,7 +795,8 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
         reward_type=reward_type,
         reward_icon=reward_icon,
         hit_animation=hit_animation,
-        attack_sfx=None,
+        attack_sfx=attack_sfx,
+        hit_sounds_json=hit_sounds_json,
         attack_charges_count=0,
         action_queue='[]',
         enemy_skills=enemy_skills_json,
