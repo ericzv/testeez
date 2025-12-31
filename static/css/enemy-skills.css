@@ -213,35 +213,7 @@
 }
 
 
-/* ANIMAÇÕES DE HIT DOS BOSSES - MESMA CONFIGURAÇÃO DOS INIMIGOS GENÉRICOS */
-
-/* Estilo base para todas as animações de hit */
-.hit-animation {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(3);
-    width: 32px;
-    height: 32px;
-    background-repeat: no-repeat;
-    background-position: 0 0;
-    z-index: 200;
-    pointer-events: none;
-    opacity: 0;
-    overflow: hidden;
-    image-rendering: pixelated;
-}
-
-/* Animação padrão dos frames de hit - 5 frames de 32x32 */
-@keyframes hit-frames-5 {
-    from { background-position: 0px 0; }
-    to { background-position: -128px 0; }
-}
-
-.hit-animation.playing {
-    opacity: 1;
-    animation: hit-frames-5 0.5s steps(5) forwards;
-}
+/* SPRITES DE HIT DOS BOSSES - Usam a animação base definida em battle.css */
 
 /* Purassombra - blackhit */
 .hit-animation.blackhit-32-32-5f-160x32 {
