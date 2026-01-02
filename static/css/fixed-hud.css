@@ -1,6 +1,6 @@
 /* ================================================================================
    FIXED-HUD.CSS - HUD Fixo Superior (Dourado) e Inferior (Pedra Medieval)
-   Versão 2.1 - Integração com sistemas existentes (currencies, relics, run-buffs)
+   Versão 2.2 - Correções: animações, tooltips, energia, nav-buttons, relics
    ================================================================================
 */
 
@@ -28,8 +28,14 @@
 }
 
 /* ============================================== */
-/* AJUSTES DA ÁREA DE JOGO */
+/* AJUSTES DA ÁREA DE JOGO - NAV-BUTTONS */
 /* ============================================== */
+
+/* Ajustar nav-button para não ser cortado pelo HUD */
+body.has-fixed-hud .nav-button {
+  top: 54px !important; /* 44px do HUD + 10px de margem */
+  z-index: 999 !important;
+}
 
 /* Esconder elementos de HUD antigos na batalha */
 body.has-fixed-hud .character-hud {
@@ -139,6 +145,10 @@ body.has-fixed-hud .energy-indicator {
   margin: 0 4px;
 }
 
+.hud-separator-center {
+  margin: 0 12px;
+}
+
 /* Info do Ato */
 .hud-act-info {
   display: flex;
@@ -157,14 +167,19 @@ body.has-fixed-hud .energy-indicator {
 }
 
 /* ============================================== */
-/* SLOT CENTRAL - PARA CURRENCIES EXISTENTES */
+/* ÁREA CENTRAL - CURRENCIES + RELICS */
 /* ============================================== */
-.hud-currencies-slot {
+.hud-center-area {
   display: flex;
   align-items: center;
   flex: 1;
   justify-content: flex-start;
   padding-left: 20px;
+}
+
+.hud-currencies-slot {
+  display: flex;
+  align-items: center;
 }
 
 /* Quando currencies-hud está dentro do slot, ajustar estilo */
@@ -187,6 +202,7 @@ body.has-fixed-hud .energy-indicator {
 .hud-currencies-slot .currencies-hud .currency-item {
   padding: 2px 6px;
   gap: 4px;
+  position: relative;
 }
 
 .hud-currencies-slot .currencies-hud .currency-name {
@@ -203,8 +219,74 @@ body.has-fixed-hud .energy-indicator {
   color: #ddd;
 }
 
+/* Slot para Relíquias - AGORA NO CENTRO */
+.hud-relics-slot {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* Quando relics-bar está dentro do slot */
+.hud-relics-slot .relics-bar {
+  position: static !important;
+  transform: none !important;
+  top: auto !important;
+  left: auto !important;
+  display: flex !important;
+  padding: 0 !important;
+  border: none !important;
+  border-image: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.hud-relics-slot .relics-bar-items {
+  display: flex !important;
+  gap: 3px !important;
+}
+
+.hud-relics-slot .relic-bar-item {
+  width: 26px !important;
+  height: 26px !important;
+  min-width: 26px !important;
+  padding: 2px !important;
+  border-radius: 4px;
+  background: rgba(50, 40, 30, 0.5);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.hud-relics-slot .relic-bar-item:hover {
+  transform: translateY(-2px) scale(1.1);
+  border-color: var(--gold-primary);
+  box-shadow: 0 3px 10px var(--gold-shadow);
+  z-index: 10;
+}
+
+.hud-relics-slot .relic-bar-icon {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.hud-relics-slot .relic-bar-icon img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+}
+
+.hud-relics-slot .relic-bar-counter {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  font-size: 9px;
+  padding: 0 3px;
+  min-width: auto;
+}
+
 /* ============================================== */
-/* SEÇÃO DIREITA - LEMBRANÇAS + RELÍQUIAS */
+/* SEÇÃO DIREITA - LEMBRANÇAS */
 /* ============================================== */
 .hud-section-right {
   display: flex;
@@ -294,69 +376,74 @@ body.has-fixed-hud .energy-indicator {
   display: none !important;
 }
 
-/* Slot para Relíquias */
-.hud-relics-slot {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
+/* ============================================== */
+/* TOOLTIPS PARA CURRENCIES */
+/* ============================================== */
 
-/* Quando relics-bar está dentro do slot */
-.hud-relics-slot .relics-bar {
-  position: static !important;
-  transform: none !important;
-  top: auto !important;
-  left: auto !important;
-  display: flex !important;
-  padding: 0 !important;
-  border: none !important;
-  border-image: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-.hud-relics-slot .relics-bar-items {
-  display: flex !important;
-  gap: 3px !important;
-}
-
-.hud-relics-slot .relic-bar-item {
-  width: 26px !important;
-  height: 26px !important;
-  min-width: 26px !important;
-  padding: 2px !important;
-  border-radius: 4px;
-  background: rgba(50, 40, 30, 0.5);
-  border: 1px solid rgba(255, 215, 0, 0.3);
+.hud-currencies-slot .currency-item.has-tooltip {
   cursor: pointer;
-  transition: all 0.2s;
 }
 
-.hud-relics-slot .relic-bar-item:hover {
-  transform: translateY(-2px) scale(1.1);
-  border-color: var(--gold-primary);
-  box-shadow: 0 3px 10px var(--gold-shadow);
-  z-index: 10;
-}
-
-.hud-relics-slot .relic-bar-icon {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.hud-relics-slot .relic-bar-icon img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: contain;
-}
-
-.hud-relics-slot .relic-bar-counter {
+.hud-currencies-slot .custom-tooltip.currency-tooltip {
   position: absolute;
-  bottom: -2px;
-  right: -2px;
-  font-size: 9px;
-  padding: 0 3px;
-  min-width: auto;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  background: linear-gradient(135deg, #1a1510 0%, #2a2015 100%);
+  border: 1px solid var(--gold-dark);
+  border-radius: 6px;
+  padding: 8px 12px;
+  min-width: 180px;
+  z-index: 10000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+  pointer-events: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
+}
+
+.hud-currencies-slot .currency-item.has-tooltip:hover .custom-tooltip.currency-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.hud-currencies-slot .custom-tooltip .tooltip-name {
+  color: var(--gold-primary);
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.hud-currencies-slot .custom-tooltip .tooltip-description {
+  color: #aaa;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* Tooltips das lembranças - garantir que apareçam */
+.hud-memories-slot .custom-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #1a1020 0%, #2a1530 100%);
+  border: 1px solid #b482ff;
+  border-radius: 6px;
+  padding: 8px 12px;
+  min-width: 160px;
+  z-index: 10000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+  pointer-events: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
+}
+
+.hud-memories-slot .currency-item:hover .custom-tooltip {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* ============================================== */
@@ -426,49 +513,96 @@ body.has-fixed-hud .energy-indicator {
   filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.8));
 }
 
-/* Indicador de energia - canto superior esquerdo do ícone */
-.hud-energy-badge {
+/* ============================================== */
+/* INDICADOR DE ENERGIA - ESTILO ORIGINAL */
+/* ============================================== */
+.hud-energy-indicator {
   position: absolute;
-  top: -5px;
-  left: -5px;
+  top: 8px;
+  right: 10px;
   display: flex;
   align-items: center;
-  gap: 3px;
-  background: linear-gradient(135deg, #2a2520 0%, #1a1510 100%);
-  border: 2px solid #ffc107;
-  border-radius: 20px;
-  padding: 4px 10px;
-  box-shadow:
-    0 0 15px rgba(255, 193, 7, 0.4),
-    inset 0 1px 3px rgba(255, 255, 255, 0.1);
-  animation: energyPulse 2s ease-in-out infinite;
+  gap: 8px;
   z-index: 10;
 }
 
-@keyframes energyPulse {
-  0%, 100% { box-shadow: 0 0 10px rgba(255, 193, 7, 0.3); }
-  50% { box-shadow: 0 0 20px rgba(255, 193, 7, 0.6); }
+.hud-energy-icon-container {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.hud-energy-badge img {
-  width: 20px;
-  height: 20px;
-  filter: drop-shadow(0 0 3px rgba(255, 193, 7, 0.5));
+.hud-energy-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
+  transition: filter 0.3s ease;
 }
 
-.hud-energy-badge span {
+/* Brilho baseado na energia - estilo original */
+.hud-energy-indicator[data-energy-percent="high"] .hud-energy-icon {
+  filter: drop-shadow(0 0 12px rgba(255, 215, 0, 1));
+  animation: energyGlowHigh 2s ease-in-out infinite;
+}
+
+.hud-energy-indicator[data-energy-percent="medium"] .hud-energy-icon {
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+}
+
+.hud-energy-indicator[data-energy-percent="low"] .hud-energy-icon {
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.5));
+}
+
+@keyframes energyGlowHigh {
+  0%, 100% {
+    filter: drop-shadow(0 0 12px rgba(255, 215, 0, 1));
+  }
+  50% {
+    filter: drop-shadow(0 0 18px rgba(255, 215, 0, 1));
+  }
+}
+
+.hud-energy-text {
   color: #ffc107;
   font-size: 16px;
   font-weight: bold;
-  text-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
+  text-shadow: 0 0 8px rgba(255, 193, 7, 0.6), 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Animação de consumo de energia */
+@keyframes energyConsume {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.9); opacity: 0.7; }
+  100% { transform: scale(1); }
+}
+
+.hud-energy-indicator.consuming {
+  animation: energyConsume 0.3s ease;
+}
+
+/* Animação de restauração de energia */
+@keyframes energyRestore {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.hud-energy-indicator.restoring {
+  animation: energyRestore 0.5s ease;
+}
+
+.hud-energy-indicator.restoring .hud-energy-icon {
+  filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1));
 }
 
 /* Container de HP e buffs - ao lado do ícone */
 .hud-player-stats-container {
   position: absolute;
   left: 115px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 50px;
   width: calc(100% - 130px);
   display: flex;
   flex-direction: column;
@@ -487,6 +621,9 @@ body.has-fixed-hud .energy-indicator {
 }
 
 .hud-hp-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
   height: 100%;
   background: linear-gradient(180deg,
     #c62828 0%,
@@ -495,7 +632,6 @@ body.has-fixed-hud .energy-indicator {
     #b71c1c 100%
   );
   transition: width 0.3s ease;
-  position: relative;
   box-shadow: inset 0 -2px 5px rgba(0, 0, 0, 0.3);
 }
 

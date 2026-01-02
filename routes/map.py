@@ -495,6 +495,39 @@ def get_current_map():
     })
 
 
+@map_bp.route('/api/current_progress', methods=['GET'])
+def get_current_progress():
+    """
+    Retorna info simplificada do progresso atual para o HUD.
+    Usado pelo fixed-hud.html para mostrar Ato e Node atual.
+
+    Returns:
+        JSON com current_act e node_level
+    """
+    player = Player.query.first()
+    if not player:
+        return jsonify({'success': False, 'current_act': 1, 'node_level': 0})
+
+    progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+
+    if not progress:
+        return jsonify({'success': True, 'current_act': 1, 'node_level': 0})
+
+    node_level = 0
+    if progress.current_node_id:
+        current_node = MapNode.query.get(progress.current_node_id)
+        if current_node:
+            node_level = current_node.y
+
+    return jsonify({
+        'success': True,
+        'current_act': progress.current_act or 1,
+        'node_level': node_level,
+        'battles_won': progress.battles_won or 0,
+        'elites_defeated': progress.elites_defeated or 0
+    })
+
+
 @map_bp.route('/api/select-node/<int:node_id>', methods=['POST'])
 def select_node(node_id):
     """

@@ -1,6 +1,6 @@
 <!-- ============================================== -->
-<!-- FIXED HUD v2.1 - Integração com sistemas existentes -->
-<!-- Move currencies-hud, run-buffs-hud e relics-bar para dentro do novo HUD -->
+<!-- FIXED HUD v2.2 - Correções de integração -->
+<!-- Animações, tooltips, posicionamento, node tracking -->
 <!-- ============================================== -->
 
 <!-- HUD SUPERIOR - BARRA FINA DOURADA -->
@@ -22,17 +22,26 @@
 
     <!-- Info do Ato/Node -->
     <div class="hud-act-info">
-      <span class="hud-act-label">Ato <span id="hud-act-number">{{ current_act or 1 }}</span></span>
-      <span class="hud-node-number">#<span id="hud-node-number">{{ current_node or 1 }}</span></span>
+      <span class="hud-act-label">Ato <span id="hud-act-number">1</span></span>
+      <span class="hud-node-number">#<span id="hud-node-number">1</span></span>
     </div>
   </div>
 
-  <!-- Slot Central: currencies-hud será movido pra cá -->
-  <div class="hud-currencies-slot" id="hud-currencies-slot">
-    <!-- currencies-hud será movido aqui via JavaScript -->
+  <!-- Slot Central: currencies-hud + relics-bar serão movidos pra cá -->
+  <div class="hud-center-area">
+    <div class="hud-currencies-slot" id="hud-currencies-slot">
+      <!-- currencies-hud será movido aqui via JavaScript -->
+    </div>
+
+    <div class="hud-separator hud-separator-center"></div>
+
+    <!-- Slot para Relíquias (relics-bar) - AGORA NO CENTRO -->
+    <div class="hud-relics-slot" id="hud-relics-slot">
+      <!-- relics-bar será movido aqui via JavaScript -->
+    </div>
   </div>
 
-  <!-- Seção Direita: Lembranças + Relíquias -->
+  <!-- Seção Direita: Apenas Lembranças -->
   <div class="hud-section-right">
     <!-- Slot para Lembranças (run-buffs-hud) -->
     <div class="hud-memories-slot" id="hud-memories-slot">
@@ -41,11 +50,6 @@
         <span>Lembranças</span>
       </div>
       <!-- run-buffs-hud será movido aqui via JavaScript -->
-    </div>
-
-    <!-- Slot para Relíquias (relics-bar) -->
-    <div class="hud-relics-slot" id="hud-relics-slot">
-      <!-- relics-bar será movido aqui via JavaScript -->
     </div>
   </div>
 
@@ -61,12 +65,14 @@
       <img src="{{ url_for('static', filename='game.data/character/' ~ (player.character_id or 'vlad') ~ '/' ~ (player.character_id or 'vlad') ~ '-icon.png') }}"
            alt="{{ player.character_name or 'Personagem' }}"
            onerror="this.src='{{ url_for('static', filename='game.data/icons/default_character.svg') }}'">
+    </div>
 
-      <!-- Badge de Energia -->
-      <div class="hud-energy-badge" id="hud-energy-badge">
-        <img src="{{ url_for('static', filename='game.data/energy.png') }}" alt="Energia">
-        <span id="hud-energy-text">10/10</span>
+    <!-- Indicador de Energia - CANTO SUPERIOR DIREITO -->
+    <div class="hud-energy-indicator" id="hud-energy-indicator" data-energy-percent="high">
+      <div class="hud-energy-icon-container">
+        <img src="{{ url_for('static', filename='game.data/energy.png') }}" alt="Energia" class="hud-energy-icon">
       </div>
+      <span class="hud-energy-text" id="hud-energy-text">10/10</span>
     </div>
 
     <!-- Stats (HP e Buffs) -->
@@ -191,10 +197,40 @@
   setTimeout(moveHudElements, 1000);
 
   // ========================================
+  // CARREGAR INFO DO ATO/NODE
+  // ========================================
+  async function loadActNodeInfo() {
+    try {
+      const response = await fetch('/map/api/current_progress');
+      const data = await response.json();
+
+      if (data.success) {
+        const actEl = document.getElementById('hud-act-number');
+        const nodeEl = document.getElementById('hud-node-number');
+
+        if (actEl) actEl.textContent = data.current_act || 1;
+        if (nodeEl) {
+          // Cada ato tem 16 nodes (0-15), então calcular node relativo
+          const nodeInAct = data.node_level !== undefined ? (data.node_level + 1) : 1;
+          nodeEl.textContent = nodeInAct;
+        }
+      }
+    } catch (error) {
+      console.log('[HUD] Sem info de mapa:', error);
+    }
+  }
+
+  // Carregar info do ato/node
+  loadActNodeInfo();
+
+  // Atualizar periodicamente (a cada 5 segundos)
+  setInterval(loadActNodeInfo, 5000);
+
+  // ========================================
   // FUNÇÕES DE ATUALIZAÇÃO DO HUD INFERIOR
   // ========================================
 
-  // Atualizar HP
+  // Atualizar HP com percentual correto
   window.updateHudHP = function(current, max, barrier) {
     const hpFill = document.getElementById('hud-hp-fill');
     const barrierFill = document.getElementById('hud-barrier-fill');
@@ -222,11 +258,24 @@
     }
   };
 
-  // Atualizar Energia
+  // Atualizar Energia com efeito visual
   window.updateHudEnergy = function(current, max) {
     const energyText = document.getElementById('hud-energy-text');
+    const energyIndicator = document.getElementById('hud-energy-indicator');
+
     if (energyText) {
       energyText.textContent = current + '/' + max;
+    }
+
+    if (energyIndicator) {
+      const percent = (current / max) * 100;
+      if (percent >= 70) {
+        energyIndicator.setAttribute('data-energy-percent', 'high');
+      } else if (percent >= 30) {
+        energyIndicator.setAttribute('data-energy-percent', 'medium');
+      } else {
+        energyIndicator.setAttribute('data-energy-percent', 'low');
+      }
     }
   };
 
@@ -248,6 +297,112 @@
       container.appendChild(item);
     });
   };
+
+  // ========================================
+  // INTERCEPTAR updateCurrencyDisplay PARA ADICIONAR ANIMAÇÕES
+  // ========================================
+
+  // Guardar valores antigos para detectar mudanças
+  let lastCurrencyValues = {
+    crystals: null,
+    gold: null,
+    hourglasses: null
+  };
+
+  // Função para adicionar animação quando valor muda
+  function animateCurrencyChange(elementId, newValue) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+
+    const oldValue = parseInt(element.textContent) || 0;
+    const newVal = parseInt(newValue) || 0;
+
+    if (oldValue !== newVal) {
+      // Remover classe anterior se existir
+      element.classList.remove('changed');
+
+      // Forçar reflow para reiniciar animação
+      void element.offsetWidth;
+
+      // Adicionar classe de animação
+      element.classList.add('changed');
+
+      // Tocar som de moeda (se disponível)
+      if (window.playSound && typeof window.playSound === 'function') {
+        window.playSound('coin');
+      } else if (window.audioManager && window.audioManager.playSound) {
+        window.audioManager.playSound('coin');
+      }
+
+      // Remover classe após animação
+      setTimeout(() => {
+        element.classList.remove('changed');
+      }, 1600);
+    }
+
+    element.textContent = newValue;
+  }
+
+  // Sobrescrever updateCurrencyDisplay para incluir animações
+  const originalUpdateCurrency = window.updateCurrencyDisplay;
+
+  window.updateCurrencyDisplay = async function() {
+    try {
+      const response = await fetch('/gamification/get_player_currencies');
+      const data = await response.json();
+      if (data.success) {
+        animateCurrencyChange('crystals-value', data.crystals);
+        animateCurrencyChange('gold-value', data.gold);
+        animateCurrencyChange('hourglasses-value', data.hourglasses);
+      }
+    } catch (error) {
+      console.error('[HUD] Erro ao atualizar currencies:', error);
+    }
+  };
+
+  // ========================================
+  // ADICIONAR TOOLTIPS ÀS CURRENCIES
+  // ========================================
+
+  function addCurrencyTooltips() {
+    const tooltips = {
+      'crystals-value': {
+        name: 'Cristais de Memória',
+        desc: 'Moeda principal. Use para melhorar cartas e comprar itens na loja.'
+      },
+      'gold-value': {
+        name: 'Ouro',
+        desc: 'Moeda da run atual. Perde ao morrer. Use na loja do mapa.'
+      },
+      'hourglasses-value': {
+        name: 'Ampulhetas Eternas',
+        desc: 'Moeda premium rara. Use para rerolls e itens especiais.'
+      }
+    };
+
+    Object.keys(tooltips).forEach(id => {
+      const element = document.getElementById(id);
+      if (element) {
+        const parent = element.closest('.currency-item');
+        if (parent && !parent.querySelector('.custom-tooltip')) {
+          parent.style.position = 'relative';
+          parent.classList.add('has-tooltip');
+
+          const tooltip = document.createElement('div');
+          tooltip.className = 'custom-tooltip currency-tooltip';
+          tooltip.innerHTML = `
+            <div class="tooltip-name">${tooltips[id].name}</div>
+            <div class="tooltip-description">${tooltips[id].desc}</div>
+          `;
+          parent.appendChild(tooltip);
+        }
+      }
+    });
+  }
+
+  // Adicionar tooltips após elementos serem movidos
+  setTimeout(addCurrencyTooltips, 600);
+  setTimeout(addCurrencyTooltips, 1500);
 
 })();
 </script>
