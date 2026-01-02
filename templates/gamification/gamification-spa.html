@@ -22,6 +22,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/fast-battle-mode.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/battle-skill-test.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/enemy-skills.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/fixed-hud.css') }}">
 
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -152,7 +153,10 @@ function closeMapPopup() {
 </script>
 </head>
 
-<body class="gamification-page">
+<body class="gamification-page has-fixed-hud">
+
+<!-- Fixed HUD (Superior e Inferior) -->
+{% include 'gamification/partials/fixed_hud.html' %}
 
 <!-- SPA Container -->
 <div class="spa-container">
