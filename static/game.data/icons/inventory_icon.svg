@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="bagGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B6914"/>
+      <stop offset="30%" style="stop-color:#CD853F"/>
+      <stop offset="70%" style="stop-color:#A0522D"/>
+      <stop offset="100%" style="stop-color:#6B4423"/>
+    </linearGradient>
+    <linearGradient id="metalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700"/>
+      <stop offset="50%" style="stop-color:#FFF8DC"/>
+      <stop offset="100%" style="stop-color:#B8860B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Corpo da mochila -->
+  <path d="M 16 24
+           C 16 20, 20 16, 32 16
+           C 44 16, 48 20, 48 24
+           L 50 52
+           C 50 56, 46 58, 32 58
+           C 18 58, 14 56, 14 52
+           Z"
+        fill="url(#bagGrad)" stroke="#5D3A1A" stroke-width="1.5"/>
+
+  <!-- Bolso frontal -->
+  <path d="M 22 36
+           C 22 34, 26 32, 32 32
+           C 38 32, 42 34, 42 36
+           L 42 48
+           C 42 50, 38 52, 32 52
+           C 26 52, 22 50, 22 48
+           Z"
+        fill="#6B4423" stroke="#5D3A1A" stroke-width="1"/>
+
+  <!-- Fecho do bolso -->
+  <circle cx="32" cy="38" r="3" fill="url(#metalGrad)" stroke="#8B6914" stroke-width="0.5"/>
+
+  <!-- Alça superior -->
+  <path d="M 24 16
+           Q 24 8, 32 8
+           Q 40 8, 40 16"
+        fill="none" stroke="#5D3A1A" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 24 16
+           Q 24 10, 32 10
+           Q 40 10, 40 16"
+        fill="none" stroke="#8B6914" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Costuras decorativas -->
+  <path d="M 20 28 L 20 50" stroke="#5D3A1A" stroke-width="0.5" stroke-dasharray="2,2"/>
+  <path d="M 44 28 L 44 50" stroke="#5D3A1A" stroke-width="0.5" stroke-dasharray="2,2"/>
+
+  <!-- Fivelas laterais -->
+  <rect x="12" y="30" width="4" height="6" rx="1" fill="url(#metalGrad)" stroke="#8B6914" stroke-width="0.5"/>
+  <rect x="48" y="30" width="4" height="6" rx="1" fill="url(#metalGrad)" stroke="#8B6914" stroke-width="0.5"/>
+</svg>

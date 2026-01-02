@@ -2,9 +2,21 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/hub.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/fixed-hud.css') }}">
+<style>
+  /* No hub, esconder o HUD inferior (só mostrar na batalha) */
+  .fixed-hud-bottom { display: none !important; }
+  /* Esconder HUD antigo de currencies já que temos o novo */
+  .currencies-hud { display: none !important; }
+  .relics-bar { display: none !important; }
+  .run-buffs-hud { display: none !important; }
+</style>
 {% endblock %}
 
 {% block game_content %}
+
+<!-- Fixed HUD (Superior) -->
+{% include 'gamification/partials/fixed_hud.html' %}
 
 <!-- Navegação independente do hub -->
 <a href="{{ url_for('cards.index') }}" class="nav-button">

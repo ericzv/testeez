@@ -1,0 +1,1035 @@
+/* ================================================================================
+   FIXED-HUD.CSS - HUD Fixo Superior (Dourado Ornamentado) e Inferior (Pedra Medieval)
+   Inspiração: Slay the Spire (topo) + Darkest Dungeon (baixo)
+   ================================================================================
+*/
+
+/* ============================================== */
+/* VARIÁVEIS CSS */
+/* ============================================== */
+:root {
+  /* Cores Dourado Ornamentado */
+  --gold-primary: #FFD700;
+  --gold-dark: #B8860B;
+  --gold-light: #FFF8DC;
+  --gold-shadow: rgba(255, 215, 0, 0.4);
+  --gold-glow: rgba(255, 215, 0, 0.6);
+
+  /* Cores Pedra Medieval */
+  --stone-primary: #5C5C5C;
+  --stone-dark: #3A3A3A;
+  --stone-light: #8B8B8B;
+  --stone-accent: #4A4A4A;
+  --stone-shadow: rgba(0, 0, 0, 0.6);
+  --stone-crack: #2A2A2A;
+
+  /* Dimensões do HUD */
+  --hud-top-height: 90px;
+  --hud-bottom-height: 120px;
+  --hud-padding: 10px 20px;
+}
+
+/* ============================================== */
+/* CONTAINER PRINCIPAL - AJUSTE DA ÁREA DE JOGO */
+/* ============================================== */
+.game-area-with-hud {
+  padding-top: var(--hud-top-height);
+  padding-bottom: var(--hud-bottom-height);
+  box-sizing: border-box;
+  min-height: 100vh;
+}
+
+/* Ajuste da battle-arena quando HUD está ativo */
+body.has-fixed-hud .battle-arena {
+  height: calc(100vh - var(--hud-top-height) - var(--hud-bottom-height)) !important;
+  top: var(--hud-top-height) !important;
+  position: fixed !important;
+  left: 0;
+  right: 0;
+  bottom: var(--hud-bottom-height) !important;
+}
+
+/* Ajuste dos containers de personagem e boss para não ficarem escondidos */
+body.has-fixed-hud .character-container {
+  bottom: calc(5% + 10px) !important;
+}
+
+body.has-fixed-hud .boss-container {
+  bottom: calc(5% + 10px) !important;
+}
+
+/* Ajuste do background para cobrir corretamente */
+body.has-fixed-hud .background-container {
+  top: 0 !important;
+  bottom: 0 !important;
+  height: 100% !important;
+}
+
+/* Esconder elementos de HUD antigos na batalha quando usando novo HUD */
+body.has-fixed-hud .character-hud,
+body.has-fixed-hud .energy-indicator {
+  display: none !important;
+}
+
+/* Ajuste do menu de ações existente - esconder pois usamos o novo HUD */
+body.has-fixed-hud .action-menu {
+  display: none !important;
+}
+
+/* ============================================== */
+/* HUD SUPERIOR - DOURADO ORNAMENTADO */
+/* ============================================== */
+.fixed-hud-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--hud-top-height);
+  z-index: 1000;
+  font-family: 'Cinzel', 'Georgia', serif;
+
+  /* Fundo base */
+  background: linear-gradient(180deg,
+    #1a1510 0%,
+    #0d0a08 60%,
+    rgba(13, 10, 8, 0.95) 100%
+  );
+
+  /* Borda inferior dourada ornamentada */
+  border-bottom: 3px solid transparent;
+  border-image: linear-gradient(90deg,
+    transparent 0%,
+    var(--gold-dark) 10%,
+    var(--gold-primary) 30%,
+    var(--gold-light) 50%,
+    var(--gold-primary) 70%,
+    var(--gold-dark) 90%,
+    transparent 100%
+  ) 1;
+
+  /* Sombra e brilho */
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.8),
+    0 2px 10px var(--gold-shadow),
+    inset 0 -2px 15px rgba(0, 0, 0, 0.5);
+}
+
+/* Decoração de cantos dourados */
+.fixed-hud-top::before,
+.fixed-hud-top::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  width: 60px;
+  height: 60px;
+  background: url('/static/game.data/ui/corner_gold.svg') no-repeat center;
+  background-size: contain;
+  z-index: 2;
+  filter: drop-shadow(0 0 8px var(--gold-glow));
+}
+
+.fixed-hud-top::before {
+  left: 0;
+  transform: rotate(0deg);
+}
+
+.fixed-hud-top::after {
+  right: 0;
+  transform: scaleX(-1);
+}
+
+/* Container principal do HUD superior */
+.hud-top-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: var(--hud-padding);
+  max-width: 100%;
+}
+
+/* ============================================== */
+/* SEÇÃO ESQUERDA - INFO DO PERSONAGEM + ATO */
+/* ============================================== */
+.hud-section-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-shrink: 0;
+}
+
+/* Ícone do personagem da run */
+.hud-character-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  border: 2px solid var(--gold-dark);
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  overflow: hidden;
+  box-shadow:
+    0 0 10px rgba(0, 0, 0, 0.5),
+    inset 0 0 5px rgba(255, 215, 0, 0.2);
+}
+
+.hud-character-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Nome do personagem */
+.hud-character-name {
+  color: var(--gold-light);
+  font-size: 16px;
+  font-weight: 600;
+  text-shadow: 0 0 10px var(--gold-shadow);
+  letter-spacing: 1px;
+}
+
+/* Separador vertical dourado */
+.hud-separator {
+  width: 2px;
+  height: 40px;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    var(--gold-dark) 20%,
+    var(--gold-primary) 50%,
+    var(--gold-dark) 80%,
+    transparent 100%
+  );
+  margin: 0 10px;
+}
+
+/* Info do Ato/Node */
+.hud-act-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c9c9c9;
+  font-size: 14px;
+}
+
+.hud-act-label {
+  color: var(--gold-primary);
+  font-weight: 600;
+}
+
+.hud-node-number {
+  color: #888;
+  font-size: 13px;
+}
+
+/* ============================================== */
+/* SEÇÃO CENTRAL - MOEDAS/RECURSOS */
+/* ============================================== */
+.hud-section-center {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 20px;
+  background: linear-gradient(180deg,
+    rgba(30, 25, 20, 0.9) 0%,
+    rgba(20, 15, 10, 0.95) 100%
+  );
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+  box-shadow:
+    inset 0 2px 10px rgba(0, 0, 0, 0.5),
+    0 0 15px rgba(255, 215, 0, 0.1);
+}
+
+/* Item de moeda/recurso */
+.hud-currency-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: default;
+  position: relative;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.hud-currency-item:hover {
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.hud-currency-icon {
+  width: 24px;
+  height: 24px;
+  filter: drop-shadow(0 0 4px var(--gold-shadow));
+}
+
+.hud-currency-value {
+  color: var(--gold-light);
+  font-size: 16px;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  min-width: 30px;
+}
+
+/* ============================================== */
+/* SEÇÃO DIREITA - LEMBRANÇAS */
+/* ============================================== */
+.hud-section-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.hud-memories-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: linear-gradient(180deg,
+    rgba(40, 30, 50, 0.9) 0%,
+    rgba(25, 20, 35, 0.95) 100%
+  );
+  border: 1px solid rgba(180, 130, 255, 0.3);
+  border-radius: 8px;
+}
+
+.hud-memories-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #b482ff;
+  font-size: 13px;
+}
+
+.hud-memories-label img {
+  width: 18px;
+  height: 18px;
+}
+
+.hud-memories-list {
+  display: flex;
+  gap: 4px;
+}
+
+.hud-memory-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(180, 130, 255, 0.5);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hud-memory-icon:hover {
+  transform: scale(1.15);
+  border-color: #b482ff;
+  box-shadow: 0 0 10px rgba(180, 130, 255, 0.5);
+}
+
+.hud-memory-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ============================================== */
+/* LINHA DE RELÍQUIAS (ABAIXO DO HUD PRINCIPAL) */
+/* ============================================== */
+.hud-relics-row {
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 15px;
+  background: linear-gradient(180deg,
+    rgba(20, 15, 10, 0.95) 0%,
+    rgba(10, 8, 5, 0.98) 100%
+  );
+  border: 1px solid rgba(255, 215, 0, 0.25);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+}
+
+.hud-relic-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  background: rgba(0, 0, 0, 0.4);
+  padding: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.hud-relic-icon:hover {
+  transform: translateY(-3px) scale(1.1);
+  border-color: var(--gold-primary);
+  box-shadow: 0 5px 15px var(--gold-shadow);
+}
+
+.hud-relic-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Stack counter para relíquias */
+.hud-relic-stack {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  background: var(--gold-dark);
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 1px 4px;
+  border-radius: 4px;
+  min-width: 14px;
+  text-align: center;
+}
+
+/* ============================================== */
+/* HUD INFERIOR - PEDRA MEDIEVAL */
+/* ============================================== */
+.fixed-hud-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--hud-bottom-height);
+  z-index: 1000;
+  font-family: 'Cinzel', 'Georgia', serif;
+
+  /* Fundo de pedra */
+  background:
+    /* Textura de rachaduras */
+    repeating-linear-gradient(
+      45deg,
+      transparent 0px,
+      transparent 20px,
+      rgba(0, 0, 0, 0.1) 20px,
+      rgba(0, 0, 0, 0.1) 21px
+    ),
+    /* Gradiente de pedra */
+    linear-gradient(0deg,
+      #2a2a2a 0%,
+      #3d3d3d 30%,
+      #4a4a4a 50%,
+      #3d3d3d 70%,
+      #2a2a2a 100%
+    );
+
+  /* Borda superior de pedra esculpida */
+  border-top: 4px solid var(--stone-dark);
+
+  /* Sombra dramática */
+  box-shadow:
+    0 -4px 20px rgba(0, 0, 0, 0.8),
+    inset 0 3px 15px rgba(0, 0, 0, 0.4),
+    inset 0 -2px 10px rgba(100, 100, 100, 0.1);
+}
+
+/* Textura de pedra com ruído */
+.fixed-hud-bottom::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+/* Borda superior decorativa */
+.fixed-hud-bottom::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg,
+    var(--stone-dark) 0%,
+    var(--stone-light) 20%,
+    var(--stone-primary) 50%,
+    var(--stone-light) 80%,
+    var(--stone-dark) 100%
+  );
+}
+
+/* Decoração de cantos de pedra */
+.hud-bottom-corner-left,
+.hud-bottom-corner-right {
+  position: absolute;
+  top: -3px;
+  width: 60px;
+  height: 60px;
+  background: url('/static/game.data/ui/corner_stone.svg') no-repeat center;
+  background-size: contain;
+  z-index: 2;
+  filter: drop-shadow(0 -2px 5px rgba(0, 0, 0, 0.5));
+}
+
+.hud-bottom-corner-left {
+  left: 0;
+  transform: scaleY(-1);
+}
+
+.hud-bottom-corner-right {
+  right: 0;
+  transform: scale(-1, -1);
+}
+
+/* Container do conteúdo inferior */
+.hud-bottom-content {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  height: 100%;
+  padding: 10px 20px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================== */
+/* SEÇÃO ESQUERDA INFERIOR - PERSONAGEM + HP */
+/* ============================================== */
+.hud-bottom-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 0 0 300px;
+  padding: 10px 15px;
+  background: linear-gradient(135deg,
+    rgba(30, 30, 30, 0.8) 0%,
+    rgba(20, 20, 20, 0.9) 100%
+  );
+  border: 2px solid var(--stone-dark);
+  border-radius: 10px;
+  box-shadow:
+    inset 0 2px 10px rgba(0, 0, 0, 0.5),
+    0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Ícone do personagem no HUD inferior */
+.hud-player-portrait {
+  width: 70px;
+  height: 70px;
+  border: 3px solid var(--stone-light);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 15px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+}
+
+.hud-player-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Container de stats do jogador */
+.hud-player-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+/* Barra de HP estilo pedra */
+.hud-hp-bar-container {
+  position: relative;
+  height: 22px;
+  background: linear-gradient(180deg, #1a1a1a, #2a2a2a);
+  border: 2px solid var(--stone-dark);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8);
+}
+
+/* Preenchimento da barra de HP */
+.hud-hp-fill {
+  height: 100%;
+  background: linear-gradient(180deg,
+    #c62828 0%,
+    #f44336 40%,
+    #e53935 60%,
+    #b71c1c 100%
+  );
+  transition: width 0.3s ease;
+  position: relative;
+  box-shadow:
+    inset 0 -2px 5px rgba(0, 0, 0, 0.3),
+    0 0 10px rgba(244, 67, 54, 0.4);
+}
+
+/* Brilho animado na barra */
+.hud-hp-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.3) 0%,
+    transparent 100%
+  );
+}
+
+/* Barreira sobreposta */
+.hud-barrier-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(180deg,
+    #1565c0 0%,
+    #42a5f5 40%,
+    #2196f3 60%,
+    #0d47a1 100%
+  );
+  opacity: 0.9;
+  box-shadow: 0 0 15px rgba(33, 150, 243, 0.5);
+  transition: width 0.3s ease;
+}
+
+/* Texto de HP */
+.hud-hp-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  text-shadow:
+    1px 1px 2px rgba(0, 0, 0, 0.8),
+    0 0 5px rgba(0, 0, 0, 0.5);
+  z-index: 2;
+}
+
+/* Linha de buffs e energia */
+.hud-player-buffs-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Indicador de energia */
+.hud-energy-display {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 193, 7, 0.4);
+  border-radius: 4px;
+}
+
+.hud-energy-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.hud-energy-text {
+  color: #ffc107;
+  font-size: 14px;
+  font-weight: bold;
+  text-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
+}
+
+/* Container de buffs/debuffs */
+.hud-buffs-container {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  max-width: 120px;
+}
+
+.hud-buff-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1px solid rgba(100, 100, 100, 0.5);
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2px;
+  position: relative;
+}
+
+.hud-buff-icon.buff {
+  border-color: rgba(76, 175, 80, 0.6);
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+}
+
+.hud-buff-icon.debuff {
+  border-color: rgba(244, 67, 54, 0.6);
+  box-shadow: 0 0 5px rgba(244, 67, 54, 0.3);
+}
+
+.hud-buff-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hud-buff-duration {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: #333;
+  color: #fff;
+  font-size: 9px;
+  padding: 0 3px;
+  border-radius: 3px;
+  min-width: 12px;
+  text-align: center;
+}
+
+/* ============================================== */
+/* SEÇÃO CENTRAL INFERIOR - MENUS DE AÇÃO */
+/* ============================================== */
+.hud-bottom-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  flex: 1;
+  padding: 0 20px;
+}
+
+/* Wrapper de menu circular */
+.hud-action-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Botão de ação circular */
+.hud-action-btn {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 3px solid var(--stone-light);
+  background: linear-gradient(145deg,
+    #4a4a4a 0%,
+    #3a3a3a 50%,
+    #2a2a2a 100%
+  );
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 4px 15px rgba(0, 0, 0, 0.5),
+    inset 0 2px 5px rgba(100, 100, 100, 0.2),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.hud-action-btn::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 15%;
+  right: 15%;
+  height: 8px;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    transparent 100%
+  );
+  border-radius: 50%;
+}
+
+.hud-action-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  border-color: var(--gold-primary);
+  box-shadow:
+    0 8px 25px rgba(0, 0, 0, 0.6),
+    0 0 20px var(--gold-shadow);
+}
+
+.hud-action-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.hud-action-btn img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+/* Rótulo do botão de ação */
+.hud-action-label {
+  color: #aaa;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* Botão de ataque - vermelho */
+.hud-action-btn.attack-btn {
+  border-color: #8b0000;
+  background: linear-gradient(145deg,
+    #5a2a2a 0%,
+    #4a1a1a 50%,
+    #3a0a0a 100%
+  );
+}
+
+.hud-action-btn.attack-btn:hover {
+  border-color: #ff4444;
+  box-shadow:
+    0 8px 25px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(255, 68, 68, 0.4);
+}
+
+/* Botão de skills - azul/roxo */
+.hud-action-btn.skills-btn {
+  border-color: #4a148c;
+  background: linear-gradient(145deg,
+    #3a2a5a 0%,
+    #2a1a4a 50%,
+    #1a0a3a 100%
+  );
+}
+
+.hud-action-btn.skills-btn:hover {
+  border-color: #9c27b0;
+  box-shadow:
+    0 8px 25px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(156, 39, 176, 0.4);
+}
+
+/* ============================================== */
+/* SEÇÃO DIREITA INFERIOR - INVENTÁRIO */
+/* ============================================== */
+.hud-bottom-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 150px;
+  padding: 10px;
+}
+
+/* Botão de inventário maior */
+.hud-inventory-btn {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  border: 3px solid var(--stone-light);
+  background: linear-gradient(145deg,
+    #4a4030 0%,
+    #3a3020 50%,
+    #2a2010 100%
+  );
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow:
+    0 4px 15px rgba(0, 0, 0, 0.5),
+    inset 0 2px 5px rgba(100, 80, 50, 0.2),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.hud-inventory-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  border-color: #cd853f;
+  box-shadow:
+    0 8px 25px rgba(0, 0, 0, 0.6),
+    0 0 15px rgba(205, 133, 63, 0.3);
+}
+
+.hud-inventory-btn img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.hud-inventory-btn span {
+  color: #aaa;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ============================================== */
+/* TOOLTIPS - ESTILO UNIFICADO */
+/* ============================================== */
+.hud-tooltip {
+  position: absolute;
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 2px solid var(--gold-dark);
+  border-radius: 8px;
+  padding: 10px 15px;
+  min-width: 150px;
+  max-width: 250px;
+  z-index: 2000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  box-shadow:
+    0 5px 20px rgba(0, 0, 0, 0.8),
+    0 0 10px var(--gold-shadow);
+}
+
+.hud-tooltip.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.hud-tooltip-title {
+  color: var(--gold-primary);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  text-shadow: 0 0 5px var(--gold-shadow);
+}
+
+.hud-tooltip-desc {
+  color: #aaa;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Seta do tooltip (para cima) */
+.hud-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid var(--gold-dark);
+}
+
+.hud-tooltip::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid #1a1a1a;
+}
+
+/* Tooltip para baixo */
+.hud-tooltip.tooltip-bottom::before {
+  top: auto;
+  bottom: -8px;
+  border-bottom: none;
+  border-top: 8px solid var(--gold-dark);
+}
+
+.hud-tooltip.tooltip-bottom::after {
+  top: auto;
+  bottom: -5px;
+  border-bottom: none;
+  border-top: 6px solid #0a0a0a;
+}
+
+/* ============================================== */
+/* ANIMAÇÕES */
+/* ============================================== */
+@keyframes hud-pulse-gold {
+  0%, 100% {
+    box-shadow: 0 0 10px var(--gold-shadow);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--gold-glow);
+  }
+}
+
+@keyframes hud-hp-critical {
+  0%, 100% {
+    background: linear-gradient(180deg, #c62828, #b71c1c);
+  }
+  50% {
+    background: linear-gradient(180deg, #ff1744, #d50000);
+    box-shadow: 0 0 20px rgba(255, 23, 68, 0.6);
+  }
+}
+
+.hud-hp-fill.critical {
+  animation: hud-hp-critical 0.8s ease-in-out infinite;
+}
+
+/* ============================================== */
+/* RESPONSIVIDADE */
+/* ============================================== */
+@media (max-width: 1200px) {
+  .hud-section-center {
+    gap: 15px;
+    padding: 6px 15px;
+  }
+
+  .hud-currency-value {
+    font-size: 14px;
+  }
+
+  .hud-bottom-left {
+    flex: 0 0 250px;
+  }
+}
+
+@media (max-width: 992px) {
+  :root {
+    --hud-top-height: 80px;
+    --hud-bottom-height: 100px;
+  }
+
+  .hud-character-name {
+    display: none;
+  }
+
+  .hud-action-btn {
+    width: 60px;
+    height: 60px;
+  }
+
+  .hud-bottom-center {
+    gap: 20px;
+  }
+}
+
+/* ============================================== */
+/* ESTADOS E MODIFICADORES */
+/* ============================================== */
+
+/* Estado de combate ativo */
+.fixed-hud-bottom.in-combat .hud-action-btn {
+  animation: hud-pulse-gold 2s ease-in-out infinite;
+}
+
+/* Ocultar HUD temporariamente */
+.fixed-hud-top.hidden,
+.fixed-hud-bottom.hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+.fixed-hud-bottom.hidden {
+  transform: translateY(100%);
+}

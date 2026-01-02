@@ -20,6 +20,7 @@
 <link rel="stylesheet" href="/static/css/battle-turns.css">
 <link rel="stylesheet" href="/static/css/fast-battle-mode.css">
 <link rel="stylesheet" href="/static/css/battle-skill-test.css">
+<link rel="stylesheet" href="/static/css/fixed-hud.css">
 
 <style>
 /* ============================================
@@ -231,7 +232,11 @@
 </style>
 
 </head>
-<body>
+<body class="has-fixed-hud">
+
+<!-- Fixed HUD (Superior e Inferior) -->
+{% include 'gamification/partials/fixed_hud.html' %}
+
 <!-- Loading Screen -->
 <div class="loading-screen" id="loading-screen">
     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">

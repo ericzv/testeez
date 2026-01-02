@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="60" height="60">
+  <defs>
+    <!-- Gradiente de pedra -->
+    <linearGradient id="stoneGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6B6B6B"/>
+      <stop offset="25%" style="stop-color:#5C5C5C"/>
+      <stop offset="50%" style="stop-color:#4A4A4A"/>
+      <stop offset="75%" style="stop-color:#3D3D3D"/>
+      <stop offset="100%" style="stop-color:#2D2D2D"/>
+    </linearGradient>
+
+    <!-- Gradiente de sombra profunda -->
+    <linearGradient id="stoneShadow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1A1A"/>
+      <stop offset="100%" style="stop-color:#0A0A0A"/>
+    </linearGradient>
+
+    <!-- Gradiente de luz -->
+    <linearGradient id="stoneHighlight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B8B8B"/>
+      <stop offset="100%" style="stop-color:#6B6B6B"/>
+    </linearGradient>
+
+    <!-- Textura de ruído para pedra -->
+    <filter id="stoneNoise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+
+  <!-- Base de pedra - forma mais angular e bruta -->
+  <path d="M 0 60
+           L 0 50
+           L 3 48
+           L 5 40
+           L 8 35
+           L 12 28
+           L 18 22
+           L 25 16
+           L 32 12
+           L 40 8
+           L 48 5
+           L 55 3
+           L 60 0
+           L 60 5
+           L 52 8
+           L 45 12
+           L 38 16
+           L 30 22
+           L 22 28
+           L 15 36
+           L 10 45
+           L 8 52
+           L 5 58
+           L 3 60 Z"
+        fill="url(#stoneShadow)"/>
+
+  <!-- Camada principal de pedra -->
+  <path d="M 2 58
+           L 2 48
+           L 5 42
+           L 8 35
+           L 14 27
+           L 22 20
+           L 30 14
+           L 40 9
+           L 50 5
+           L 58 2
+           L 58 5
+           L 50 9
+           L 42 13
+           L 33 18
+           L 24 24
+           L 16 32
+           L 10 42
+           L 6 52
+           L 5 58 Z"
+        fill="url(#stoneGrad)"/>
+
+  <!-- Rachaduras e detalhes -->
+  <path d="M 10 50 L 15 42 L 12 38"
+        stroke="#2A2A2A" stroke-width="1" fill="none" opacity="0.7"/>
+  <path d="M 20 35 L 28 28 L 25 22"
+        stroke="#2A2A2A" stroke-width="0.8" fill="none" opacity="0.6"/>
+  <path d="M 35 20 L 42 15 L 48 12"
+        stroke="#2A2A2A" stroke-width="0.6" fill="none" opacity="0.5"/>
+
+  <!-- Borda iluminada (topo da pedra esculpida) -->
+  <path d="M 4 55
+           L 6 45
+           L 10 37
+           L 16 29
+           L 24 22
+           L 33 16
+           L 43 10
+           L 53 5"
+        stroke="url(#stoneHighlight)" stroke-width="1.5" fill="none" opacity="0.5"/>
+
+  <!-- Parafuso/rebite decorativo -->
+  <circle cx="12" cy="48" r="4" fill="url(#stoneGrad)" stroke="#1A1A1A" stroke-width="1"/>
+  <circle cx="12" cy="48" r="2" fill="#3D3D3D"/>
+  <line x1="10" y1="48" x2="14" y2="48" stroke="#2A2A2A" stroke-width="1"/>
+  <line x1="12" y1="46" x2="12" y2="50" stroke="#2A2A2A" stroke-width="1"/>
+
+  <!-- Segundo rebite menor -->
+  <circle cx="30" cy="28" r="2.5" fill="url(#stoneGrad)" stroke="#1A1A1A" stroke-width="0.8"/>
+  <circle cx="30" cy="28" r="1.2" fill="#3D3D3D"/>
+
+  <!-- Pequenos detalhes de erosão -->
+  <ellipse cx="8" cy="55" rx="1.5" ry="1" fill="#1A1A1A" opacity="0.4"/>
+  <ellipse cx="22" cy="38" rx="1" ry="0.8" fill="#1A1A1A" opacity="0.3"/>
+  <ellipse cx="40" cy="18" rx="1.2" ry="0.6" fill="#1A1A1A" opacity="0.3"/>
+</svg>

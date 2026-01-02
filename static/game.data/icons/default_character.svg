@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="skinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F5D0C5"/>
+      <stop offset="100%" style="stop-color:#D4A896"/>
+    </linearGradient>
+    <linearGradient id="hairGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4A3728"/>
+      <stop offset="100%" style="stop-color:#2D1F14"/>
+    </linearGradient>
+    <linearGradient id="cloakGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4A148C"/>
+      <stop offset="50%" style="stop-color:#6A1B9A"/>
+      <stop offset="100%" style="stop-color:#38006b"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fundo circular -->
+  <circle cx="32" cy="32" r="30" fill="#1a1a1a" stroke="#333" stroke-width="2"/>
+
+  <!-- Corpo/Manto -->
+  <path d="M 18 58
+           C 18 45, 22 40, 32 38
+           C 42 40, 46 45, 46 58
+           L 18 58 Z"
+        fill="url(#cloakGrad)"/>
+
+  <!-- Pescoço -->
+  <rect x="28" y="35" width="8" height="6" fill="url(#skinGrad)"/>
+
+  <!-- Cabeça -->
+  <ellipse cx="32" cy="26" rx="12" ry="14" fill="url(#skinGrad)"/>
+
+  <!-- Cabelo -->
+  <path d="M 20 24
+           C 20 14, 25 10, 32 10
+           C 39 10, 44 14, 44 24
+           C 44 20, 40 16, 32 16
+           C 24 16, 20 20, 20 24
+           Z"
+        fill="url(#hairGrad)"/>
+
+  <!-- Olhos -->
+  <ellipse cx="27" cy="25" rx="2" ry="2.5" fill="#2D1F14"/>
+  <ellipse cx="37" cy="25" rx="2" ry="2.5" fill="#2D1F14"/>
+
+  <!-- Brilho dos olhos -->
+  <circle cx="27.5" cy="24" r="0.8" fill="#fff"/>
+  <circle cx="37.5" cy="24" r="0.8" fill="#fff"/>
+
+  <!-- Sobrancelhas -->
+  <path d="M 24 21 Q 27 20, 29 21" stroke="#2D1F14" stroke-width="1" fill="none"/>
+  <path d="M 35 21 Q 37 20, 40 21" stroke="#2D1F14" stroke-width="1" fill="none"/>
+
+  <!-- Boca -->
+  <path d="M 29 32 Q 32 34, 35 32" stroke="#8B6B61" stroke-width="1" fill="none"/>
+
+  <!-- Detalhe do manto - gola -->
+  <path d="M 24 42
+           Q 28 38, 32 40
+           Q 36 38, 40 42"
+        stroke="#7B1FA2" stroke-width="2" fill="none"/>
+</svg>
