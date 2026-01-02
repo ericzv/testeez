@@ -1,229 +1,151 @@
 <!-- ============================================== -->
-<!-- FIXED HUD - Superior (Dourado) e Inferior (Pedra) -->
-<!-- Incluir este arquivo em battle.html e hub.html -->
+<!-- FIXED HUD v2.0 - Superior (Dourado) e Inferior (Pedra) -->
 <!-- ============================================== -->
 
-<!-- HUD SUPERIOR - DOURADO ORNAMENTADO -->
+<!-- HUD SUPERIOR - BARRA FINA DOURADA -->
 <div class="fixed-hud-top" id="fixed-hud-top">
-  <div class="hud-top-content">
 
-    <!-- Seção Esquerda: Personagem + Ato/Node -->
-    <div class="hud-section-left">
-      <!-- Ícone do personagem da run -->
-      <div class="hud-character-icon" id="hud-character-icon">
-        <img src="{{ url_for('static', filename='game.data/character/' ~ (player.character_id or 'mago_teste') ~ '/portrait.png') }}"
-             alt="Personagem"
-             onerror="this.src='{{ url_for('static', filename='game.data/icons/default_character.svg') }}'">
-      </div>
-
-      <!-- Nome do personagem -->
-      <span class="hud-character-name" id="hud-character-name">{{ player.character_name or player.character_id or 'Aventureiro' }}</span>
-
-      <div class="hud-separator"></div>
-
-      <!-- Info do Ato/Node -->
-      <div class="hud-act-info">
-        <span class="hud-act-label">Ato <span id="hud-act-number">{{ current_act or 1 }}</span></span>
-        <span class="hud-node-number">#<span id="hud-node-number">{{ current_node or 1 }}</span></span>
-      </div>
+  <!-- Seção Esquerda: Mini-icon + Nome + Ato + Currencies -->
+  <div class="hud-section-left">
+    <!-- Mini ícone do personagem -->
+    <div class="hud-character-mini">
+      <img src="{{ url_for('static', filename='game.data/character/' ~ (player.character_id or 'vlad') ~ '/' ~ (player.character_id or 'vlad') ~ '-mini-icon.png') }}"
+           alt="{{ player.character_name or 'Personagem' }}"
+           onerror="this.src='{{ url_for('static', filename='game.data/icons/default_character.svg') }}'">
     </div>
 
-    <!-- Seção Central: Moedas/Recursos -->
-    <div class="hud-section-center">
+    <!-- Nome do personagem -->
+    <span class="hud-character-name">{{ player.character_name or player.character_id or 'Aventureiro' }}</span>
+
+    <div class="hud-separator"></div>
+
+    <!-- Info do Ato/Node -->
+    <div class="hud-act-info">
+      <span class="hud-act-label">Ato <span id="hud-act-number">{{ current_act or 1 }}</span></span>
+      <span class="hud-node-number">#<span id="hud-node-number">{{ current_node or 1 }}</span></span>
+    </div>
+
+    <div class="hud-separator"></div>
+
+    <!-- Currencies -->
+    <div class="hud-currencies">
       <!-- Cristais de Memória -->
-      <div class="hud-currency-item" data-tooltip="crystals">
+      <div class="hud-currency">
         <img src="{{ url_for('static', filename='game.data/crystal.png') }}" alt="Cristais" class="hud-currency-icon">
-        <span class="hud-currency-value" id="hud-crystals-value">{{ player.crystals or 0 }}</span>
-        <div class="hud-tooltip" id="tooltip-crystals">
+        <span class="hud-currency-value" id="hud-crystals">{{ player.crystals or 0 }}</span>
+        <div class="hud-tooltip">
           <div class="hud-tooltip-title">Cristais de Memória</div>
           <div class="hud-tooltip-desc">Material utilizado para obter melhorias para todas as runs</div>
         </div>
       </div>
 
       <!-- Ouro -->
-      <div class="hud-currency-item" data-tooltip="gold">
+      <div class="hud-currency">
         <img src="{{ url_for('static', filename='game.data/gold.png') }}" alt="Ouro" class="hud-currency-icon">
-        <span class="hud-currency-value" id="hud-gold-value">{{ player.run_gold or 0 }}</span>
-        <div class="hud-tooltip" id="tooltip-gold">
+        <span class="hud-currency-value" id="hud-gold">{{ player.run_gold or 0 }}</span>
+        <div class="hud-tooltip">
           <div class="hud-tooltip-title">Ouro</div>
           <div class="hud-tooltip-desc">Moeda utilizada para comprar itens na loja nesta run</div>
         </div>
       </div>
 
       <!-- Ampulhetas Eternas -->
-      <div class="hud-currency-item" data-tooltip="hourglasses">
+      <div class="hud-currency">
         <img src="{{ url_for('static', filename='game.data/hourglass.png') }}" alt="Ampulhetas" class="hud-currency-icon">
-        <span class="hud-currency-value" id="hud-hourglasses-value">{{ player.eternal_hourglasses or 0 }}</span>
-        <div class="hud-tooltip" id="tooltip-hourglasses">
+        <span class="hud-currency-value" id="hud-hourglasses">{{ player.eternal_hourglasses or 0 }}</span>
+        <div class="hud-tooltip">
           <div class="hud-tooltip-title">Ampulhetas Eternas</div>
           <div class="hud-tooltip-desc">Objeto utilizado para manipular o tempo da Eternidade para possibilitar novas opções de escolhas</div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Seção Direita: Lembranças -->
-    <div class="hud-section-right">
-      <div class="hud-memories-container" id="hud-memories-container">
-        <div class="hud-memories-label">
-          <img src="{{ url_for('static', filename='game.data/buffs/memory.png') }}" alt="Lembranças">
-          <span>Lembranças</span>
-        </div>
-        <div class="hud-memories-list" id="hud-memories-list">
-          <!-- Lembranças serão inseridas via JavaScript -->
-        </div>
+  <!-- Seção Direita: Lembranças + Relíquias -->
+  <div class="hud-section-right">
+    <!-- Lembranças -->
+    <div class="hud-memories">
+      <div class="hud-memories-label">
+        <img src="{{ url_for('static', filename='game.data/buffs/memory.png') }}" alt="">
+        <span>Lembranças</span>
+      </div>
+      <div class="hud-memories-list" id="hud-memories-list">
+        <!-- Lembranças serão inseridas via JavaScript -->
       </div>
     </div>
 
+    <!-- Relíquias -->
+    <div class="hud-relics" id="hud-relics-list">
+      <!-- Relíquias serão inseridas via JavaScript -->
+    </div>
   </div>
 
-  <!-- Linha de Relíquias (abaixo do HUD principal) -->
-  <div class="hud-relics-row" id="hud-relics-row" style="display: none;">
-    <!-- Relíquias serão inseridas via JavaScript -->
-  </div>
 </div>
 
 <!-- HUD INFERIOR - PEDRA MEDIEVAL -->
 <div class="fixed-hud-bottom" id="fixed-hud-bottom">
-  <!-- Cantos decorativos de pedra -->
-  <div class="hud-bottom-corner-left"></div>
-  <div class="hud-bottom-corner-right"></div>
 
-  <div class="hud-bottom-content">
+  <!-- Compartimento Esquerdo: Personagem + HP + Energia + Buffs -->
+  <div class="hud-bottom-left">
+    <!-- Ícone grande do personagem -->
+    <div class="hud-player-icon">
+      <img src="{{ url_for('static', filename='game.data/character/' ~ (player.character_id or 'vlad') ~ '/' ~ (player.character_id or 'vlad') ~ '-icon.png') }}"
+           alt="{{ player.character_name or 'Personagem' }}"
+           onerror="this.src='{{ url_for('static', filename='game.data/icons/default_character.svg') }}'">
 
-    <!-- Seção Esquerda: Personagem + HP + Buffs -->
-    <div class="hud-bottom-left">
-      <!-- Retrato do personagem -->
-      <div class="hud-player-portrait" id="hud-player-portrait">
-        <img src="{{ url_for('static', filename='game.data/character/' ~ (player.character_id or 'mago_teste') ~ '/portrait.png') }}"
-             alt="Personagem"
-             onerror="this.src='{{ url_for('static', filename='game.data/icons/default_character.svg') }}'">
-      </div>
-
-      <!-- Stats do jogador -->
-      <div class="hud-player-stats">
-        <!-- Barra de HP -->
-        <div class="hud-hp-bar-container">
-          <div class="hud-barrier-fill" id="hud-barrier-fill" style="width: 0%;"></div>
-          <div class="hud-hp-fill" id="hud-hp-fill" style="width: 100%;"></div>
-          <span class="hud-hp-text" id="hud-hp-text">{{ player_hp or 100 }}/{{ player_max_hp or 100 }}</span>
-        </div>
-
-        <!-- Linha de energia e buffs -->
-        <div class="hud-player-buffs-row">
-          <!-- Indicador de energia -->
-          <div class="hud-energy-display" id="hud-energy-display">
-            <img src="{{ url_for('static', filename='game.data/energy.png') }}" alt="Energia" class="hud-energy-icon">
-            <span class="hud-energy-text" id="hud-energy-text">10/10</span>
-          </div>
-
-          <!-- Container de buffs/debuffs -->
-          <div class="hud-buffs-container" id="hud-buffs-container">
-            <!-- Buffs serão inseridos via JavaScript -->
-          </div>
-        </div>
+      <!-- Badge de Energia -->
+      <div class="hud-energy-badge" id="hud-energy-badge">
+        <img src="{{ url_for('static', filename='game.data/energy.png') }}" alt="Energia">
+        <span id="hud-energy-text">10/10</span>
       </div>
     </div>
 
-    <!-- Seção Central: Menus de Ação -->
-    <div class="hud-bottom-center">
-      <!-- Botão de Ataques -->
-      <div class="hud-action-wrapper">
-        <button class="hud-action-btn attack-btn" id="hud-attack-btn" title="Ataques">
-          <img src="{{ url_for('static', filename='game.data/icons/attack_icon.svg') }}" alt="Atacar">
-        </button>
-        <span class="hud-action-label">Ataques</span>
+    <!-- Stats (HP e Buffs) -->
+    <div class="hud-player-stats-container">
+      <!-- Barra de HP -->
+      <div class="hud-hp-bar">
+        <div class="hud-barrier-fill" id="hud-barrier-fill" style="width: 0%;"></div>
+        <div class="hud-hp-fill" id="hud-hp-fill" style="width: 100%;"></div>
+        <span class="hud-hp-text" id="hud-hp-text">{{ player_hp or 100 }}/{{ player_max_hp or 100 }}</span>
       </div>
 
-      <!-- Botão de Skills Especiais -->
-      <div class="hud-action-wrapper">
-        <button class="hud-action-btn skills-btn" id="hud-skills-btn" title="Skills Especiais">
-          <img src="{{ url_for('static', filename='game.data/icons/special_icon.svg') }}" alt="Especiais">
-        </button>
-        <span class="hud-action-label">Especiais</span>
+      <!-- Buffs/Debuffs -->
+      <div class="hud-buffs-row" id="hud-buffs-container">
+        <!-- Buffs serão inseridos via JavaScript -->
       </div>
     </div>
-
-    <!-- Seção Direita: Inventário -->
-    <div class="hud-bottom-right">
-      <button class="hud-inventory-btn" id="hud-inventory-btn" title="Inventário">
-        <img src="{{ url_for('static', filename='game.data/icons/inventory_icon.svg') }}" alt="Inventário">
-        <span>Inventário</span>
-      </button>
-    </div>
-
   </div>
+
+  <!-- Compartimento Central: Slots para Fast-Wrappers -->
+  <div class="hud-bottom-center">
+    <!-- Slot para Ataques (fast-attacks-wrapper será movido pra cá) -->
+    <div class="hud-attacks-slot" id="hud-attacks-slot">
+      <!-- fast-attacks-wrapper será inserido aqui via JavaScript -->
+    </div>
+
+    <!-- Slot para Especiais (fast-specials-wrapper será movido pra cá) -->
+    <div class="hud-specials-slot" id="hud-specials-slot">
+      <!-- fast-specials-wrapper será inserido aqui via JavaScript -->
+    </div>
+  </div>
+
+  <!-- Compartimento Direito: Slot para Inventário -->
+  <div class="hud-bottom-right">
+    <div class="hud-inventory-slot" id="hud-inventory-slot">
+      <!-- fast-inventory-wrapper será inserido aqui via JavaScript -->
+    </div>
+  </div>
+
 </div>
 
-<!-- JavaScript para tooltips e interações do HUD -->
+<!-- JavaScript para o HUD -->
 <script>
 (function() {
-  // Sistema de tooltips
-  document.querySelectorAll('.hud-currency-item[data-tooltip]').forEach(item => {
-    const tooltipId = 'tooltip-' + item.dataset.tooltip;
-    const tooltip = document.getElementById(tooltipId);
+  // ========================================
+  // FUNÇÕES DE ATUALIZAÇÃO DO HUD
+  // ========================================
 
-    if (tooltip) {
-      item.addEventListener('mouseenter', () => {
-        const rect = item.getBoundingClientRect();
-        tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
-        tooltip.style.top = (rect.bottom + 10) + 'px';
-        tooltip.classList.add('visible');
-      });
-
-      item.addEventListener('mouseleave', () => {
-        tooltip.classList.remove('visible');
-      });
-    }
-  });
-
-  // Função para atualizar lembranças no HUD
-  window.updateHudMemories = function(memories) {
-    const container = document.getElementById('hud-memories-list');
-    if (!container) return;
-
-    container.innerHTML = '';
-
-    if (!memories || memories.length === 0) {
-      container.innerHTML = '<span style="color: #666; font-size: 11px;">Nenhuma</span>';
-      return;
-    }
-
-    memories.forEach(memory => {
-      const icon = document.createElement('div');
-      icon.className = 'hud-memory-icon';
-      icon.title = memory.name + ': ' + memory.description;
-      icon.innerHTML = `<img src="/static/game.data/buffs/${memory.icon || 'memory.png'}" alt="${memory.name}">`;
-      container.appendChild(icon);
-    });
-  };
-
-  // Função para atualizar relíquias no HUD
-  window.updateHudRelics = function(relics) {
-    const container = document.getElementById('hud-relics-row');
-    if (!container) return;
-
-    if (!relics || relics.length === 0) {
-      container.style.display = 'none';
-      return;
-    }
-
-    container.style.display = 'flex';
-    container.innerHTML = '';
-
-    relics.forEach(relic => {
-      const icon = document.createElement('div');
-      icon.className = 'hud-relic-icon';
-      icon.dataset.rarity = relic.rarity || 'common';
-      icon.title = relic.name + ': ' + relic.description;
-      icon.innerHTML = `
-        <img src="/static/game.data/relics/${relic.icon || 'relic_icon.png'}" alt="${relic.name}">
-        ${relic.stacks > 1 ? `<span class="hud-relic-stack">${relic.stacks}</span>` : ''}
-      `;
-      container.appendChild(icon);
-    });
-  };
-
-  // Função para atualizar HP no HUD inferior
+  // Atualizar HP
   window.updateHudHP = function(current, max, barrier = 0) {
     const hpFill = document.getElementById('hud-hp-fill');
     const barrierFill = document.getElementById('hud-barrier-fill');
@@ -234,7 +156,6 @@
       hpFill.style.width = percent + '%';
       hpText.textContent = Math.round(current) + '/' + Math.round(max);
 
-      // Animação crítica quando HP baixo
       if (percent <= 25) {
         hpFill.classList.add('critical');
       } else {
@@ -242,15 +163,17 @@
       }
     }
 
-    if (barrierFill && barrier > 0) {
-      const barrierPercent = Math.min(100, (barrier / max) * 100);
-      barrierFill.style.width = barrierPercent + '%';
-    } else if (barrierFill) {
-      barrierFill.style.width = '0%';
+    if (barrierFill) {
+      if (barrier > 0) {
+        const barrierPercent = Math.min(100, (barrier / max) * 100);
+        barrierFill.style.width = barrierPercent + '%';
+      } else {
+        barrierFill.style.width = '0%';
+      }
     }
   };
 
-  // Função para atualizar energia no HUD inferior
+  // Atualizar Energia
   window.updateHudEnergy = function(current, max) {
     const energyText = document.getElementById('hud-energy-text');
     if (energyText) {
@@ -258,65 +181,188 @@
     }
   };
 
-  // Função para atualizar buffs no HUD inferior
+  // Atualizar Currencies
+  window.updateHudCurrencies = function(crystals, gold, hourglasses) {
+    if (crystals !== undefined) {
+      const el = document.getElementById('hud-crystals');
+      if (el) el.textContent = crystals;
+    }
+    if (gold !== undefined) {
+      const el = document.getElementById('hud-gold');
+      if (el) el.textContent = gold;
+    }
+    if (hourglasses !== undefined) {
+      const el = document.getElementById('hud-hourglasses');
+      if (el) el.textContent = hourglasses;
+    }
+  };
+
+  // Atualizar Lembranças
+  window.updateHudMemories = function(memories) {
+    const container = document.getElementById('hud-memories-list');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (!memories || memories.length === 0) {
+      container.innerHTML = '<span style="color: #666; font-size: 10px;">—</span>';
+      return;
+    }
+
+    memories.forEach(memory => {
+      const item = document.createElement('div');
+      item.className = 'hud-memory-item';
+      item.innerHTML = `
+        <img src="/static/game.data/buffs/${memory.icon || 'memory.png'}" alt="${memory.name}">
+        <div class="hud-tooltip">
+          <div class="hud-tooltip-title">${memory.name}</div>
+          <div class="hud-tooltip-desc">${memory.description || ''}</div>
+        </div>
+      `;
+      container.appendChild(item);
+    });
+  };
+
+  // Atualizar Relíquias
+  window.updateHudRelics = function(relics) {
+    const container = document.getElementById('hud-relics-list');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (!relics || relics.length === 0) return;
+
+    relics.forEach(relic => {
+      const item = document.createElement('div');
+      item.className = 'hud-relic-item';
+      item.dataset.rarity = relic.rarity || 'common';
+      item.innerHTML = `
+        <img src="/static/game.data/relics/${relic.icon || 'relic_icon.png'}" alt="${relic.name}">
+        ${relic.stacks > 1 ? `<span class="hud-relic-stack">${relic.stacks}</span>` : ''}
+        <div class="hud-tooltip">
+          <div class="hud-tooltip-title">${relic.name}</div>
+          <div class="hud-tooltip-desc">${relic.description || ''}</div>
+        </div>
+      `;
+      container.appendChild(item);
+    });
+  };
+
+  // Atualizar Buffs
   window.updateHudBuffs = function(buffs) {
     const container = document.getElementById('hud-buffs-container');
     if (!container) return;
 
     container.innerHTML = '';
-
     if (!buffs || buffs.length === 0) return;
 
     buffs.forEach(buff => {
-      const icon = document.createElement('div');
-      icon.className = 'hud-buff-icon ' + (buff.isDebuff ? 'debuff' : 'buff');
-      icon.title = buff.name + (buff.value ? ': ' + buff.value : '');
-      icon.innerHTML = `
+      const item = document.createElement('div');
+      item.className = 'hud-buff-item ' + (buff.isDebuff ? 'debuff' : 'buff');
+      item.title = buff.name + (buff.value ? ': ' + buff.value : '');
+      item.innerHTML = `
         <img src="/static/game.data/buffs/${buff.icon || 'default_buff.png'}" alt="${buff.name}">
         ${buff.duration ? `<span class="hud-buff-duration">${buff.duration}</span>` : ''}
       `;
-      container.appendChild(icon);
+      container.appendChild(item);
     });
   };
 
-  // Função para atualizar currencies no HUD superior
-  window.updateHudCurrencies = function(crystals, gold, hourglasses) {
-    const crystalsEl = document.getElementById('hud-crystals-value');
-    const goldEl = document.getElementById('hud-gold-value');
-    const hourglassesEl = document.getElementById('hud-hourglasses-value');
-
-    if (crystalsEl && crystals !== undefined) crystalsEl.textContent = crystals;
-    if (goldEl && gold !== undefined) goldEl.textContent = gold;
-    if (hourglassesEl && hourglasses !== undefined) hourglassesEl.textContent = hourglasses;
-  };
-
-  // Conectar botões do HUD aos menus existentes
-  const attackBtn = document.getElementById('hud-attack-btn');
-  const skillsBtn = document.getElementById('hud-skills-btn');
-  const inventoryBtn = document.getElementById('hud-inventory-btn');
-
-  if (attackBtn) {
-    attackBtn.addEventListener('click', () => {
-      // Trigger do menu de ataques existente
-      const originalBtn = document.getElementById('attack-button');
-      if (originalBtn) originalBtn.click();
-    });
+  // ========================================
+  // MOVER FAST-WRAPPERS PARA O HUD
+  // ========================================
+  function moveWrapperToSlot(wrapperSelector, slotId) {
+    const wrapper = document.querySelector(wrapperSelector);
+    const slot = document.getElementById(slotId);
+    if (wrapper && slot && !slot.contains(wrapper)) {
+      slot.appendChild(wrapper);
+    }
   }
 
-  if (skillsBtn) {
-    skillsBtn.addEventListener('click', () => {
-      // Trigger do menu de skills existente
-      const originalBtn = document.getElementById('special-button');
-      if (originalBtn) originalBtn.click();
+  // Observer para detectar quando os fast-wrappers são criados
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      mutation.addedNodes.forEach(function(node) {
+        if (node.nodeType === 1) {
+          if (node.classList && node.classList.contains('fast-attacks-wrapper')) {
+            moveWrapperToSlot('.fast-attacks-wrapper', 'hud-attacks-slot');
+          }
+          if (node.classList && node.classList.contains('fast-specials-wrapper')) {
+            moveWrapperToSlot('.fast-specials-wrapper', 'hud-specials-slot');
+          }
+          if (node.classList && node.classList.contains('fast-inventory-wrapper')) {
+            moveWrapperToSlot('.fast-inventory-wrapper', 'hud-inventory-slot');
+          }
+        }
+      });
     });
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  // Tentar mover imediatamente se já existirem
+  setTimeout(function() {
+    moveWrapperToSlot('.fast-attacks-wrapper', 'hud-attacks-slot');
+    moveWrapperToSlot('.fast-specials-wrapper', 'hud-specials-slot');
+    moveWrapperToSlot('.fast-inventory-wrapper', 'hud-inventory-slot');
+  }, 500);
+
+  // ========================================
+  // CARREGAR DADOS INICIAIS
+  // ========================================
+
+  // Carregar lembranças ativas da run
+  function loadRunMemories() {
+    // Verificar se há dados de run_buffs no localStorage ou na página
+    const runBuffsEl = document.getElementById('run-buffs-list');
+    if (runBuffsEl) {
+      const memories = [];
+      runBuffsEl.querySelectorAll('.run-buff-item').forEach(item => {
+        memories.push({
+          name: item.dataset.name || item.title || 'Lembrança',
+          icon: item.dataset.icon || 'memory.png',
+          description: item.dataset.description || ''
+        });
+      });
+      if (memories.length > 0) {
+        updateHudMemories(memories);
+      }
+    }
   }
 
-  if (inventoryBtn) {
-    inventoryBtn.addEventListener('click', () => {
-      // Trigger do menu de inventário existente
-      const originalBtn = document.getElementById('inventory-button');
-      if (originalBtn) originalBtn.click();
-    });
+  // Carregar relíquias ativas
+  function loadRelics() {
+    const relicsBar = document.getElementById('relics-bar-items');
+    if (relicsBar) {
+      const relics = [];
+      relicsBar.querySelectorAll('.relic-bar-item').forEach(item => {
+        relics.push({
+          name: item.dataset.name || item.title || 'Relíquia',
+          icon: item.dataset.icon || 'relic_icon.png',
+          description: item.dataset.description || '',
+          rarity: item.dataset.rarity || 'common',
+          stacks: parseInt(item.dataset.stacks) || 1
+        });
+      });
+      if (relics.length > 0) {
+        updateHudRelics(relics);
+      }
+    }
   }
+
+  // Executar ao carregar
+  document.addEventListener('DOMContentLoaded', function() {
+    loadRunMemories();
+    loadRelics();
+  });
+
+  // Também executar agora se o DOM já carregou
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(function() {
+      loadRunMemories();
+      loadRelics();
+    }, 100);
+  }
+
 })();
 </script>
