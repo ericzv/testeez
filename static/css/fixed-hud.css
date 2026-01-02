@@ -1,6 +1,6 @@
 /* ================================================================================
    FIXED-HUD.CSS - HUD Fixo Superior (Dourado) e Inferior (Pedra Medieval)
-   Versão 2.3 - Ajustes visuais: tooltips, fontes, relíquias, player icon
+   Versão 2.4 - Ajustes finais: tooltips, espaçamentos, animação personagem
    ================================================================================
 */
 
@@ -23,7 +23,7 @@
   --stone-shadow: rgba(0, 0, 0, 0.6);
 
   /* Dimensões do HUD */
-  --hud-top-height: 44px;
+  --hud-top-height: 52px; /* Aumentado para dar espaço ao hover das relíquias */
   --hud-bottom-height: 180px;
 
   /* Fonte padrão do HUD */
@@ -36,7 +36,7 @@
 
 /* Ajustar nav-button para não ser cortado pelo HUD */
 body.has-fixed-hud .nav-button {
-  top: 54px !important; /* 44px do HUD + 10px de margem */
+  top: 62px !important; /* 52px do HUD + 10px de margem */
   z-index: 999 !important;
 }
 
@@ -71,6 +71,7 @@ body.has-fixed-hud .energy-indicator {
   align-items: center;
   justify-content: space-between;
   padding: 0 15px;
+  padding-top: 4px; /* Espaço extra no topo */
 
   /* Fundo com textura */
   background:
@@ -193,7 +194,7 @@ body.has-fixed-hud .energy-indicator {
   top: auto !important;
   left: auto !important;
   display: flex !important;
-  gap: 15px !important;
+  gap: 28px !important;
   padding: 0 !important;
   border: none !important;
   border-image: none !important;
@@ -204,8 +205,8 @@ body.has-fixed-hud .energy-indicator {
 }
 
 .hud-currencies-slot .currencies-hud .currency-item {
-  padding: 2px 6px;
-  gap: 4px;
+  padding: 2px 2px;
+  gap: 0px;
   position: relative;
 }
 
@@ -219,7 +220,7 @@ body.has-fixed-hud .energy-indicator {
 }
 
 .hud-currencies-slot .currencies-hud .currency-value {
-  font-size: var(--hud-font-size);
+  font-size: 12px;
   color: #ddd;
 }
 
@@ -264,7 +265,7 @@ body.has-fixed-hud .energy-indicator {
 }
 
 .hud-relics-slot .relic-bar-item:hover {
-  transform: translateY(-3px) scale(1.15);
+  transform: translateY(3px) scale(1.15); /* Para baixo em vez de para cima */
   z-index: 10;
 }
 
@@ -408,18 +409,14 @@ body.has-fixed-hud .energy-indicator {
   background: linear-gradient(135deg, #1a1510 0%, #2a2015 100%);
   border: 1px solid var(--gold-dark);
   border-radius: 6px;
-  padding: 10px 14px;
-  min-width: 220px;
-  max-width: 280px;
-  width: max-content;
+  padding: 12px 14px;
+  width: 240px;
   z-index: 10000;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s, visibility 0.2s;
   pointer-events: none;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.9);
-  /* Auto height - sem altura fixa */
-  height: auto;
 }
 
 .hud-currencies-slot .currency-item.has-tooltip:hover .custom-tooltip.currency-tooltip {
@@ -429,36 +426,35 @@ body.has-fixed-hud .energy-indicator {
 
 .hud-currencies-slot .custom-tooltip .tooltip-name {
   color: var(--gold-primary);
-  font-size: var(--hud-font-size);
+  font-size: 14px;
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   white-space: nowrap;
 }
 
 .hud-currencies-slot .custom-tooltip .tooltip-description {
   color: #ccc;
-  font-size: 14px;
-  line-height: 1.5;
-  /* Permitir quebra de linha */
+  font-size: 12px;
+  line-height: 1.6;
   white-space: normal;
   word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
-/* Tooltips das lembranças - garantir que apareçam */
+/* ============================================== */
+/* TOOLTIPS LEMBRANÇAS - ABRE PARA BAIXO */
+/* ============================================== */
 .hud-memories-slot .custom-tooltip {
   position: absolute;
-  bottom: 100%;
+  top: 100%; /* ABAIXO do elemento */
   left: 50%;
   transform: translateX(-50%);
-  margin-bottom: 10px;
+  margin-top: 10px;
   background: linear-gradient(135deg, #1a1020 0%, #2a1530 100%);
   border: 1px solid #b482ff;
   border-radius: 6px;
-  padding: 10px 14px;
-  min-width: 180px;
-  max-width: 260px;
-  width: max-content;
-  height: auto;
+  padding: 12px 14px;
+  width: 200px;
   z-index: 10000;
   opacity: 0;
   visibility: hidden;
@@ -474,15 +470,15 @@ body.has-fixed-hud .energy-indicator {
 
 .hud-memories-slot .custom-tooltip .tooltip-name {
   color: #b482ff;
-  font-size: var(--hud-font-size);
+  font-size: 14px;
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .hud-memories-slot .custom-tooltip .tooltip-description {
   color: #ccc;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.6;
   white-space: normal;
   word-wrap: break-word;
 }
@@ -521,13 +517,34 @@ body.has-fixed-hud .energy-indicator {
   /* Removidos: background, border, border-radius, box-shadow, clip-path */
 }
 
-/* Ícone grande do personagem - 2.5x maior com outline */
+/* ============================================== */
+/* ÍCONE DO PERSONAGEM - COM ANIMAÇÃO */
+/* ============================================== */
 .hud-player-icon {
   position: absolute;
-  left: 10px;
-  top: 0;
-  width: 150px;  /* 60px * 2.5 = 150px */
-  height: 180px; /* Altura proporcional */
+  left: 18px;
+  top: 0px;
+  scale: 2.5;
+  width: 150px;
+  height: 180px;
+  transform-origin: bottom left;
+  animation: playerIdleFloat 4s ease-in-out infinite;
+}
+
+/* Animação de movimento sutil */
+@keyframes playerIdleFloat {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(2px) translateY(-1px);
+  }
+  50% {
+    transform: translateX(0) translateY(-2px);
+  }
+  75% {
+    transform: translateX(-2px) translateY(-1px);
+  }
 }
 
 .hud-player-icon img {
@@ -542,6 +559,32 @@ body.has-fixed-hud .energy-indicator {
     drop-shadow(0 1px 0 #000)
     drop-shadow(0 -1px 0 #000)
     drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
+  animation: playerFlicker 3s ease-in-out infinite;
+}
+
+/* Efeito flicker interno sutil */
+@keyframes playerFlicker {
+  0%, 100% {
+    opacity: 1;
+    filter:
+      drop-shadow(0 0 0 #000)
+      drop-shadow(1px 0 0 #000)
+      drop-shadow(-1px 0 0 #000)
+      drop-shadow(0 1px 0 #000)
+      drop-shadow(0 -1px 0 #000)
+      drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
+  }
+  50% {
+    opacity: 0.97;
+    filter:
+      drop-shadow(0 0 0 #000)
+      drop-shadow(1px 0 0 #000)
+      drop-shadow(-1px 0 0 #000)
+      drop-shadow(0 1px 0 #000)
+      drop-shadow(0 -1px 0 #000)
+      drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8))
+      brightness(1.02);
+  }
 }
 
 /* ============================================== */
@@ -830,8 +873,7 @@ body.has-fixed-hud .fast-inventory-wrapper {
   }
 
   .hud-player-icon {
-    width: 120px;
-    height: 150px;
+    scale: 2;
   }
 
   .hud-player-stats-container {
