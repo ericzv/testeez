@@ -46,8 +46,7 @@
     <!-- Slot para Lembranças (run-buffs-hud) -->
     <div class="hud-memories-slot" id="hud-memories-slot">
       <div class="hud-memories-label">
-        <img src="{{ url_for('static', filename='game.data/buffs/memory.png') }}" alt="">
-        <span>Lembranças</span>
+        <img src="{{ url_for('static', filename='game.data/buffs/memory.png') }}" alt="Lembranças" title="Lembranças Ativas">
       </div>
       <!-- run-buffs-hud será movido aqui via JavaScript -->
     </div>
@@ -368,15 +367,15 @@
     const tooltips = {
       'crystals-value': {
         name: 'Cristais de Memória',
-        desc: 'Moeda principal. Use para melhorar cartas e comprar itens na loja.'
+        desc: 'Material utilizado para obter melhorias para todas as runs.'
       },
       'gold-value': {
         name: 'Ouro',
-        desc: 'Moeda da run atual. Perde ao morrer. Use na loja do mapa.'
+        desc: 'Moeda utilizada para comprar itens na loja nesta run.'
       },
       'hourglasses-value': {
         name: 'Ampulhetas Eternas',
-        desc: 'Moeda premium rara. Use para rerolls e itens especiais.'
+        desc: 'Objeto utilizado para manipular o tempo da Eternidade para possibilitar novas opções de escolhas.'
       }
     };
 
