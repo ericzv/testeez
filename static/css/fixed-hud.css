@@ -220,7 +220,7 @@ body.has-fixed-hud .energy-indicator {
 }
 
 .hud-currencies-slot .currencies-hud .currency-value {
-  font-size: 12px;
+  font-size: 15px;
   color: #ddd;
 }
 
@@ -306,6 +306,7 @@ body.has-fixed-hud .energy-indicator {
   align-items: center;
   gap: 15px;
   flex-shrink: 0;
+  margin-right: 25px; /* Mais espaço da margem direita */
 }
 
 /* Slot para Lembranças */
@@ -409,8 +410,9 @@ body.has-fixed-hud .energy-indicator {
   background: linear-gradient(135deg, #1a1510 0%, #2a2015 100%);
   border: 1px solid var(--gold-dark);
   border-radius: 6px;
-  padding: 12px 14px;
-  width: 240px;
+  padding: 14px 16px;
+  width: 280px;
+  min-height: 80px;
   z-index: 10000;
   opacity: 0;
   visibility: hidden;
@@ -428,14 +430,14 @@ body.has-fixed-hud .energy-indicator {
   color: var(--gold-primary);
   font-size: 14px;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   white-space: nowrap;
 }
 
 .hud-currencies-slot .custom-tooltip .tooltip-description {
   color: #ccc;
-  font-size: 12px;
-  line-height: 1.6;
+  font-size: 13px;
+  line-height: 1.7;
   white-space: normal;
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -453,8 +455,9 @@ body.has-fixed-hud .energy-indicator {
   background: linear-gradient(135deg, #1a1020 0%, #2a1530 100%);
   border: 1px solid #b482ff;
   border-radius: 6px;
-  padding: 12px 14px;
-  width: 200px;
+  padding: 14px 16px;
+  width: 240px;
+  min-height: 80px;
   z-index: 10000;
   opacity: 0;
   visibility: hidden;
@@ -472,13 +475,13 @@ body.has-fixed-hud .energy-indicator {
   color: #b482ff;
   font-size: 14px;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .hud-memories-slot .custom-tooltip .tooltip-description {
   color: #ccc;
-  font-size: 12px;
-  line-height: 1.6;
+  font-size: 13px;
+  line-height: 1.7;
   white-space: normal;
   word-wrap: break-word;
 }
@@ -522,28 +525,28 @@ body.has-fixed-hud .energy-indicator {
 /* ============================================== */
 .hud-player-icon {
   position: absolute;
-  left: 18px;
-  top: 0px;
+  left: -88px;
+  top: 135px;
   scale: 2.5;
   width: 150px;
   height: 180px;
-  transform-origin: bottom left;
-  animation: playerIdleFloat 4s ease-in-out infinite;
+  transform-origin: center center;
+  animation: playerIdleFloat 6s ease-in-out infinite;
 }
 
-/* Animação de movimento sutil */
+/* Animação de movimento suave - mais vertical, menos horizontal */
 @keyframes playerIdleFloat {
   0%, 100% {
     transform: translateX(0) translateY(0);
   }
   25% {
-    transform: translateX(2px) translateY(-1px);
+    transform: translateX(0.5px) translateY(-2px);
   }
   50% {
-    transform: translateX(0) translateY(-2px);
+    transform: translateX(0) translateY(-3px);
   }
   75% {
-    transform: translateX(-2px) translateY(-1px);
+    transform: translateX(-0.5px) translateY(-2px);
   }
 }
 
@@ -559,10 +562,10 @@ body.has-fixed-hud .energy-indicator {
     drop-shadow(0 1px 0 #000)
     drop-shadow(0 -1px 0 #000)
     drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
-  animation: playerFlicker 3s ease-in-out infinite;
+  animation: playerFlicker 2s ease-in-out infinite;
 }
 
-/* Efeito flicker interno sutil */
+/* Efeito flicker interno mais visível */
 @keyframes playerFlicker {
   0%, 100% {
     opacity: 1;
@@ -574,8 +577,8 @@ body.has-fixed-hud .energy-indicator {
       drop-shadow(0 -1px 0 #000)
       drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
   }
-  50% {
-    opacity: 0.97;
+  25% {
+    opacity: 0.92;
     filter:
       drop-shadow(0 0 0 #000)
       drop-shadow(1px 0 0 #000)
@@ -583,7 +586,28 @@ body.has-fixed-hud .energy-indicator {
       drop-shadow(0 1px 0 #000)
       drop-shadow(0 -1px 0 #000)
       drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8))
-      brightness(1.02);
+      brightness(1.08);
+  }
+  50% {
+    opacity: 1;
+    filter:
+      drop-shadow(0 0 0 #000)
+      drop-shadow(1px 0 0 #000)
+      drop-shadow(-1px 0 0 #000)
+      drop-shadow(0 1px 0 #000)
+      drop-shadow(0 -1px 0 #000)
+      drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
+  }
+  75% {
+    opacity: 0.95;
+    filter:
+      drop-shadow(0 0 0 #000)
+      drop-shadow(1px 0 0 #000)
+      drop-shadow(-1px 0 0 #000)
+      drop-shadow(0 1px 0 #000)
+      drop-shadow(0 -1px 0 #000)
+      drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8))
+      brightness(1.05);
   }
 }
 
