@@ -1,9 +1,66 @@
 /* ================================================================================
    FIXED-HUD.CSS - HUD Fixo Superior (Dourado) e Inferior (Pedra Medieval)
-   Versão 2.6 - Ajustes visuais: tooltips estilo relíquias, player icon %,
-                flicker visível, HP bar original, outline branco currencies
+   Versão 2.8 - Energia reativa, popup relíquias, cursor seleção, outline uniforme
    ================================================================================
 */
+
+/* ============================================== */
+/* IMPEDIR SELEÇÃO DE TEXTO NA GAMIFICAÇÃO */
+/* ============================================== */
+body.gamification-page,
+body.has-fixed-hud {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  cursor: default;
+}
+
+/* Popups devem ficar acima do HUD */
+body.has-fixed-hud .ui-dialog,
+body.has-fixed-hud #relic-selection-popup,
+body.has-fixed-hud #memory-selection-popup,
+body.has-fixed-hud .victory-popup {
+  z-index: 2000 !important;
+}
+
+/* Popup de relíquias mais compacto */
+body.has-fixed-hud #relic-selection-popup .ui-panel.relic-selection-modal {
+  max-height: 70vh;
+  padding: 20px 25px 15px;
+}
+
+body.has-fixed-hud #relic-selection-popup .victory-header {
+  margin-bottom: 15px;
+}
+
+body.has-fixed-hud #relic-selection-popup .relic-header-icon {
+  width: 50px;
+  height: 50px;
+}
+
+body.has-fixed-hud #relic-selection-popup .victory-header h2 {
+  font-size: 22px;
+  margin-top: 10px;
+}
+
+body.has-fixed-hud #relic-selection-popup .relic-options {
+  padding: 15px 20px;
+}
+
+body.has-fixed-hud #relic-selection-popup .relic-option {
+  padding: 15px 12px;
+}
+
+body.has-fixed-hud #relic-selection-popup .relic-icon {
+  width: 50px;
+  height: 50px;
+}
+
+body.has-fixed-hud #relic-selection-popup .victory-actions {
+  margin-top: 10px;
+  padding-bottom: 5px;
+}
 
 /* ============================================== */
 /* VARIÁVEIS CSS */
@@ -224,12 +281,8 @@ body.has-fixed-hud .energy-indicator {
 .hud-currencies-slot .currencies-hud .currency-icon {
   width: 22px;
   height: 22px;
-  /* Outline branco fininho de 0.5px ao redor da imagem PNG */
-  filter:
-    drop-shadow(0.5px 0 0 rgba(255,255,255,0.9))
-    drop-shadow(-0.5px 0 0 rgba(255,255,255,0.9))
-    drop-shadow(0 0.5px 0 rgba(255,255,255,0.9))
-    drop-shadow(0 -0.5px 0 rgba(255,255,255,0.9));
+  /* Outline branco uniforme de 1px usando blur */
+  filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff);
 }
 
 .hud-currencies-slot .currencies-hud .currency-value {

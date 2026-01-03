@@ -1172,6 +1172,11 @@ function updateEnergyIndicator() {
     
     console.log(`⚡ Energia atualizada: ${currentEnergy}/${maxEnergy} (${energyPercent.toFixed(1)}%)`);
 
+    // Atualizar HUD fixo (se existir)
+    if (typeof window.updateHudEnergy === 'function') {
+        window.updateHudEnergy(currentEnergy, maxEnergy);
+    }
+
     // Atualizar botões do fast battle mode
     if (window.fastBattleMode && typeof window.fastBattleMode.updateButtonStates === 'function') {
         window.fastBattleMode.updateButtonStates();
