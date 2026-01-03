@@ -1050,6 +1050,15 @@ function updateStats() {
             window.smallPlayerHpBarEl.style.width = `${hpPercentage}%`;
         }
 
+        // Atualizar HUD fixo (se existir)
+        if (typeof window.updateHudHP === 'function') {
+            window.updateHudHP(
+                window.gameState.player.hp,
+                window.gameState.player.maxHp,
+                window.gameState.player.barrier || 0
+            );
+        }
+
         // ===== NOVA LÓGICA DA BARREIRA (UI) =====
         const smallHpContainer = document.querySelector('.character-hud .small-bar-container');
         
