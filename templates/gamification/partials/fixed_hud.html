@@ -79,7 +79,8 @@
       <!-- Barra de HP -->
       <div class="hud-hp-bar">
         <div class="hud-barrier-fill" id="hud-barrier-fill" style="width: 0%;"></div>
-        <div class="hud-hp-fill" id="hud-hp-fill" style="width: 100%;"></div>
+        {% set hp_percent = ((player_hp or 100) / (player_max_hp or 100) * 100) | round(1) %}
+        <div class="hud-hp-fill" id="hud-hp-fill" style="width: {{ hp_percent }}%;"></div>
         <span class="hud-hp-text" id="hud-hp-text">{{ player_hp or 100 }}/{{ player_max_hp or 100 }}</span>
       </div>
 
