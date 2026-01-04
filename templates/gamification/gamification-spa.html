@@ -1463,6 +1463,9 @@ function showVictoryRewards(data) {
 
 async function acceptVictoryRewards(popup) {
     try {
+        // Tocar som de moedas ao coletar recompensas
+        playCoinGainSound();
+
         await fetch('/gamification/apply_victory_rewards', { method: 'POST' });
         popup.remove();
         await updateCurrencyDisplay();
