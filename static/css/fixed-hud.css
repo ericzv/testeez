@@ -90,6 +90,13 @@ body.has-fixed-hud #relic-selection-popup .victory-actions {
   padding-bottom: 10px;
 }
 
+/* Botão de confirmar relíquia com z-index alto para garantir clicabilidade */
+body.has-fixed-hud #confirm-relic-btn {
+  position: relative;
+  z-index: 1500 !important;
+  pointer-events: auto !important;
+}
+
 /* ============================================== */
 /* VARIÁVEIS CSS */
 /* ============================================== */
