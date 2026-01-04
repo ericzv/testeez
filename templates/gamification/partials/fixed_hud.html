@@ -1,0 +1,548 @@
+<!-- ============================================== -->
+<!-- FIXED HUD v2.2 - Correções de integração -->
+<!-- Animações, tooltips, posicionamento, node tracking -->
+<!-- ============================================== -->
+
+<!-- HUD SUPERIOR - BARRA FINA DOURADA -->
+<div class="fixed-hud-top" id="fixed-hud-top">
+
+  <!-- Seção Esquerda: Mini-icon + Nome + Ato -->
+  <div class="hud-section-left">
+    <!-- Mini ícone do personagem -->
+    <div class="hud-character-mini">
+      <img src="{{ url_for('static', filename='game.data/character/' ~ (player.character_id or 'vlad') ~ '/' ~ (player.character_id or 'vlad') ~ '-mini-icon.png') }}"
+           alt="{{ player.character_name or 'Personagem' }}"
+           onerror="this.src='{{ url_for('static', filename='game.data/icons/default_character.svg') }}'">
+    </div>
+
+    <!-- Nome do personagem -->
+    <span class="hud-character-name">{{ player.character_name or player.character_id or 'Aventureiro' }}</span>
+
+    <div class="hud-separator"></div>
+
+    <!-- Info do Ato/Node -->
+    <div class="hud-act-info">
+      <span class="hud-act-label">Ato <span id="hud-act-number">1</span></span>
+      <span class="hud-node-number">#<span id="hud-node-number">1</span></span>
+    </div>
+  </div>
+
+  <!-- Slot Central: currencies-hud + relics-bar serão movidos pra cá -->
+  <div class="hud-center-area">
+    <div class="hud-currencies-slot" id="hud-currencies-slot">
+      <!-- currencies-hud será movido aqui via JavaScript -->
+    </div>
+
+    <div class="hud-separator hud-separator-center"></div>
+
+    <!-- Slot para Relíquias (relics-bar) - AGORA NO CENTRO -->
+    <div class="hud-relics-slot" id="hud-relics-slot">
+      <!-- relics-bar será movido aqui via JavaScript -->
+    </div>
+  </div>
+
+  <!-- Seção Direita: Apenas Lembranças -->
+  <div class="hud-section-right">
+    <!-- Slot para Lembranças (run-buffs-hud) -->
+    <div class="hud-memories-slot" id="hud-memories-slot">
+      <div class="hud-memories-label">
+        <img src="{{ url_for('static', filename='game.data/buffs/memory.png') }}" alt="Lembranças" title="Lembranças Ativas">
+      </div>
+      <!-- run-buffs-hud será movido aqui via JavaScript -->
+    </div>
+  </div>
+
+</div>
+
+<!-- HUD INFERIOR - PEDRA MEDIEVAL -->
+<div class="fixed-hud-bottom" id="fixed-hud-bottom">
+
+  <!-- Compartimento Esquerdo: Personagem + HP + Energia + Buffs -->
+  <div class="hud-bottom-left">
+    <!-- Ícone grande do personagem -->
+    <div class="hud-player-icon">
+      <img src="{{ url_for('static', filename='game.data/character/' ~ (player.character_id or 'vlad') ~ '/' ~ (player.character_id or 'vlad') ~ '-icon.png') }}"
+           alt="{{ player.character_name or 'Personagem' }}"
+           onerror="this.src='{{ url_for('static', filename='game.data/icons/default_character.svg') }}'">
+    </div>
+
+    <!-- Indicador de Energia - CANTO SUPERIOR DIREITO -->
+    <div class="hud-energy-indicator" id="hud-energy-indicator" data-energy-percent="high">
+      <div class="hud-energy-icon-container">
+        <img src="{{ url_for('static', filename='game.data/energy.png') }}" alt="Energia" class="hud-energy-icon">
+      </div>
+      <span class="hud-energy-text" id="hud-energy-text">10/10</span>
+    </div>
+
+    <!-- Stats (HP e Buffs) -->
+    <div class="hud-player-stats-container">
+      <!-- Barra de HP -->
+      <div class="hud-hp-bar" id="hud-hp-bar-container">
+        <div class="hud-barrier-fill" id="hud-barrier-fill" style="width: 0%;"></div>
+        {% set hp_percent = ((player_hp or 100) / (player_max_hp or 100) * 100) | round(1) %}
+        <div class="hud-hp-fill" id="hud-hp-fill" style="width: {{ hp_percent }}%;"></div>
+        <span class="hud-hp-text" id="hud-hp-text">{{ player_hp or 100 }}/{{ player_max_hp or 100 }}</span>
+        <!-- Display de Barreira -->
+        <div class="hud-barrier-display" id="hud-barrier-display" style="display: none;">
+          <svg class="hud-barrier-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+          </svg>
+          <span class="hud-barrier-value" id="hud-barrier-value">0</span>
+        </div>
+      </div>
+
+      <!-- Buffs/Debuffs -->
+      <div class="hud-buffs-row" id="hud-buffs-container">
+        <!-- Buffs serão inseridos via JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Compartimento Central: Slots para Fast-Wrappers -->
+  <div class="hud-bottom-center">
+    <!-- Slot para Ataques -->
+    <div class="hud-attacks-slot" id="hud-attacks-slot">
+      <!-- fast-attacks-wrapper será inserido aqui -->
+    </div>
+
+    <!-- Slot para Especiais -->
+    <div class="hud-specials-slot" id="hud-specials-slot">
+      <!-- fast-specials-wrapper será inserido aqui -->
+    </div>
+  </div>
+
+  <!-- Compartimento Direito: Slot para Inventário -->
+  <div class="hud-bottom-right">
+    <div class="hud-inventory-slot" id="hud-inventory-slot">
+      <!-- fast-inventory-wrapper será inserido aqui -->
+    </div>
+  </div>
+
+</div>
+
+<!-- JavaScript para mover elementos existentes para o novo HUD -->
+<script>
+(function() {
+  'use strict';
+
+  // ========================================
+  // MOVER ELEMENTOS EXISTENTES PARA O HUD
+  // ========================================
+
+  function moveElementToSlot(elementId, slotId) {
+    const element = document.getElementById(elementId);
+    const slot = document.getElementById(slotId);
+    if (element && slot && !slot.contains(element)) {
+      slot.appendChild(element);
+      console.log(`[HUD] Moved #${elementId} to #${slotId}`);
+    }
+  }
+
+  function moveByClass(className, slotId) {
+    const element = document.querySelector('.' + className);
+    const slot = document.getElementById(slotId);
+    if (element && slot && !slot.contains(element)) {
+      slot.appendChild(element);
+      console.log(`[HUD] Moved .${className} to #${slotId}`);
+    }
+  }
+
+  // Função para mover todos os elementos do HUD antigo
+  function moveHudElements() {
+    // Mover currencies-hud
+    moveElementToSlot('currencies-hud', 'hud-currencies-slot');
+
+    // Mover run-buffs-hud (lembranças)
+    moveElementToSlot('run-buffs-hud', 'hud-memories-slot');
+
+    // Mover relics-bar
+    moveElementToSlot('relics-bar', 'hud-relics-slot');
+
+    // Mover fast-wrappers (se existirem)
+    moveByClass('fast-attacks-wrapper', 'hud-attacks-slot');
+    moveByClass('fast-specials-wrapper', 'hud-specials-slot');
+    moveByClass('fast-inventory-wrapper', 'hud-inventory-slot');
+  }
+
+  // Observer para detectar quando elementos são adicionados ao DOM
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      mutation.addedNodes.forEach(function(node) {
+        if (node.nodeType === 1) {
+          // Verificar se é um dos elementos que precisamos mover
+          if (node.id === 'currencies-hud') {
+            moveElementToSlot('currencies-hud', 'hud-currencies-slot');
+          }
+          if (node.id === 'run-buffs-hud') {
+            moveElementToSlot('run-buffs-hud', 'hud-memories-slot');
+          }
+          if (node.id === 'relics-bar') {
+            moveElementToSlot('relics-bar', 'hud-relics-slot');
+          }
+          if (node.classList && node.classList.contains('fast-attacks-wrapper')) {
+            moveByClass('fast-attacks-wrapper', 'hud-attacks-slot');
+          }
+          if (node.classList && node.classList.contains('fast-specials-wrapper')) {
+            moveByClass('fast-specials-wrapper', 'hud-specials-slot');
+          }
+          if (node.classList && node.classList.contains('fast-inventory-wrapper')) {
+            moveByClass('fast-inventory-wrapper', 'hud-inventory-slot');
+          }
+        }
+      });
+    });
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  // Tentar mover elementos imediatamente e após um delay
+  moveHudElements();
+
+  // Retry após delays para garantir que os elementos foram carregados
+  setTimeout(moveHudElements, 100);
+  setTimeout(moveHudElements, 500);
+  setTimeout(moveHudElements, 1000);
+
+  // ========================================
+  // CARREGAR INFO DO ATO/NODE
+  // ========================================
+  async function loadActNodeInfo() {
+    try {
+      const response = await fetch('/map/api/current_progress');
+      const data = await response.json();
+
+      if (data.success) {
+        const actEl = document.getElementById('hud-act-number');
+        const nodeEl = document.getElementById('hud-node-number');
+
+        if (actEl) actEl.textContent = data.current_act || 1;
+        if (nodeEl) {
+          // Cada ato tem 16 nodes (0-15), então calcular node relativo
+          const nodeInAct = data.node_level !== undefined ? (data.node_level + 1) : 1;
+          nodeEl.textContent = nodeInAct;
+        }
+      }
+    } catch (error) {
+      console.log('[HUD] Sem info de mapa:', error);
+    }
+  }
+
+  // Carregar info do ato/node
+  loadActNodeInfo();
+
+  // Atualizar periodicamente (a cada 5 segundos)
+  setInterval(loadActNodeInfo, 5000);
+
+  // ========================================
+  // FUNÇÕES DE ATUALIZAÇÃO DO HUD INFERIOR
+  // ========================================
+
+  // Atualizar HP com percentual correto
+  window.updateHudHP = function(current, max, barrier) {
+    const hpFill = document.getElementById('hud-hp-fill');
+    const barrierFill = document.getElementById('hud-barrier-fill');
+    const hpText = document.getElementById('hud-hp-text');
+    const hpBarContainer = document.getElementById('hud-hp-bar-container');
+    const barrierDisplay = document.getElementById('hud-barrier-display');
+    const barrierValue = document.getElementById('hud-barrier-value');
+
+    if (hpFill && hpText) {
+      const percent = Math.max(0, Math.min(100, (current / max) * 100));
+      hpFill.style.width = percent + '%';
+      hpText.textContent = Math.round(current) + '/' + Math.round(max);
+
+      if (percent <= 25) {
+        hpFill.classList.add('critical');
+      } else {
+        hpFill.classList.remove('critical');
+      }
+    }
+
+    // Atualizar barreira
+    if (barrier && barrier > 0) {
+      // Mostrar visual de barreira
+      if (hpBarContainer) {
+        hpBarContainer.classList.add('has-barrier');
+      }
+      if (barrierFill) {
+        const barrierPercent = Math.min(100, (barrier / max) * 100);
+        barrierFill.style.width = barrierPercent + '%';
+      }
+      if (barrierDisplay) {
+        barrierDisplay.style.display = 'flex';
+      }
+      if (barrierValue) {
+        barrierValue.textContent = Math.round(barrier);
+      }
+    } else {
+      // Esconder barreira
+      if (hpBarContainer) {
+        hpBarContainer.classList.remove('has-barrier');
+      }
+      if (barrierFill) {
+        barrierFill.style.width = '0%';
+      }
+      if (barrierDisplay) {
+        barrierDisplay.style.display = 'none';
+      }
+    }
+  };
+
+  // Guardar último valor de energia para detectar mudanças
+  let lastEnergyValue = null;
+
+  // Atualizar Energia com efeito visual e animação
+  window.updateHudEnergy = function(current, max) {
+    const energyText = document.getElementById('hud-energy-text');
+    const energyIndicator = document.getElementById('hud-energy-indicator');
+
+    if (energyText) {
+      const oldValue = parseInt(energyText.textContent.split('/')[0]) || 0;
+      energyText.textContent = current + '/' + max;
+
+      // Animar se o valor mudou
+      if (lastEnergyValue !== null && lastEnergyValue !== current && energyIndicator) {
+        energyIndicator.classList.remove('energy-changed');
+        void energyIndicator.offsetWidth; // Force reflow
+        energyIndicator.classList.add('energy-changed');
+
+        setTimeout(() => {
+          energyIndicator.classList.remove('energy-changed');
+        }, 500);
+      }
+      lastEnergyValue = current;
+    }
+
+    if (energyIndicator) {
+      const percent = (current / max) * 100;
+      if (percent >= 70) {
+        energyIndicator.setAttribute('data-energy-percent', 'high');
+      } else if (percent >= 30) {
+        energyIndicator.setAttribute('data-energy-percent', 'medium');
+      } else {
+        energyIndicator.setAttribute('data-energy-percent', 'low');
+      }
+    }
+  };
+
+  // Atualizar Buffs do jogador na batalha
+  window.updateHudBuffs = function(buffs) {
+    const container = document.getElementById('hud-buffs-container');
+    if (!container) return;
+
+    container.innerHTML = '';
+    if (!buffs || buffs.length === 0) return;
+
+    buffs.forEach(function(buff) {
+      const item = document.createElement('div');
+      item.className = 'hud-buff-item ' + (buff.isDebuff ? 'debuff' : 'buff');
+      item.title = buff.name + (buff.value ? ': ' + buff.value : '');
+      item.innerHTML =
+        '<img src="/static/game.data/buffs/' + (buff.icon || 'default_buff.png') + '" alt="' + buff.name + '">' +
+        (buff.duration ? '<span class="hud-buff-duration">' + buff.duration + '</span>' : '');
+      container.appendChild(item);
+    });
+  };
+
+  // ========================================
+  // FUNÇÕES DE ANIMAÇÃO DE CURRENCIES
+  // ========================================
+
+  // Tocar som de currency aumentando
+  function playCurrencyUpSound() {
+    try {
+      const audio = new Audio("/static/game.data/sounds/currency-up.mp3");
+      audio.volume = 0.6;
+      audio.play().catch(err => {
+        console.warn("Som não pôde ser reproduzido:", err);
+      });
+    } catch (e) {
+      console.error("Erro ao tocar som:", e);
+    }
+  }
+
+  // Marcar elemento como alterado (animação CSS)
+  function markChanged(el) {
+    if (!el) return;
+    el.classList.remove('changed');
+    void el.offsetWidth; // force reflow
+    el.classList.add('changed');
+  }
+
+  // Anima o número subindo, de 'fromVal' até 'toVal'
+  function animateCounter(el, fromVal, toVal, duration = 1200) {
+    if (!el) return;
+    if (el.dataset.animating === '1') return;
+    el.dataset.animating = '1';
+
+    const start = performance.now();
+    const from = Number(fromVal) || 0;
+    const to = Number(toVal) || 0;
+    const dur = Math.max(500, duration * Math.min(1, Math.abs(to - from) / 50));
+
+    function step(now) {
+      const t = Math.min(1, (now - start) / dur);
+      const e = 1 - Math.pow(1 - t, 3); // easeOutCubic
+      const curr = Math.round(from + (to - from) * e);
+      el.textContent = curr;
+      if (t < 1) {
+        requestAnimationFrame(step);
+      } else {
+        el.textContent = to;
+        delete el.dataset.animating;
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  // Criar partículas sparkle ao redor do elemento
+  function spawnSparkles(valueEl, count = 8) {
+    const item = valueEl.closest('.currency-item');
+    if (!item) return;
+
+    const base = item.getBoundingClientRect();
+    const rect = valueEl.getBoundingClientRect();
+
+    for (let i = 0; i < count; i++) {
+      const s = document.createElement('span');
+      s.className = 'sparkle';
+      s.textContent = '✦';
+      s.style.left = (rect.left - base.left + rect.width / 2) + 'px';
+      s.style.top = (rect.top - base.top + rect.height / 2) + 'px';
+      item.appendChild(s);
+
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 15 + Math.random() * 20;
+      const dx = Math.cos(angle) * dist;
+      const dy = Math.sin(angle) * dist;
+
+      s.animate(
+        [
+          { transform: 'translate(0,0) scale(1)', opacity: 1 },
+          { transform: `translate(${dx}px, ${dy}px) scale(.9)`, opacity: 0 }
+        ],
+        { duration: 520 + Math.random() * 240, easing: 'cubic-bezier(.2,.6,.2,1)' }
+      ).onfinish = () => s.remove();
+    }
+  }
+
+  // Sobrescrever updateCurrencyDisplay para incluir animações
+  const originalUpdateCurrency = window.updateCurrencyDisplay;
+
+  window.updateCurrencyDisplay = async function() {
+    try {
+      // Capturar valores ANTES
+      const crystalsEl = document.getElementById('crystals-value');
+      const goldEl = document.getElementById('gold-value');
+      const hourglassesEl = document.getElementById('hourglasses-value');
+
+      const oldCrystals = crystalsEl ? parseInt(crystalsEl.textContent) || 0 : 0;
+      const oldGold = goldEl ? parseInt(goldEl.textContent) || 0 : 0;
+      const oldHourglasses = hourglassesEl ? parseInt(hourglassesEl.textContent) || 0 : 0;
+
+      const response = await fetch('/gamification/get_player_currencies');
+      const data = await response.json();
+
+      if (data.success) {
+        let playedSound = false;
+
+        // Cristais
+        if (crystalsEl && data.crystals !== undefined) {
+          const newVal = parseInt(data.crystals) || 0;
+          if (newVal > oldCrystals) {
+            markChanged(crystalsEl);
+            animateCounter(crystalsEl, oldCrystals, newVal);
+            spawnSparkles(crystalsEl, 8);
+            if (!playedSound) { playCurrencyUpSound(); playedSound = true; }
+          } else if (newVal !== oldCrystals) {
+            crystalsEl.textContent = newVal;
+            markChanged(crystalsEl);
+          } else {
+            crystalsEl.textContent = newVal;
+          }
+        }
+
+        // Ouro
+        if (goldEl && data.gold !== undefined) {
+          const newVal = parseInt(data.gold) || 0;
+          if (newVal > oldGold) {
+            markChanged(goldEl);
+            animateCounter(goldEl, oldGold, newVal);
+            spawnSparkles(goldEl, 8);
+            if (!playedSound) { playCurrencyUpSound(); playedSound = true; }
+          } else if (newVal !== oldGold) {
+            goldEl.textContent = newVal;
+            markChanged(goldEl);
+          } else {
+            goldEl.textContent = newVal;
+          }
+        }
+
+        // Ampulhetas
+        if (hourglassesEl && data.hourglasses !== undefined) {
+          const newVal = parseInt(data.hourglasses) || 0;
+          if (newVal > oldHourglasses) {
+            markChanged(hourglassesEl);
+            animateCounter(hourglassesEl, oldHourglasses, newVal);
+            spawnSparkles(hourglassesEl, 8);
+            if (!playedSound) { playCurrencyUpSound(); playedSound = true; }
+          } else if (newVal !== oldHourglasses) {
+            hourglassesEl.textContent = newVal;
+            markChanged(hourglassesEl);
+          } else {
+            hourglassesEl.textContent = newVal;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('[HUD] Erro ao atualizar currencies:', error);
+    }
+  };
+
+  // ========================================
+  // ADICIONAR TOOLTIPS ÀS CURRENCIES
+  // ========================================
+
+  function addCurrencyTooltips() {
+    const tooltips = {
+      'crystals-value': {
+        name: 'Cristais de Memória',
+        desc: 'Material utilizado para obter melhorias para todas as runs.'
+      },
+      'gold-value': {
+        name: 'Ouro',
+        desc: 'Moeda utilizada para comprar itens na loja nesta run.'
+      },
+      'hourglasses-value': {
+        name: 'Ampulhetas Eternas',
+        desc: 'Objeto utilizado para manipular o tempo da Eternidade para possibilitar novas opções de escolhas.'
+      }
+    };
+
+    Object.keys(tooltips).forEach(id => {
+      const element = document.getElementById(id);
+      if (element) {
+        const parent = element.closest('.currency-item');
+        if (parent && !parent.querySelector('.currency-tooltip')) {
+          parent.style.position = 'relative';
+          parent.classList.add('has-tooltip');
+
+          // Estrutura igual às relíquias
+          const tooltip = document.createElement('div');
+          tooltip.className = 'currency-tooltip';
+          tooltip.innerHTML = `
+            <div class="currency-tooltip-name">${tooltips[id].name}</div>
+            <div class="currency-tooltip-desc">${tooltips[id].desc}</div>
+          `;
+          parent.appendChild(tooltip);
+        }
+      }
+    });
+  }
+
+  // Adicionar tooltips após elementos serem movidos
+  setTimeout(addCurrencyTooltips, 600);
+  setTimeout(addCurrencyTooltips, 1500);
+
+})();
+</script>

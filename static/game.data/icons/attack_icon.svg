@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="swordGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E0E0E0"/>
+      <stop offset="50%" style="stop-color:#FFFFFF"/>
+      <stop offset="100%" style="stop-color:#B0B0B0"/>
+    </linearGradient>
+    <linearGradient id="handleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B4513"/>
+      <stop offset="100%" style="stop-color:#5D3A1A"/>
+    </linearGradient>
+    <linearGradient id="guardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#B8860B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Lâmina da espada -->
+  <path d="M 45 8 L 52 15 L 26 41 L 23 44 L 20 41 L 46 15 Z"
+        fill="url(#swordGrad)" stroke="#666" stroke-width="1"/>
+
+  <!-- Brilho da lâmina -->
+  <path d="M 47 10 L 50 13 L 27 36 L 25 34 Z"
+        fill="rgba(255,255,255,0.5)"/>
+
+  <!-- Guarda da espada -->
+  <rect x="18" y="40" width="12" height="4" rx="1"
+        fill="url(#guardGrad)" stroke="#8B6914" stroke-width="0.5"
+        transform="rotate(-45 24 42)"/>
+
+  <!-- Cabo -->
+  <rect x="14" y="48" width="4" height="12" rx="1"
+        fill="url(#handleGrad)" stroke="#3A2F12" stroke-width="0.5"
+        transform="rotate(-45 16 54)"/>
+
+  <!-- Pomo -->
+  <circle cx="10" cy="54" r="3" fill="url(#guardGrad)" stroke="#8B6914" stroke-width="0.5"/>
+
+  <!-- Efeito de ataque (linhas de movimento) -->
+  <path d="M 50 5 L 56 11" stroke="#FF4444" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+  <path d="M 54 8 L 58 12" stroke="#FF6666" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+  <path d="M 52 3 L 56 7" stroke="#FF8888" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+</svg>

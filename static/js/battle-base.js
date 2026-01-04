@@ -1050,6 +1050,15 @@ function updateStats() {
             window.smallPlayerHpBarEl.style.width = `${hpPercentage}%`;
         }
 
+        // Atualizar HUD fixo (se existir)
+        if (typeof window.updateHudHP === 'function') {
+            window.updateHudHP(
+                window.gameState.player.hp,
+                window.gameState.player.maxHp,
+                window.gameState.player.barrier || 0
+            );
+        }
+
         // ===== NOVA LÓGICA DA BARREIRA (UI) =====
         const smallHpContainer = document.querySelector('.character-hud .small-bar-container');
         
@@ -1162,6 +1171,11 @@ function updateEnergyIndicator() {
     }
     
     console.log(`⚡ Energia atualizada: ${currentEnergy}/${maxEnergy} (${energyPercent.toFixed(1)}%)`);
+
+    // Atualizar HUD fixo (se existir)
+    if (typeof window.updateHudEnergy === 'function') {
+        window.updateHudEnergy(currentEnergy, maxEnergy);
+    }
 
     // Atualizar botões do fast battle mode
     if (window.fastBattleMode && typeof window.fastBattleMode.updateButtonStates === 'function') {

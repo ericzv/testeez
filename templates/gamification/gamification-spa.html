@@ -22,6 +22,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/fast-battle-mode.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/battle-skill-test.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/enemy-skills.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/fixed-hud.css') }}">
 
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -152,7 +153,10 @@ function closeMapPopup() {
 </script>
 </head>
 
-<body class="gamification-page">
+<body class="gamification-page has-fixed-hud">
+
+<!-- Fixed HUD (Superior e Inferior) -->
+{% include 'gamification/partials/fixed_hud.html' %}
 
 <!-- SPA Container -->
 <div class="spa-container">
@@ -176,7 +180,7 @@ function closeMapPopup() {
         <!-- Navegação -->
         <a href="{{ url_for('cards.index') }}" class="nav-button">
             <span>&#8592;</span>
-            Voltar ao Retina Cards
+            Flashcards
         </a>
 
         <!-- Particles Background -->
@@ -280,8 +284,7 @@ function closeMapPopup() {
 
         <!-- Botão Voltar ao Hub (SPA) -->
         <button class="spa-back-button" id="spa-back-to-hub">
-            <span class="arrow">&#8592;</span>
-            <span>Hub</span>
+            ← Voltar
         </button>
 
         <!-- Critical Flash Effect -->
@@ -1228,6 +1231,11 @@ function displayRelicOptions() {
         `;
         el.addEventListener('mouseenter', () => playRelicHoverSound());
         el.addEventListener('click', (e) => selectRelicOption(option.id, e));
+        // Duplo clique seleciona E confirma a relíquia de uma vez
+        el.addEventListener('dblclick', (e) => {
+            selectRelicOption(option.id, e);
+            setTimeout(() => confirmRelicSelection(), 50);
+        });
         container.appendChild(el);
     });
 }
@@ -1366,13 +1374,14 @@ function displayActiveRunBuffs(buffs) {
         const item = document.createElement('div');
         item.className = 'currency-item';
         item.setAttribute('data-key', buff.name);
+        // Estrutura de tooltip igual às relíquias (abre para baixo)
         item.innerHTML = `
             <img src="/static/game.data/buffs/${buff.icon}" alt="${buff.name}" class="currency-icon tooltip-trigger">
             <span class="currency-value tooltip-trigger">${buff.display_value}</span>
-            <div class="custom-tooltip">
-                <div class="tooltip-name">${buff.name}${buff.count > 1 ? ' (' + buff.count + ')' : ''}</div>
-                <div class="tooltip-description">${buff.description}</div>
-                <div class="tooltip-value">${buff.display_value}</div>
+            <div class="memory-tooltip">
+                <div class="memory-tooltip-name">${buff.name}${buff.count > 1 ? ' (' + buff.count + ')' : ''}</div>
+                <div class="memory-tooltip-desc">${buff.description}</div>
+                <div class="memory-tooltip-value">${buff.display_value}</div>
             </div>
         `;
         hud.appendChild(item);
@@ -1460,6 +1469,9 @@ function showVictoryRewards(data) {
 
 async function acceptVictoryRewards(popup) {
     try {
+        // Tocar som de moedas ao coletar recompensas
+        playCoinGainSound();
+
         await fetch('/gamification/apply_victory_rewards', { method: 'POST' });
         popup.remove();
         await updateCurrencyDisplay();
