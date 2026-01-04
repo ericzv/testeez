@@ -757,6 +757,88 @@ body.gamification-page {
 }
 
 /* ============================================== */
+/* TOOLTIPS LEMBRANÇAS - ESTILO RELÍQUIAS */
+/* ============================================== */
+
+.currency-item .memory-tooltip {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 200px;
+  max-width: 260px;
+  white-space: normal;
+  z-index: 10000;
+  pointer-events: none;
+
+  background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
+  border: 2px solid #4b5563;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Seta apontando para cima */
+.currency-item .memory-tooltip::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-bottom-color: #4b5563;
+}
+
+.currency-item .memory-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-bottom-color: #1a1a1a;
+  margin-bottom: -2px;
+}
+
+.currency-item:hover .memory-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(5px);
+}
+
+/* Texto do tooltip - igual relíquias mas com cor roxa */
+.memory-tooltip-name {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  font-weight: bold;
+  color: #b482ff;
+  margin-bottom: 6px;
+  text-shadow: 0 0 10px rgba(180, 130, 255, 0.3);
+  text-align: center;
+}
+
+.memory-tooltip-desc {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  color: #d1d5db;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.memory-tooltip-value {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  font-weight: bold;
+  color: #9ae49a;
+  margin-top: 6px;
+  text-shadow: 0 0 8px rgba(154, 228, 154, 0.4);
+  text-align: center;
+}
+
+/* ============================================== */
 /* SISTEMA DE NOTIFICAÇÕES */
 /* ============================================== */
 

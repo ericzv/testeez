@@ -501,9 +501,11 @@ body.has-fixed-hud .energy-indicator {
 
 .hud-currencies-slot .currency-item.has-tooltip {
   cursor: pointer;
+  position: relative;
 }
 
-.hud-currencies-slot .custom-tooltip.currency-tooltip {
+/* Tooltip igual às relíquias */
+.hud-currencies-slot .currency-item .currency-tooltip {
   position: absolute;
   top: calc(100% + 10px);
   left: 50%;
@@ -525,7 +527,7 @@ body.has-fixed-hud .energy-indicator {
 }
 
 /* Seta apontando para cima */
-.hud-currencies-slot .custom-tooltip.currency-tooltip::before {
+.hud-currencies-slot .currency-item .currency-tooltip::before {
   content: '';
   position: absolute;
   bottom: 100%;
@@ -535,7 +537,7 @@ body.has-fixed-hud .energy-indicator {
   border-bottom-color: #4b5563;
 }
 
-.hud-currencies-slot .custom-tooltip.currency-tooltip::after {
+.hud-currencies-slot .currency-item .currency-tooltip::after {
   content: '';
   position: absolute;
   bottom: 100%;
@@ -546,13 +548,14 @@ body.has-fixed-hud .energy-indicator {
   margin-bottom: -2px;
 }
 
-.hud-currencies-slot .currency-item.has-tooltip:hover .custom-tooltip.currency-tooltip {
+.hud-currencies-slot .currency-item:hover .currency-tooltip {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(5px);
 }
 
-.hud-currencies-slot .custom-tooltip .tooltip-name {
+/* Texto do tooltip - igual relíquias */
+.currency-tooltip-name {
   font-family: 'Cinzel', serif;
   font-size: 14px;
   font-weight: bold;
@@ -562,7 +565,7 @@ body.has-fixed-hud .energy-indicator {
   text-align: center;
 }
 
-.hud-currencies-slot .custom-tooltip .tooltip-description {
+.currency-tooltip-desc {
   font-family: 'Montserrat', sans-serif;
   font-size: 12px;
   color: #d1d5db;
@@ -573,7 +576,14 @@ body.has-fixed-hud .energy-indicator {
 /* ============================================== */
 /* TOOLTIPS LEMBRANÇAS - ESTILO RELÍQUIAS */
 /* ============================================== */
-.hud-memories-slot .custom-tooltip {
+
+.hud-memories-slot .run-buff-item,
+.hud-memories-slot .currency-item {
+  position: relative;
+}
+
+/* Tooltip igual às relíquias */
+.hud-memories-slot .memory-tooltip {
   position: absolute;
   top: calc(100% + 10px);
   left: 50%;
@@ -595,7 +605,7 @@ body.has-fixed-hud .energy-indicator {
 }
 
 /* Seta apontando para cima */
-.hud-memories-slot .custom-tooltip::before {
+.hud-memories-slot .memory-tooltip::before {
   content: '';
   position: absolute;
   bottom: 100%;
@@ -605,7 +615,7 @@ body.has-fixed-hud .energy-indicator {
   border-bottom-color: #4b5563;
 }
 
-.hud-memories-slot .custom-tooltip::after {
+.hud-memories-slot .memory-tooltip::after {
   content: '';
   position: absolute;
   bottom: 100%;
@@ -616,13 +626,15 @@ body.has-fixed-hud .energy-indicator {
   margin-bottom: -2px;
 }
 
-.hud-memories-slot .currency-item:hover .custom-tooltip {
+.hud-memories-slot .run-buff-item:hover .memory-tooltip,
+.hud-memories-slot .currency-item:hover .memory-tooltip {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(5px);
 }
 
-.hud-memories-slot .custom-tooltip .tooltip-name {
+/* Texto do tooltip - igual relíquias mas com cor roxa */
+.memory-tooltip-name {
   font-family: 'Cinzel', serif;
   font-size: 14px;
   font-weight: bold;
@@ -632,12 +644,89 @@ body.has-fixed-hud .energy-indicator {
   text-align: center;
 }
 
-.hud-memories-slot .custom-tooltip .tooltip-description {
+.memory-tooltip-desc {
   font-family: 'Montserrat', sans-serif;
   font-size: 12px;
   color: #d1d5db;
   line-height: 1.4;
   text-align: center;
+}
+
+.memory-tooltip-value {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  font-weight: bold;
+  color: #9ae49a;
+  margin-top: 6px;
+  text-shadow: 0 0 8px rgba(154, 228, 154, 0.4);
+  text-align: center;
+}
+
+/* ============================================== */
+/* ANIMAÇÕES DE CURRENCIES */
+/* ============================================== */
+
+.currency-value.changed {
+  position: relative;
+  animation: impactWaves 1.6s cubic-bezier(.2,.7,.2,1) both,
+            chromaFlicker 0.28s linear 2;
+  will-change: transform, color, text-shadow;
+}
+
+@keyframes impactWaves {
+  0%   { transform: scale(1);
+        color: #ffd700;
+        text-shadow: 0 0 0 rgba(255,215,0,0); }
+  12%  { transform: scale(1.35);
+        color: #fff;
+        text-shadow: 0 0 14px rgba(255,215,0,.75); }
+  30%  { transform: scale(0.95); }
+  55%  { transform: scale(1.08); }
+  80%  { transform: scale(0.98); }
+  100% { transform: scale(1);
+        color: inherit;
+        text-shadow: 0 0 0 rgba(255,215,0,0); }
+}
+
+.currency-value.changed::after {
+  content: "";
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 0; height: 0;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255,215,0,.5) 0%, transparent 70%);
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+  animation: haloRing 1.4s ease-out forwards;
+  z-index: -1;
+}
+
+@keyframes haloRing {
+  0%   { width: 0; height: 0; opacity: .8; box-shadow: 0 0 0 0 rgba(255,215,0,0); }
+  40%  { width: 2em; height: 2em; opacity: .6; box-shadow: 0 0 16px 4px rgba(255,215,0,.45); }
+  60%  { width: 2.6em; height: 2.6em; opacity: .35; box-shadow: 0 0 24px 6px rgba(255,215,0,.35); }
+  100% { width: 3.2em; height: 3.2em; opacity: 0;   box-shadow: 0 0 0 0 rgba(255,215,0,0); }
+}
+
+@keyframes chromaFlicker {
+  0%   { filter: none; }
+  50%  { filter: saturate(1.25) brightness(1.08); }
+  100% { filter: none; }
+}
+
+.sparkle {
+  position: absolute;
+  pointer-events: none;
+  font-size: 11px;
+  line-height: 1;
+  color: #ffd700;
+  text-shadow: 0 0 8px rgba(255,215,0,.55);
+  will-change: transform, opacity;
+  z-index: 5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sparkle { display: none; }
 }
 
 /* ============================================== */
