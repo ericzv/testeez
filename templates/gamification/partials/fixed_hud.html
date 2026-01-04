@@ -258,13 +258,29 @@
     }
   };
 
-  // Atualizar Energia com efeito visual
+  // Guardar último valor de energia para detectar mudanças
+  let lastEnergyValue = null;
+
+  // Atualizar Energia com efeito visual e animação
   window.updateHudEnergy = function(current, max) {
     const energyText = document.getElementById('hud-energy-text');
     const energyIndicator = document.getElementById('hud-energy-indicator');
 
     if (energyText) {
+      const oldValue = parseInt(energyText.textContent.split('/')[0]) || 0;
       energyText.textContent = current + '/' + max;
+
+      // Animar se o valor mudou
+      if (lastEnergyValue !== null && lastEnergyValue !== current && energyIndicator) {
+        energyIndicator.classList.remove('energy-changed');
+        void energyIndicator.offsetWidth; // Force reflow
+        energyIndicator.classList.add('energy-changed');
+
+        setTimeout(() => {
+          energyIndicator.classList.remove('energy-changed');
+        }, 500);
+      }
+      lastEnergyValue = current;
     }
 
     if (energyIndicator) {
@@ -318,26 +334,32 @@
     const newVal = parseInt(newValue) || 0;
 
     if (oldValue !== newVal) {
-      // Remover classe anterior se existir
+      // Remover classes anteriores
       element.classList.remove('changed');
+      const parentItem = element.closest('.currency-item');
+      if (parentItem) parentItem.classList.remove('currency-changed');
 
       // Forçar reflow para reiniciar animação
       void element.offsetWidth;
 
       // Adicionar classe de animação
       element.classList.add('changed');
+      if (parentItem) parentItem.classList.add('currency-changed');
 
       // Tocar som de moeda (se disponível)
       if (window.playSound && typeof window.playSound === 'function') {
         window.playSound('coin');
       } else if (window.audioManager && window.audioManager.playSound) {
         window.audioManager.playSound('coin');
+      } else if (window.SoundManager && window.SoundManager.play) {
+        window.SoundManager.play('coin');
       }
 
       // Remover classe após animação
       setTimeout(() => {
         element.classList.remove('changed');
-      }, 1600);
+        if (parentItem) parentItem.classList.remove('currency-changed');
+      }, 800);
     }
 
     element.textContent = newValue;
