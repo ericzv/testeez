@@ -1178,6 +1178,11 @@
                 document.getElementById('player-max-hp').textContent = data.player_max_hp;
                 goldEl.textContent = data.player_gold;
 
+                // Atualizar HUD fixo (se existir)
+                if (typeof window.updateHudHP === 'function') {
+                    window.updateHudHP(data.player_hp, data.player_max_hp, 0);
+                }
+
                 // Tocar som de moedas se gold mudou
                 const newGold = data.player_gold || 0;
                 if (newGold > oldGold) {

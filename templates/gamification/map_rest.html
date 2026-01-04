@@ -257,6 +257,11 @@
                 document.getElementById('current-hp').textContent = data.new_hp;
                 document.getElementById('hp-bar').style.width = `${(data.new_hp / data.max_hp * 100)}%`;
 
+                // Atualizar HUD fixo (se existir)
+                if (typeof window.updateHudHP === 'function') {
+                    window.updateHudHP(data.new_hp, data.max_hp, 0);
+                }
+
                 // Mostrar resultado
                 const healResult = document.getElementById('heal-result');
                 document.getElementById('heal-amount').textContent = `+${data.healed} HP`;

@@ -77,11 +77,18 @@
     <!-- Stats (HP e Buffs) -->
     <div class="hud-player-stats-container">
       <!-- Barra de HP -->
-      <div class="hud-hp-bar">
+      <div class="hud-hp-bar" id="hud-hp-bar-container">
         <div class="hud-barrier-fill" id="hud-barrier-fill" style="width: 0%;"></div>
         {% set hp_percent = ((player_hp or 100) / (player_max_hp or 100) * 100) | round(1) %}
         <div class="hud-hp-fill" id="hud-hp-fill" style="width: {{ hp_percent }}%;"></div>
         <span class="hud-hp-text" id="hud-hp-text">{{ player_hp or 100 }}/{{ player_max_hp or 100 }}</span>
+        <!-- Display de Barreira -->
+        <div class="hud-barrier-display" id="hud-barrier-display" style="display: none;">
+          <svg class="hud-barrier-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+          </svg>
+          <span class="hud-barrier-value" id="hud-barrier-value">0</span>
+        </div>
       </div>
 
       <!-- Buffs/Debuffs -->
@@ -235,6 +242,9 @@
     const hpFill = document.getElementById('hud-hp-fill');
     const barrierFill = document.getElementById('hud-barrier-fill');
     const hpText = document.getElementById('hud-hp-text');
+    const hpBarContainer = document.getElementById('hud-hp-bar-container');
+    const barrierDisplay = document.getElementById('hud-barrier-display');
+    const barrierValue = document.getElementById('hud-barrier-value');
 
     if (hpFill && hpText) {
       const percent = Math.max(0, Math.min(100, (current / max) * 100));
@@ -248,12 +258,32 @@
       }
     }
 
-    if (barrierFill) {
-      if (barrier && barrier > 0) {
+    // Atualizar barreira
+    if (barrier && barrier > 0) {
+      // Mostrar visual de barreira
+      if (hpBarContainer) {
+        hpBarContainer.classList.add('has-barrier');
+      }
+      if (barrierFill) {
         const barrierPercent = Math.min(100, (barrier / max) * 100);
         barrierFill.style.width = barrierPercent + '%';
-      } else {
+      }
+      if (barrierDisplay) {
+        barrierDisplay.style.display = 'flex';
+      }
+      if (barrierValue) {
+        barrierValue.textContent = Math.round(barrier);
+      }
+    } else {
+      // Esconder barreira
+      if (hpBarContainer) {
+        hpBarContainer.classList.remove('has-barrier');
+      }
+      if (barrierFill) {
         barrierFill.style.width = '0%';
+      }
+      if (barrierDisplay) {
+        barrierDisplay.style.display = 'none';
       }
     }
   };
@@ -325,46 +355,6 @@
     hourglasses: null
   };
 
-  // Função para adicionar animação quando valor muda
-  function animateCurrencyChange(elementId, newValue) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-
-    const oldValue = parseInt(element.textContent) || 0;
-    const newVal = parseInt(newValue) || 0;
-
-    if (oldValue !== newVal) {
-      // Remover classes anteriores
-      element.classList.remove('changed');
-      const parentItem = element.closest('.currency-item');
-      if (parentItem) parentItem.classList.remove('currency-changed');
-
-      // Forçar reflow para reiniciar animação
-      void element.offsetWidth;
-
-      // Adicionar classe de animação
-      element.classList.add('changed');
-      if (parentItem) parentItem.classList.add('currency-changed');
-
-      // Tocar som de moeda (se disponível)
-      if (window.playSound && typeof window.playSound === 'function') {
-        window.playSound('coin');
-      } else if (window.audioManager && window.audioManager.playSound) {
-        window.audioManager.playSound('coin');
-      } else if (window.SoundManager && window.SoundManager.play) {
-        window.SoundManager.play('coin');
-      }
-
-      // Remover classe após animação
-      setTimeout(() => {
-        element.classList.remove('changed');
-        if (parentItem) parentItem.classList.remove('currency-changed');
-      }, 800);
-    }
-
-    element.textContent = newValue;
-  }
-
   // Sobrescrever updateCurrencyDisplay para incluir animações
   const originalUpdateCurrency = window.updateCurrencyDisplay;
 
@@ -373,9 +363,26 @@
       const response = await fetch('/gamification/get_player_currencies');
       const data = await response.json();
       if (data.success) {
-        animateCurrencyChange('crystals-value', data.crystals);
-        animateCurrencyChange('gold-value', data.gold);
-        animateCurrencyChange('hourglasses-value', data.hourglasses);
+        // Verificar se houve mudança
+        const crystalsEl = document.getElementById('crystals-value');
+        const goldEl = document.getElementById('gold-value');
+        const hourglassesEl = document.getElementById('hourglasses-value');
+
+        const oldCrystals = crystalsEl ? parseInt(crystalsEl.textContent) || 0 : 0;
+        const oldGold = goldEl ? parseInt(goldEl.textContent) || 0 : 0;
+        const oldHourglasses = hourglassesEl ? parseInt(hourglassesEl.textContent) || 0 : 0;
+
+        // Atualizar valores
+        if (crystalsEl) crystalsEl.textContent = data.crystals;
+        if (goldEl) goldEl.textContent = data.gold;
+        if (hourglassesEl) hourglassesEl.textContent = data.hourglasses;
+
+        // Tocar som se algum valor aumentou
+        if (data.crystals > oldCrystals || data.gold > oldGold || data.hourglasses > oldHourglasses) {
+          if (typeof playCoinGainSound === 'function') {
+            playCoinGainSound();
+          }
+        }
       }
     } catch (error) {
       console.error('[HUD] Erro ao atualizar currencies:', error);

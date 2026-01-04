@@ -309,29 +309,6 @@ body.has-fixed-hud .energy-indicator {
 .hud-currencies-slot .currencies-hud .currency-value {
   font-size: 15px;
   color: #ddd;
-  transition: transform 0.3s ease, color 0.3s ease;
-}
-
-/* Animação quando valor de currency muda */
-.hud-currencies-slot .currencies-hud .currency-value.changed {
-  animation: currencyValuePulse 0.6s ease;
-}
-
-@keyframes currencyValuePulse {
-  0% { transform: scale(1); color: #ddd; }
-  30% { transform: scale(1.4); color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); }
-  100% { transform: scale(1); color: #ddd; }
-}
-
-/* Animação do ícone quando currency muda */
-.hud-currencies-slot .currencies-hud .currency-item.currency-changed .currency-icon {
-  animation: currencyIconBounce 0.5s ease;
-}
-
-@keyframes currencyIconBounce {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.3); filter: drop-shadow(0 0 8px #ffd700) drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff); }
-  100% { transform: scale(1); }
 }
 
 /* Slot para Relíquias - NO CENTRO, SEM BORDA */
@@ -999,6 +976,52 @@ body.has-fixed-hud .energy-indicator {
   font-weight: bold;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
   z-index: 2;
+}
+
+/* Barra de HP com barreira ativa */
+.hud-hp-bar.has-barrier {
+  outline: 2px solid #55aaff;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8), 0 0 10px rgba(85, 170, 255, 0.7);
+}
+
+.hud-hp-bar.has-barrier .hud-hp-fill {
+  background: linear-gradient(180deg,
+    #ff5050 0%,
+    #ff8a8a 40%,
+    #ff7070 60%,
+    #cc3030 100%
+  );
+}
+
+/* Display de barreira com ícone de escudo */
+.hud-barrier-display {
+  position: absolute;
+  right: -45px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  background: rgba(40, 60, 90, 0.9);
+  border: 1px solid #55aaff;
+  border-radius: 4px;
+  padding: 2px 5px;
+  height: 80%;
+  box-shadow: 0 0 8px rgba(85, 170, 255, 0.6);
+  z-index: 5;
+}
+
+.hud-barrier-icon {
+  width: 14px;
+  height: 14px;
+  color: #77ccff;
+  margin-right: 3px;
+}
+
+.hud-barrier-value {
+  font-size: 12px;
+  font-weight: bold;
+  color: #77ccff;
+  text-shadow: 0 0 3px #000;
 }
 
 /* Container de buffs */
