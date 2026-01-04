@@ -1374,13 +1374,14 @@ function displayActiveRunBuffs(buffs) {
         const item = document.createElement('div');
         item.className = 'currency-item';
         item.setAttribute('data-key', buff.name);
+        // Estrutura de tooltip igual às relíquias (abre para baixo)
         item.innerHTML = `
             <img src="/static/game.data/buffs/${buff.icon}" alt="${buff.name}" class="currency-icon tooltip-trigger">
             <span class="currency-value tooltip-trigger">${buff.display_value}</span>
-            <div class="custom-tooltip">
-                <div class="tooltip-name">${buff.name}${buff.count > 1 ? ' (' + buff.count + ')' : ''}</div>
-                <div class="tooltip-description">${buff.description}</div>
-                <div class="tooltip-value">${buff.display_value}</div>
+            <div class="memory-tooltip">
+                <div class="memory-tooltip-name">${buff.name}${buff.count > 1 ? ' (' + buff.count + ')' : ''}</div>
+                <div class="memory-tooltip-desc">${buff.description}</div>
+                <div class="memory-tooltip-value">${buff.display_value}</div>
             </div>
         `;
         hud.appendChild(item);

@@ -44,7 +44,7 @@ body.has-fixed-hud #relic-selection-popup .relic-option,
 body.has-fixed-hud .victory-continue-btn {
   pointer-events: auto !important;
   position: relative;
-  z-index: 10;
+  z-index: 1500;
   cursor: pointer;
 }
 
@@ -88,13 +88,6 @@ body.has-fixed-hud #relic-selection-popup .rewrite-divider {
 body.has-fixed-hud #relic-selection-popup .victory-actions {
   margin-top: 15px;
   padding-bottom: 10px;
-}
-
-/* Botão de confirmar relíquia com z-index alto para garantir clicabilidade */
-body.has-fixed-hud #confirm-relic-btn {
-  position: relative;
-  z-index: 1500 !important;
-  pointer-events: auto !important;
 }
 
 /* ============================================== */
