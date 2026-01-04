@@ -1231,6 +1231,11 @@ function displayRelicOptions() {
         `;
         el.addEventListener('mouseenter', () => playRelicHoverSound());
         el.addEventListener('click', (e) => selectRelicOption(option.id, e));
+        // Duplo clique seleciona E confirma a relíquia de uma vez
+        el.addEventListener('dblclick', (e) => {
+            selectRelicOption(option.id, e);
+            setTimeout(() => confirmRelicSelection(), 50);
+        });
         container.appendChild(el);
     });
 }

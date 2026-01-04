@@ -20,25 +20,32 @@ body.has-fixed-hud {
 body.has-fixed-hud .ui-dialog,
 body.has-fixed-hud #relic-selection-popup,
 body.has-fixed-hud #memory-selection-popup,
-body.has-fixed-hud .victory-popup {
-  z-index: 2000 !important;
+body.has-fixed-hud .victory-popup,
+body.has-fixed-hud .victory-rewards-popup {
+  z-index: 3000 !important;
+  pointer-events: auto !important;
 }
 
 /* Garantir que conteúdo do popup é clicável */
 body.has-fixed-hud .ui-panel,
 body.has-fixed-hud .relic-selection-modal,
-body.has-fixed-hud .victory-content {
+body.has-fixed-hud .victory-content,
+body.has-fixed-hud .victory-content-new {
   pointer-events: auto !important;
   position: relative;
   z-index: 1;
 }
 
+/* Todos os elementos clicáveis do popup */
 body.has-fixed-hud #relic-selection-popup .victory-actions,
 body.has-fixed-hud #relic-selection-popup .btn-primary,
-body.has-fixed-hud #relic-selection-popup .rewrite-divider {
+body.has-fixed-hud #relic-selection-popup .rewrite-divider,
+body.has-fixed-hud #relic-selection-popup .relic-option,
+body.has-fixed-hud .victory-continue-btn {
   pointer-events: auto !important;
   position: relative;
   z-index: 10;
+  cursor: pointer;
 }
 
 /* Popup de relíquias mais compacto */
@@ -997,7 +1004,7 @@ body.has-fixed-hud .energy-indicator {
 /* Display de barreira com ícone de escudo */
 .hud-barrier-display {
   position: absolute;
-  right: -45px;
+  right: -55px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
@@ -1006,20 +1013,20 @@ body.has-fixed-hud .energy-indicator {
   border: 1px solid #55aaff;
   border-radius: 4px;
   padding: 2px 5px;
-  height: 80%;
+  height: 120%;
   box-shadow: 0 0 8px rgba(85, 170, 255, 0.6);
   z-index: 5;
 }
 
 .hud-barrier-icon {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   color: #77ccff;
-  margin-right: 3px;
+  margin-right: 5px;
 }
 
 .hud-barrier-value {
-  font-size: 12px;
+  font-size: 18px;
   font-weight: bold;
   color: #77ccff;
   text-shadow: 0 0 3px #000;

@@ -1579,6 +1579,14 @@ class FastBattleMode {
         console.log('✅ HUD atualizado do servidor:', data);
         console.log('🛡️ Barreira atualizada:', data.barrier);
 
+        // Atualizar HUD fixo IMEDIATAMENTE
+        if (typeof window.updateHudHP === 'function') {
+          window.updateHudHP(data.hp, data.max_hp, data.barrier || 0);
+        }
+        if (typeof window.updateHudEnergy === 'function') {
+          window.updateHudEnergy(data.energy, data.max_energy || 10);
+        }
+
         // Forçar atualização visual do HUD múltiplas vezes para garantir
         if (window.updatePlayerHUD) {
           window.updatePlayerHUD();
@@ -1586,6 +1594,12 @@ class FastBattleMode {
           // Tentar novamente após delays variados (fallback)
           setTimeout(() => {
             window.updatePlayerHUD();
+            if (typeof window.updateHudHP === 'function') {
+              window.updateHudHP(data.hp, data.max_hp, data.barrier || 0);
+            }
+            if (typeof window.updateHudEnergy === 'function') {
+              window.updateHudEnergy(data.energy, data.max_energy || 10);
+            }
           }, 100);
 
           setTimeout(() => {
