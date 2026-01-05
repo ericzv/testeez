@@ -116,11 +116,23 @@ body.has-fixed-hud #relic-selection-popup .victory-actions {
   --stone-shadow: rgba(0, 0, 0, 0.6);
 
   /* Dimensões do HUD */
-  --hud-top-height: 52px; /* Aumentado para dar espaço ao hover das relíquias */
+  --hud-top-height: 52px;
   --hud-bottom-height: 180px;
 
-  /* SCALE DO HUD INFERIOR - AJUSTE AQUI */
-  --hud-bottom-scale: 1.0;
+  /* ========== AJUSTES DO HUD INFERIOR ========== */
+
+  /* Scale geral do HUD */
+  --hud-bottom-scale: 1.6;
+
+  /* Distância entre as seções (gap) */
+  --hud-section-gap: 0px;
+
+  /* Scale individual de cada seção */
+  --hud-section-1-scale: 1.0;
+  --hud-section-2-scale: 1.0;
+  --hud-section-3-scale: 1.0;
+  --hud-section-4-scale: 1.0;
+  --hud-section-5-scale: 1.0;
 
   /* Fonte padrão do HUD */
   --hud-font-size: 16px;
@@ -761,7 +773,7 @@ body.has-fixed-hud .energy-indicator {
   justify-content: center;
   height: 100%;
   pointer-events: none;
-  /* SCALE - edite --hud-bottom-scale no :root para ajustar */
+  gap: var(--hud-section-gap);
   transform: scale(var(--hud-bottom-scale));
   transform-origin: bottom center;
 }
@@ -792,6 +804,8 @@ body.has-fixed-hud .energy-indicator {
   align-items: center;
   justify-content: flex-end;
   padding-bottom: 25px;
+  transform: scale(var(--hud-section-1-scale));
+  transform-origin: bottom center;
 }
 
 .hud-section-1::before {
@@ -825,6 +839,8 @@ body.has-fixed-hud .energy-indicator {
 /* ============================================== */
 .hud-section-2 {
   aspect-ratio: 1926 / 1952;
+  transform: scale(var(--hud-section-2-scale));
+  transform-origin: bottom center;
 }
 
 .hud-section-2::before {
@@ -853,6 +869,8 @@ body.has-fixed-hud .energy-indicator {
   justify-content: center;
   gap: 40px;
   padding-bottom: 10px;
+  transform: scale(var(--hud-section-3-scale));
+  transform-origin: bottom center;
 }
 
 .hud-section-3::before {
@@ -876,6 +894,8 @@ body.has-fixed-hud .energy-indicator {
 /* ============================================== */
 .hud-section-4 {
   aspect-ratio: 1923 / 1931;
+  transform: scale(var(--hud-section-4-scale));
+  transform-origin: bottom center;
 }
 
 .hud-section-4::before {
@@ -899,6 +919,8 @@ body.has-fixed-hud .energy-indicator {
 /* ============================================== */
 .hud-section-5 {
   aspect-ratio: 1923 / 1931;
+  transform: scale(var(--hud-section-5-scale));
+  transform-origin: bottom center;
 }
 
 .hud-section-5::before {
