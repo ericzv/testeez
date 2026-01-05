@@ -799,6 +799,7 @@ body.has-fixed-hud .energy-indicator {
   flex-shrink: 0;
   flex-grow: 0;
   height: 100%;
+  overflow: visible;
 }
 
 /* Melhorar qualidade das imagens de fundo */
@@ -818,6 +819,7 @@ body.has-fixed-hud .energy-indicator {
   justify-content: center;
   transform: scale(var(--hud-section-1-scale)) translateY(var(--hud-section-1-offset-y));
   transform-origin: bottom center;
+  overflow: visible;
 }
 
 .hud-section-1::before {
@@ -835,8 +837,12 @@ body.has-fixed-hud .energy-indicator {
   pointer-events: none;
 }
 
-/* Inventário centralizado na seção 1 */
+/* Inventário centralizado na seção 1 - NÃO afeta tamanho da seção */
 .hud-section-1 .hud-inventory-slot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
   justify-content: center;
