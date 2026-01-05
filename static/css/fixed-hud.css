@@ -122,7 +122,7 @@ body.has-fixed-hud #relic-selection-popup .victory-actions {
   /* ========== AJUSTES DO HUD INFERIOR ========== */
 
   /* Scale geral do HUD */
-  --hud-bottom-scale: 1.6;
+  --hud-bottom-scale: 1.2;
 
   /* Distância entre as seções (gap) */
   --hud-section-gap: 87px;
@@ -802,8 +802,7 @@ body.has-fixed-hud .energy-indicator {
   aspect-ratio: 1923 / 1931;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  padding-bottom: 25px;
+  justify-content: center;
   transform: scale(var(--hud-section-1-scale));
   transform-origin: bottom center;
 }
@@ -823,14 +822,11 @@ body.has-fixed-hud .energy-indicator {
   pointer-events: none;
 }
 
-/* Nome do personagem na seção 1 */
-.hud-player-name {
-  color: var(--gold-light);
-  font-size: 14px;
-  font-weight: 600;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-  white-space: nowrap;
-  margin-bottom: 8px;
+/* Inventário centralizado na seção 1 */
+.hud-section-1 .hud-inventory-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ============================================== */
@@ -1045,15 +1041,17 @@ body.has-fixed-hud .energy-indicator {
 }
 
 /* ============================================== */
-/* INDICADOR DE ENERGIA - NA SEÇÃO 1 */
+/* INDICADOR DE ENERGIA - CANTO SUPERIOR DIREITO DA SEÇÃO 2 */
 /* ============================================== */
 .hud-energy-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   display: flex;
   align-items: center;
   gap: 6px;
   z-index: 10;
   transition: transform 0.3s ease;
-  margin-bottom: 5px;
 }
 
 .hud-energy-icon-container {
@@ -1170,18 +1168,21 @@ body.has-fixed-hud .energy-indicator {
   filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1));
 }
 
-/* Barra de HP na seção 1 */
+/* Barra de HP - parte inferior da seção 2 */
 .hud-hp-bar {
-  position: relative;
-  width: 90%;
-  max-width: 140px;
-  height: 20px;
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  max-width: 160px;
+  height: 16px;
   background: linear-gradient(180deg, #1a1a1a, #2a2a2a);
   border: 2px solid #444;
   border-radius: 4px;
   overflow: visible;
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8);
-  margin-bottom: 5px;
+  z-index: 10;
 }
 
 .hud-hp-fill {

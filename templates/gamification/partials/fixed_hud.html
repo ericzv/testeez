@@ -60,12 +60,17 @@
   <!-- Container centralizado para os 5 elementos -->
   <div class="hud-bottom-wrapper">
 
-    <!-- SEÇÃO 1: hud1.png - Nome, HP e Energia -->
+    <!-- SEÇÃO 1: hud1.png - Inventário centralizado -->
     <div class="hud-bottom-section hud-section-1">
-      <!-- Nome do personagem -->
-      <div class="hud-player-name">{{ player.character_name or player.character_id or 'Aventureiro' }}</div>
+      <!-- Slot para Inventário (centralizado) -->
+      <div class="hud-inventory-slot" id="hud-inventory-slot">
+        <!-- fast-inventory-wrapper será inserido aqui -->
+      </div>
+    </div>
 
-      <!-- Indicador de Energia -->
+    <!-- SEÇÃO 2: hud1b.png - Ícone do personagem + HP + Energia -->
+    <div class="hud-bottom-section hud-section-2">
+      <!-- Indicador de Energia (canto superior direito) -->
       <div class="hud-energy-indicator" id="hud-energy-indicator" data-energy-percent="high">
         <div class="hud-energy-icon-container">
           <img src="{{ url_for('static', filename='game.data/energy.png') }}" alt="Energia" class="hud-energy-icon">
@@ -73,7 +78,14 @@
         <span class="hud-energy-text" id="hud-energy-text">10/10</span>
       </div>
 
-      <!-- Barra de HP -->
+      <!-- Ícone do personagem -->
+      <div class="hud-player-icon">
+        <img src="{{ url_for('static', filename='game.data/character/' ~ (player.character_id or 'vlad') ~ '/' ~ (player.character_id or 'vlad') ~ '-icon.png') }}"
+             alt="{{ player.character_name or 'Personagem' }}"
+             onerror="this.src='{{ url_for('static', filename='game.data/icons/default_character.svg') }}'">
+      </div>
+
+      <!-- Barra de HP (parte inferior) -->
       <div class="hud-hp-bar" id="hud-hp-bar-container">
         <div class="hud-barrier-fill" id="hud-barrier-fill" style="width: 0%;"></div>
         {% set hp_percent = ((player_hp or 100) / (player_max_hp or 100) * 100) | round(1) %}
@@ -87,23 +99,9 @@
           <span class="hud-barrier-value" id="hud-barrier-value">0</span>
         </div>
       </div>
-
-      <!-- Buffs/Debuffs -->
-      <div class="hud-buffs-row" id="hud-buffs-container">
-        <!-- Buffs serão inseridos via JavaScript -->
-      </div>
     </div>
 
-    <!-- SEÇÃO 2: hud1b.png - Ícone grande do personagem -->
-    <div class="hud-bottom-section hud-section-2">
-      <div class="hud-player-icon">
-        <img src="{{ url_for('static', filename='game.data/character/' ~ (player.character_id or 'vlad') ~ '/' ~ (player.character_id or 'vlad') ~ '-icon.png') }}"
-             alt="{{ player.character_name or 'Personagem' }}"
-             onerror="this.src='{{ url_for('static', filename='game.data/icons/default_character.svg') }}'">
-      </div>
-    </div>
-
-    <!-- SEÇÃO 3: hud2.png - Ataques, Especiais e Inventário -->
+    <!-- SEÇÃO 3: hud2.png - Ataques e Especiais -->
     <div class="hud-bottom-section hud-section-3">
       <!-- Slot para Ataques -->
       <div class="hud-attacks-slot" id="hud-attacks-slot">
@@ -113,11 +111,6 @@
       <!-- Slot para Especiais -->
       <div class="hud-specials-slot" id="hud-specials-slot">
         <!-- fast-specials-wrapper será inserido aqui -->
-      </div>
-
-      <!-- Slot para Inventário -->
-      <div class="hud-inventory-slot" id="hud-inventory-slot">
-        <!-- fast-inventory-wrapper será inserido aqui -->
       </div>
     </div>
 
