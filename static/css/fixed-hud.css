@@ -125,14 +125,14 @@ body.has-fixed-hud #relic-selection-popup .victory-actions {
   --hud-bottom-scale: 1.6;
 
   /* Distância entre as seções (gap) */
-  --hud-section-gap: 0px;
+  --hud-section-gap: 80px;
 
   /* Scale individual de cada seção */
-  --hud-section-1-scale: 1.0;
-  --hud-section-2-scale: 1.0;
-  --hud-section-3-scale: 1.0;
-  --hud-section-4-scale: 1.0;
-  --hud-section-5-scale: 1.0;
+  --hud-section-1-scale: 1.5;
+  --hud-section-2-scale: 1.5;
+  --hud-section-3-scale: 1.3;
+  --hud-section-4-scale: 1.5;
+  --hud-section-5-scale: 1.5;
 
   /* Fonte padrão do HUD */
   --hud-font-size: 16px;
@@ -871,6 +871,7 @@ body.has-fixed-hud .energy-indicator {
   padding-bottom: 10px;
   transform: scale(var(--hud-section-3-scale));
   transform-origin: bottom center;
+  z-index: -1;
 }
 
 .hud-section-3::before {
@@ -944,10 +945,9 @@ body.has-fixed-hud .energy-indicator {
 .hud-player-icon {
   position: absolute;
   left: 50%;
-  bottom: 10%;
-  transform: translateX(-50%);
-  width: 80%;
-  max-width: 150px;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
   height: auto;
   aspect-ratio: 1;
   transform-origin: center center;
@@ -957,16 +957,16 @@ body.has-fixed-hud .energy-indicator {
 /* Animação de movimento suave - mais vertical, menos horizontal */
 @keyframes playerIdleFloat {
   0%, 100% {
-    transform: translateX(0) translateY(0);
+    transform: translate(-50%, -50%) translateY(0);
   }
   25% {
-    transform: translateX(0.5px) translateY(-2px);
+    transform: translate(-50%, -50%) translateY(-2px);
   }
   50% {
-    transform: translateX(0) translateY(-3px);
+    transform: translate(-50%, -50%) translateY(-3px);
   }
   75% {
-    transform: translateX(-0.5px) translateY(-2px);
+    transform: translate(-50%, -50%) translateY(-2px);
   }
 }
 
