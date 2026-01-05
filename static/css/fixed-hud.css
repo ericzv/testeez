@@ -314,22 +314,18 @@ body.has-fixed-hud .energy-indicator {
 }
 
 .hud-currencies-slot .currencies-hud .currency-icon {
-  width: 22px;
-  height: 22px;
-  /* Outline branco sólido usando múltiplos drop-shadows */
+  width: 36px;
+  height: 36px;
+  /* Outline branco sólido usando drop-shadows */
   filter:
     drop-shadow(1px 0 0 #fff)
     drop-shadow(-1px 0 0 #fff)
     drop-shadow(0 1px 0 #fff)
-    drop-shadow(0 -1px 0 #fff)
-    drop-shadow(1px 1px 0 #fff)
-    drop-shadow(-1px -1px 0 #fff)
-    drop-shadow(1px -1px 0 #fff)
-    drop-shadow(-1px 1px 0 #fff);
+    drop-shadow(0 -1px 0 #fff);
 }
 
 .hud-currencies-slot .currencies-hud .currency-value {
-  font-size: 15px;
+  font-size: 16px;
   color: #ddd;
 }
 
@@ -359,11 +355,11 @@ body.has-fixed-hud .energy-indicator {
   gap: 4px !important;
 }
 
-/* Relíquias 36x36, sem borda, livre */
+/* Relíquias 48x48, sem borda, livre */
 .hud-relics-slot .relic-bar-item {
-  width: 36px !important;
-  height: 36px !important;
-  min-width: 36px !important;
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
   padding: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
@@ -422,7 +418,7 @@ body.has-fixed-hud .energy-indicator {
 .hud-memories-slot {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 15px;
 }
 
 /* Label com apenas ícone grande */
@@ -433,8 +429,8 @@ body.has-fixed-hud .energy-indicator {
 }
 
 .hud-memories-label img {
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
   filter: drop-shadow(0 2px 4px rgba(180, 130, 255, 0.4));
 }
 
@@ -474,13 +470,13 @@ body.has-fixed-hud .energy-indicator {
 
 .hud-memories-slot .run-buffs-hud .run-buff-item,
 .hud-memories-slot .run-buffs-hud .currency-item {
-  width: 28px !important;
-  height: 28px !important;
-  min-width: 28px !important;
-  padding: 2px !important;
-  border-radius: 4px;
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 32px !important;
+  padding: 0px !important;
+  border-radius: 18px;
   background: rgba(100, 60, 150, 0.3);
-  border: 1px solid rgba(180, 130, 255, 0.4);
+  border: 0px solid rgba(180, 130, 255, 0.4);
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
@@ -738,7 +734,7 @@ body.has-fixed-hud .energy-indicator {
 }
 
 /* ============================================== */
-/* HUD INFERIOR - PEDRA MEDIEVAL */
+/* HUD INFERIOR - 5 SEÇÕES */
 /* ============================================== */
 .fixed-hud-bottom {
   position: fixed;
@@ -751,47 +747,118 @@ body.has-fixed-hud .energy-indicator {
   font-size: var(--hud-font-size);
   display: flex;
   align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Container wrapper centralizado */
+.hud-bottom-wrapper {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  max-width: 100vw;
+  height: 100%;
   pointer-events: none;
 }
 
 /* Permitir cliques nos filhos */
-.fixed-hud-bottom > * {
+.hud-bottom-wrapper > * {
   pointer-events: auto;
 }
 
-/* ============================================== */
-/* IMAGENS DE FUNDO DO HUD INFERIOR */
-/* ============================================== */
+/* Base para todas as seções */
+.hud-bottom-section {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex-shrink: 0;
+}
 
-/* Fundo do lado esquerdo - hud1.png */
-.hud-bottom-left::before {
+/* ============================================== */
+/* SEÇÃO 1: hud1.png - Nome, HP e Energia */
+/* Dimensões: 1923x1931px */
+/* ============================================== */
+.hud-section-1 {
+  width: 19.23%; /* Proporção baseada no total das 5 imagens */
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 25px;
+}
+
+.hud-section-1::before {
   content: '';
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: auto;
-  aspect-ratio: 1834 / 1839;
-  max-height: 250px;
+  height: 100%;
   background-image: url('/static/game.data/hud/hud1.png');
   background-size: contain;
   background-repeat: no-repeat;
-  background-position: bottom left;
+  background-position: bottom center;
   z-index: -1;
   pointer-events: none;
 }
 
-/* Fundo do centro - hud2.png */
-.hud-bottom-center::before {
+/* Nome do personagem na seção 1 */
+.hud-player-name {
+  color: var(--gold-light);
+  font-size: 14px;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+  margin-bottom: 8px;
+}
+
+/* ============================================== */
+/* SEÇÃO 2: hud1b.png - Ícone do personagem */
+/* Dimensões: 1926x1952px */
+/* ============================================== */
+.hud-section-2 {
+  width: 19.26%; /* Proporção baseada no total */
+  height: 100%;
+}
+
+.hud-section-2::before {
   content: '';
   position: absolute;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
   width: 100%;
-  height: auto;
-  aspect-ratio: 2793 / 827;
-  max-height: 200px;
+  height: 100%;
+  background-image: url('/static/game.data/hud/hud1b.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: bottom center;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ============================================== */
+/* SEÇÃO 3: hud2.png - Ataques, Especiais, Inventário */
+/* Dimensões: 2793x827px */
+/* ============================================== */
+.hud-section-3 {
+  width: 27.93%; /* Proporção baseada no total */
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 40px;
+  padding-bottom: 10px;
+}
+
+.hud-section-3::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background-image: url('/static/game.data/hud/hud2.png');
   background-size: contain;
   background-repeat: no-repeat;
@@ -800,45 +867,66 @@ body.has-fixed-hud .energy-indicator {
   pointer-events: none;
 }
 
-/* Fundo do lado direito - hud3.png */
-.hud-bottom-right::before {
+/* ============================================== */
+/* SEÇÃO 4: hud3a.png - Reservado */
+/* Dimensões: 1926x1952px */
+/* ============================================== */
+.hud-section-4 {
+  width: 19.26%; /* Proporção baseada no total */
+  height: 100%;
+}
+
+.hud-section-4::before {
   content: '';
   position: absolute;
   bottom: 0;
-  right: 0;
+  left: 0;
   width: 100%;
-  height: auto;
-  aspect-ratio: 1923 / 1931;
-  max-height: 250px;
-  background-image: url('/static/game.data/hud/hud3.png');
+  height: 100%;
+  background-image: url('/static/game.data/hud/hud3a.png');
   background-size: contain;
   background-repeat: no-repeat;
-  background-position: bottom right;
+  background-position: bottom center;
   z-index: -1;
   pointer-events: none;
 }
 
 /* ============================================== */
-/* COMPARTIMENTO ESQUERDO */
+/* SEÇÃO 5: hud3.png - Reservado */
+/* Dimensões: 1923x1931px */
 /* ============================================== */
-.hud-bottom-left {
-  position: relative;
-  width: 320px;
-  height: 180px;
-  margin-left: 20px;
-  margin-bottom: 10px;
+.hud-section-5 {
+  width: 19.23%; /* Proporção baseada no total */
+  height: 100%;
+}
+
+.hud-section-5::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/static/game.data/hud/hud3.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: bottom center;
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* ============================================== */
-/* ÍCONE DO PERSONAGEM - COM ANIMAÇÃO */
+/* ÍCONE DO PERSONAGEM - NA SEÇÃO 2 */
 /* ============================================== */
 .hud-player-icon {
   position: absolute;
-  left: 0%;
-  bottom: 0%;
-  scale: 2.5;
-  width: 150px;
-  height: 180px;
+  left: 50%;
+  bottom: 10%;
+  transform: translateX(-50%);
+  width: 80%;
+  max-width: 150px;
+  height: auto;
+  aspect-ratio: 1;
   transform-origin: center center;
   animation: playerIdleFloat 6s ease-in-out infinite;
 }
@@ -934,22 +1022,20 @@ body.has-fixed-hud .energy-indicator {
 }
 
 /* ============================================== */
-/* INDICADOR DE ENERGIA - MAIOR E REATIVO */
+/* INDICADOR DE ENERGIA - NA SEÇÃO 1 */
 /* ============================================== */
 .hud-energy-indicator {
-  position: absolute;
-  top: 8px;
-  right: 10px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   z-index: 10;
   transition: transform 0.3s ease;
+  margin-bottom: 5px;
 }
 
 .hud-energy-icon-container {
-  width: 56px;
-  height: 56px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -998,7 +1084,7 @@ body.has-fixed-hud .energy-indicator {
 
 .hud-energy-text {
   color: #ffc107;
-  font-size: 24px;
+  font-size: 16px;
   font-weight: bold;
   text-shadow: 0 0 12px rgba(255, 193, 7, 0.7), 1px 1px 3px rgba(0, 0, 0, 0.9);
   transition: transform 0.3s ease, color 0.3s ease;
@@ -1061,26 +1147,18 @@ body.has-fixed-hud .energy-indicator {
   filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1));
 }
 
-/* Container de HP e buffs - ao lado do ícone */
-.hud-player-stats-container {
-  position: absolute;
-  left: 170px;
-  top: 60px;
-  width: 140px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* Barra de HP estilo original */
+/* Barra de HP na seção 1 */
 .hud-hp-bar {
   position: relative;
-  height: 26px;
+  width: 90%;
+  max-width: 140px;
+  height: 20px;
   background: linear-gradient(180deg, #1a1a1a, #2a2a2a);
   border: 2px solid #444;
   border-radius: 4px;
   overflow: visible;
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8);
+  margin-bottom: 5px;
 }
 
 .hud-hp-fill {
@@ -1231,44 +1309,9 @@ body.has-fixed-hud .energy-indicator {
   border-radius: 2px;
 }
 
-/* ============================================== */
-/* COMPARTIMENTO CENTRAL - MENUS DE AÇÃO */
-/* ============================================== */
-.hud-bottom-center {
-  position: relative;
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  gap: 60px;
-  padding-bottom: 10px;
-  height: 100%;
-}
-
-/* Containers para os fast-wrappers */
+/* Containers para os fast-wrappers na seção 3 */
 .hud-attacks-slot,
 .hud-specials-slot,
-.hud-inventory-slot {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-}
-
-/* ============================================== */
-/* COMPARTIMENTO DIREITO - RESERVADO */
-/* ============================================== */
-.hud-bottom-right {
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  margin-right: 20px;
-  margin-bottom: 10px;
-  height: 100%;
-  min-width: 200px;
-}
-
-/* Slot de inventário - agora no centro, mas mantendo estilo */
 .hud-inventory-slot {
   display: flex;
   align-items: flex-end;
@@ -1309,17 +1352,12 @@ body.has-fixed-hud .fast-inventory-wrapper {
     display: none;
   }
 
-  .hud-bottom-left {
-    width: 260px;
+  .hud-player-name {
+    font-size: 12px;
   }
 
-  .hud-player-icon {
-    scale: 2;
-  }
-
-  .hud-player-stats-container {
-    left: 135px;
-    width: 115px;
+  .hud-section-3 {
+    gap: 20px;
   }
 }
 
@@ -1328,7 +1366,7 @@ body.has-fixed-hud .fast-inventory-wrapper {
     --hud-bottom-height: 150px;
   }
 
-  .hud-bottom-center {
-    gap: 30px;
+  .hud-section-3 {
+    gap: 15px;
   }
 }

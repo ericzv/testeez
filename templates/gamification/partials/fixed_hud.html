@@ -54,28 +54,25 @@
 
 </div>
 
-<!-- HUD INFERIOR - PEDRA MEDIEVAL -->
+<!-- HUD INFERIOR - 5 SEÇÕES -->
 <div class="fixed-hud-bottom" id="fixed-hud-bottom">
 
-  <!-- Compartimento Esquerdo: Personagem + HP + Energia + Buffs -->
-  <div class="hud-bottom-left">
-    <!-- Ícone grande do personagem -->
-    <div class="hud-player-icon">
-      <img src="{{ url_for('static', filename='game.data/character/' ~ (player.character_id or 'vlad') ~ '/' ~ (player.character_id or 'vlad') ~ '-icon.png') }}"
-           alt="{{ player.character_name or 'Personagem' }}"
-           onerror="this.src='{{ url_for('static', filename='game.data/icons/default_character.svg') }}'">
-    </div>
+  <!-- Container centralizado para os 5 elementos -->
+  <div class="hud-bottom-wrapper">
 
-    <!-- Indicador de Energia - CANTO SUPERIOR DIREITO -->
-    <div class="hud-energy-indicator" id="hud-energy-indicator" data-energy-percent="high">
-      <div class="hud-energy-icon-container">
-        <img src="{{ url_for('static', filename='game.data/energy.png') }}" alt="Energia" class="hud-energy-icon">
+    <!-- SEÇÃO 1: hud1.png - Nome, HP e Energia -->
+    <div class="hud-bottom-section hud-section-1">
+      <!-- Nome do personagem -->
+      <div class="hud-player-name">{{ player.character_name or player.character_id or 'Aventureiro' }}</div>
+
+      <!-- Indicador de Energia -->
+      <div class="hud-energy-indicator" id="hud-energy-indicator" data-energy-percent="high">
+        <div class="hud-energy-icon-container">
+          <img src="{{ url_for('static', filename='game.data/energy.png') }}" alt="Energia" class="hud-energy-icon">
+        </div>
+        <span class="hud-energy-text" id="hud-energy-text">10/10</span>
       </div>
-      <span class="hud-energy-text" id="hud-energy-text">10/10</span>
-    </div>
 
-    <!-- Stats (HP e Buffs) -->
-    <div class="hud-player-stats-container">
       <!-- Barra de HP -->
       <div class="hud-hp-bar" id="hud-hp-bar-container">
         <div class="hud-barrier-fill" id="hud-barrier-fill" style="width: 0%;"></div>
@@ -96,29 +93,44 @@
         <!-- Buffs serão inseridos via JavaScript -->
       </div>
     </div>
-  </div>
 
-  <!-- Compartimento Central: Slots para Fast-Wrappers (Ataques, Especiais e Inventário) -->
-  <div class="hud-bottom-center">
-    <!-- Slot para Ataques -->
-    <div class="hud-attacks-slot" id="hud-attacks-slot">
-      <!-- fast-attacks-wrapper será inserido aqui -->
+    <!-- SEÇÃO 2: hud1b.png - Ícone grande do personagem -->
+    <div class="hud-bottom-section hud-section-2">
+      <div class="hud-player-icon">
+        <img src="{{ url_for('static', filename='game.data/character/' ~ (player.character_id or 'vlad') ~ '/' ~ (player.character_id or 'vlad') ~ '-icon.png') }}"
+             alt="{{ player.character_name or 'Personagem' }}"
+             onerror="this.src='{{ url_for('static', filename='game.data/icons/default_character.svg') }}'">
+      </div>
     </div>
 
-    <!-- Slot para Especiais -->
-    <div class="hud-specials-slot" id="hud-specials-slot">
-      <!-- fast-specials-wrapper será inserido aqui -->
+    <!-- SEÇÃO 3: hud2.png - Ataques, Especiais e Inventário -->
+    <div class="hud-bottom-section hud-section-3">
+      <!-- Slot para Ataques -->
+      <div class="hud-attacks-slot" id="hud-attacks-slot">
+        <!-- fast-attacks-wrapper será inserido aqui -->
+      </div>
+
+      <!-- Slot para Especiais -->
+      <div class="hud-specials-slot" id="hud-specials-slot">
+        <!-- fast-specials-wrapper será inserido aqui -->
+      </div>
+
+      <!-- Slot para Inventário -->
+      <div class="hud-inventory-slot" id="hud-inventory-slot">
+        <!-- fast-inventory-wrapper será inserido aqui -->
+      </div>
     </div>
 
-    <!-- Slot para Inventário (movido para o centro) -->
-    <div class="hud-inventory-slot" id="hud-inventory-slot">
-      <!-- fast-inventory-wrapper será inserido aqui -->
+    <!-- SEÇÃO 4: hud3a.png - Reservado -->
+    <div class="hud-bottom-section hud-section-4">
+      <!-- Reservado para futuras funcionalidades -->
     </div>
-  </div>
 
-  <!-- Compartimento Direito: Reservado para futuras funcionalidades -->
-  <div class="hud-bottom-right">
-    <!-- Vazio por enquanto -->
+    <!-- SEÇÃO 5: hud3.png - Reservado -->
+    <div class="hud-bottom-section hud-section-5">
+      <!-- Reservado para futuras funcionalidades -->
+    </div>
+
   </div>
 
 </div>
