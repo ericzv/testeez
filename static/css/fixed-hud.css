@@ -316,8 +316,16 @@ body.has-fixed-hud .energy-indicator {
 .hud-currencies-slot .currencies-hud .currency-icon {
   width: 22px;
   height: 22px;
-  /* Outline branco uniforme de 1px usando blur */
-  filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff);
+  /* Outline branco sólido usando múltiplos drop-shadows */
+  filter:
+    drop-shadow(1px 0 0 #fff)
+    drop-shadow(-1px 0 0 #fff)
+    drop-shadow(0 1px 0 #fff)
+    drop-shadow(0 -1px 0 #fff)
+    drop-shadow(1px 1px 0 #fff)
+    drop-shadow(-1px -1px 0 #fff)
+    drop-shadow(1px -1px 0 #fff)
+    drop-shadow(-1px 1px 0 #fff);
 }
 
 .hud-currencies-slot .currencies-hud .currency-value {
@@ -752,7 +760,66 @@ body.has-fixed-hud .energy-indicator {
 }
 
 /* ============================================== */
-/* COMPARTIMENTO ESQUERDO - SEM FUNDO/BORDA */
+/* IMAGENS DE FUNDO DO HUD INFERIOR */
+/* ============================================== */
+
+/* Fundo do lado esquerdo - hud1.png */
+.hud-bottom-left::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1834 / 1839;
+  max-height: 250px;
+  background-image: url('/static/game.data/hud/hud1.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: bottom left;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Fundo do centro - hud2.png */
+.hud-bottom-center::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2793 / 827;
+  max-height: 200px;
+  background-image: url('/static/game.data/hud/hud2.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: bottom center;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Fundo do lado direito - hud3.png */
+.hud-bottom-right::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1923 / 1931;
+  max-height: 250px;
+  background-image: url('/static/game.data/hud/hud3.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: bottom right;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ============================================== */
+/* COMPARTIMENTO ESQUERDO */
 /* ============================================== */
 .hud-bottom-left {
   position: relative;
@@ -760,7 +827,6 @@ body.has-fixed-hud .energy-indicator {
   height: 180px;
   margin-left: 20px;
   margin-bottom: 10px;
-  /* Removidos: background, border, border-radius, box-shadow, clip-path */
 }
 
 /* ============================================== */
@@ -1169,6 +1235,7 @@ body.has-fixed-hud .energy-indicator {
 /* COMPARTIMENTO CENTRAL - MENUS DE AÇÃO */
 /* ============================================== */
 .hud-bottom-center {
+  position: relative;
   flex: 1;
   display: flex;
   justify-content: center;
@@ -1180,24 +1247,28 @@ body.has-fixed-hud .energy-indicator {
 
 /* Containers para os fast-wrappers */
 .hud-attacks-slot,
-.hud-specials-slot {
+.hud-specials-slot,
+.hud-inventory-slot {
   display: flex;
   align-items: flex-end;
   justify-content: center;
 }
 
 /* ============================================== */
-/* COMPARTIMENTO DIREITO - INVENTÁRIO */
+/* COMPARTIMENTO DIREITO - RESERVADO */
 /* ============================================== */
 .hud-bottom-right {
+  position: relative;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   margin-right: 20px;
   margin-bottom: 10px;
   height: 100%;
+  min-width: 200px;
 }
 
+/* Slot de inventário - agora no centro, mas mantendo estilo */
 .hud-inventory-slot {
   display: flex;
   align-items: flex-end;
