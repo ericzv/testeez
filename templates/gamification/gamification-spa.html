@@ -1468,12 +1468,14 @@ async function acceptVictoryRewards(popup) {
         popup.remove();
         await updateCurrencyDisplay();
         await updateActiveRunBuffs();
-        // Verificar memória primeiro, depois relíquias
-        const hasMemory = await checkMemoryReward();
-        if (!hasMemory) {
-            // Se não há memória, verificar relíquias diretamente
-            setTimeout(() => checkRelicReward(), 300);
-        }
+        // Verificar memória primeiro, depois relíquias (com delay de 700ms)
+        setTimeout(async () => {
+            const hasMemory = await checkMemoryReward();
+            if (!hasMemory) {
+                // Se não há memória, verificar relíquias diretamente
+                setTimeout(() => checkRelicReward(), 300);
+            }
+        }, 700);
     } catch (error) {}
     window.victoryProcessed = false;
 }

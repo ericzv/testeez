@@ -1401,7 +1401,7 @@ body.gamification-page {
   justify-content: center;
   align-items: center;
   margin-top: 25px;
-  padding-top: 20px;
+  padding-top: 10px;
   border-top: 1px solid rgba(255, 107, 107, 0.3);
 }
 
@@ -2988,7 +2988,7 @@ body.gamification-page {
   
   display: flex;
   flex-direction: column;
-  min-height: 380px;
+  min-height: 320px;
 }
 
 /* Efeito de brilho base */
@@ -3131,7 +3131,7 @@ body.gamification-page {
 .relic-icon {
   width: 110px;
   height: 110px;
-  margin: 10px auto 20px;
+  margin: 0px auto 13px;
   display: block;
   object-fit: contain;
   filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.4));
@@ -3298,7 +3298,7 @@ body.gamification-page {
   justify-content: center;
   width: 100%;
   margin: 30px 0;
-  gap: 20px;
+  gap: 0px;
   opacity: 0;
   animation: fadeInDivider 0.5s ease-out 0.3s forwards;
 }
@@ -3359,10 +3359,10 @@ body.gamification-page {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 15px 30px;
+  padding: 5px 5px;
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(168, 85, 247, 0.4));
   border: 2px solid rgba(168, 85, 247, 0.6);
-  border-radius: 15px;
+  border-radius: 24px;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;

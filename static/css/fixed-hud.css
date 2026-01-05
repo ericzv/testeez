@@ -58,7 +58,7 @@ body.has-fixed-hud .victory-continue-btn {
 /* Popup de relíquias mais compacto */
 body.has-fixed-hud #relic-selection-popup .ui-panel.relic-selection-modal {
   max-height: 85vh;
-  padding: 20px 25px 25px;
+  padding: 10px 10px 10px;
 }
 
 body.has-fixed-hud #relic-selection-popup .victory-header {
@@ -80,7 +80,7 @@ body.has-fixed-hud #relic-selection-popup .relic-options {
 }
 
 body.has-fixed-hud #relic-selection-popup .relic-option {
-  padding: 15px 12px;
+  padding: 10px 0px;
 }
 
 body.has-fixed-hud #relic-selection-popup .relic-icon {
@@ -93,8 +93,8 @@ body.has-fixed-hud #relic-selection-popup .rewrite-divider {
 }
 
 body.has-fixed-hud #relic-selection-popup .victory-actions {
-  margin-top: 15px;
-  padding-bottom: 10px;
+  margin-top: -10px;
+  padding-bottom: 0px;
 }
 
 /* ============================================== */
