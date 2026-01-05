@@ -867,10 +867,10 @@ body.has-fixed-hud .energy-indicator {
 
 /* ============================================== */
 /* SEÇÃO 4: hud3a.png - Reservado */
-/* Dimensões: 1926x1952px → aspect-ratio ~1:1 */
+/* Dimensões: 1923x1931px → aspect-ratio ~1:1 */
 /* ============================================== */
 .hud-section-4 {
-  aspect-ratio: 1926 / 1952;
+  aspect-ratio: 1923 / 1931;
 }
 
 .hud-section-4::before {
@@ -1341,15 +1341,34 @@ body.has-fixed-hud .fast-inventory-wrapper {
 }
 
 /* ============================================== */
-/* RESPONSIVIDADE */
+/* RESPONSIVIDADE - SCALE PROPORCIONAL */
 /* ============================================== */
+
+/* Largura total do HUD em 180px de altura: ~1323px */
+/* Escalamos proporcionalmente quando a tela é menor */
+
+@media (max-width: 1400px) {
+  .hud-bottom-wrapper {
+    transform: scale(0.95);
+    transform-origin: bottom center;
+  }
+}
+
+@media (max-width: 1300px) {
+  .hud-bottom-wrapper {
+    transform: scale(0.9);
+    transform-origin: bottom center;
+  }
+}
+
 @media (max-width: 1200px) {
   .hud-character-name {
     display: none;
   }
 
-  .hud-player-name {
-    font-size: 12px;
+  .hud-bottom-wrapper {
+    transform: scale(0.85);
+    transform-origin: bottom center;
   }
 
   .hud-section-3 {
@@ -1357,12 +1376,51 @@ body.has-fixed-hud .fast-inventory-wrapper {
   }
 }
 
-@media (max-width: 992px) {
-  :root {
-    --hud-bottom-height: 150px;
+@media (max-width: 1100px) {
+  .hud-bottom-wrapper {
+    transform: scale(0.8);
+    transform-origin: bottom center;
   }
+}
 
-  .hud-section-3 {
-    gap: 15px;
+@media (max-width: 1000px) {
+  .hud-bottom-wrapper {
+    transform: scale(0.75);
+    transform-origin: bottom center;
+  }
+}
+
+@media (max-width: 900px) {
+  .hud-bottom-wrapper {
+    transform: scale(0.7);
+    transform-origin: bottom center;
+  }
+}
+
+@media (max-width: 800px) {
+  .hud-bottom-wrapper {
+    transform: scale(0.65);
+    transform-origin: bottom center;
+  }
+}
+
+@media (max-width: 700px) {
+  .hud-bottom-wrapper {
+    transform: scale(0.6);
+    transform-origin: bottom center;
+  }
+}
+
+@media (max-width: 600px) {
+  .hud-bottom-wrapper {
+    transform: scale(0.55);
+    transform-origin: bottom center;
+  }
+}
+
+@media (max-width: 500px) {
+  .hud-bottom-wrapper {
+    transform: scale(0.5);
+    transform-origin: bottom center;
   }
 }
