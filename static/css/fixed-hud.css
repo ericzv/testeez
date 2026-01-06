@@ -796,6 +796,7 @@ body.has-fixed-hud .energy-indicator {
   display: flex;
   align-items: flex-end;
   gap: var(--hud-section-gap);
+  height: 100%;
   pointer-events: none;
 }
 
@@ -808,6 +809,7 @@ body.has-fixed-hud .energy-indicator {
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  height: 100%;
   pointer-events: none;
 }
 
@@ -820,6 +822,7 @@ body.has-fixed-hud .energy-indicator {
   display: flex;
   align-items: flex-end;
   gap: var(--hud-section-gap);
+  height: 100%;
   pointer-events: none;
 }
 
