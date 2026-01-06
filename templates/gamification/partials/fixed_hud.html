@@ -54,66 +54,75 @@
 
 </div>
 
-<!-- HUD INFERIOR - 5 SEÇÕES -->
+<!-- HUD INFERIOR - 5 SEÇÕES (3 grupos: esquerda, centro, direita) -->
 <div class="fixed-hud-bottom" id="fixed-hud-bottom">
 
-  <!-- Container centralizado para os 5 elementos -->
+  <!-- Container com 3 grupos -->
   <div class="hud-bottom-wrapper">
 
-    <!-- SEÇÃO 1: hud1.png - Inventário centralizado -->
-    <div class="hud-bottom-section hud-section-1">
-      <!-- Slot para Inventário (centralizado) -->
-      <div class="hud-inventory-slot" id="hud-inventory-slot">
-        <!-- fast-inventory-wrapper será inserido aqui -->
-      </div>
-    </div>
-
-    <!-- SEÇÃO 2: hud1b.png - Ícone do personagem + HP + Energia -->
-    <div class="hud-bottom-section hud-section-2">
-      <!-- Indicador de Energia (canto superior direito) -->
-      <div class="hud-energy-indicator" id="hud-energy-indicator" data-energy-percent="high">
-        <div class="hud-energy-icon-container">
-          <img src="{{ url_for('static', filename='game.data/energy.png') }}" alt="Energia" class="hud-energy-icon">
+    <!-- GRUPO ESQUERDO (fixo à margem esquerda) -->
+    <div class="hud-group-left">
+      <!-- SEÇÃO 1: hud1b.png - Ícone do personagem + HP + Energia -->
+      <div class="hud-bottom-section hud-section-1">
+        <!-- Indicador de Energia (canto superior direito) -->
+        <div class="hud-energy-indicator" id="hud-energy-indicator" data-energy-percent="high">
+          <div class="hud-energy-icon-container">
+            <img src="{{ url_for('static', filename='game.data/energy.png') }}" alt="Energia" class="hud-energy-icon">
+          </div>
+          <span class="hud-energy-text" id="hud-energy-text">10/10</span>
         </div>
-        <span class="hud-energy-text" id="hud-energy-text">10/10</span>
-      </div>
 
-      <!-- Ícone do personagem -->
-      <div class="hud-player-icon">
-        <img src="{{ url_for('static', filename='game.data/character/' ~ (player.character_id or 'vlad') ~ '/' ~ (player.character_id or 'vlad') ~ '-icon.png') }}"
-             alt="{{ player.character_name or 'Personagem' }}"
-             onerror="this.src='{{ url_for('static', filename='game.data/icons/default_character.svg') }}'">
-      </div>
+        <!-- Ícone do personagem -->
+        <div class="hud-player-icon">
+          <img src="{{ url_for('static', filename='game.data/character/' ~ (player.character_id or 'vlad') ~ '/' ~ (player.character_id or 'vlad') ~ '-icon.png') }}"
+               alt="{{ player.character_name or 'Personagem' }}"
+               onerror="this.src='{{ url_for('static', filename='game.data/icons/default_character.svg') }}'">
+        </div>
 
-      <!-- Barra de HP (parte inferior) -->
-      <div class="hud-hp-bar" id="hud-hp-bar-container">
-        <div class="hud-barrier-fill" id="hud-barrier-fill" style="width: 0%;"></div>
-        {% set hp_percent = ((player_hp or 100) / (player_max_hp or 100) * 100) | round(1) %}
-        <div class="hud-hp-fill" id="hud-hp-fill" style="width: {{ hp_percent }}%;"></div>
-        <span class="hud-hp-text" id="hud-hp-text">{{ player_hp or 100 }}/{{ player_max_hp or 100 }}</span>
-        <!-- Display de Barreira -->
-        <div class="hud-barrier-display" id="hud-barrier-display" style="display: none;">
-          <svg class="hud-barrier-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
-          </svg>
-          <span class="hud-barrier-value" id="hud-barrier-value">0</span>
+        <!-- Barra de HP (parte inferior) -->
+        <div class="hud-hp-bar" id="hud-hp-bar-container">
+          <div class="hud-barrier-fill" id="hud-barrier-fill" style="width: 0%;"></div>
+          {% set hp_percent = ((player_hp or 100) / (player_max_hp or 100) * 100) | round(1) %}
+          <div class="hud-hp-fill" id="hud-hp-fill" style="width: {{ hp_percent }}%;"></div>
+          <span class="hud-hp-text" id="hud-hp-text">{{ player_hp or 100 }}/{{ player_max_hp or 100 }}</span>
+          <!-- Display de Barreira -->
+          <div class="hud-barrier-display" id="hud-barrier-display" style="display: none;">
+            <svg class="hud-barrier-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+            </svg>
+            <span class="hud-barrier-value" id="hud-barrier-value">0</span>
+          </div>
         </div>
       </div>
+
+      <!-- SEÇÃO 2: hud1.png - Inventário centralizado -->
+      <div class="hud-bottom-section hud-section-2">
+        <!-- Slot para Inventário (centralizado) -->
+        <div class="hud-inventory-slot" id="hud-inventory-slot">
+          <!-- fast-inventory-wrapper será inserido aqui -->
+        </div>
+      </div>
     </div>
 
-    <!-- SEÇÃO 3: hud2.png - Reservado (menus movidos para container independente) -->
-    <div class="hud-bottom-section hud-section-3">
-      <!-- Reservado -->
+    <!-- GRUPO CENTRAL (fixo ao centro) -->
+    <div class="hud-group-center">
+      <!-- SEÇÃO 3: hud2.png - Reservado -->
+      <div class="hud-bottom-section hud-section-3">
+        <!-- Reservado -->
+      </div>
     </div>
 
-    <!-- SEÇÃO 4: hud3a.png - Reservado -->
-    <div class="hud-bottom-section hud-section-4">
-      <!-- Reservado para futuras funcionalidades -->
-    </div>
+    <!-- GRUPO DIREITO (fixo à margem direita) -->
+    <div class="hud-group-right">
+      <!-- SEÇÃO 4: hud3.png - Reservado -->
+      <div class="hud-bottom-section hud-section-4">
+        <!-- Reservado para futuras funcionalidades -->
+      </div>
 
-    <!-- SEÇÃO 5: hud3.png - Reservado -->
-    <div class="hud-bottom-section hud-section-5">
-      <!-- Reservado para futuras funcionalidades -->
+      <!-- SEÇÃO 5: hud3a.png - Reservado -->
+      <div class="hud-bottom-section hud-section-5">
+        <!-- Reservado para futuras funcionalidades -->
+      </div>
     </div>
 
   </div>

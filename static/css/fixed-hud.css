@@ -773,20 +773,57 @@ body.has-fixed-hud .energy-indicator {
   pointer-events: none;
 }
 
-/* Container wrapper centralizado - tamanho fixo */
+/* Container wrapper - 3 grupos: esquerda, centro, direita */
 .hud-bottom-wrapper {
   display: flex;
   align-items: flex-end;
-  justify-content: center;
+  justify-content: space-between;
+  width: 100%;
   height: 100%;
   pointer-events: none;
-  gap: var(--hud-section-gap);
+  padding: 0 20px;
   transform: scale(var(--hud-bottom-scale));
   transform-origin: bottom center;
 }
 
 /* Permitir cliques nos filhos */
 .hud-bottom-wrapper > * {
+  pointer-events: auto;
+}
+
+/* Grupo esquerdo (seções 1 e 2) */
+.hud-group-left {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--hud-section-gap);
+  pointer-events: none;
+}
+
+.hud-group-left > * {
+  pointer-events: auto;
+}
+
+/* Grupo central (seção 3) */
+.hud-group-center {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.hud-group-center > * {
+  pointer-events: auto;
+}
+
+/* Grupo direito (seções 4 e 5) */
+.hud-group-right {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--hud-section-gap);
+  pointer-events: none;
+}
+
+.hud-group-right > * {
   pointer-events: auto;
 }
 
@@ -809,11 +846,12 @@ body.has-fixed-hud .energy-indicator {
 }
 
 /* ============================================== */
-/* SEÇÃO 1: hud1.png - Nome, HP e Energia */
-/* Dimensões: 1923x1931px → aspect-ratio ~1:1 */
+/* SEÇÃO 1: hud1b.png - Ícone do personagem + HP + Energia */
+/* (conteúdo trocado com seção 2) */
+/* Dimensões: 1926x1952px → aspect-ratio ~1:1 */
 /* ============================================== */
 .hud-section-1 {
-  aspect-ratio: 1923 / 1931;
+  aspect-ratio: 1926 / 1952;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -829,7 +867,7 @@ body.has-fixed-hud .energy-indicator {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('/static/game.data/hud/hud1.png');
+  background-image: url('/static/game.data/hud/hud1b.png');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: bottom center;
@@ -837,25 +875,16 @@ body.has-fixed-hud .energy-indicator {
   pointer-events: none;
 }
 
-/* Inventário centralizado na seção 1 - NÃO afeta tamanho da seção */
-.hud-section-1 .hud-inventory-slot {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 /* ============================================== */
-/* SEÇÃO 2: hud1b.png - Ícone do personagem */
-/* Dimensões: 1926x1952px → aspect-ratio ~1:1 */
+/* SEÇÃO 2: hud1.png - Inventário centralizado */
+/* (conteúdo trocado com seção 1) */
+/* Dimensões: 1923x1931px → aspect-ratio ~1:1 */
 /* ============================================== */
 .hud-section-2 {
-  aspect-ratio: 1926 / 1952;
+  aspect-ratio: 1923 / 1931;
   transform: scale(var(--hud-section-2-scale)) translateY(var(--hud-section-2-offset-y));
   transform-origin: bottom center;
+  overflow: visible;
 }
 
 .hud-section-2::before {
@@ -865,12 +894,32 @@ body.has-fixed-hud .energy-indicator {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('/static/game.data/hud/hud1b.png');
+  background-image: url('/static/game.data/hud/hud1.png');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: bottom center;
   z-index: -1;
   pointer-events: none;
+}
+
+/* Inventário - wrapper pode sair da seção, mas .fast-inventory-main fica centralizado */
+.hud-section-2 .hud-inventory-slot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Centralizar apenas a parte circular (.fast-inventory-main), não o wrapper inteiro */
+.hud-section-2 .fast-inventory-wrapper {
+  position: relative;
+}
+
+.hud-section-2 .fast-inventory-main {
+  /* A parte circular fica no centro - o info-panel pode sair */
 }
 
 /* ============================================== */
@@ -905,7 +954,8 @@ body.has-fixed-hud .energy-indicator {
 }
 
 /* ============================================== */
-/* SEÇÃO 4: hud3a.png - Reservado */
+/* SEÇÃO 4: hud3.png - Reservado */
+/* (conteúdo trocado com seção 5) */
 /* Dimensões: 1923x1931px → aspect-ratio ~1:1 */
 /* ============================================== */
 .hud-section-4 {
@@ -921,7 +971,7 @@ body.has-fixed-hud .energy-indicator {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('/static/game.data/hud/hud3a.png');
+  background-image: url('/static/game.data/hud/hud3.png');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: bottom center;
@@ -930,7 +980,8 @@ body.has-fixed-hud .energy-indicator {
 }
 
 /* ============================================== */
-/* SEÇÃO 5: hud3.png - Reservado */
+/* SEÇÃO 5: hud3a.png - Reservado */
+/* (conteúdo trocado com seção 4) */
 /* Dimensões: 1923x1931px → aspect-ratio ~1:1 */
 /* ============================================== */
 .hud-section-5 {
@@ -946,7 +997,7 @@ body.has-fixed-hud .energy-indicator {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('/static/game.data/hud/hud3.png');
+  background-image: url('/static/game.data/hud/hud3a.png');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: bottom center;
@@ -955,7 +1006,7 @@ body.has-fixed-hud .energy-indicator {
 }
 
 /* ============================================== */
-/* ÍCONE DO PERSONAGEM - NA SEÇÃO 2 */
+/* ÍCONE DO PERSONAGEM - NA SEÇÃO 1 */
 /* ============================================== */
 .hud-player-icon {
   position: absolute;
@@ -1060,7 +1111,7 @@ body.has-fixed-hud .energy-indicator {
 }
 
 /* ============================================== */
-/* INDICADOR DE ENERGIA - CANTO SUPERIOR DIREITO DA SEÇÃO 2 */
+/* INDICADOR DE ENERGIA - CANTO SUPERIOR DIREITO DA SEÇÃO 1 */
 /* ============================================== */
 .hud-energy-indicator {
   position: absolute;
