@@ -781,7 +781,7 @@ body.has-fixed-hud .energy-indicator {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  padding: 0 20px;
+  padding: 0;
   transform: scale(var(--hud-bottom-scale));
   transform-origin: bottom center;
 }
@@ -791,39 +791,50 @@ body.has-fixed-hud .energy-indicator {
   pointer-events: auto;
 }
 
-/* Grupo esquerdo (seções 1 e 2) */
+/* Grupo esquerdo (seções 1 e 2) - fixo à margem esquerda */
 .hud-group-left {
   display: flex;
   align-items: flex-end;
-  gap: var(--hud-section-gap);
+  gap: 0; /* Seções coladas */
   height: 100%;
   pointer-events: none;
+  margin-left: 0;
+  transform-origin: bottom left;
 }
 
 .hud-group-left > * {
   pointer-events: auto;
 }
 
-/* Grupo central (seção 3) */
+/* Grupo central (seção 3) - centralizado, baixo z-index, transparente */
 .hud-group-center {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
   display: flex;
   align-items: flex-end;
   justify-content: center;
   height: 100%;
-  pointer-events: none;
+  pointer-events: none; /* Click-through */
+  z-index: -1; /* Atrás das outras seções */
+  opacity: 0.5; /* 50% transparência */
 }
 
 .hud-group-center > * {
-  pointer-events: auto;
+  pointer-events: none; /* Click-through em tudo */
 }
 
-/* Grupo direito (seções 4 e 5) */
+/* Grupo direito (seções 4 e 5) - fixo à margem direita */
 .hud-group-right {
   display: flex;
   align-items: flex-end;
-  gap: var(--hud-section-gap);
+  flex-direction: row-reverse; /* Seção 5 primeiro (na borda direita) */
+  gap: 0; /* Seções coladas */
   height: 100%;
   pointer-events: none;
+  margin-right: 0;
+  transform-origin: bottom right;
 }
 
 .hud-group-right > * {
@@ -852,6 +863,7 @@ body.has-fixed-hud .energy-indicator {
 /* SEÇÃO 1: hud1b.png - Ícone do personagem + HP + Energia */
 /* (conteúdo trocado com seção 2) */
 /* Dimensões: 1926x1952px → aspect-ratio ~1:1 */
+/* Posição: fixo à margem esquerda da tela */
 /* ============================================== */
 .hud-section-1 {
   aspect-ratio: 1926 / 1952;
@@ -859,7 +871,7 @@ body.has-fixed-hud .energy-indicator {
   align-items: center;
   justify-content: center;
   transform: scale(var(--hud-section-1-scale)) translateY(var(--hud-section-1-offset-y));
-  transform-origin: bottom center;
+  transform-origin: bottom left; /* Ancora na esquerda */
   overflow: visible;
 }
 
@@ -882,11 +894,12 @@ body.has-fixed-hud .energy-indicator {
 /* SEÇÃO 2: hud1.png - Inventário centralizado */
 /* (conteúdo trocado com seção 1) */
 /* Dimensões: 1923x1931px → aspect-ratio ~1:1 */
+/* Posição: colado ao hud-section-1 */
 /* ============================================== */
 .hud-section-2 {
   aspect-ratio: 1923 / 1931;
   transform: scale(var(--hud-section-2-scale)) translateY(var(--hud-section-2-offset-y));
-  transform-origin: bottom center;
+  transform-origin: bottom left; /* Ancora na esquerda (relativo à seção 1) */
   overflow: visible;
 }
 
@@ -926,8 +939,9 @@ body.has-fixed-hud .energy-indicator {
 }
 
 /* ============================================== */
-/* SEÇÃO 3: hud2.png - Ataques, Especiais, Inventário */
+/* SEÇÃO 3: hud2.png - Reservado (centralizado) */
 /* Dimensões: 2793x827px → aspect-ratio largo (horizontal) */
+/* Posição: sempre centralizado, transparente, click-through */
 /* ============================================== */
 .hud-section-3 {
   aspect-ratio: 2793 / 827;
@@ -938,7 +952,8 @@ body.has-fixed-hud .energy-indicator {
   padding-bottom: 10px;
   transform: scale(var(--hud-section-3-scale)) translateY(var(--hud-section-3-offset-y));
   transform-origin: bottom center;
-  z-index: -1;
+  z-index: -1; /* Atrás de tudo */
+  pointer-events: none; /* Click-through */
 }
 
 .hud-section-3::before {
@@ -960,11 +975,12 @@ body.has-fixed-hud .energy-indicator {
 /* SEÇÃO 4: hud3.png - Reservado */
 /* (conteúdo trocado com seção 5) */
 /* Dimensões: 1923x1931px → aspect-ratio ~1:1 */
+/* Posição: colado ao hud-section-5 */
 /* ============================================== */
 .hud-section-4 {
   aspect-ratio: 1923 / 1931;
   transform: scale(var(--hud-section-4-scale)) translateY(var(--hud-section-4-offset-y));
-  transform-origin: bottom center;
+  transform-origin: bottom right; /* Ancora na direita (relativo à seção 5) */
 }
 
 .hud-section-4::before {
@@ -986,11 +1002,12 @@ body.has-fixed-hud .energy-indicator {
 /* SEÇÃO 5: hud3a.png - Reservado */
 /* (conteúdo trocado com seção 4) */
 /* Dimensões: 1923x1931px → aspect-ratio ~1:1 */
+/* Posição: fixo à margem direita da tela */
 /* ============================================== */
 .hud-section-5 {
   aspect-ratio: 1923 / 1931;
   transform: scale(var(--hud-section-5-scale)) translateY(var(--hud-section-5-offset-y));
-  transform-origin: bottom center;
+  transform-origin: bottom right; /* Ancora na direita */
 }
 
 .hud-section-5::before {
