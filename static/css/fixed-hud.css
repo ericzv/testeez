@@ -159,6 +159,11 @@ body.has-fixed-hud #relic-selection-popup .victory-actions {
   /* Offset vertical da área de batalha (cenário + personagens) */
   /* Valor negativo = mais pra cima */
   --battle-offset-y: -10%;
+
+  /* Posição horizontal dos wrappers de ataques e especiais */
+  /* Valor positivo = mais pra direita, negativo = mais pra esquerda */
+  --attacks-wrapper-x: 0px;
+  --specials-wrapper-x: 0px;
 }
 
 /* ============================================== */
@@ -200,6 +205,22 @@ body.has-fixed-hud .energy-indicator {
 /* Ajuste via variável --battle-offset-y no :root */
 body.has-fixed-hud .battle-arena {
   transform: translateY(var(--battle-offset-y));
+}
+
+/* ============================================== */
+/* AJUSTE DOS WRAPPERS DE ATAQUES E ESPECIAIS */
+/* ============================================== */
+
+/* Ajuste horizontal do wrapper de ataques */
+/* Valor positivo = mais pra direita, negativo = mais pra esquerda */
+.fast-attacks-wrapper {
+  transform: translateX(var(--attacks-wrapper-x));
+}
+
+/* Ajuste horizontal do wrapper de especiais */
+/* Valor positivo = mais pra direita, negativo = mais pra esquerda */
+.fast-specials-wrapper {
+  transform: translateX(var(--specials-wrapper-x));
 }
 
 /* ============================================== */
