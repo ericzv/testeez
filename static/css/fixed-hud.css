@@ -121,25 +121,31 @@ body.has-fixed-hud #relic-selection-popup .victory-actions {
 
   /* ========== AJUSTES DO HUD INFERIOR ========== */
 
-  /* Scale geral do HUD */
+  /* Scale geral do HUD (não usado atualmente - cada grupo escala individualmente) */
   --hud-bottom-scale: 1.2;
 
-  /* Distância entre as seções (gap) */
-  --hud-section-gap: 87px;
-
   /* Scale individual de cada seção */
-  --hud-section-1-scale: 1.3;
+  --hud-section-1-scale: 2.3;
   --hud-section-2-scale: 1.8;
-  --hud-section-3-scale: 1.0; /* Visível agora */
+  --hud-section-3-scale: 1.5;
   --hud-section-4-scale: 1.8;
-  --hud-section-5-scale: 1.3;
+  --hud-section-5-scale: 2.3;
 
   /* Offset Y de cada seção (positivo = mais pra cima, negativo = mais pra baixo) */
-  --hud-section-1-offset-y: 0%;
-  --hud-section-2-offset-y: 0%;
-  --hud-section-3-offset-y: 0%;
-  --hud-section-4-offset-y: 0%;
-  --hud-section-5-offset-y: 0%;
+  --hud-section-1-offset-y: 3%;
+  --hud-section-2-offset-y: 5%;
+  --hud-section-3-offset-y: 5%;
+  --hud-section-4-offset-y: 5%;
+  --hud-section-5-offset-y: 3%;
+
+  /* Offset X de cada seção (para ajustar posição horizontal manualmente) */
+  /* Seção 2: valor positivo empurra pra direita */
+  /* Seção 4: valor negativo empurra pra esquerda */
+  --hud-section-1-offset-x: 0px;
+  --hud-section-2-offset-x: 200px;
+  --hud-section-3-offset-x: 0px;
+  --hud-section-4-offset-x: -200px;
+  --hud-section-5-offset-x: 0px;
 
   /* Fonte padrão do HUD */
   --hud-font-size: 16px;
@@ -900,7 +906,7 @@ body.has-fixed-hud .energy-indicator {
 /* ============================================== */
 .hud-section-2 {
   aspect-ratio: 1923 / 1931;
-  transform: scale(var(--hud-section-2-scale)) translateY(var(--hud-section-2-offset-y));
+  transform: scale(var(--hud-section-2-scale)) translateX(var(--hud-section-2-offset-x)) translateY(var(--hud-section-2-offset-y));
   transform-origin: bottom left; /* Ancora na esquerda (relativo à seção 1) */
   overflow: visible;
 }
@@ -981,7 +987,7 @@ body.has-fixed-hud .energy-indicator {
 /* ============================================== */
 .hud-section-4 {
   aspect-ratio: 1923 / 1931;
-  transform: scale(var(--hud-section-4-scale)) translateY(var(--hud-section-4-offset-y));
+  transform: scale(var(--hud-section-4-scale)) translateX(var(--hud-section-4-offset-x)) translateY(var(--hud-section-4-offset-y));
   transform-origin: bottom right; /* Ancora na direita (relativo à seção 5) */
 }
 
