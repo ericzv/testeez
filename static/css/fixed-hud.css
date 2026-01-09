@@ -152,20 +152,9 @@ body.has-fixed-hud #relic-selection-popup .victory-actions {
 
   /* ========== AJUSTES DE POSIÇÃO - FÁCIL DE MODIFICAR ========== */
 
-  /* Posição do inventory na seção 3 (hud2.png) */
+  /* Posição do inventory na seção 2 */
   /* Valor negativo = mais pra cima, positivo = mais pra baixo */
   --inventory-offset-y: -20%;
-
-  /* Posição dos wrappers de ataques e especiais no hud-group-center */
-  --attacks-wrapper-left: 5%;
-  --attacks-wrapper-bottom: 50%;
-  --specials-wrapper-right: 5%;
-  --specials-wrapper-bottom: 50%;
-
-  /* Posição vertical dos personagens (compensar HUD inferior) */
-  /* Valor negativo = mais pra cima */
-  --character-offset-y: -20%;
-  --character-offset-y-zoom: -25%;
 }
 
 /* ============================================== */
@@ -199,43 +188,6 @@ body.has-fixed-hud .energy-indicator {
   display: none !important;
 }
 
-/* ============================================== */
-/* AJUSTE DO CENÁRIO - COMPENSAR HUD INFERIOR */
-/* ============================================== */
-
-/* Mover toda a arena de batalha para cima para compensar o HUD inferior */
-body.has-fixed-hud .battle-arena {
-  /* Ajusta a altura disponível subtraindo o HUD inferior */
-  height: calc(100vh - var(--hud-bottom-height)) !important;
-  max-height: calc(100vh - var(--hud-bottom-height)) !important;
-}
-
-/* Mover o container de background para cima */
-body.has-fixed-hud .background-container {
-  height: calc(100vh - var(--hud-bottom-height)) !important;
-}
-
-/* Centralizar os personagens na área visível (acima do HUD) */
-body.has-fixed-hud .character-container {
-  /* Move o personagem para cima - ajuste via --character-offset-y */
-  transform: translateY(var(--character-offset-y)) !important;
-}
-
-body.has-fixed-hud .boss-container {
-  /* Move o inimigo para cima - ajuste via --character-offset-y */
-  transform: translateY(var(--character-offset-y)) !important;
-}
-
-/* Ajustar a zoom-view para considerar o HUD inferior */
-body.has-fixed-hud.zoom-view .character-container,
-body.has-fixed-hud .zoom-view .character-container {
-  transform: translateY(var(--character-offset-y-zoom)) !important;
-}
-
-body.has-fixed-hud.zoom-view .boss-container,
-body.has-fixed-hud .zoom-view .boss-container {
-  transform: translateY(var(--character-offset-y-zoom)) !important;
-}
 
 /* ============================================== */
 /* HUD SUPERIOR - BARRA FINA DOURADA */
@@ -1089,32 +1041,6 @@ body.has-fixed-hud .zoom-view .boss-container {
   background-position: bottom center;
   z-index: -1;
   pointer-events: none;
-}
-
-/* ============================================== */
-/* POSICIONAMENTO DOS WRAPPERS DE ATAQUES E ESPECIAIS */
-/* Fixos nas extremidades do hud-group-center (hud2.png) */
-/* Ajuste via variáveis: --attacks-wrapper-left, --attacks-wrapper-bottom, etc */
-/* ============================================== */
-
-/* Wrapper de ataques - extremidade ESQUERDA */
-.hud-group-center .fast-attacks-wrapper {
-  position: absolute !important;
-  left: var(--attacks-wrapper-left);
-  bottom: var(--attacks-wrapper-bottom);
-  transform: translateY(50%);
-  z-index: 100;
-  pointer-events: auto;
-}
-
-/* Wrapper de especiais - extremidade DIREITA */
-.hud-group-center .fast-specials-wrapper {
-  position: absolute !important;
-  right: var(--specials-wrapper-right);
-  bottom: var(--specials-wrapper-bottom);
-  transform: translateY(50%);
-  z-index: 100;
-  pointer-events: auto;
 }
 
 /* ============================================== */
