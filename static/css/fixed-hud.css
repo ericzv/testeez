@@ -183,6 +183,44 @@ body.has-fixed-hud .energy-indicator {
 }
 
 /* ============================================== */
+/* AJUSTE DO CENÁRIO - COMPENSAR HUD INFERIOR */
+/* ============================================== */
+
+/* Mover toda a arena de batalha para cima para compensar o HUD inferior */
+body.has-fixed-hud .battle-arena {
+  /* Ajusta a altura disponível subtraindo o HUD inferior */
+  height: calc(100vh - var(--hud-bottom-height)) !important;
+  max-height: calc(100vh - var(--hud-bottom-height)) !important;
+}
+
+/* Mover o container de background para cima */
+body.has-fixed-hud .background-container {
+  height: calc(100vh - var(--hud-bottom-height)) !important;
+}
+
+/* Centralizar os personagens na área visível (acima do HUD) */
+body.has-fixed-hud .character-container {
+  /* Move o personagem um pouco mais para cima */
+  transform: translateY(-10%) !important;
+}
+
+body.has-fixed-hud .boss-container {
+  /* Move o inimigo um pouco mais para cima */
+  transform: translateY(-10%) !important;
+}
+
+/* Ajustar a zoom-view para considerar o HUD inferior */
+body.has-fixed-hud.zoom-view .character-container,
+body.has-fixed-hud .zoom-view .character-container {
+  transform: translateY(-15%) !important;
+}
+
+body.has-fixed-hud.zoom-view .boss-container,
+body.has-fixed-hud .zoom-view .boss-container {
+  transform: translateY(-15%) !important;
+}
+
+/* ============================================== */
 /* HUD SUPERIOR - BARRA FINA DOURADA */
 /* ============================================== */
 .fixed-hud-top {
@@ -944,6 +982,37 @@ body.has-fixed-hud .energy-indicator {
 
 .hud-section-2 .fast-inventory-main {
   /* A parte circular fica no centro - o info-panel pode sair */
+  /* 50% do tamanho original (160px * 0.5 = 80px) */
+  width: 80px !important;
+  height: 80px !important;
+  transform: scale(1);
+}
+
+/* Ajustar cards do inventário para 50% (80px * 0.5 = 40px) */
+.hud-section-2 .fast-inventory-main .inventory-card {
+  width: 40px !important;
+  height: 40px !important;
+}
+
+.hud-section-2 .fast-inventory-main .inventory-card .item-icon-img {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+.hud-section-2 .fast-inventory-main .inventory-card .quantity-badge {
+  min-width: 14px !important;
+  height: 14px !important;
+  font-size: 8px !important;
+  padding: 0 3px !important;
+}
+
+/* Ajustar metades do manto */
+.hud-section-2 .fast-inventory-main .cloak-left {
+  border-right-width: 3px !important;
+}
+
+.hud-section-2 .fast-inventory-main .cloak-right {
+  border-left-width: 3px !important;
 }
 
 /* ============================================== */

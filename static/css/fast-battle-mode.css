@@ -968,6 +968,7 @@
 /* Wrapper principal do menu de especiais */
 .fast-specials-wrapper {
   display: flex;
+  flex-direction: row-reverse; /* Inverte a ordem: info-panel à esquerda */
   align-items: center;
   gap: 1rem;
   position: relative;
@@ -1314,7 +1315,7 @@
 .fast-specials-info-content {
   position: absolute;
   top: 0;
-  left: 0;
+  right: 0; /* Posiciona à direita do painel */
   width: 100%;
   background: rgba(5, 15, 30, 0.95);
   border: 2px solid #0a5a8a;
@@ -1323,7 +1324,7 @@
   box-sizing: border-box;
   color: #88ccff;
   opacity: 0;
-  transform: translateX(-20px);
+  transform: translateX(20px); /* Animação vem da direita */
   transition: all 0.3s ease;
   pointer-events: none;
   display: flex;
