@@ -1344,17 +1344,9 @@ async function executeRelicRewrite() {
 // CURRENCIES & BUFFS
 // ============================================
 
-async function updateCurrencyDisplay() {
-    try {
-        const response = await fetch('/gamification/get_player_currencies');
-        const data = await response.json();
-        if (data.success) {
-            document.getElementById('crystals-value').textContent = data.crystals;
-            document.getElementById('gold-value').textContent = data.gold;
-            document.getElementById('hourglasses-value').textContent = data.hourglasses;
-        }
-    } catch (error) {}
-}
+// A função updateCurrencyDisplay está definida em fixed_hud.html
+// com animações completas (som, transição gradual, partículas)
+// Não redefinir aqui para não sobrescrever a versão com animações
 
 async function updateActiveRunBuffs() {
     try {
@@ -1476,12 +1468,14 @@ async function acceptVictoryRewards(popup) {
         popup.remove();
         await updateCurrencyDisplay();
         await updateActiveRunBuffs();
-        // Verificar memória primeiro, depois relíquias
-        const hasMemory = await checkMemoryReward();
-        if (!hasMemory) {
-            // Se não há memória, verificar relíquias diretamente
-            setTimeout(() => checkRelicReward(), 300);
-        }
+        // Verificar memória primeiro, depois relíquias (com delay de 700ms)
+        setTimeout(async () => {
+            const hasMemory = await checkMemoryReward();
+            if (!hasMemory) {
+                // Se não há memória, verificar relíquias diretamente
+                setTimeout(() => checkRelicReward(), 300);
+            }
+        }, 700);
     } catch (error) {}
     window.victoryProcessed = false;
 }

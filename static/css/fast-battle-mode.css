@@ -1866,3 +1866,168 @@
   border: 1px solid rgba(16, 185, 129, 0.3);
   border-radius: 4px;
 }
+
+/* ================================================================================
+   VERSÃO SIMPLIFICADA PARA DISPOSITIVOS MÓVEIS/TOUCH
+   Desativa animações pesadas e efeitos complexos para melhor performance
+   ================================================================================
+*/
+
+/* Detectar dispositivos touch (iPad, smartphones) ou telas menores */
+@media (hover: none), (max-width: 1024px) {
+
+  /* === DESATIVAR ANIMAÇÕES CONTÍNUAS === */
+  .fast-attacks-main .unification-sphere::before,
+  .fast-attacks-main .unification-sphere::after,
+  .fast-specials-main .unification-sphere::before,
+  .fast-specials-main .unification-sphere::after {
+    animation: none !important;
+  }
+
+  /* === SIMPLIFICAR GRADIENTES === */
+  .fast-attacks-main .unification-sphere {
+    background: #0f0f0f !important;
+    background-image: none !important;
+  }
+
+  .fast-specials-main .unification-sphere {
+    background: #050a15 !important;
+    background-image: none !important;
+  }
+
+  .fast-attacks-main .attack-card,
+  .fast-specials-main .special-card {
+    background-image: none !important;
+  }
+
+  .fast-inventory-main .cloak-half {
+    background-image: none !important;
+    background-size: auto !important;
+  }
+
+  .fast-inventory-main .inventory-card {
+    background-image: none !important;
+  }
+
+  /* === REMOVER PARTÍCULAS (container-stars) === */
+  .fast-attacks-main .container-stars,
+  .fast-specials-main .container-stars,
+  .fast-inventory-main .container-stars {
+    display: none !important;
+  }
+
+  /* === SIMPLIFICAR TRANSIÇÕES === */
+  .fast-attacks-main,
+  .fast-attacks-main .up,
+  .fast-attacks-main .down,
+  .fast-attacks-main .attack-card,
+  .fast-attacks-main .unification-sphere,
+  .fast-specials-main,
+  .fast-specials-main .up,
+  .fast-specials-main .down,
+  .fast-specials-main .special-card,
+  .fast-specials-main .unification-sphere,
+  .fast-inventory-main,
+  .fast-inventory-main .up,
+  .fast-inventory-main .down,
+  .fast-inventory-main .inventory-card,
+  .fast-inventory-main .cloak-half {
+    transition-duration: 0.15s !important;
+    transition-timing-function: ease-out !important;
+  }
+
+  /* === REMOVER BOX-SHADOWS PESADOS === */
+  .fast-attacks-main .unification-sphere,
+  .fast-specials-main .unification-sphere,
+  .fast-inventory-main .cloak-container {
+    box-shadow: none !important;
+  }
+
+  .fast-attacks-main .attack-card,
+  .fast-specials-main .special-card,
+  .fast-inventory-main .inventory-card {
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.5) !important;
+  }
+
+  /* === REMOVER FILTERS PESADOS === */
+  .fast-attacks-main .center-symbol svg,
+  .fast-specials-main .center-symbol svg,
+  .fast-inventory-main .cloak-container {
+    filter: none !important;
+  }
+
+  .fast-attacks-main .attack-card .skill-icon-img,
+  .fast-specials-main .special-card .skill-icon-img,
+  .fast-inventory-main .inventory-card .item-icon-img {
+    filter: none !important;
+  }
+
+  /* === SIMPLIFICAR PSEUDO-ELEMENTOS === */
+  .fast-attacks-main .attack-card::before,
+  .fast-attacks-main .attack-card::after,
+  .fast-specials-main .special-card::before,
+  .fast-specials-main .special-card::after,
+  .fast-inventory-main .inventory-card::before,
+  .fast-inventory-main .inventory-card::after {
+    display: none !important;
+  }
+
+  /* === DESATIVAR ANIMAÇÕES DE HOVER EM ÍCONES === */
+  .fast-attacks-main .attack-card:hover .skill-icon-img,
+  .fast-specials-main .special-card:hover .skill-icon-img,
+  .fast-inventory-main .inventory-card:hover .item-icon-img {
+    transform: none !important;
+    filter: none !important;
+  }
+
+  /* === MANTER FUNCIONALIDADE BÁSICA DE HOVER === */
+  .fast-attacks-main:hover .attack-card .skill-icon-img,
+  .fast-specials-main:hover .special-card .skill-icon-img,
+  .fast-inventory-main:hover .inventory-card:not(.disabled) .item-icon-img {
+    opacity: 1;
+  }
+
+  /* === SIMPLIFICAR ABERTURA DOS MENUS === */
+  .fast-attacks-main:hover .up,
+  .fast-attacks-main:hover .down,
+  .fast-specials-main:hover .up,
+  .fast-specials-main:hover .down {
+    gap: 8px;
+  }
+
+  .fast-attacks-main:hover .unification-sphere,
+  .fast-specials-main:hover .unification-sphere {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  /* === MANTO DO INVENTÁRIO SIMPLIFICADO === */
+  .fast-inventory-main:hover .cloak-left,
+  .fast-inventory-main:hover .cloak-right {
+    opacity: 0;
+  }
+
+  /* === REMOVER BRILHOS E GLOWS === */
+  .fast-attacks-main .attack-card.selected,
+  .fast-specials-main .special-card.selected,
+  .fast-attacks-main .attack-card:hover,
+  .fast-specials-main .special-card:hover,
+  .fast-inventory-main .inventory-card:hover:not(.disabled) {
+    box-shadow: inset 0 0 5px rgba(255,255,255,0.3) !important;
+  }
+
+  /* === INFO PANELS SIMPLIFICADOS === */
+  .fast-attacks-info-panel,
+  .fast-specials-info-panel,
+  .fast-inventory-info-panel {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(20, 20, 20, 0.98) !important;
+  }
+
+  .fast-attacks-info-content .container-stars,
+  .fast-specials-info-content .container-stars,
+  .fast-inventory-info-content .container-stars {
+    display: none !important;
+  }
+}

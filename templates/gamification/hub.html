@@ -1461,49 +1461,18 @@
         }, 100);
     }
 
-  // Nova função para atualizar display de currencies
-  function updateCurrencyDisplay(skipDomUpdate = false) {
-      // Se há animação pendente, apenas retornar os dados sem atualizar DOM
-      if (skipDomUpdate) {
-          return fetch('/gamification/get_player_currencies')
-              .then(response => response.json())
-              .then(data => {
-                  console.log("💰 Dados de currencies obtidos (sem atualizar DOM):", data);
-                  return data;
-              });
-      }
-
-      // Guardar gold atual ANTES de atualizar
-      const goldEl = document.getElementById('gold-value');
-      const oldGold = goldEl ? parseInt(goldEl.textContent) || 0 : 0;
-
-      // Comportamento normal - atualizar DOM
+  // Função auxiliar para obter currencies sem atualizar DOM
+  // A função principal updateCurrencyDisplay está definida em fixed_hud.html
+  // com animações completas (som, transição gradual, partículas)
+  function getCurrencyData() {
       return fetch('/gamification/get_player_currencies')
           .then(response => response.json())
           .then(data => {
-              if (data.success) {
-                  // Atualizar valores direto (sem animação)
-                  const crystalsEl = document.getElementById('crystals-value');
-                  const hourglassesEl = document.getElementById('hourglasses-value');
-
-                  if (crystalsEl) crystalsEl.textContent = data.crystals;
-                  if (goldEl) goldEl.textContent = data.gold;
-                  if (hourglassesEl) hourglassesEl.textContent = data.hourglasses;
-
-                  // Tocar som de moedas se gold mudou
-                  const newGold = data.gold || 0;
-                  if (newGold > oldGold) {
-                      playCoinGainSound();  // Ganhou moedas
-                  } else if (newGold < oldGold) {
-                      playCoinLossSound();   // Perdeu/gastou moedas
-                  }
-
-                  console.log("💰 Currencies atualizadas no DOM:", data);
-              }
+              console.log("💰 Dados de currencies obtidos:", data);
               return data;
           })
           .catch(error => {
-              console.error('Erro ao atualizar currencies:', error);
+              console.error('Erro ao obter currencies:', error);
               return null;
           });
   }
@@ -1569,62 +1538,38 @@
           // 4) NOVO: Obter dados atualizados SEM atualizar DOM ainda
           console.log("🔄 Obtendo dados atualizados...");
           const [currencyData, buffsData] = await Promise.all([
-              updateCurrencyDisplay(true), // skipDomUpdate = true
+              getCurrencyData(), // Apenas obter dados, não atualizar DOM
               updateActiveRunBuffs(true)   // skipDomUpdate = true
           ]);
 
           // 5) Aguardar um pouco mais
           await new Promise(resolve => setTimeout(resolve, 30));
-          
-          // 6) NOVO: Aplicar animações PRIMEIRO (com valores ainda antigos no DOM)
-          if (window.__preRewardSnapshots) {
-              console.log("✨ Aplicando animações com snapshot...");
-              
-              // Aplicar animações (que vão alterar o DOM gradualmente)
-              const currenciesHud = document.getElementById('currencies-hud');
-              const buffsHud = document.getElementById('run-buffs-hud');
-              
-              if (currenciesHud && window.__preRewardSnapshots.currencies) {
-                  // Primeiro, atualizar valores finais no DOM (para onde a animação vai)
-                  if (currencyData && currencyData.success) {
-                      const crystalsEl = document.getElementById('crystals-value');
-                      const goldEl = document.getElementById('gold-value');
-                      const hourglassesEl = document.getElementById('hourglasses-value');
-                      
-                      if (crystalsEl) crystalsEl.textContent = currencyData.crystals;
-                      if (goldEl) goldEl.textContent = currencyData.gold;
-                      if (hourglassesEl) hourglassesEl.textContent = currencyData.hourglasses;
-                  }
-                  
-                  // Então aplicar animação
-                  diffAndAnimate(currenciesHud, window.__preRewardSnapshots.currencies);
+
+          // 6) Atualizar currencies com animações completas (som, transição gradual, partículas)
+          // A função updateCurrencyDisplay do fixed_hud.html cuida de tudo automaticamente
+          console.log("✨ Atualizando currencies com animações...");
+          await updateCurrencyDisplay();
+
+          // 7) Atualizar buffs
+          const buffsHud = document.getElementById('run-buffs-hud');
+          if (buffsHud && window.__preRewardSnapshots && window.__preRewardSnapshots.buffs) {
+              if (buffsData && buffsData.success) {
+                  displayActiveRunBuffs(buffsData.buffs);
               }
-              
-              if (buffsHud && window.__preRewardSnapshots.buffs) {
-                  // Primeiro, atualizar buffs no DOM  
-                  if (buffsData && buffsData.success) {
-                      displayActiveRunBuffs(buffsData.buffs);
-                  }
-                  
-                  // Então aplicar animação
-                  diffAndAnimate(buffsHud, window.__preRewardSnapshots.buffs);
-              }
-              
-              // Limpar snapshots
-              window.__preRewardSnapshots = null;
+              diffAndAnimate(buffsHud, window.__preRewardSnapshots.buffs);
           } else {
-              // Fallback: atualizar normalmente se não há snapshot
-              console.log("⚠️ Não há snapshot, atualizando normalmente");
-              await updateCurrencyDisplay(false);
               await updateActiveRunBuffs(false);
           }
-          
-          // 7) Mostrar level up se houver
+
+          // Limpar snapshots
+          window.__preRewardSnapshots = null;
+
+          // 8) Mostrar level up se houver
           if (result.level_up) {
               addNotification(`🎉 Level Up! Você chegou ao nível ${result.new_level}!`);
           }
           
-          // 8) Verificar se deve mostrar pop-up de memória
+          // 9) Verificar se deve mostrar pop-up de memória
           console.log("🏆 DEBUG: window.__pendingMemoryPopup =", window.__pendingMemoryPopup);
           if (window.__pendingMemoryPopup) {
               window.__pendingMemoryPopup = false;
@@ -1634,7 +1579,7 @@
               setTimeout(() => {
                   console.log("🧠 DEBUG: Chamando checkMemoryReward()");
                   checkMemoryReward();
-              }, 300);
+              }, 700);
           } else {
               console.log("❌ DEBUG: Nenhuma memória pendente para mostrar");
 
@@ -1644,8 +1589,8 @@
                   checkRelicReward();
               }, 300);
           }
-          
-          // 9) Resetar flags
+
+          // 10) Resetar flags
           window.victoryProcessed = false;
           window.processingRewards = false;
           
