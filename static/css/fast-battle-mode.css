@@ -1462,8 +1462,9 @@
 /* Wrapper principal do menu de inventário */
 .fast-inventory-wrapper {
   display: flex;
+  flex-direction: column-reverse; /* Info-panel aparece acima */
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
   position: relative;
 }
 
@@ -1747,25 +1748,25 @@
 
 /* Painel de Informações - Inventário (Estilo Pergaminho Escuro) */
 .fast-inventory-info-panel {
-  width: 240px;
-  min-height: 120px;
+  width: 180px;
+  min-height: 80px;
   position: relative;
   perspective: 1000px;
 }
 
 .fast-inventory-info-content {
   position: absolute;
-  top: 0;
-  left: 0;
+  bottom: 0; /* Posiciona na base do painel */
+  left: 50%;
+  transform: translateX(-50%) translateY(10px); /* Animação vem de baixo */
   width: 100%;
   background: #1a100a;
   border: 2px solid #5a3a20;
   border-radius: 4px;
-  padding: 15px 20px;
+  padding: 10px 12px;
   box-sizing: border-box;
   color: #d0b090;
   opacity: 0;
-  transform: translateX(-20px);
   transition: all 0.3s ease;
   pointer-events: none;
   display: flex;
@@ -1778,7 +1779,7 @@
 
 .fast-inventory-info-content.visible {
   opacity: 1;
-  transform: translateX(0);
+  transform: translateX(-50%) translateY(0); /* Aparece na posição final */
   pointer-events: auto;
 }
 

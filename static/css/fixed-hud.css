@@ -200,24 +200,24 @@ body.has-fixed-hud .background-container {
 
 /* Centralizar os personagens na área visível (acima do HUD) */
 body.has-fixed-hud .character-container {
-  /* Move o personagem um pouco mais para cima */
-  transform: translateY(-10%) !important;
+  /* Move o personagem para cima */
+  transform: translateY(-20%) !important;
 }
 
 body.has-fixed-hud .boss-container {
-  /* Move o inimigo um pouco mais para cima */
-  transform: translateY(-10%) !important;
+  /* Move o inimigo para cima */
+  transform: translateY(-20%) !important;
 }
 
 /* Ajustar a zoom-view para considerar o HUD inferior */
 body.has-fixed-hud.zoom-view .character-container,
 body.has-fixed-hud .zoom-view .character-container {
-  transform: translateY(-15%) !important;
+  transform: translateY(-25%) !important;
 }
 
 body.has-fixed-hud.zoom-view .boss-container,
 body.has-fixed-hud .zoom-view .boss-container {
-  transform: translateY(-15%) !important;
+  transform: translateY(-25%) !important;
 }
 
 /* ============================================== */
@@ -1015,6 +1015,32 @@ body.has-fixed-hud .zoom-view .boss-container {
   border-left-width: 3px !important;
 }
 
+/* Ajustar info-panel do inventário para 50% */
+.hud-section-2 .fast-inventory-info-panel {
+  width: 120px !important;
+  min-height: 60px !important;
+}
+
+.hud-section-2 .fast-inventory-info-content {
+  padding: 6px 8px !important;
+  font-size: 10px !important;
+}
+
+.hud-section-2 .fast-inventory-info-content .info-item-name {
+  font-size: 11px !important;
+  margin-bottom: 3px !important;
+  padding-bottom: 3px !important;
+}
+
+.hud-section-2 .fast-inventory-info-content .info-desc {
+  font-size: 9px !important;
+}
+
+.hud-section-2 .fast-inventory-info-content .stat-tag {
+  font-size: 8px !important;
+  padding: 1px 4px !important;
+}
+
 /* ============================================== */
 /* SEÇÃO 3: hud2.png - Reservado (centralizado) */
 /* Dimensões: 2793x827px → aspect-ratio largo (horizontal) */
@@ -1046,6 +1072,44 @@ body.has-fixed-hud .zoom-view .boss-container {
   background-position: bottom center;
   z-index: -1;
   pointer-events: none;
+}
+
+/* ============================================== */
+/* SLOTS PARA WRAPPERS DE ATAQUES E ESPECIAIS */
+/* Posicionados nas extremidades do hud-group-center */
+/* ============================================== */
+
+/* Slot para ataques - extremidade esquerda do hud2.png */
+.hud-attacks-slot {
+  position: absolute;
+  left: 5%;
+  bottom: 15%;
+  z-index: 100;
+  pointer-events: auto;
+}
+
+/* Slot para especiais - extremidade direita do hud2.png */
+.hud-specials-slot {
+  position: absolute;
+  right: 5%;
+  bottom: 15%;
+  z-index: 100;
+  pointer-events: auto;
+}
+
+/* Ajustes dos wrappers quando dentro dos slots */
+.hud-attacks-slot .fast-attacks-wrapper,
+.hud-specials-slot .fast-specials-wrapper {
+  position: relative !important;
+  transform: scale(0.7); /* Reduzir para caber melhor */
+  transform-origin: bottom center;
+}
+
+/* Info panels dos ataques/especiais menores e abrindo para cima */
+.hud-attacks-slot .fast-attacks-info-panel,
+.hud-specials-slot .fast-specials-info-panel {
+  width: 160px !important;
+  min-height: 80px !important;
 }
 
 /* ============================================== */
