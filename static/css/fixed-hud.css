@@ -155,6 +155,10 @@ body.has-fixed-hud #relic-selection-popup .victory-actions {
   /* Posição do inventory na seção 2 */
   /* Valor negativo = mais pra cima, positivo = mais pra baixo */
   --inventory-offset-y: -20%;
+
+  /* Offset vertical da área de batalha (cenário + personagens) */
+  /* Valor negativo = mais pra cima */
+  --battle-offset-y: -10%;
 }
 
 /* ============================================== */
@@ -188,6 +192,15 @@ body.has-fixed-hud .energy-indicator {
   display: none !important;
 }
 
+/* ============================================== */
+/* AJUSTE DA ÁREA DE BATALHA - MOVER PRA CIMA */
+/* ============================================== */
+
+/* Move toda a battle-arena para cima para compensar o HUD inferior */
+/* Ajuste via variável --battle-offset-y no :root */
+body.has-fixed-hud .battle-arena {
+  transform: translateY(var(--battle-offset-y));
+}
 
 /* ============================================== */
 /* HUD SUPERIOR - BARRA FINA DOURADA */
