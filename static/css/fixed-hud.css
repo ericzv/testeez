@@ -1049,10 +1049,9 @@ body.has-fixed-hud .zoom-view .boss-container {
 .hud-section-3 {
   aspect-ratio: 2793 / 827;
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  align-items: center; /* Centraliza verticalmente */
+  justify-content: center; /* Centraliza horizontalmente */
   gap: 40px;
-  padding-bottom: 10px;
   transform: scale(var(--hud-section-3-scale)) translateY(var(--hud-section-3-offset-y));
   transform-origin: bottom center;
   z-index: -1; /* Atrás de tudo */
@@ -1075,41 +1074,28 @@ body.has-fixed-hud .zoom-view .boss-container {
 }
 
 /* ============================================== */
-/* SLOTS PARA WRAPPERS DE ATAQUES E ESPECIAIS */
-/* Posicionados nas extremidades do hud-group-center */
+/* POSICIONAMENTO DOS WRAPPERS DE ATAQUES E ESPECIAIS */
+/* Fixos nas extremidades do hud-group-center (hud2.png) */
 /* ============================================== */
 
-/* Slot para ataques - extremidade esquerda do hud2.png */
-.hud-attacks-slot {
-  position: absolute;
+/* Wrapper de ataques - extremidade ESQUERDA */
+.hud-group-center .fast-attacks-wrapper {
+  position: absolute !important;
   left: 5%;
-  bottom: 15%;
+  bottom: 50%;
+  transform: translateY(50%);
   z-index: 100;
   pointer-events: auto;
 }
 
-/* Slot para especiais - extremidade direita do hud2.png */
-.hud-specials-slot {
-  position: absolute;
+/* Wrapper de especiais - extremidade DIREITA */
+.hud-group-center .fast-specials-wrapper {
+  position: absolute !important;
   right: 5%;
-  bottom: 15%;
+  bottom: 50%;
+  transform: translateY(50%);
   z-index: 100;
   pointer-events: auto;
-}
-
-/* Ajustes dos wrappers quando dentro dos slots */
-.hud-attacks-slot .fast-attacks-wrapper,
-.hud-specials-slot .fast-specials-wrapper {
-  position: relative !important;
-  transform: scale(0.7); /* Reduzir para caber melhor */
-  transform-origin: bottom center;
-}
-
-/* Info panels dos ataques/especiais menores e abrindo para cima */
-.hud-attacks-slot .fast-attacks-info-panel,
-.hud-specials-slot .fast-specials-info-panel {
-  width: 160px !important;
-  min-height: 80px !important;
 }
 
 /* ============================================== */
