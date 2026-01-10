@@ -116,7 +116,7 @@ body.has-fixed-hud #relic-selection-popup .victory-actions {
   --stone-shadow: rgba(0, 0, 0, 0.6);
 
   /* Dimensões do HUD */
-  --hud-top-height: 52px;
+  --hud-top-height: 60px;
   --hud-bottom-height: 180px;
 
   /* ========== AJUSTES DO HUD INFERIOR ========== */
@@ -125,30 +125,51 @@ body.has-fixed-hud #relic-selection-popup .victory-actions {
   --hud-bottom-scale: 1.2;
 
   /* Scale individual de cada seção */
-  --hud-section-1-scale: 2.3;
-  --hud-section-2-scale: 1.8;
-  --hud-section-3-scale: 1.5;
-  --hud-section-4-scale: 1.8;
-  --hud-section-5-scale: 2.3;
+  --hud-section-1-scale: 2.1;
+  --hud-section-2-scale: 1.7;
+  --hud-section-3-scale: 1.4;
+  --hud-section-4-scale: 1.7;
+  --hud-section-5-scale: 2.1;
 
   /* Offset Y de cada seção (positivo = mais pra cima, negativo = mais pra baixo) */
-  --hud-section-1-offset-y: 3%;
+  --hud-section-1-offset-y: 4%;
   --hud-section-2-offset-y: 5%;
   --hud-section-3-offset-y: 5%;
   --hud-section-4-offset-y: 5%;
-  --hud-section-5-offset-y: 3%;
+  --hud-section-5-offset-y: 4%;
 
   /* Offset X de cada seção (para ajustar posição horizontal manualmente) */
   /* Seção 2: valor positivo empurra pra direita */
   /* Seção 4: valor negativo empurra pra esquerda */
   --hud-section-1-offset-x: 0px;
-  --hud-section-2-offset-x: 200px;
+  --hud-section-2-offset-x: 109px;
   --hud-section-3-offset-x: 0px;
-  --hud-section-4-offset-x: -200px;
+  --hud-section-4-offset-x: -111px;
   --hud-section-5-offset-x: 0px;
 
   /* Fonte padrão do HUD */
   --hud-font-size: 16px;
+
+  /* ========== AJUSTES DE POSIÇÃO - FÁCIL DE MODIFICAR ========== */
+
+  /* Posição do inventory na seção 2 */
+  /* Valor negativo = mais pra cima, positivo = mais pra baixo */
+  --inventory-offset-y: -20%;
+
+  /* Offset vertical da área de batalha (cenário + personagens) */
+  /* Valor negativo = mais pra cima */
+  --battle-offset-y: -24%;
+
+  /* Posição dos wrappers de ataques e especiais */
+  /* X: positivo = direita, negativo = esquerda */
+  /* Y: positivo = baixo, negativo = cima */
+  --attacks-wrapper-x: 29%;
+  --attacks-wrapper-y: -6%;
+  --specials-wrapper-x: -29%;
+  --specials-wrapper-y: -6%;
+
+  /* Margem direita do slot de lembranças */
+  --memories-margin-right: 5%;
 }
 
 /* ============================================== */
@@ -180,6 +201,30 @@ body.has-fixed-hud .action-menu {
 /* Reposicionar energia para o HUD inferior */
 body.has-fixed-hud .energy-indicator {
   display: none !important;
+}
+
+/* ============================================== */
+/* AJUSTE DA ÁREA DE BATALHA - MOVER PRA CIMA */
+/* ============================================== */
+
+/* Move toda a battle-arena para cima para compensar o HUD inferior */
+/* Ajuste via variável --battle-offset-y no :root */
+body.has-fixed-hud .battle-arena {
+  transform: translateY(var(--battle-offset-y));
+}
+
+/* ============================================== */
+/* AJUSTE DOS WRAPPERS DE ATAQUES E ESPECIAIS */
+/* ============================================== */
+
+/* Ajuste de posição do wrapper de ataques */
+.fast-attacks-wrapper {
+  transform: translateX(var(--attacks-wrapper-x)) translateY(var(--attacks-wrapper-y));
+}
+
+/* Ajuste de posição do wrapper de especiais */
+.fast-specials-wrapper {
+  transform: translateX(var(--specials-wrapper-x)) translateY(var(--specials-wrapper-y));
 }
 
 /* ============================================== */
@@ -439,7 +484,7 @@ body.has-fixed-hud .energy-indicator {
   align-items: center;
   gap: 15px;
   flex-shrink: 0;
-  margin-right: 25px; /* Mais espaço da margem direita */
+  margin-right: var(--memories-margin-right); /* Ajustável via variável */
 }
 
 /* Slot para Lembranças */
@@ -825,7 +870,7 @@ body.has-fixed-hud .energy-indicator {
   height: 100%;
   pointer-events: none; /* Click-through */
   z-index: -1; /* Atrás das outras seções */
-  opacity: 0.5; /* 50% transparência */
+  opacity: 1;
 }
 
 .hud-group-center > * {
@@ -927,9 +972,10 @@ body.has-fixed-hud .energy-indicator {
 }
 
 /* Inventário - wrapper pode sair da seção, mas .fast-inventory-main fica centralizado */
+/* Ajuste a posição vertical via --inventory-offset-y */
 .hud-section-2 .hud-inventory-slot {
   position: absolute;
-  top: 50%;
+  top: calc(50% + var(--inventory-offset-y));
   left: 50%;
   transform: translate(-50%, -50%);
   display: flex;
@@ -944,6 +990,63 @@ body.has-fixed-hud .energy-indicator {
 
 .hud-section-2 .fast-inventory-main {
   /* A parte circular fica no centro - o info-panel pode sair */
+  /* 50% do tamanho original (160px * 0.5 = 80px) */
+  width: 80px !important;
+  height: 80px !important;
+  transform: scale(1);
+}
+
+/* Ajustar cards do inventário para 50% (80px * 0.5 = 40px) */
+.hud-section-2 .fast-inventory-main .inventory-card {
+  width: 40px !important;
+  height: 40px !important;
+}
+
+.hud-section-2 .fast-inventory-main .inventory-card .item-icon-img {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+.hud-section-2 .fast-inventory-main .inventory-card .quantity-badge {
+  min-width: 14px !important;
+  height: 14px !important;
+  font-size: 8px !important;
+  padding: 0 3px !important;
+}
+
+/* Ajustar metades do manto */
+.hud-section-2 .fast-inventory-main .cloak-left {
+  border-right-width: 3px !important;
+}
+
+.hud-section-2 .fast-inventory-main .cloak-right {
+  border-left-width: 3px !important;
+}
+
+/* Ajustar info-panel do inventário para 50% */
+.hud-section-2 .fast-inventory-info-panel {
+  width: 120px !important;
+  min-height: 60px !important;
+}
+
+.hud-section-2 .fast-inventory-info-content {
+  padding: 6px 8px !important;
+  font-size: 10px !important;
+}
+
+.hud-section-2 .fast-inventory-info-content .info-item-name {
+  font-size: 11px !important;
+  margin-bottom: 3px !important;
+  padding-bottom: 3px !important;
+}
+
+.hud-section-2 .fast-inventory-info-content .info-desc {
+  font-size: 9px !important;
+}
+
+.hud-section-2 .fast-inventory-info-content .stat-tag {
+  font-size: 8px !important;
+  padding: 1px 4px !important;
 }
 
 /* ============================================== */
@@ -954,10 +1057,9 @@ body.has-fixed-hud .energy-indicator {
 .hud-section-3 {
   aspect-ratio: 2793 / 827;
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  align-items: center; /* Centraliza verticalmente */
+  justify-content: center; /* Centraliza horizontalmente */
   gap: 40px;
-  padding-bottom: 10px;
   transform: scale(var(--hud-section-3-scale)) translateY(var(--hud-section-3-offset-y));
   transform-origin: bottom center;
   z-index: -1; /* Atrás de tudo */
@@ -1147,9 +1249,11 @@ body.has-fixed-hud .energy-indicator {
   right: 5%;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0px;
   z-index: 10;
   transition: transform 0.3s ease;
+  /* Animação aplicada no container todo para afetar ícone e texto */
+  animation: energyContainerGlow 3s ease-in-out infinite;
 }
 
 .hud-energy-icon-container {
@@ -1168,39 +1272,68 @@ body.has-fixed-hud .energy-indicator {
   transition: filter 0.3s ease, transform 0.3s ease;
 }
 
-/* Brilho baseado na energia */
+.hud-energy-text {
+  transition: text-shadow 0.3s ease;
+}
+
+/* Animação do container inteiro - pulso amarelado/dourado */
+@keyframes energyContainerGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(255, 230, 100, 0.9));
+  }
+}
+
+/* Estados baseados na energia - HIGH */
+.hud-energy-indicator[data-energy-percent="high"] {
+  animation: energyContainerGlowHigh 2s ease-in-out infinite;
+}
+
 .hud-energy-indicator[data-energy-percent="high"] .hud-energy-icon {
   filter: drop-shadow(0 0 15px rgba(255, 215, 0, 1));
-  animation: energyGlowHigh 2s ease-in-out infinite;
+}
+
+/* Estados baseados na energia - MEDIUM */
+.hud-energy-indicator[data-energy-percent="medium"] {
+  animation: energyContainerGlow 3s ease-in-out infinite;
 }
 
 .hud-energy-indicator[data-energy-percent="medium"] .hud-energy-icon {
   filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.8));
 }
 
+/* Estados baseados na energia - LOW */
+.hud-energy-indicator[data-energy-percent="low"] {
+  animation: energyContainerGlowLow 1s ease-in-out infinite;
+}
+
 .hud-energy-indicator[data-energy-percent="low"] .hud-energy-icon {
   filter: drop-shadow(0 0 8px rgba(255, 100, 100, 0.8));
-  animation: energyPulseLow 1s ease-in-out infinite;
 }
 
-@keyframes energyGlowHigh {
+/* Animação HIGH - brilho dourado forte */
+@keyframes energyContainerGlowHigh {
   0%, 100% {
-    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 1));
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
   }
   50% {
-    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 1));
+    filter: drop-shadow(0 0 20px rgba(255, 230, 100, 1));
   }
 }
 
-@keyframes energyPulseLow {
+/* Animação LOW - pulso vermelho de alerta */
+@keyframes energyContainerGlowLow {
   0%, 100% {
-    filter: drop-shadow(0 0 8px rgba(255, 100, 100, 0.8));
+    filter: drop-shadow(0 0 5px rgba(255, 100, 100, 0.5));
   }
   50% {
     filter: drop-shadow(0 0 15px rgba(255, 50, 50, 1));
   }
 }
 
+/* Estilo base do texto de energia */
 .hud-energy-text {
   color: #ffc107;
   font-size: 16px;
@@ -1272,11 +1405,11 @@ body.has-fixed-hud .energy-indicator {
   bottom: 8%;
   left: 50%;
   transform: translateX(-50%);
-  width: 80%;
-  height: 10%;
+  width: 60%;
+  height: 7%;
   max-height: 20px;
   background: linear-gradient(180deg, #1a1a1a, #2a2a2a);
-  border: 2px solid #444;
+  border: 1px solid #444;
   border-radius: 4px;
   overflow: visible;
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8);
@@ -1321,19 +1454,9 @@ body.has-fixed-hud .energy-indicator {
   50% { filter: brightness(1.3); box-shadow: 0 0 15px rgba(255, 0, 0, 0.5); }
 }
 
+/* Barrier fill não usado - indicador lateral é suficiente */
 .hud-barrier-fill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  background: linear-gradient(180deg,
-    #1565c0 0%,
-    #42a5f5 50%,
-    #1565c0 100%
-  );
-  opacity: 0.85;
-  box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
-  transition: width 0.3s ease;
+  display: none;
 }
 
 .hud-hp-text {
@@ -1342,7 +1465,7 @@ body.has-fixed-hud .energy-indicator {
   left: 50%;
   transform: translate(-50%, -50%);
   color: #fff;
-  font-size: 14px;
+  font-size: 10px;
   font-weight: bold;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
   z-index: 2;
@@ -1350,45 +1473,70 @@ body.has-fixed-hud .energy-indicator {
 
 /* Barra de HP com barreira ativa */
 .hud-hp-bar.has-barrier {
-  outline: 2px solid #55aaff;
+  outline: 1px solid #55aaff;
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8), 0 0 10px rgba(85, 170, 255, 0.7);
 }
 
 .hud-hp-bar.has-barrier .hud-hp-fill {
   background: linear-gradient(180deg,
-    #ff5050 0%,
-    #ff8a8a 40%,
-    #ff7070 60%,
-    #cc3030 100%
+    #ff6060 0%,
+    #ff9090 40%,
+    #ff7878 60%,
+    #dd4040 100%
   );
+  animation: barrierPulse 2s linear infinite;
+}
+
+/* Efeito gradual de brilho azulado quando há barreira - transição suave */
+@keyframes barrierPulse {
+  0% {
+    filter: brightness(1) hue-rotate(0deg);
+    box-shadow: inset 0 0 0 rgba(80, 160, 255, 0);
+  }
+  25% {
+    filter: brightness(1.08) hue-rotate(-20deg);
+    box-shadow: inset 0 0 8px rgba(80, 160, 255, 0.4);
+  }
+  50% {
+    filter: brightness(1.15) hue-rotate(-40deg);
+    box-shadow: inset 0 0 15px rgba(80, 160, 255, 0.7);
+  }
+  75% {
+    filter: brightness(1.08) hue-rotate(-20deg);
+    box-shadow: inset 0 0 8px rgba(80, 160, 255, 0.4);
+  }
+  100% {
+    filter: brightness(1) hue-rotate(0deg);
+    box-shadow: inset 0 0 0 rgba(80, 160, 255, 0);
+  }
 }
 
 /* Display de barreira com ícone de escudo */
 .hud-barrier-display {
   position: absolute;
-  right: -55px;
+  right: -29%;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   align-items: center;
   background: rgba(40, 60, 90, 0.9);
   border: 1px solid #55aaff;
-  border-radius: 4px;
-  padding: 2px 5px;
-  height: 120%;
+  border-radius: 8px;
+  padding: 2px 1px;
+  height: 140%;
   box-shadow: 0 0 8px rgba(85, 170, 255, 0.6);
-  z-index: 5;
+  z-index: 1000; /* Alto para não ficar atrás de outras seções */
 }
 
 .hud-barrier-icon {
-  width: 18px;
-  height: 18px;
+  width: 10px;
+  height: 10px;
   color: #77ccff;
-  margin-right: 5px;
+  margin-right: 1px;
 }
 
 .hud-barrier-value {
-  font-size: 18px;
+  font-size: 10px;
   font-weight: bold;
   color: #77ccff;
   text-shadow: 0 0 3px #000;
