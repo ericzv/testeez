@@ -1271,13 +1271,13 @@ body.has-fixed-hud .battle-arena {
   animation: energyIdleGlow 3s ease-in-out infinite;
 }
 
-/* Brilho sutil em estado de repouso - pulso amarelado/dourado */
+/* Brilho em estado de repouso - pulso amarelado/dourado bem visível */
 @keyframes energyIdleGlow {
   0%, 100% {
-    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+    filter: drop-shadow(0 0 6px rgba(255, 200, 50, 0.5));
   }
   50% {
-    filter: drop-shadow(0 0 14px rgba(255, 230, 100, 1));
+    filter: drop-shadow(0 0 18px rgba(255, 240, 100, 1)) brightness(1.1);
   }
 }
 
@@ -1289,6 +1289,7 @@ body.has-fixed-hud .battle-arena {
 
 .hud-energy-indicator[data-energy-percent="medium"] .hud-energy-icon {
   filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.8));
+  animation: energyIdleGlow 3s ease-in-out infinite;
 }
 
 .hud-energy-indicator[data-energy-percent="low"] .hud-energy-icon {
