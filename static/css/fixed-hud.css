@@ -158,12 +158,12 @@ body.has-fixed-hud #relic-selection-popup .victory-actions {
 
   /* Offset vertical da área de batalha (cenário + personagens) */
   /* Valor negativo = mais pra cima */
-  --battle-offset-y: -10%;
+  --battle-offset-y: -24%;
 
   /* Posição horizontal dos wrappers de ataques e especiais */
   /* Valor positivo = mais pra direita, negativo = mais pra esquerda */
-  --attacks-wrapper-x: 0px;
-  --specials-wrapper-x: 0px;
+  --attacks-wrapper-x: 0%;
+  --specials-wrapper-x: 0%;
 }
 
 /* ============================================== */
