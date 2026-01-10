@@ -763,8 +763,8 @@ class FastBattleMode {
     if (isEmpty) {
       content.innerHTML = `
         <div class="container-stars"><div class="gold-dust"></div></div>
-        <h3 class="info-item-name">Slot Vazio</h3>
-        <p class="info-desc">Nenhum item neste slot. Compre poções na loja!</p>
+        <h3 class="info-item-name">Bolso Vazio</h3>
+        <p class="info-desc">Você não tem nenhum item nesse bolso</p>
       `;
       return content;
     }
