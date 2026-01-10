@@ -116,7 +116,7 @@ body.has-fixed-hud #relic-selection-popup .victory-actions {
   --stone-shadow: rgba(0, 0, 0, 0.6);
 
   /* Dimensões do HUD */
-  --hud-top-height: 52px;
+  --hud-top-height: 60px;
   --hud-bottom-height: 180px;
 
   /* ========== AJUSTES DO HUD INFERIOR ========== */
@@ -1249,7 +1249,7 @@ body.has-fixed-hud .battle-arena {
   right: 5%;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0px;
   z-index: 10;
   transition: transform 0.3s ease;
 }
@@ -1271,13 +1271,13 @@ body.has-fixed-hud .battle-arena {
   animation: energyIdleGlow 3s ease-in-out infinite;
 }
 
-/* Brilho sutil em estado de repouso */
+/* Brilho sutil em estado de repouso - alterna entre dourado e azul claro */
 @keyframes energyIdleGlow {
   0%, 100% {
-    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
   }
   50% {
-    filter: drop-shadow(0 0 14px rgba(255, 215, 0, 0.9));
+    filter: drop-shadow(0 0 12px rgba(100, 180, 255, 0.9));
   }
 }
 
@@ -1459,30 +1459,21 @@ body.has-fixed-hud .battle-arena {
 
 .hud-hp-bar.has-barrier .hud-hp-fill {
   background: linear-gradient(180deg,
-    #ff5050 0%,
-    #ff8a8a 40%,
-    #ff7070 60%,
-    #cc3030 100%
+    #ff6060 0%,
+    #ff9090 40%,
+    #ff7878 60%,
+    #dd4040 100%
   );
-  animation: barrierPulse 2s ease-in-out infinite;
+  animation: barrierPulse 3s ease-in-out infinite;
 }
 
+/* Efeito gradual de brilho quando há barreira */
 @keyframes barrierPulse {
   0%, 100% {
-    background: linear-gradient(180deg,
-      #ff5050 0%,
-      #ff8a8a 40%,
-      #ff7070 60%,
-      #cc3030 100%
-    );
+    filter: brightness(1);
   }
   50% {
-    background: linear-gradient(180deg,
-      #ff7070 0%,
-      #ffaaaa 40%,
-      #ff9090 60%,
-      #dd5050 100%
-    );
+    filter: brightness(1.15);
   }
 }
 
