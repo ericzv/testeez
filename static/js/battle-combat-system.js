@@ -4530,6 +4530,28 @@ function handleBossDeathAnimation(hasMemoryReward, enemyRarity) {
     setTimeout(() => {
         console.log("🏠 Inimigo derrotado - indo automaticamente para HUB");
 
+        // RESETAR HUD: Restaurar energia para máximo e remover barreira
+        // Isso garante que o hub não mostre valores da batalha anterior
+        if (window.gameState && window.gameState.player) {
+            const maxEnergy = window.gameState.player.maxEnergy || 10;
+            window.gameState.player.energy = maxEnergy;
+            window.gameState.player.barrier = 0;
+
+            // Atualizar HUD visual
+            if (typeof window.updateHudEnergy === 'function') {
+                window.updateHudEnergy(maxEnergy, maxEnergy);
+                console.log("⚡ HUD energia restaurada para máximo:", maxEnergy);
+            }
+            if (typeof window.updateHudHP === 'function') {
+                window.updateHudHP(
+                    window.gameState.player.hp,
+                    window.gameState.player.maxHp,
+                    0 // Barreira zerada
+                );
+                console.log("🛡️ HUD barreira removida");
+            }
+        }
+
         // SALVAR DADOS DE VITÓRIA NO LOCALSTORAGE ANTES DE REDIRECIONAR
         const victoryData = {
             enemyName: enemyName,

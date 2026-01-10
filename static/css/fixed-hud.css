@@ -1271,13 +1271,13 @@ body.has-fixed-hud .battle-arena {
   animation: energyIdleGlow 3s ease-in-out infinite;
 }
 
-/* Brilho sutil em estado de repouso - alterna entre dourado e azul claro */
+/* Brilho sutil em estado de repouso - pulso amarelado/dourado */
 @keyframes energyIdleGlow {
   0%, 100% {
-    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
   }
   50% {
-    filter: drop-shadow(0 0 12px rgba(100, 180, 255, 0.9));
+    filter: drop-shadow(0 0 14px rgba(255, 230, 100, 1));
   }
 }
 
@@ -1464,16 +1464,30 @@ body.has-fixed-hud .battle-arena {
     #ff7878 60%,
     #dd4040 100%
   );
-  animation: barrierPulse 3s ease-in-out infinite;
+  animation: barrierPulse 4s linear infinite;
 }
 
-/* Efeito gradual de brilho quando há barreira */
+/* Efeito gradual de brilho azulado quando há barreira - transição suave */
 @keyframes barrierPulse {
-  0%, 100% {
-    filter: brightness(1);
+  0% {
+    filter: brightness(1) hue-rotate(0deg);
+    box-shadow: inset 0 0 0 rgba(100, 180, 255, 0);
+  }
+  25% {
+    filter: brightness(1.05) hue-rotate(-10deg);
+    box-shadow: inset 0 0 5px rgba(100, 180, 255, 0.2);
   }
   50% {
-    filter: brightness(1.15);
+    filter: brightness(1.1) hue-rotate(-20deg);
+    box-shadow: inset 0 0 10px rgba(100, 180, 255, 0.4);
+  }
+  75% {
+    filter: brightness(1.05) hue-rotate(-10deg);
+    box-shadow: inset 0 0 5px rgba(100, 180, 255, 0.2);
+  }
+  100% {
+    filter: brightness(1) hue-rotate(0deg);
+    box-shadow: inset 0 0 0 rgba(100, 180, 255, 0);
   }
 }
 
