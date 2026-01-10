@@ -163,13 +163,13 @@ body.has-fixed-hud #relic-selection-popup .victory-actions {
   /* Posição dos wrappers de ataques e especiais */
   /* X: positivo = direita, negativo = esquerda */
   /* Y: positivo = baixo, negativo = cima */
-  --attacks-wrapper-x: 24%;
-  --attacks-wrapper-y: 0%;
-  --specials-wrapper-x: -24%;
-  --specials-wrapper-y: 0%;
+  --attacks-wrapper-x: 29%;
+  --attacks-wrapper-y: -6%;
+  --specials-wrapper-x: -29%;
+  --specials-wrapper-y: -6%;
 
   /* Margem direita do slot de lembranças */
-  --memories-margin-right: 50px;
+  --memories-margin-right: 5%;
 }
 
 /* ============================================== */
@@ -1374,7 +1374,7 @@ body.has-fixed-hud .battle-arena {
   bottom: 8%;
   left: 50%;
   transform: translateX(-50%);
-  width: 62%;
+  width: 60%;
   height: 7%;
   max-height: 20px;
   background: linear-gradient(180deg, #1a1a1a, #2a2a2a);
@@ -1423,10 +1423,13 @@ body.has-fixed-hud .battle-arena {
   50% { filter: brightness(1.3); box-shadow: 0 0 15px rgba(255, 0, 0, 0.5); }
 }
 
+/* Preenchimento de barreira - HP "adicional" transitório
+   IMPORTANTE: O JS deve setar 'left' para onde o HP termina (ex: se HP está em 70%, left: 70%)
+   e 'width' para o % da barreira. Assim a barreira aparece APÓS o HP, não sobrepondo. */
 .hud-barrier-fill {
   position: absolute;
   top: 0;
-  left: 0;
+  /* left é definido via JS baseado no HP atual */
   height: 100%;
   background: linear-gradient(180deg,
     #1565c0 0%,
@@ -1435,7 +1438,9 @@ body.has-fixed-hud .battle-arena {
   );
   opacity: 0.85;
   box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
-  transition: width 0.3s ease;
+  transition: left 0.3s ease, width 0.3s ease;
+  z-index: 1; /* Acima do hud-hp-fill para ficar visível */
+  border-radius: 0 2px 2px 0; /* Borda arredondada só na ponta direita */
 }
 
 .hud-hp-text {
@@ -1452,7 +1457,7 @@ body.has-fixed-hud .battle-arena {
 
 /* Barra de HP com barreira ativa */
 .hud-hp-bar.has-barrier {
-  outline: 2px solid #55aaff;
+  outline: 1px solid #55aaff;
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8), 0 0 10px rgba(85, 170, 255, 0.7);
 }
 
@@ -1468,29 +1473,29 @@ body.has-fixed-hud .battle-arena {
 /* Display de barreira com ícone de escudo */
 .hud-barrier-display {
   position: absolute;
-  right: -55px;
+  right: -34%;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   align-items: center;
   background: rgba(40, 60, 90, 0.9);
   border: 1px solid #55aaff;
-  border-radius: 4px;
-  padding: 2px 5px;
-  height: 120%;
+  border-radius: 8px;
+  padding: 2px 1px;
+  height: 150%;
   box-shadow: 0 0 8px rgba(85, 170, 255, 0.6);
-  z-index: 100; /* Alto para não ficar atrás de outras seções */
+  z-index: 1000; /* Alto para não ficar atrás de outras seções */
 }
 
 .hud-barrier-icon {
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
   color: #77ccff;
-  margin-right: 5px;
+  margin-right: 1px;
 }
 
 .hud-barrier-value {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: bold;
   color: #77ccff;
   text-shadow: 0 0 3px #000;

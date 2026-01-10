@@ -783,7 +783,7 @@
 
 /* Painel de Informações */
 .fast-attacks-info-panel {
-  width: 280px;
+  width: 300px;
   min-height: 120px;
   position: relative;
   perspective: 1000px;
@@ -1306,7 +1306,7 @@
 
 /* Painel de Informações - Especiais */
 .fast-specials-info-panel {
-  width: 220px;
+  width: 300px;
   min-height: 120px;
   position: relative;
   perspective: 1000px;
