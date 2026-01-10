@@ -1252,6 +1252,8 @@ body.has-fixed-hud .battle-arena {
   gap: 0px;
   z-index: 10;
   transition: transform 0.3s ease;
+  /* Animação aplicada no container todo para afetar ícone e texto */
+  animation: energyContainerGlow 3s ease-in-out infinite;
 }
 
 .hud-energy-icon-container {
@@ -1268,53 +1270,70 @@ body.has-fixed-hud .battle-arena {
   object-fit: contain;
   filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
   transition: filter 0.3s ease, transform 0.3s ease;
-  animation: energyIdleGlow 3s ease-in-out infinite;
 }
 
-/* Brilho em estado de repouso - pulso amarelado/dourado bem visível */
-@keyframes energyIdleGlow {
+.hud-energy-text {
+  transition: text-shadow 0.3s ease;
+}
+
+/* Animação do container inteiro - pulso amarelado/dourado */
+@keyframes energyContainerGlow {
   0%, 100% {
-    filter: drop-shadow(0 0 6px rgba(255, 200, 50, 0.5));
+    filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.4));
   }
   50% {
-    filter: drop-shadow(0 0 18px rgba(255, 240, 100, 1)) brightness(1.1);
+    filter: drop-shadow(0 0 12px rgba(255, 230, 100, 0.9));
   }
 }
 
-/* Brilho baseado na energia */
+/* Estados baseados na energia - HIGH */
+.hud-energy-indicator[data-energy-percent="high"] {
+  animation: energyContainerGlowHigh 2s ease-in-out infinite;
+}
+
 .hud-energy-indicator[data-energy-percent="high"] .hud-energy-icon {
   filter: drop-shadow(0 0 15px rgba(255, 215, 0, 1));
-  animation: energyGlowHigh 2s ease-in-out infinite;
+}
+
+/* Estados baseados na energia - MEDIUM */
+.hud-energy-indicator[data-energy-percent="medium"] {
+  animation: energyContainerGlow 3s ease-in-out infinite;
 }
 
 .hud-energy-indicator[data-energy-percent="medium"] .hud-energy-icon {
   filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.8));
-  animation: energyIdleGlow 3s ease-in-out infinite;
+}
+
+/* Estados baseados na energia - LOW */
+.hud-energy-indicator[data-energy-percent="low"] {
+  animation: energyContainerGlowLow 1s ease-in-out infinite;
 }
 
 .hud-energy-indicator[data-energy-percent="low"] .hud-energy-icon {
   filter: drop-shadow(0 0 8px rgba(255, 100, 100, 0.8));
-  animation: energyPulseLow 1s ease-in-out infinite;
 }
 
-@keyframes energyGlowHigh {
+/* Animação HIGH - brilho dourado forte */
+@keyframes energyContainerGlowHigh {
   0%, 100% {
-    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 1));
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
   }
   50% {
-    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 1));
+    filter: drop-shadow(0 0 20px rgba(255, 230, 100, 1));
   }
 }
 
-@keyframes energyPulseLow {
+/* Animação LOW - pulso vermelho de alerta */
+@keyframes energyContainerGlowLow {
   0%, 100% {
-    filter: drop-shadow(0 0 8px rgba(255, 100, 100, 0.8));
+    filter: drop-shadow(0 0 5px rgba(255, 100, 100, 0.5));
   }
   50% {
     filter: drop-shadow(0 0 15px rgba(255, 50, 50, 1));
   }
 }
 
+/* Estilo base do texto de energia */
 .hud-energy-text {
   color: #ffc107;
   font-size: 16px;
