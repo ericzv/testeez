@@ -488,13 +488,23 @@ def apply_relic_effect(player_relic, player, context):
     elif effect_type == 'stat_boost':
         stat = effect['stat']
         value = effect['value']
-        
+
         if stat == 'max_hp':
-            # Adicionar ao bônus permanente (o cache vai recalcular)
+            # Adicionar ao bônus permanente
             current_bonus = getattr(player, 'max_hp_bonus', 0)
             player.max_hp_bonus = current_bonus + value
-            print(f"   ↳ max_hp_bonus: {current_bonus} → {player.max_hp_bonus}")
-            
+
+            # CORREÇÃO: Atualizar também o max_hp real do jogador
+            from game_formulas import calculate_max_hp
+            old_max_hp = player.max_hp
+            player.max_hp = calculate_max_hp(player.vitality) + int(player.max_hp_bonus)
+
+            # Curar o HP adicional ganho (para não ficar 80/98)
+            hp_gained = player.max_hp - old_max_hp
+            player.hp = min(player.hp + hp_gained, player.max_hp)
+
+            print(f"   ↳ max_hp: {old_max_hp} → {player.max_hp} (+{hp_gained} HP)")
+
             # Forçar recálculo do cache
             from routes.battle_cache import calculate_attack_cache
             calculate_attack_cache(player.id)
@@ -571,7 +581,7 @@ def apply_relic_effect(player_relic, player, context):
     
     # ===== PASSIVOS (SEM AÇÃO DIRETA) =====
     # Estes são calculados no cache ou verificados em outras funções
-    elif effect_type in ['heal_multiplier', 'crit_per_relic', 'block_per_relic', 
+    elif effect_type in ['heal_multiplier', 'crit_per_relic', 'dodge_per_relic',
                         'special_trade']:
         pass
 
