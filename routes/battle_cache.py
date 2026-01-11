@@ -15,7 +15,6 @@ from game_formulas import (
     calculate_strength_damage,
     calculate_critical_chance,
     calculate_critical_bonus,
-    calculate_resistance_block,
     calculate_dodge_chance,
     calculate_max_hp
 )
@@ -93,9 +92,8 @@ def calculate_attack_cache(player_id):
     - player.critical_damage_bonus → Talentos de dano crítico
     - player.vitality → HP máximo
     - player.max_hp_bonus → Talentos de HP
-    - player.resistance → Bloqueio
-    - player.block_bonus → Talentos de bloqueio
     - player.dodge_talent_bonus → Talentos de esquiva
+    (Nota: Bloqueio foi removido do jogo)
     
     CAMPOS NÃO USADOS (aplicados em runtime):
     - Buffs temporários (ActiveBuff)
@@ -446,33 +444,30 @@ def calculate_attack_cache(player_id):
         # Remover cache antigo de defesa
         PlayerDefenseCache.query.filter_by(player_id=player_id).delete()
         
-        # Calcular bloqueio
-        block_bonus = getattr(player, 'block_bonus', 0.0)
-        base_block = calculate_resistance_block(player.resistance, block_bonus) / 100.0
-
-        # Bônus de bloqueio por relíquias (ID 43)
-        for relic in active_relics:
-            from routes.relics.registry import get_relic_definition
-            definition = get_relic_definition(relic.relic_id)
-            if not definition:
-                continue
-            
-            effect_type_relic = definition['effect']['type'] # <-- MUDANÇA AQUI
-            
-            # ID 43: +1% bloqueio por relíquia
-            if effect_type_relic == 'block_per_relic': # <-- MUDANÇA AQUI
-                block_per_relic = definition['effect']['block_percent']
-                base_block += (relic_count * block_per_relic)
-        
-        if base_block != calculate_resistance_block(player.resistance, block_bonus) / 100.0:
-            print(f"Relíquias: +{(relic_count * 0.01)*100:.1f}% bloqueio ({relic_count} relíquias)")
-        
-        # Calcular esquiva
+        # Calcular esquiva base
         base_dodge = calculate_dodge_chance(
             player.luck,
             getattr(player, 'dodge_item_bonus', 0.0),
             getattr(player, 'dodge_talent_bonus', 0.0)
         )
+
+        # ID 43 - Estandarte de Constantino: +2% esquiva por relíquia
+        for relic in active_relics:
+            from routes.relics.registry import get_relic_definition
+            definition = get_relic_definition(relic.relic_id)
+            if not definition:
+                continue
+
+            effect_type_relic = definition['effect']['type']
+
+            if effect_type_relic == 'dodge_per_relic':
+                dodge_per_relic = definition['effect']['dodge_percent']
+                dodge_bonus = relic_count * dodge_per_relic
+                base_dodge += dodge_bonus
+                print(f"🛡️ Estandarte de Constantino: +{dodge_bonus*100:.1f}% esquiva ({relic_count} relíquias)")
+
+        # Bloqueio removido do jogo - manter valor 0 para compatibilidade
+        base_block = 0.0
         
         # Calcular HP/MP máximos COM bônus de talentos
         max_hp = calculate_max_hp(player.vitality) + int(getattr(player, 'max_hp_bonus', 0))
@@ -484,7 +479,6 @@ def calculate_attack_cache(player_id):
             max_hp += int(hp_memory)
             print(f"Lembrança 'maxhp': +{int(hp_memory)}")
         
-        print(f"BLOQUEIO: {base_block*100:.1f}%")
         print(f"ESQUIVA: {base_dodge*100:.1f}%")
         print(f"HP MÁXIMO: {max_hp}")
         

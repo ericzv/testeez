@@ -650,15 +650,15 @@ RELIC_DEFINITIONS = {
     
     '43': {
         'id': '43',
-        'name': 'Muralha de Constantino',
-        'description': '+1% de bloqueio para cada relíquia que possui',
+        'name': 'Estandarte de Constantino',
+        'description': '+2% de chance de esquiva para cada relíquia que possui',
         'icon': 'relic_43.png',
         'rarity': 'rare',
         'hooks': ['passive'],
         'requires_counter': False,
         'effect': {
-            'type': 'block_per_relic',
-            'block_percent': 0.01
+            'type': 'dodge_per_relic',
+            'dodge_percent': 0.02
         }
     },
     

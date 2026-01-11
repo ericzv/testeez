@@ -7,8 +7,6 @@ from database import db
 from models import Player, Boss, BestiaryEntry, PlayerTalent, EnemyTheme, GenericEnemy, PlayerProgress
 from characters import ActiveBuff, PlayerSkill, SpecialSkill
 from game_formulas import (
-    calculate_strength_damage,
-    calculate_resistance_block,
     calculate_critical_chance,
     calculate_critical_bonus,
     calculate_dodge_chance
@@ -16,114 +14,53 @@ from game_formulas import (
 
 def apply_damage_to_player(player, damage):
     """
-    Aplica dano ao jogador considerando esquiva, redução baseada na resistência,
-    bônus dos equipamentos e buffs ativos.
+    Aplica dano ao jogador considerando esquiva e barreira.
+    Sistema simplificado: esquiva evita 100% do dano, barreira absorve dano.
+    Bloqueio foi removido do jogo.
     """
     # Obter todos os buffs ativos que afetam a defesa
     active_buffs = ActiveBuff.query.filter_by(player_id=player.id).all()
-    
+
     # Verificar buffs que concedem imunidade total
     for buff in active_buffs:
         if buff.is_expired():
             db.session.delete(buff)
             continue
-            
+
         # Verificar imunidade total (divine_intervention, etc.)
         if buff.effect_type in ['divine_intervention', 'invulnerability']:
             print(f"Imunidade total ativada por {buff.effect_type}!")
-            return 0  # Não sofre dano
-    
+            return 0  # Nao sofre dano
+
     # ===== BUSCAR CACHE DE DEFESA =====
     from routes.battle_cache import get_cached_defense
-    
+
     defense_cache = get_cached_defense(player.id)
-    
+    base_dodge = 0.0
+
     if defense_cache:
-        # Usar valores do cache (já inclui força, talentos, equipamentos, lembranças)
         base_dodge = defense_cache.base_dodge_chance
-        base_block = defense_cache.base_block_percent
-        print(f"🛡️  Usando cache de defesa: {base_dodge*100:.1f}% esquiva, {base_block*100:.1f}% bloqueio")
-    
-    # ===== APLICAR BUFFS TEMPORÁRIOS DE DEFESA =====
+        print(f"🛡️  Usando cache de defesa: {base_dodge*100:.1f}% esquiva")
+
+    # ===== APLICAR BUFFS TEMPORARIOS DE ESQUIVA =====
     dodge_bonus_from_buffs = 0
-    block_bonus_from_buffs = 0
-    defense_reduction_from_buffs = 0
-    damage_reduction_from_buffs = 0
 
-    # Definir stats defensivos
-    defensive_stats = {
-        'dodge_bonus': 0,
-        'block_bonus': 0,
-        'defense_reduction': 0,
-        'damage_reduction': 0
-    }
+    for buff in active_buffs:
+        if buff.is_expired():
+            continue
+        if buff.effect_type == 'dodge_bonus':
+            dodge_bonus_from_buffs += buff.effect_value
 
-    # Aplicar buffs
-    defensive_stats = apply_buffs_to_stats(active_buffs, defensive_stats)
-
-    # Usar valores
-    dodge_bonus_from_buffs = defensive_stats['dodge_bonus']
-    block_bonus_from_buffs = defensive_stats['block_bonus']
-    defense_reduction_from_buffs = defensive_stats['defense_reduction']
-    damage_reduction_from_buffs = defensive_stats['damage_reduction']
-    
-    # Aplicar bônus/debuffs temporários
+    # Calcular esquiva final
     final_dodge = base_dodge + dodge_bonus_from_buffs
-    final_block = base_block + block_bonus_from_buffs - defense_reduction_from_buffs + damage_reduction_from_buffs
 
+    # ===== VERIFICAR ESQUIVA =====
     if random.random() < final_dodge:
-        # Esquivou, não sofre dano
+        print(f"🌀 ESQUIVOU! ({final_dodge*100:.1f}% chance)")
         return 0
 
-    # Verificar se o jogador está com HP baixo para defesa emergencial
-    emergency_bonus = 0
-    if hasattr(player, 'emergency_defense_bonus') and player.emergency_defense_bonus > 0:
-        if player.hp < (player.max_hp * 0.5):  # HP abaixo de 50%
-            emergency_bonus = player.emergency_defense_bonus
-            print(f"Defesa emergencial ativada: +{emergency_bonus}% de bloqueio")
-
-    # ADICIONAR: Verificar debuffs de skills do inimigo
-    try:
-        from models import EnemySkillDebuff
-        enemy_debuffs = EnemySkillDebuff.query.filter_by(player_id=player.id).filter(
-            EnemySkillDebuff.duration_remaining > 0
-        ).all()
-        
-        enemy_defense_reduction = 0
-        
-        for debuff in enemy_debuffs:
-            if debuff.effect_type == 'decrease_defense':
-                enemy_defense_reduction += debuff.effect_value
-                print(f"Debuff do inimigo reduzindo defesa em {debuff.effect_value*100:.1f}%")
-            elif debuff.effect_type == 'decrease_damage':
-                # Nota: Este debuff afeta o dano causado pelo jogador, não o recebido
-                # Será aplicado em outro local quando o jogador atacar
-                pass
-        
-        # Aplicar redução de defesa por debuffs do inimigo
-        defense_reduction_from_buffs += enemy_defense_reduction
-        
-    except Exception as e:
-        print(f"Erro ao verificar debuffs do inimigo: {e}")
-        # Continuar sem os debuffs em caso de erro
-
-    # Aplicar emergência (HP baixo) ao bloqueio final
-    if emergency_bonus > 0:
-        final_block += emergency_bonus / 100.0
-    
-    # Aplicar debuffs do inimigo ao bloqueio final
-    final_block -= enemy_defense_reduction
-    
-    # Limitar bloqueio máximo (já inclui cache + buffs + debuffs + emergência)
-    total_reduction = min(final_block, 0.75)
-    
-    reduced_damage = int(damage * (1 - total_reduction))
-    if reduced_damage < 1 and damage > 0: # Dano mínimo de 1 se o dano original for > 0
-        reduced_damage = 1
-    elif reduced_damage < 0: # Dano não pode ser negativo
-        reduced_damage = 0
-
-    damage_to_hp = reduced_damage
+    # Dano a ser aplicado (sem reducao de bloqueio - bloqueio foi removido)
+    damage_to_hp = damage
     damage_absorbed = 0
 
     # ===== LÓGICA DE ABSORÇÃO DA BARREIRA =====

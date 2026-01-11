@@ -807,9 +807,9 @@ def get_player_attacks(player_id):
                         'description': f"+{bonus*100:.0f}% crítico passivo ({relic_count} relíquias)"
                     }
 
-                # ID 43 - Block per relic (passiva de defesa, mostrar apenas para info)
-                elif effect_type == 'block_per_relic':
-                    # Não mostrar no ataque, só afeta defesa
+                # ID 43 - Estandarte de Constantino: esquiva por relíquia (passiva de defesa)
+                elif effect_type == 'dodge_per_relic':
+                    # Não mostrar no ataque, só afeta defesa (esquiva)
                     pass
 
                 # ID 20, 21, 26 - Damage acumulado (passivas específicas)

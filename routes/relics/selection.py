@@ -156,7 +156,7 @@ def _affects_cache(definition):
         
         # Bônus por quantidade de relíquias
         'crit_per_relic',            # ID 13 - Coleção de Espinhos
-        'block_per_relic',           # ID 43 - Muralha de Constantino
+        'dodge_per_relic',           # ID 43 - Estandarte de Constantino
         'lifesteal_per_relic'        # ID 44 - Amuleto Sedento
     ]
     
