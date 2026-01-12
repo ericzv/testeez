@@ -469,13 +469,13 @@ function openRestArea() {
     <h2 class="title">Área de Descanso</h2>
     <button class="close-popup-btn" onclick="closeDialog('#rest-popup')">✕</button>
     <div style="color: #e0e0e0; text-align: center; padding: 20px;">
-      <span style="font-size: 60px; display: block; margin-bottom: 20px;">🏕️</span>
+      <img src="/static/game.data/events/icons/campfire.png" alt="Fogueira" style="width: 100px; height: 100px; display: block; margin: 0 auto 20px; filter: drop-shadow(0 0 20px rgba(255, 140, 0, 0.8));">
       <p style="font-size: 18px; margin-bottom: 30px;">Você encontrou um local seguro para descansar.</p>
       <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-        <button onclick="restAndHeal()" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-size: 16px;">
-          <div style="font-size: 30px; margin-bottom: 5px;">❤️</div>
-          <div style="font-weight: bold;">Descansar</div>
-          <div style="font-size: 12px; opacity: 0.8;">Recupera 30% do HP</div>
+        <button onclick="restAndHeal()" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-size: 16px; transition: transform 0.2s;">
+          <img src="/static/game.data/resources/hp-icon.png" alt="HP" style="width: 40px; height: 40px; display: block; margin: 0 auto 8px; filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));">
+          <div style="font-weight: bold; font-family: 'Cinzel', serif;">Descansar</div>
+          <div style="font-size: 12px; opacity: 0.8; font-family: 'Montserrat', sans-serif;">Recupera 30% do HP</div>
         </button>
       </div>
     </div>
@@ -489,6 +489,16 @@ async function restAndHeal() {
     const response = await fetch('/map/api/rest/heal', { method: 'POST' });
     const data = await response.json();
     if (data.success) {
+      // Tocar som de cura na fogueira (volume alto)
+      const healSound = new Audio('/static/game.data/sounds/heal-on-bonefire.wav');
+      healSound.volume = 0.9;
+      healSound.play().catch(err => console.warn('Som não pôde ser reproduzido:', err));
+
+      // Atualizar HUD HP (se a função existir)
+      if (typeof window.updateHudHP === 'function') {
+        window.updateHudHP(data.new_hp, data.max_hp, 0);
+      }
+
       alert(`Você descansou e recuperou ${data.healed} HP! (${data.new_hp}/${data.max_hp})`);
       closeDialog('#rest-popup');
     } else {
