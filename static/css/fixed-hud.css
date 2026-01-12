@@ -988,6 +988,88 @@ body.has-fixed-hud .battle-arena {
   position: relative;
 }
 
+/* ============================================== */
+/* INVENTÁRIO OVERLAY NO ÍCONE DO PLAYER */
+/* Inventário fica na frente do ícone, transparente até hover */
+/* ============================================== */
+.hud-section-1 .hud-inventory-overlay {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100; /* Acima do player icon */
+  pointer-events: none; /* Não bloqueia cliques por padrão */
+  opacity: 0; /* Transparente por padrão */
+  transition: opacity 0.3s ease;
+}
+
+/* Quando ativado via JavaScript (hover na parte não-transparente) */
+.hud-section-1 .hud-inventory-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Ajustar tamanho do inventário no overlay */
+.hud-section-1 .hud-inventory-overlay .fast-inventory-wrapper {
+  position: relative !important;
+  bottom: auto !important;
+  left: auto !important;
+}
+
+.hud-section-1 .hud-inventory-overlay .fast-inventory-main {
+  /* Tamanho reduzido para caber sobre o ícone */
+  width: 100px !important;
+  height: 100px !important;
+}
+
+.hud-section-1 .hud-inventory-overlay .fast-inventory-main .inventory-card {
+  width: 50px !important;
+  height: 50px !important;
+}
+
+.hud-section-1 .hud-inventory-overlay .fast-inventory-main .inventory-card .item-icon-img {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+.hud-section-1 .hud-inventory-overlay .fast-inventory-main .inventory-card .quantity-badge {
+  min-width: 16px !important;
+  height: 16px !important;
+  font-size: 9px !important;
+  padding: 0 4px !important;
+}
+
+.hud-section-1 .hud-inventory-overlay .fast-inventory-main .cloak-left {
+  border-right-width: 4px !important;
+}
+
+.hud-section-1 .hud-inventory-overlay .fast-inventory-main .cloak-right {
+  border-left-width: 4px !important;
+}
+
+/* Info panel do inventário overlay - posicionar acima */
+.hud-section-1 .hud-inventory-overlay .fast-inventory-info-panel {
+  width: 140px !important;
+  min-height: 50px !important;
+  position: absolute !important;
+  bottom: 110% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+
+.hud-section-1 .hud-inventory-overlay .fast-inventory-info-content {
+  padding: 6px 8px !important;
+  font-size: 9px !important;
+}
+
+.hud-section-1 .hud-inventory-overlay .fast-inventory-info-content .info-item-name {
+  font-size: 10px !important;
+}
+
+.hud-section-1 .hud-inventory-overlay .fast-inventory-info-content .info-desc {
+  font-size: 8px !important;
+}
+
 .hud-section-2 .fast-inventory-main {
   /* A parte circular fica no centro - o info-panel pode sair */
   /* 50% do tamanho original (160px * 0.5 = 80px) */

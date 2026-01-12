@@ -919,6 +919,11 @@ class FastBattleMode {
   async refreshInventoryMenu() {
     await this.loadItems();
     this.createInventoryMenu();
+
+    // Notificar overlay do HUD para atualizar também
+    if (window.refreshInventoryOverlay) {
+      setTimeout(() => window.refreshInventoryOverlay(), 100);
+    }
   }
 
   // Atualizar o menu de ataques com dados atualizados (para quando blood_stacks mudar)
