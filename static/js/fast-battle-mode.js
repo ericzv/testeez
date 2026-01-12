@@ -631,14 +631,16 @@ class FastBattleMode {
   // ================================================================================
 
   // Criar o menu de inventário - Tema Manto do Viajante
-  // Agora posicionado no overlay do ícone do player (hud-section-1)
+  // Posicionado sobre o hud-player-icon em hud-section-1
+  // Fica invisível (opacity 0) até hover na imagem do personagem
   createInventoryMenu() {
-    // Remover menus anteriores (tanto no overlay quanto no body)
+    // Remover menus anteriores
     document.querySelectorAll('.fast-inventory-wrapper').forEach(el => el.remove());
 
     // Criar wrapper
     const wrapper = document.createElement('div');
     wrapper.className = 'fast-inventory-wrapper';
+    wrapper.id = 'fast-inventory-wrapper';
 
     // Criar container principal (2x2 grid)
     const main = document.createElement('div');
@@ -691,20 +693,20 @@ class FastBattleMode {
 
     wrapper.appendChild(infoPanel);
 
-    // Tentar adicionar ao overlay do player icon (hud-section-1)
-    const overlay = document.getElementById('hud-inventory-overlay');
-    if (overlay) {
-      // Adicionar ao overlay - sem position fixed
-      wrapper.style.cssText = '';
-      overlay.appendChild(wrapper);
-      console.log('🎒 Menu de inventário criado no overlay do player icon');
+    // Posicionar dentro de hud-section-1, sobre o player icon
+    const section1 = document.querySelector('.hud-section-1');
+    if (section1) {
+      // Adicionar a section-1 - o CSS posiciona sobre o player icon
+      section1.appendChild(wrapper);
+      console.log('🎒 Menu de inventário criado sobre player icon (hud-section-1)');
     } else {
-      // Fallback: criar no body (caso o overlay ainda não exista)
+      // Fallback: criar no body
       wrapper.style.cssText = `
         position: fixed;
         bottom: 380px;
         left: 20px;
         z-index: 900;
+        opacity: 1;
       `;
       document.body.appendChild(wrapper);
       console.log('🎒 Menu de inventário criado no body (fallback)');
