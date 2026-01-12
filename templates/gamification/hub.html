@@ -3276,9 +3276,11 @@ function openRestArea() {
 
 // Descansar e curar
 async function restAndHeal() {
+  console.log('🏕️ [REST] restAndHeal() chamada');
   try {
     const response = await fetch('/map/api/rest/heal', { method: 'POST' });
     const data = await response.json();
+    console.log('🏕️ [REST] Resposta recebida:', data);
 
     if (data.success) {
       // Tocar som de cura na fogueira (volume alto)
@@ -3295,12 +3297,13 @@ async function restAndHeal() {
       closeDialog('#rest-popup');
 
       // Mostrar popup de resultado estilizado
+      console.log('🏕️ [REST] Chamando showRestResult()');
       showRestResult(data.healed, data.new_hp, data.max_hp);
     } else {
       alert(data.error || 'Erro ao descansar');
     }
   } catch (error) {
-    console.error('Erro:', error);
+    console.error('🏕️ [REST] Erro:', error);
     alert('Erro de conexão');
   }
 }
