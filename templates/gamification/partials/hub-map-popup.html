@@ -65,6 +65,38 @@
   </div>
 </div>
 
+<!-- Pop-up de Resultado de Descanso -->
+<div id="rest-result-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: center; z-index: 3000;">
+  <div id="rest-result-popup" style="background: linear-gradient(135deg, #1a3a2e 0%, #0f1f1a 100%); border-radius: 20px; padding: 40px; max-width: 450px; width: 90%; border: 3px solid rgba(16, 185, 129, 0.5); box-shadow: 0 0 50px rgba(16, 185, 129, 0.3); animation: restResultAppear 0.5s ease-out;">
+    <h2 style="color: #10b981; font-family: 'Cinzel', serif; font-size: 28px; text-align: center; margin-bottom: 25px; text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);">Descansado!</h2>
+
+    <div style="background: rgba(16, 185, 129, 0.15); border: 2px solid rgba(16, 185, 129, 0.4); border-radius: 15px; padding: 20px; margin-bottom: 25px; text-align: center;">
+      <img src="/static/game.data/resources/hp-icon.png" alt="HP" style="width: 50px; height: 50px; display: block; margin: 0 auto 15px; filter: drop-shadow(0 0 15px rgba(239, 68, 68, 1));">
+      <div id="rest-heal-amount" style="color: #10b981; font-size: 32px; font-weight: bold; font-family: 'Cinzel', serif; margin-bottom: 8px;"></div>
+      <div id="rest-hp-display" style="color: #d4d4d4; font-size: 16px; font-family: 'Montserrat', sans-serif;"></div>
+    </div>
+
+    <p style="color: #a0d4c4; text-align: center; font-size: 15px; margin-bottom: 25px; font-style: italic;">Você se sente revigorado!</p>
+
+    <button onclick="closeRestResult()" style="display: block; width: 100%; padding: 15px; background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; font-family: 'Cinzel', serif; cursor: pointer; transition: all 0.3s ease;" onmouseenter="this.style.background='linear-gradient(135deg, #059669, #047857)'" onmouseleave="this.style.background='linear-gradient(135deg, #10b981, #059669)'">
+      Continuar
+    </button>
+  </div>
+</div>
+
+<style>
+@keyframes restResultAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+</style>
+
 <script>
 // ===== SISTEMA DE MAPA PROCEDURAL =====
 let currentMapData = null;
@@ -504,14 +536,29 @@ async function restAndHeal() {
         window.updateHudHP(data.new_hp, data.max_hp, 0);
       }
 
-      alert(`Você descansou e recuperou ${data.healed} HP! (${data.new_hp}/${data.max_hp})`);
+      // Fechar popup de descanso
       closeDialog('#rest-popup');
+
+      // Mostrar popup de resultado estilizado
+      showRestResult(data.healed, data.new_hp, data.max_hp);
     } else {
       alert(data.error || 'Erro ao descansar');
     }
   } catch (error) {
     alert('Erro de conexão');
   }
+}
+
+// Mostrar resultado de descanso
+function showRestResult(healed, newHp, maxHp) {
+  document.getElementById('rest-heal-amount').textContent = `+${healed} HP`;
+  document.getElementById('rest-hp-display').textContent = `HP: ${newHp}/${maxHp}`;
+  document.getElementById('rest-result-overlay').style.display = 'flex';
+}
+
+// Fechar resultado de descanso
+function closeRestResult() {
+  document.getElementById('rest-result-overlay').style.display = 'none';
 }
 
 // Tooltip
