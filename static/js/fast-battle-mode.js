@@ -631,10 +631,10 @@ class FastBattleMode {
   // ================================================================================
 
   // Criar o menu de inventário - Tema Manto do Viajante
+  // Agora posicionado no overlay do ícone do player (hud-section-1)
   createInventoryMenu() {
-    // Remover menu anterior se existir
-    const existingMenu = document.querySelector('.fast-inventory-wrapper');
-    if (existingMenu) existingMenu.remove();
+    // Remover menus anteriores (tanto no overlay quanto no body)
+    document.querySelectorAll('.fast-inventory-wrapper').forEach(el => el.remove());
 
     // Criar wrapper
     const wrapper = document.createElement('div');
@@ -691,19 +691,27 @@ class FastBattleMode {
 
     wrapper.appendChild(infoPanel);
 
-    // Adicionar ao body (posicionado fixo - acima dos outros menus)
-    wrapper.style.cssText = `
-      position: fixed;
-      bottom: 380px;
-      left: 20px;
-      z-index: 900;
-    `;
-    document.body.appendChild(wrapper);
+    // Tentar adicionar ao overlay do player icon (hud-section-1)
+    const overlay = document.getElementById('hud-inventory-overlay');
+    if (overlay) {
+      // Adicionar ao overlay - sem position fixed
+      wrapper.style.cssText = '';
+      overlay.appendChild(wrapper);
+      console.log('🎒 Menu de inventário criado no overlay do player icon');
+    } else {
+      // Fallback: criar no body (caso o overlay ainda não exista)
+      wrapper.style.cssText = `
+        position: fixed;
+        bottom: 380px;
+        left: 20px;
+        z-index: 900;
+      `;
+      document.body.appendChild(wrapper);
+      console.log('🎒 Menu de inventário criado no body (fallback)');
+    }
 
     // Adicionar event listeners para hover nos cards
     this.setupInventoryCardHoverListeners(wrapper);
-
-    console.log('🎒 Menu de inventário criado com', this.items.length, 'itens');
   }
 
   // Criar um card de inventário
@@ -919,11 +927,6 @@ class FastBattleMode {
   async refreshInventoryMenu() {
     await this.loadItems();
     this.createInventoryMenu();
-
-    // Notificar overlay do HUD para atualizar também
-    if (window.refreshInventoryOverlay) {
-      setTimeout(() => window.refreshInventoryOverlay(), 100);
-    }
   }
 
   // Atualizar o menu de ataques com dados atualizados (para quando blood_stacks mudar)

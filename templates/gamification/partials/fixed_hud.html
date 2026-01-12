@@ -257,291 +257,124 @@
 
   // ========================================
   // INVENTÁRIO OVERLAY NO ÍCONE DO PLAYER
-  // Detecta hover na parte não-transparente da imagem
+  // O inventário fica invisível sobre o ícone do personagem
+  // e aparece quando hover na parte não-transparente da imagem
   // ========================================
 
-  // Flag global para evitar setup múltiplo
-  if (window._inventoryOverlaySetup) {
-    console.log('[HUD] Inventory overlay já configurado, ignorando');
-  } else {
-    window._inventoryOverlaySetup = true;
+  (function initInventoryOverlaySystem() {
+    // Evitar inicialização duplicada
+    if (window._hudInventoryOverlayReady) return;
+    window._hudInventoryOverlayReady = true;
 
-    function setupInventoryOverlay() {
+    function createOverlay() {
       const section1 = document.querySelector('.hud-section-1');
       const playerIcon = document.querySelector('.hud-player-icon');
       const playerImg = playerIcon ? playerIcon.querySelector('img') : null;
 
       if (!section1 || !playerIcon || !playerImg) {
-        console.log('[HUD] Elementos do player icon não encontrados para overlay');
+        // Tentar novamente depois
+        setTimeout(createOverlay, 500);
         return;
       }
 
-      // Verificar se overlay já existe
-      let overlay = section1.querySelector('.hud-inventory-overlay');
-      if (overlay) {
-        console.log('[HUD] Overlay já existe, não recriando');
+      // Não recriar se já existe
+      if (document.getElementById('hud-inventory-overlay')) {
         return;
       }
 
-      // Criar container de overlay para o inventário
-      overlay = document.createElement('div');
+      // Criar container overlay
+      const overlay = document.createElement('div');
       overlay.className = 'hud-inventory-overlay';
-      overlay.id = 'hud-inventory-overlay-unique';
+      overlay.id = 'hud-inventory-overlay';
       section1.appendChild(overlay);
-      console.log('[HUD] Overlay de inventário criado');
+      console.log('[HUD] Overlay criado em hud-section-1');
 
-      // Canvas oculto para detecção de pixels não-transparentes
-      let hitCanvas = document.createElement('canvas');
-      let hitCtx = hitCanvas.getContext('2d', { willReadFrequently: true });
-      let imageLoaded = false;
-      let imgNaturalWidth = 0;
-      let imgNaturalHeight = 0;
+      // === DETECÇÃO DE HOVER EM PIXELS NÃO-TRANSPARENTES ===
+      const hitCanvas = document.createElement('canvas');
+      const hitCtx = hitCanvas.getContext('2d', { willReadFrequently: true });
+      let imgReady = false;
+      let imgW = 0, imgH = 0;
 
-      // Carregar imagem no canvas para detecção
-      function loadImageForHitTest() {
+      function loadImg() {
         const img = new Image();
         img.crossOrigin = 'anonymous';
-        img.onload = function() {
-          hitCanvas.width = img.naturalWidth;
-          hitCanvas.height = img.naturalHeight;
-          imgNaturalWidth = img.naturalWidth;
-          imgNaturalHeight = img.naturalHeight;
-          hitCtx.clearRect(0, 0, hitCanvas.width, hitCanvas.height);
+        img.onload = () => {
+          hitCanvas.width = imgW = img.naturalWidth;
+          hitCanvas.height = imgH = img.naturalHeight;
           hitCtx.drawImage(img, 0, 0);
-          imageLoaded = true;
-          console.log('[HUD] Imagem do player carregada para hit-test');
-        };
-        img.onerror = function() {
-          console.warn('[HUD] Erro ao carregar imagem para hit-test');
-          imageLoaded = false;
+          imgReady = true;
         };
         img.src = playerImg.src;
       }
 
-      // Verificar se pixel na posição é não-transparente
-      function isPixelOpaque(x, y) {
-        if (!imageLoaded || imgNaturalWidth === 0 || imgNaturalHeight === 0) return true;
-
+      function isOpaque(x, y) {
+        if (!imgReady) return true;
         try {
-          const pixel = hitCtx.getImageData(x, y, 1, 1).data;
-          return pixel[3] > 30;
-        } catch (e) {
-          return true;
-        }
+          return hitCtx.getImageData(x, y, 1, 1).data[3] > 30;
+        } catch { return true; }
       }
 
-      // Converter coordenadas do mouse para coordenadas da imagem
-      function getImageCoords(event) {
-        const rect = playerImg.getBoundingClientRect();
-        const scaleX = imgNaturalWidth / rect.width;
-        const scaleY = imgNaturalHeight / rect.height;
-
-        const x = Math.floor((event.clientX - rect.left) * scaleX);
-        const y = Math.floor((event.clientY - rect.top) * scaleY);
-
-        return { x, y };
+      function toImgCoords(e) {
+        const r = playerImg.getBoundingClientRect();
+        return {
+          x: Math.floor((e.clientX - r.left) * imgW / r.width),
+          y: Math.floor((e.clientY - r.top) * imgH / r.height)
+        };
       }
 
-      let isOverlayVisible = false;
-      let hideTimeout = null;
-
-      function showOverlay() {
-        if (hideTimeout) {
-          clearTimeout(hideTimeout);
-          hideTimeout = null;
-        }
-        if (!isOverlayVisible) {
-          overlay.classList.add('visible');
-          isOverlayVisible = true;
-        }
+      let hideTimer = null;
+      function show() {
+        clearTimeout(hideTimer);
+        hideTimer = null;
+        overlay.classList.add('visible');
       }
-
-      function hideOverlay() {
-        if (hideTimeout) return;
-        hideTimeout = setTimeout(() => {
+      function hide() {
+        if (hideTimer) return;
+        hideTimer = setTimeout(() => {
           overlay.classList.remove('visible');
-          isOverlayVisible = false;
-          hideTimeout = null;
-        }, 300);
+          hideTimer = null;
+        }, 400);
       }
 
-      // Event listeners no player icon
-      playerIcon.addEventListener('mousemove', function(e) {
-        const coords = getImageCoords(e);
-        if (coords.x >= 0 && coords.x < imgNaturalWidth && coords.y >= 0 && coords.y < imgNaturalHeight) {
-          if (isPixelOpaque(coords.x, coords.y)) {
-            showOverlay();
-          } else {
-            hideOverlay();
-          }
+      // Hover no player icon - detectar parte não-transparente
+      playerIcon.addEventListener('mousemove', e => {
+        const c = toImgCoords(e);
+        if (c.x >= 0 && c.x < imgW && c.y >= 0 && c.y < imgH && isOpaque(c.x, c.y)) {
+          show();
         } else {
-          hideOverlay();
+          hide();
         }
       });
+      playerIcon.addEventListener('mouseleave', hide);
 
-      playerIcon.addEventListener('mouseleave', function() {
-        hideOverlay();
-      });
+      // Manter visível enquanto hover no overlay
+      overlay.addEventListener('mouseenter', show);
+      overlay.addEventListener('mouseleave', hide);
 
-      overlay.addEventListener('mouseenter', function() {
-        showOverlay();
-      });
+      // Carregar imagem
+      if (playerImg.complete) loadImg();
+      else playerImg.addEventListener('load', loadImg);
 
-      overlay.addEventListener('mouseleave', function() {
-        hideOverlay();
-      });
+      // Recarregar se src mudar
+      new MutationObserver(m => {
+        if (m.some(x => x.attributeName === 'src')) loadImg();
+      }).observe(playerImg, { attributes: true });
 
-      // Carregar imagem para hit-test
-      if (playerImg.complete && playerImg.naturalWidth > 0) {
-        loadImageForHitTest();
-      } else {
-        playerImg.addEventListener('load', loadImageForHitTest);
-      }
-
-      // Re-carregar se a imagem mudar
-      const imgObserver = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-          if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
-            loadImageForHitTest();
-          }
-        });
-      });
-      imgObserver.observe(playerImg, { attributes: true });
-    }
-
-    // Flag para controlar clonagem em andamento
-    let isCloning = false;
-
-    // Mover inventário para o overlay quando criado
-    function moveInventoryToOverlay() {
-      if (isCloning) return;
-
-      const overlay = document.getElementById('hud-inventory-overlay-unique');
-      if (!overlay) return;
-
-      // Verificar se já existe clone no overlay
-      if (overlay.querySelector('.fast-inventory-wrapper')) {
-        return;
-      }
-
-      // Buscar inventário original (não o que está no overlay)
-      const inventoryWrapper = document.querySelector('.hud-inventory-slot .fast-inventory-wrapper:not(.overlay-inventory), body > .fast-inventory-wrapper:not(.overlay-inventory)');
-
-      if (!inventoryWrapper) return;
-
-      isCloning = true;
-
-      // Clonar
-      const clonedWrapper = inventoryWrapper.cloneNode(true);
-      clonedWrapper.style.cssText = '';
-      clonedWrapper.classList.add('overlay-inventory');
-      clonedWrapper.style.position = 'relative';
-      clonedWrapper.style.bottom = 'auto';
-      clonedWrapper.style.left = 'auto';
-
-      overlay.appendChild(clonedWrapper);
-      console.log('[HUD] Inventário clonado para overlay');
-
-      // Reattach event listeners
-      setupClonedInventoryListeners(clonedWrapper, overlay);
-
-      isCloning = false;
-    }
-
-    // Configurar event listeners para o inventário clonado
-    function setupClonedInventoryListeners(wrapper, overlay) {
-      const cards = wrapper.querySelectorAll('.inventory-card');
-      const infoPanels = wrapper.querySelectorAll('.fast-inventory-info-content');
-
-      cards.forEach(card => {
-        const cardClass = [...card.classList].find(c => c.startsWith('card'));
-        const slotNumber = card.dataset.slotNumber;
-        const isDisabled = card.classList.contains('disabled');
-
-        card.addEventListener('mouseenter', () => {
-          infoPanels.forEach(p => p.classList.remove('visible'));
-          const targetPanel = wrapper.querySelector(`.info-${cardClass}`);
-          if (targetPanel) {
-            targetPanel.classList.add('visible');
-          }
-        });
-
-        card.addEventListener('mouseleave', () => {
-          setTimeout(() => {
-            const hoveredCard = wrapper.querySelector('.inventory-card:hover');
-            if (!hoveredCard) {
-              infoPanels.forEach(p => p.classList.remove('visible'));
-            }
-          }, 100);
-        });
-
-        if (!isDisabled && slotNumber) {
-          card.addEventListener('click', async (e) => {
-            e.stopPropagation();
-
-            if (window.fastBattle && window.fastBattle.useInventoryItem) {
-              window.fastBattle.useInventoryItem(parseInt(slotNumber));
-            } else {
-              try {
-                const response = await fetch(`/gamification/use_potion/${slotNumber}`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' }
-                });
-                const data = await response.json();
-                if (data.success) {
-                  console.log('[HUD] Poção usada via overlay:', data.message);
-                  if (typeof window.updateHudHP === 'function' && data.hp !== undefined) {
-                    window.updateHudHP(data.hp, data.max_hp, data.barrier || 0);
-                  }
-                  if (typeof window.updateHudEnergy === 'function' && data.energy !== undefined) {
-                    window.updateHudEnergy(data.energy, data.max_energy || 10);
-                  }
-                  // Atualizar overlay
-                  if (window.refreshInventoryOverlay) {
-                    window.refreshInventoryOverlay();
-                  }
-                }
-              } catch (error) {
-                console.error('[HUD] Erro ao usar poção via overlay:', error);
-              }
-            }
-          });
+      // Após criar overlay, pedir ao FastBattleMode para recriar inventário nele
+      setTimeout(() => {
+        if (window.fastBattle && window.fastBattle.createInventoryMenu) {
+          window.fastBattle.createInventoryMenu();
         }
-      });
+      }, 200);
     }
 
-    // Expor função global para atualizar overlay
-    window.refreshInventoryOverlay = function() {
-      if (isCloning) return;
-
-      const overlay = document.getElementById('hud-inventory-overlay-unique');
-      if (overlay) {
-        const existingClone = overlay.querySelector('.fast-inventory-wrapper');
-        if (existingClone) existingClone.remove();
-        setTimeout(moveInventoryToOverlay, 150);
-      }
-    };
-
-    // Setup inicial com delay
-    setTimeout(setupInventoryOverlay, 800);
-    setTimeout(moveInventoryToOverlay, 1500);
-
-    // Observer simples - só observa adição de novos wrappers
-    const inventoryObserver = new MutationObserver(function(mutations) {
-      for (const mutation of mutations) {
-        for (const node of mutation.addedNodes) {
-          if (node.nodeType === 1 &&
-              node.classList &&
-              node.classList.contains('fast-inventory-wrapper') &&
-              !node.classList.contains('overlay-inventory')) {
-            setTimeout(moveInventoryToOverlay, 200);
-            return;
-          }
-        }
-      }
-    });
-    inventoryObserver.observe(document.body, { childList: true, subtree: true });
-  }
+    // Iniciar
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => setTimeout(createOverlay, 200));
+    } else {
+      setTimeout(createOverlay, 200);
+    }
+  })();
 
   // ========================================
   // FUNÇÕES DE ATUALIZAÇÃO DO HUD INFERIOR
