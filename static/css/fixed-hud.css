@@ -1000,12 +1000,12 @@ body.has-fixed-hud .battle-arena {
   /* Posição em % relativo ao container (50% = centro) */
   --inventory-pos-y: 17%;
   /* Escala (1 = 100%, 0.5 = metade, 2 = dobro) */
-  --inventory-scale: 0.7;
+  --inventory-scale: 0.65;
 
   position: absolute;
   left: 50%;
   top: var(--inventory-pos-y);
-  transform: translate(-50%, -50%) scale(var(--inventory-scale));
+  transform: translate(5%, -50%) scale(var(--inventory-scale));
   z-index: 100;
   opacity: 0;
   transition: opacity 0.3s ease;
