@@ -181,9 +181,9 @@
     moveElementToSlot('relics-bar', 'hud-relics-slot');
 
     // Mover fast-wrappers (se existirem)
+    // NOTA: fast-inventory-wrapper NÃO é movido aqui - ele fica em hud-section-1
     moveByClass('fast-attacks-wrapper', 'hud-attacks-slot');
     moveByClass('fast-specials-wrapper', 'hud-specials-slot');
-    moveByClass('fast-inventory-wrapper', 'hud-inventory-slot');
   }
 
   // Observer para detectar quando elementos são adicionados ao DOM
@@ -207,9 +207,7 @@
           if (node.classList && node.classList.contains('fast-specials-wrapper')) {
             moveByClass('fast-specials-wrapper', 'hud-specials-slot');
           }
-          if (node.classList && node.classList.contains('fast-inventory-wrapper')) {
-            moveByClass('fast-inventory-wrapper', 'hud-inventory-slot');
-          }
+          // NOTA: fast-inventory-wrapper NÃO é movido - fica em hud-section-1
         }
       });
     });
