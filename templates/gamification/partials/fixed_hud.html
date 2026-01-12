@@ -181,9 +181,9 @@
     moveElementToSlot('relics-bar', 'hud-relics-slot');
 
     // Mover fast-wrappers (se existirem)
+    // NOTA: fast-inventory-wrapper NÃO é movido aqui - ele fica em hud-section-1
     moveByClass('fast-attacks-wrapper', 'hud-attacks-slot');
     moveByClass('fast-specials-wrapper', 'hud-specials-slot');
-    moveByClass('fast-inventory-wrapper', 'hud-inventory-slot');
   }
 
   // Observer para detectar quando elementos são adicionados ao DOM
@@ -207,9 +207,7 @@
           if (node.classList && node.classList.contains('fast-specials-wrapper')) {
             moveByClass('fast-specials-wrapper', 'hud-specials-slot');
           }
-          if (node.classList && node.classList.contains('fast-inventory-wrapper')) {
-            moveByClass('fast-inventory-wrapper', 'hud-inventory-slot');
-          }
+          // NOTA: fast-inventory-wrapper NÃO é movido - fica em hud-section-1
         }
       });
     });
@@ -254,6 +252,123 @@
 
   // Atualizar periodicamente (a cada 5 segundos)
   setInterval(loadActNodeInfo, 5000);
+
+  // ========================================
+  // CONTROLE DE VISIBILIDADE DO INVENTÁRIO
+  // Inventário fica invisível sobre o player icon
+  // e aparece quando hover na parte não-transparente da imagem
+  // ========================================
+
+  (function initInventoryHoverSystem() {
+    // Evitar inicialização duplicada
+    if (window._inventoryHoverSystemReady) return;
+    window._inventoryHoverSystemReady = true;
+
+    function setupHoverDetection() {
+      const playerIcon = document.querySelector('.hud-player-icon');
+      const playerImg = playerIcon ? playerIcon.querySelector('img') : null;
+
+      if (!playerIcon || !playerImg) {
+        setTimeout(setupHoverDetection, 500);
+        return;
+      }
+
+      // Canvas para detecção de pixels não-transparentes
+      const hitCanvas = document.createElement('canvas');
+      const hitCtx = hitCanvas.getContext('2d', { willReadFrequently: true });
+      let imgReady = false;
+      let imgW = 0, imgH = 0;
+
+      function loadImg() {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          hitCanvas.width = imgW = img.naturalWidth;
+          hitCanvas.height = imgH = img.naturalHeight;
+          hitCtx.drawImage(img, 0, 0);
+          imgReady = true;
+          console.log('[HUD] Imagem do player carregada para detecção de hover');
+        };
+        img.src = playerImg.src;
+      }
+
+      function isOpaque(x, y) {
+        if (!imgReady) return true;
+        try {
+          return hitCtx.getImageData(x, y, 1, 1).data[3] > 30;
+        } catch { return true; }
+      }
+
+      function toImgCoords(e) {
+        const r = playerImg.getBoundingClientRect();
+        return {
+          x: Math.floor((e.clientX - r.left) * imgW / r.width),
+          y: Math.floor((e.clientY - r.top) * imgH / r.height)
+        };
+      }
+
+      let hideTimer = null;
+
+      function showInventory() {
+        clearTimeout(hideTimer);
+        hideTimer = null;
+        const wrapper = document.getElementById('fast-inventory-wrapper');
+        if (wrapper) wrapper.classList.add('visible');
+      }
+
+      function hideInventory() {
+        if (hideTimer) return;
+        hideTimer = setTimeout(() => {
+          const wrapper = document.getElementById('fast-inventory-wrapper');
+          if (wrapper) wrapper.classList.remove('visible');
+          hideTimer = null;
+        }, 400);
+      }
+
+      // Detectar hover na parte não-transparente da imagem
+      playerIcon.addEventListener('mousemove', e => {
+        const c = toImgCoords(e);
+        if (c.x >= 0 && c.x < imgW && c.y >= 0 && c.y < imgH && isOpaque(c.x, c.y)) {
+          showInventory();
+        } else {
+          hideInventory();
+        }
+      });
+
+      playerIcon.addEventListener('mouseleave', hideInventory);
+
+      // Manter visível enquanto hover no próprio inventário
+      document.addEventListener('mouseenter', e => {
+        if (e.target.closest('.fast-inventory-wrapper')) {
+          showInventory();
+        }
+      }, true);
+
+      document.addEventListener('mouseleave', e => {
+        if (e.target.closest('.fast-inventory-wrapper')) {
+          hideInventory();
+        }
+      }, true);
+
+      // Carregar imagem
+      if (playerImg.complete) loadImg();
+      else playerImg.addEventListener('load', loadImg);
+
+      // Recarregar se src mudar
+      new MutationObserver(m => {
+        if (m.some(x => x.attributeName === 'src')) loadImg();
+      }).observe(playerImg, { attributes: true });
+
+      console.log('[HUD] Sistema de hover do inventário configurado');
+    }
+
+    // Iniciar
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => setTimeout(setupHoverDetection, 300));
+    } else {
+      setTimeout(setupHoverDetection, 300);
+    }
+  })();
 
   // ========================================
   // FUNÇÕES DE ATUALIZAÇÃO DO HUD INFERIOR

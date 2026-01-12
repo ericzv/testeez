@@ -631,14 +631,16 @@ class FastBattleMode {
   // ================================================================================
 
   // Criar o menu de inventário - Tema Manto do Viajante
+  // Posicionado sobre o hud-player-icon em hud-section-1
+  // Fica invisível (opacity 0) até hover na imagem do personagem
   createInventoryMenu() {
-    // Remover menu anterior se existir
-    const existingMenu = document.querySelector('.fast-inventory-wrapper');
-    if (existingMenu) existingMenu.remove();
+    // Remover menus anteriores
+    document.querySelectorAll('.fast-inventory-wrapper').forEach(el => el.remove());
 
     // Criar wrapper
     const wrapper = document.createElement('div');
     wrapper.className = 'fast-inventory-wrapper';
+    wrapper.id = 'fast-inventory-wrapper';
 
     // Criar container principal (2x2 grid)
     const main = document.createElement('div');
@@ -691,19 +693,27 @@ class FastBattleMode {
 
     wrapper.appendChild(infoPanel);
 
-    // Adicionar ao body (posicionado fixo - acima dos outros menus)
-    wrapper.style.cssText = `
-      position: fixed;
-      bottom: 380px;
-      left: 20px;
-      z-index: 900;
-    `;
-    document.body.appendChild(wrapper);
+    // Posicionar dentro de hud-section-1, sobre o player icon
+    const section1 = document.querySelector('.hud-section-1');
+    if (section1) {
+      // Adicionar a section-1 - o CSS posiciona sobre o player icon
+      section1.appendChild(wrapper);
+      console.log('🎒 Menu de inventário criado sobre player icon (hud-section-1)');
+    } else {
+      // Fallback: criar no body
+      wrapper.style.cssText = `
+        position: fixed;
+        bottom: 380px;
+        left: 20px;
+        z-index: 900;
+        opacity: 1;
+      `;
+      document.body.appendChild(wrapper);
+      console.log('🎒 Menu de inventário criado no body (fallback)');
+    }
 
     // Adicionar event listeners para hover nos cards
     this.setupInventoryCardHoverListeners(wrapper);
-
-    console.log('🎒 Menu de inventário criado com', this.items.length, 'itens');
   }
 
   // Criar um card de inventário
