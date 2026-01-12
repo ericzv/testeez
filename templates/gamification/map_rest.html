@@ -24,8 +24,13 @@
     }
 
     .rest-icon {
-        font-size: 60px;
         margin-bottom: 15px;
+    }
+
+    .rest-icon img {
+        width: 80px;
+        height: 80px;
+        filter: drop-shadow(0 0 15px rgba(255, 140, 0, 0.6));
     }
 
     .rest-title {
@@ -108,6 +113,12 @@
         margin-bottom: 10px;
     }
 
+    .option-icon img {
+        width: 50px;
+        height: 50px;
+        filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
+    }
+
     .option-title {
         color: #3b82f6;
         font-family: 'Cinzel', serif;
@@ -118,6 +129,7 @@
     .option-desc {
         color: #888;
         font-size: 14px;
+        font-family: 'Montserrat', sans-serif;
     }
 
     .heal-result {
@@ -179,7 +191,9 @@
 
 <div class="rest-container">
     <div class="rest-header">
-        <div class="rest-icon">🏕️</div>
+        <div class="rest-icon">
+            <img src="/static/game.data/icons/rest-campfire.png" alt="Fogueira de descanso">
+        </div>
         <h1 class="rest-title">Área de Descanso</h1>
         <p class="rest-subtitle">Um lugar seguro para recuperar suas forças</p>
     </div>
@@ -195,9 +209,11 @@
 
     <div class="rest-options">
         <div class="rest-option" id="rest-heal" onclick="restHeal()">
-            <div class="option-icon">💚</div>
+            <div class="option-icon">
+                <img src="/static/game.data/resources/hp-icon.png" alt="HP">
+            </div>
             <div class="option-title">Descansar</div>
-            <div class="option-desc">Recupere 30% do HP máximo</div>
+            <div class="option-desc">Recupera 30% do HP</div>
         </div>
 
         <div class="rest-option disabled" id="rest-upgrade">
