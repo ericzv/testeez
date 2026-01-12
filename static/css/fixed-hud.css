@@ -993,28 +993,24 @@ body.has-fixed-hud .battle-arena {
 /* Wrapper fica na frente do ícone, invisível até hover na imagem */
 /* ============================================== */
 
-/* ========== PARÂMETROS AJUSTÁVEIS ========== */
-.hud-section-1 {
-  /* Posição do inventário em % relativo ao ícone do personagem */
-  /* 50% = centralizado, 0% = esquerda/topo, 100% = direita/baixo */
-  --inventory-pos-x: 50%;   /* Posição horizontal */
-  --inventory-pos-y: 50%;   /* Posição vertical */
-
-  /* Escala do inventário (1 = 100%, 0.5 = 50%, 1.5 = 150%) */
-  --inventory-scale: 1;
-}
-/* =========================================== */
-
 /* Wrapper do inventário - posicionado sobre o player icon */
+/* ========== PARÂMETROS AJUSTÁVEIS ========== */
+/* Para testar no DevTools: selecione .fast-inventory-wrapper e edite estas variáveis */
 .hud-section-1 > .fast-inventory-wrapper {
+  /* Posição em % relativo ao container (50% = centro) */
+  --inventory-pos-x: 50%;
+  --inventory-pos-y: 50%;
+  /* Escala (1 = 100%, 0.5 = metade, 2 = dobro) */
+  --inventory-scale: 1;
+
   position: absolute;
   left: var(--inventory-pos-x);
   top: var(--inventory-pos-y);
   transform: translate(-50%, -50%) scale(var(--inventory-scale));
-  z-index: 100; /* Acima do player icon */
-  opacity: 0; /* Invisível por padrão */
+  z-index: 100;
+  opacity: 0;
   transition: opacity 0.3s ease;
-  pointer-events: none; /* Não intercepta eventos quando invisível */
+  pointer-events: none;
 }
 
 /* Quando visível (hover na imagem do personagem) */
