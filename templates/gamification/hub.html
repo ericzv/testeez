@@ -2546,6 +2546,38 @@
   </div>
 </div>
 
+<!-- Pop-up de Resultado de Descanso -->
+<div id="rest-result-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: center; z-index: 3000;">
+  <div id="rest-result-popup" style="background: linear-gradient(135deg, #1a3a2e 0%, #0f1f1a 100%); border-radius: 20px; padding: 40px; max-width: 450px; width: 90%; border: 3px solid rgba(16, 185, 129, 0.5); box-shadow: 0 0 50px rgba(16, 185, 129, 0.3); animation: restResultAppear 0.5s ease-out;">
+    <h2 style="color: #10b981; font-family: 'Cinzel', serif; font-size: 28px; text-align: center; margin-bottom: 25px; text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);">Descansado!</h2>
+
+    <div style="background: rgba(16, 185, 129, 0.15); border: 2px solid rgba(16, 185, 129, 0.4); border-radius: 15px; padding: 20px; margin-bottom: 25px; text-align: center;">
+      <img src="/static/game.data/resources/hp-icon.png" alt="HP" style="width: 50px; height: 50px; display: block; margin: 0 auto 15px; filter: drop-shadow(0 0 15px rgba(239, 68, 68, 1));">
+      <div id="rest-heal-amount" style="color: #10b981; font-size: 32px; font-weight: bold; font-family: 'Cinzel', serif; margin-bottom: 8px;"></div>
+      <div id="rest-hp-display" style="color: #d4d4d4; font-size: 16px; font-family: 'Montserrat', sans-serif;"></div>
+    </div>
+
+    <p style="color: #a0d4c4; text-align: center; font-size: 15px; margin-bottom: 25px; font-style: italic;">Você se sente revigorado!</p>
+
+    <button onclick="closeRestResult()" style="display: block; width: 100%; padding: 15px; background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; font-family: 'Cinzel', serif; cursor: pointer; transition: all 0.3s ease;" onmouseenter="this.style.background='linear-gradient(135deg, #059669, #047857)'" onmouseleave="this.style.background='linear-gradient(135deg, #10b981, #059669)'">
+      Continuar
+    </button>
+  </div>
+</div>
+
+<style>
+@keyframes restResultAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+</style>
+
 <!-- Tooltip do Mapa -->
 <div id="map-tooltip" style="position: fixed; background: rgba(0, 0, 0, 0.95); color: #fff; padding: 10px 15px; border-radius: 8px; font-size: 14px; pointer-events: none; display: none; z-index: 2000; border: 1px solid rgba(255, 215, 0, 0.3); box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);">
   <div id="map-tooltip-name" style="color: #ffd700; font-weight: bold; margin-bottom: 5px;"></div>
@@ -3217,13 +3249,18 @@ function openRestArea() {
     <h2 class="title">Área de Descanso</h2>
     <button class="close-popup-btn" onclick="closeDialog('#rest-popup')">✕</button>
     <div style="color: #e0e0e0; text-align: center; padding: 20px;">
-      <span style="font-size: 60px; display: block; margin-bottom: 20px;">🏕️</span>
+      <img src="/static/game.data/icons/rest-campfire.png" alt="Fogueira" style="width: auto; height: 240px; display: block; margin: 0 auto 20px; filter: drop-shadow(0 0 20px rgba(255, 140, 0, 0.8));">
       <p style="font-size: 18px; margin-bottom: 30px;">Você encontrou um local seguro para descansar.</p>
       <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-        <button onclick="restAndHeal()" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-size: 16px; transition: transform 0.2s;">
-          <div style="font-size: 30px; margin-bottom: 5px;">❤️</div>
-          <div style="font-weight: bold;">Descansar</div>
-          <div style="font-size: 12px; opacity: 0.8;">Recupera 30% do HP</div>
+        <button onclick="restAndHeal()"
+          onmouseenter="this.style.background='linear-gradient(135deg, #b91c1c, #991b1b)'"
+          onmouseleave="this.style.background='linear-gradient(135deg, #dc2626, #b91c1c)'"
+          onmousedown="this.style.transform='translateY(1px)'"
+          onmouseup="this.style.transform='translateY(0)'"
+          style="background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-size: 16px; transition: all 0.2s ease;">
+          <img src="/static/game.data/resources/hp-icon.png" alt="HP" style="width: 40px; height: 40px; display: block; margin: 0 auto 8px; filter: drop-shadow(0 0 12px rgba(239, 68, 68, 1)) drop-shadow(0 0 20px rgba(239, 68, 68, 0.7));">
+          <div style="font-weight: bold; font-family: 'Cinzel', serif;">Descansar</div>
+          <div style="font-size: 12px; opacity: 0.8; font-family: 'Montserrat', sans-serif;">Recupera 30% do HP</div>
         </button>
         <button disabled style="background: rgba(100, 100, 100, 0.5); color: #888; border: none; padding: 15px 30px; border-radius: 10px; cursor: not-allowed; font-size: 16px;">
           <div style="font-size: 30px; margin-bottom: 5px;">🔨</div>
@@ -3239,20 +3276,48 @@ function openRestArea() {
 
 // Descansar e curar
 async function restAndHeal() {
+  console.log('🏕️ [REST] restAndHeal() chamada');
   try {
     const response = await fetch('/map/api/rest/heal', { method: 'POST' });
     const data = await response.json();
+    console.log('🏕️ [REST] Resposta recebida:', data);
 
     if (data.success) {
-      alert(`Você descansou e recuperou ${data.healed} HP! (${data.new_hp}/${data.max_hp})`);
+      // Tocar som de cura na fogueira (volume alto)
+      const healSound = new Audio('/static/game.data/sounds/heal-on-bonefire.wav');
+      healSound.volume = 0.9;
+      healSound.play().catch(err => console.warn('Som não pôde ser reproduzido:', err));
+
+      // Atualizar HUD HP (se a função existir)
+      if (typeof window.updateHudHP === 'function') {
+        window.updateHudHP(data.new_hp, data.max_hp, 0);
+      }
+
+      // Fechar popup de descanso
       closeDialog('#rest-popup');
+
+      // Mostrar popup de resultado estilizado
+      console.log('🏕️ [REST] Chamando showRestResult()');
+      showRestResult(data.healed, data.new_hp, data.max_hp);
     } else {
       alert(data.error || 'Erro ao descansar');
     }
   } catch (error) {
-    console.error('Erro:', error);
+    console.error('🏕️ [REST] Erro:', error);
     alert('Erro de conexão');
   }
+}
+
+// Mostrar resultado de descanso
+function showRestResult(healed, newHp, maxHp) {
+  document.getElementById('rest-heal-amount').textContent = `+${healed} HP`;
+  document.getElementById('rest-hp-display').textContent = `HP: ${newHp}/${maxHp}`;
+  document.getElementById('rest-result-overlay').style.display = 'flex';
+}
+
+// Fechar resultado de descanso
+function closeRestResult() {
+  document.getElementById('rest-result-overlay').style.display = 'none';
 }
 
 // Tooltip do mapa
