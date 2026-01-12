@@ -339,13 +339,13 @@
 
       // Manter visível enquanto hover no próprio inventário
       document.addEventListener('mouseenter', e => {
-        if (e.target.closest('.fast-inventory-wrapper')) {
+        if (e.target.closest && e.target.closest('.fast-inventory-wrapper')) {
           showInventory();
         }
       }, true);
 
       document.addEventListener('mouseleave', e => {
-        if (e.target.closest('.fast-inventory-wrapper')) {
+        if (e.target.closest && e.target.closest('.fast-inventory-wrapper')) {
           hideInventory();
         }
       }, true);
