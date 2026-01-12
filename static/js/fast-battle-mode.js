@@ -799,12 +799,12 @@ class FastBattleMode {
 
     content.innerHTML = `
       <div class="container-stars"><div class="gold-dust"></div></div>
-      <h3 class="info-item-name">${item.name}</h3>
-      <div class="info-stats-row">
-        <span class="stat-tag ${typeClass}">Quantidade: ${item.quantity}</span>
+      <div class="info-item-header">
+        <h3 class="info-item-name">${item.name}</h3>
+        <span class="stat-tag quantity-tag">x${item.quantity}</span>
       </div>
       <p class="info-desc">${item.description || 'Uma poção mágica com efeitos restauradores.'}</p>
-      <div class="info-effect">${effectText}</div>
+      <div class="info-effect ${typeClass}">${effectText}</div>
     `;
 
     return content;

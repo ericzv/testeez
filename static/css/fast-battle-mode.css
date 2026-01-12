@@ -1800,54 +1800,35 @@
   z-index: 2;
 }
 
+/* Header com nome e quantidade */
+.fast-inventory-info-content .info-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #5a3a20;
+  padding-bottom: 5px;
+  margin-bottom: 8px;
+}
+
 /* Nome do item */
 .fast-inventory-info-content .info-item-name {
-  margin: 0 0 5px 0;
+  margin: 0;
   font-size: 1rem;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: #ffd700;
   text-shadow: 0 1px 2px black, 0 0 8px rgba(255,215,0,0.4);
-  border-bottom: 1px solid #5a3a20;
-  padding-bottom: 5px;
 }
 
-/* Container de stats */
-.fast-inventory-info-content .info-stats-row {
-  display: flex;
-  justify-content: flex-start;
-  gap: 8px;
-  font-size: 0.75rem;
-  color: #b8860b;
-  font-weight: bold;
-}
-
-.fast-inventory-info-content .stat-tag {
+/* Tag de quantidade (sempre verde) */
+.fast-inventory-info-content .stat-tag.quantity-tag {
   font-size: 0.7rem;
   padding: 2px 8px;
-  border: 1px solid #5a3a20;
-  background: #2f1810;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.1);
   border-radius: 4px;
-  color: #d4a76a;
-}
-
-/* Cores por tipo de poção */
-.fast-inventory-info-content .stat-tag.vital {
-  color: #ef4444;
-  border-color: #8b0000;
-  background: rgba(139, 0, 0, 0.2);
-}
-
-.fast-inventory-info-content .stat-tag.protective {
-  color: #3b82f6;
-  border-color: #1e3a8a;
-  background: rgba(30, 58, 138, 0.2);
-}
-
-.fast-inventory-info-content .stat-tag.energetic {
-  color: #fbbf24;
-  border-color: #92400e;
-  background: rgba(146, 64, 14, 0.2);
+  color: #10b981;
+  font-weight: bold;
 }
 
 /* Descrição */
@@ -1858,15 +1839,30 @@
   font-style: italic;
 }
 
-/* Efeito do item */
+/* Efeito do item - cores por tipo */
 .fast-inventory-info-content .info-effect {
   font-size: 0.75rem;
-  color: #10b981;
   font-weight: bold;
   padding: 4px 8px;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.3);
   border-radius: 4px;
+}
+
+.fast-inventory-info-content .info-effect.vital {
+  color: #ef4444;
+  border: 1px solid #8b0000;
+  background: rgba(139, 0, 0, 0.2);
+}
+
+.fast-inventory-info-content .info-effect.protective {
+  color: #3b82f6;
+  border: 1px solid #1e3a8a;
+  background: rgba(30, 58, 138, 0.2);
+}
+
+.fast-inventory-info-content .info-effect.energetic {
+  color: #fbbf24;
+  border: 1px solid #92400e;
+  background: rgba(146, 64, 14, 0.2);
 }
 
 /* ================================================================================
