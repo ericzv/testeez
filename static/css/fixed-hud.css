@@ -998,13 +998,12 @@ body.has-fixed-hud .battle-arena {
 /* Para testar no DevTools: selecione .fast-inventory-wrapper e edite estas variáveis */
 .hud-section-1 > .fast-inventory-wrapper {
   /* Posição em % relativo ao container (50% = centro) */
-  --inventory-pos-x: 50%;
-  --inventory-pos-y: 50%;
+  --inventory-pos-y: 17%;
   /* Escala (1 = 100%, 0.5 = metade, 2 = dobro) */
-  --inventory-scale: 1;
+  --inventory-scale: 0.7;
 
   position: absolute;
-  left: var(--inventory-pos-x);
+  left: 50%;
   top: var(--inventory-pos-y);
   transform: translate(-50%, -50%) scale(var(--inventory-scale));
   z-index: 100;
