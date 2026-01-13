@@ -328,16 +328,31 @@ def add_talent_points():
 def choose_character_route():
     """Tela de seleção de personagem"""
     if request.method == 'GET':
-        # Verificar se veio da tela de morte
-        from_death = request.args.get('from', '')
-        return render_template('gamification/choose_character.html', 
-                             characters=CHARACTERS, 
-                             from_death=(from_death == 'death'))
+        # Verificar se veio da tela de morte ou vitória
+        from_param = request.args.get('from', '')
+        from_death = (from_param == 'death')
+        from_victory = (from_param == 'victory')
+
+        # Buscar estatísticas do personagem para exibir
+        player = Player.query.first()
+        character_stats = {}
+        if player and player.character_id:
+            character_stats[player.character_id] = {
+                'total_runs': player.total_runs or 0,
+                'total_victories': player.total_victories or 0
+            }
+
+        return render_template('gamification/choose_character.html',
+                             characters=CHARACTERS,
+                             from_death=from_death,
+                             from_victory=from_victory,
+                             character_stats=character_stats)
     
     elif request.method == 'POST':
         character_id = request.form.get('character_id')
         from_death = request.form.get('from_death', 'false')
-        print(f"🎮 POST /choose-character: character_id={character_id}, from_death={from_death}")
+        from_victory = request.form.get('from_victory', 'false')
+        print(f"🎮 POST /choose-character: character_id={character_id}, from_death={from_death}, from_victory={from_victory}")
 
         if not character_id:
             flash("Personagem inválido.", "danger")
@@ -379,11 +394,11 @@ def choose_character_route():
             session.clear()
             print("🧹 Sessão limpa - novo player criado")
         
-        # Se veio da morte, resetar a run ANTES de escolher personagem
-        if from_death == 'true':
+        # Se veio da morte ou vitória, resetar a run ANTES de escolher personagem
+        if from_death == 'true' or from_victory == 'true':
             # LIMPAR SESSÃO PRIMEIRO
             session.clear()
-            print("🧹 Sessão limpa - veio da morte")
+            print(f"🧹 Sessão limpa - veio da {'vitória' if from_victory == 'true' else 'morte'}")
             
             # Garantir que player existe antes do reset
             if not player:
@@ -464,6 +479,12 @@ def choose_character_route():
                 print(f"❤️ HP forçado para valores base: {player.hp}/{player.max_hp}")
                 print(f"⚡ Energia forçada para valores base: {player.energy}/{player.max_energy}")
             # ============================================
+            # ===== INCREMENTAR CONTADOR DE RUNS =====
+            player.total_runs = (player.total_runs or 0) + 1
+            db.session.commit()
+            print(f"🎮 Nova run iniciada! Total de runs: {player.total_runs}")
+            # =========================================
+
             # ===== ADICIONAR AQUI - MARCAR POP-UP DE RELÍQUIA =====
             session['pending_relic_selection'] = {
                 'count': 1,

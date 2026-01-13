@@ -2144,7 +2144,71 @@ def get_run_statistics():
     except Exception as e:
         print(f"Erro ao obter estatísticas da run: {e}")
         return jsonify({'success': False, 'message': 'Erro interno do servidor'})
-    
+
+
+@battle_bp.route('/get_victory_statistics', methods=['GET'])
+def get_victory_statistics():
+    """Retorna estatísticas da run para a tela de vitória (fim de jogo)"""
+    try:
+        from models import PlayerRelic, PlayerRunBuff
+        from models_map import PlayerMapProgress
+        from routes.relics.registry import get_relic_definition
+
+        player = Player.query.first()
+        if not player:
+            return jsonify({'success': False, 'message': 'Jogador não encontrado'})
+
+        map_progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+
+        # Buscar relíquias adquiridas
+        player_relics = PlayerRelic.query.filter_by(player_id=player.id, is_active=True).all()
+        relics_list = []
+        for pr in player_relics:
+            relic_def = get_relic_definition(pr.relic_id)
+            if relic_def:
+                relics_list.append({
+                    'id': pr.relic_id,
+                    'name': relic_def['name'],
+                    'icon': relic_def['icon'],
+                    'rarity': relic_def['rarity']
+                })
+
+        # Buscar lembranças (run buffs)
+        run_buffs = PlayerRunBuff.query.filter_by(player_id=player.id).all()
+        memories_list = []
+        for buff in run_buffs:
+            memories_list.append({
+                'type': buff.buff_type,
+                'value': buff.value,
+                'icon': f"resources/memory-{buff.buff_type}.png"
+            })
+
+        # Montar estatísticas de vitória
+        stats = {
+            'success': True,
+            'relics': relics_list,
+            'memories': memories_list,
+            'gold_gained': player.run_gold_gained or 0,
+            'crystals_gained': player.run_crystals_gained or 0,
+            'hourglasses_gained': player.run_hourglasses_gained or 0,
+            'enemies_defeated': map_progress.battles_won if map_progress else 0,
+            'elites_defeated': map_progress.elites_defeated if map_progress else 0,
+            'bosses_defeated': (player.run_bosses_defeated or 0) + 1,  # +1 para o boss final
+            'difficulty': 'Fácil',
+            'character_id': player.character_id,
+            'total_victories': player.total_victories or 0,
+            'total_runs': player.total_runs or 0
+        }
+
+        return jsonify(stats)
+
+    except Exception as e:
+        print(f"Erro ao obter estatísticas de vitória: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': 'Erro interno do servidor'})
+
+
 def reset_player_run(player_id):
     """
     Reseta a run do jogador, mantendo apenas progressão permanente
@@ -2530,6 +2594,10 @@ def select_enemy():
         except Exception as e:
             print(f"⚠️ Erro ao aplicar bônus de início de batalha: {e}")
 
+        # ===== TRIGGER RELIC HOOKS ON_COMBAT_START =====
+        relic_hooks.trigger_relic_hooks(player, 'on_combat_start', {'enemy': enemy})
+        print(f"✨ Relic hooks on_combat_start triggered (select_enemy)")
+
         db.session.commit()
 
         return jsonify({
@@ -2543,7 +2611,9 @@ def select_enemy():
             },
             'player_hp': player.hp,
             'player_max_hp': player.max_hp,
-            'player_barrier': player.barrier
+            'player_barrier': player.barrier,
+            'player_energy': player.energy,
+            'player_max_energy': player.max_energy
         })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
@@ -3617,13 +3687,17 @@ def restore_energy():
             print(f"🛡️ Barreira de {old_barrier} resetada no início do turno.")
         # ===============================================
 
-        # Restaurar energia ao máximo
+        # ===== PRESERVAR ENERGIA ACIMA DO MÁXIMO =====
+        # Se energia > max_energy, é bônus de primeiro turno (ex: Escritos de Agostinho)
+        # Não resetar nesse caso!
         old_energy = player.energy
-        player.energy = player.max_energy
-        
+        if player.energy <= player.max_energy:
+            player.energy = player.max_energy
+            print(f"⚡ Energia restaurada: {old_energy} → {player.energy}/{player.max_energy}")
+        else:
+            print(f"⚡ Energia preservada (bônus de primeiro turno): {player.energy}/{player.max_energy}")
+
         db.session.commit()
-        
-        print(f"⚡ Energia restaurada: {old_energy} → {player.energy}/{player.max_energy}")
         
         return jsonify({
             'success': True,

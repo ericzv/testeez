@@ -1519,8 +1519,17 @@
 
           // 1.5) Marcar nó do mapa como completado (se estiver em uma run)
           try {
-              await fetch('/map/api/complete-node', { method: 'POST' });
-              console.log("✅ Nó do mapa marcado como completado");
+              const mapResponse = await fetch('/map/api/complete-node', { method: 'POST' });
+              const mapData = await mapResponse.json();
+              console.log("✅ Nó do mapa marcado como completado", mapData);
+
+              // Verificar se é fim de jogo (ato 3 boss derrotado)
+              if (mapData.game_completed) {
+                  console.log("🏆 JOGO COMPLETO! Redirecionando para tela de vitória...");
+                  // Redirecionar para a tela de seleção de personagem com sumário de vitória
+                  window.location.href = mapData.redirect_url || '/choose-character?from=victory';
+                  return; // Interromper o resto do fluxo
+              }
           } catch (mapError) {
               console.log("⚠️ Sem progresso de mapa ativo (normal se não estiver em run)");
           }
