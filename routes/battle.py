@@ -3687,13 +3687,17 @@ def restore_energy():
             print(f"🛡️ Barreira de {old_barrier} resetada no início do turno.")
         # ===============================================
 
-        # Restaurar energia ao máximo
+        # ===== PRESERVAR ENERGIA ACIMA DO MÁXIMO =====
+        # Se energia > max_energy, é bônus de primeiro turno (ex: Escritos de Agostinho)
+        # Não resetar nesse caso!
         old_energy = player.energy
-        player.energy = player.max_energy
-        
+        if player.energy <= player.max_energy:
+            player.energy = player.max_energy
+            print(f"⚡ Energia restaurada: {old_energy} → {player.energy}/{player.max_energy}")
+        else:
+            print(f"⚡ Energia preservada (bônus de primeiro turno): {player.energy}/{player.max_energy}")
+
         db.session.commit()
-        
-        print(f"⚡ Energia restaurada: {old_energy} → {player.energy}/{player.max_energy}")
         
         return jsonify({
             'success': True,
