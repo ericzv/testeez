@@ -5062,8 +5062,11 @@ function saveBossDamage(skill, damage, isCritical) {
                     battleMessage.classList.remove('visible');
                 }
 
-                // Chamar animação de morte do boss, passando informações sobre memória
-                handleBossDeathAnimation(data.has_memory_reward, data.enemy_rarity);
+                // Aguardar animação do jogador terminar antes de iniciar animação de morte
+                // Delay de 600ms permite que animações como a Execução do Vlad completem
+                setTimeout(() => {
+                    handleBossDeathAnimation(data.has_memory_reward, data.enemy_rarity);
+                }, 600);
             }
         } else {
             console.error("Erro ao aplicar dano:", data.message);
