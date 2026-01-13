@@ -17,6 +17,7 @@ from .map_modules.node_types import (
 )
 from .map_modules.events import EVENT_DEFINITIONS, get_event_by_id, get_events_for_act
 from .map_modules.event_effects import apply_event_effects, check_choice_requirements
+from .relics import hooks as relic_hooks
 import json
 import random
 from datetime import datetime
@@ -213,6 +214,10 @@ def elite_battle(boss_id):
     print(f"⚔️ Elite Battle iniciando: {boss.name} (ID: {boss.id})")
     print(f"🔮 Intenções do Turno 1 calculadas: {[a.get('type') for a in next_intentions]}")
 
+    # ===== TRIGGER RELIC HOOKS ON_COMBAT_START =====
+    relic_hooks.trigger_relic_hooks(player, 'on_combat_start', {'enemy': boss})
+    print(f"✨ Relic hooks on_combat_start triggered for elite")
+
     db.session.commit()
 
     # Redirecionar para SPA com batalha ativa
@@ -310,6 +315,10 @@ def boss_battle(boss_id):
 
     print(f"⚔️ Boss Final Battle iniciando: {boss.name} (Ato {act_number})")
     print(f"🔮 Intenções do Turno 1 calculadas: {[a.get('type') for a in next_intentions]}")
+
+    # ===== TRIGGER RELIC HOOKS ON_COMBAT_START =====
+    relic_hooks.trigger_relic_hooks(player, 'on_combat_start', {'enemy': boss})
+    print(f"✨ Relic hooks on_combat_start triggered for final boss")
 
     db.session.commit()
 
@@ -679,26 +688,39 @@ def complete_current_node():
 
     db.session.commit()
 
-    # Verificar se deve avançar para próximo ato AUTOMATICAMENTE
+    # Verificar se é fim de jogo (ato 3 boss derrotado)
+    game_completed = False
     next_act = None
-    if node.node_type == 'boss' and progress.current_act < 3:
-        # Avançar automaticamente para o próximo ato
-        new_act = progress.current_act + 1
-        progress.current_act = new_act
-        # Limpar mapa atual para forçar geração de novo mapa
-        if progress.current_map_id:
-            MapNode.query.filter_by(map_id=progress.current_map_id).delete()
-            ProceduralMap.query.filter_by(id=progress.current_map_id).delete()
-        progress.current_map_id = None
-        progress.current_node_id = None
-        db.session.commit()
-        next_act = new_act
-        print(f"🎯 Avançou automaticamente para o Ato {new_act}!")
 
-    return jsonify({
+    if node.node_type == 'boss':
+        if progress.current_act >= 3:
+            # FIM DE JOGO! Ato 3 boss derrotado
+            game_completed = True
+            print(f"🏆 JOGO COMPLETO! Boss final do Ato 3 derrotado!")
+
+            # Incrementar vitória do personagem
+            player.total_victories = (player.total_victories or 0) + 1
+            db.session.commit()
+            print(f"🎖️ Vitória registrada! Total: {player.total_victories}")
+        else:
+            # Avançar automaticamente para o próximo ato
+            new_act = progress.current_act + 1
+            progress.current_act = new_act
+            # Limpar mapa atual para forçar geração de novo mapa
+            if progress.current_map_id:
+                MapNode.query.filter_by(map_id=progress.current_map_id).delete()
+                ProceduralMap.query.filter_by(id=progress.current_map_id).delete()
+            progress.current_map_id = None
+            progress.current_node_id = None
+            db.session.commit()
+            next_act = new_act
+            print(f"🎯 Avançou automaticamente para o Ato {new_act}!")
+
+    response = {
         'success': True,
         'node_completed': node.id,
         'map_completed': node.node_type == 'boss',
+        'game_completed': game_completed,
         'next_act': next_act,
         'act_advanced': next_act is not None,
         'stats': {
@@ -707,7 +729,12 @@ def complete_current_node():
             'shops_visited': progress.shops_visited,
             'events_completed': progress.events_completed
         }
-    })
+    }
+
+    if game_completed:
+        response['redirect_url'] = '/choose-character?from=victory'
+
+    return jsonify(response)
 
 
 @map_bp.route('/api/advance-act', methods=['POST'])

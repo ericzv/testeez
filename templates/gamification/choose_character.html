@@ -192,10 +192,26 @@
             <canvas id="character-fx-front" style="position:absolute; inset:0; pointer-events:none;"></canvas>
             </div>
             <div class="character-description">Lorde de Sangue</div>
-            
+
+            <!-- Estatísticas do personagem -->
+            <div class="character-stats" style="
+                margin: 15px 0;
+                padding: 10px;
+                background: rgba(0,0,0,0.3);
+                border-radius: 10px;
+                font-size: 0.9em;
+                color: #aaa;
+            ">
+                <div style="display: flex; justify-content: space-around;">
+                    <span>Runs: <strong style="color: #ff6b6b;">{{ character_stats.get('vlad', {}).get('total_runs', 0) }}</strong></span>
+                    <span>Vitórias: <strong style="color: #4CAF50;">{{ character_stats.get('vlad', {}).get('total_victories', 0) }}</strong></span>
+                </div>
+            </div>
+
             <form action="{{ url_for('choose_character_route') }}" method="post" style="display: inline;">
                 <input type="hidden" name="character_id" value="vlad">
                 <input type="hidden" name="from_death" id="from-death-input" value="{{ 'true' if from_death else 'false' }}">
+                <input type="hidden" name="from_victory" id="from-victory-input" value="{{ 'true' if from_victory else 'false' }}">
                 <button type="submit" class="confirm-button">Confirmar</button>
             </form>
         </div>
@@ -263,6 +279,62 @@
     });
     </script>
 
+    <!-- Pop-up de Estatísticas de Vitória -->
+    <div id="victory-stats-overlay" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    ">
+        <div style="
+            background: linear-gradient(145deg, rgba(76,175,80,0.9), rgba(56,142,60,0.7));
+            border: 3px solid rgba(129,199,132,0.8);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 50px rgba(76,175,80,0.6), inset 0 0 30px rgba(255,255,255,0.1);
+        ">
+            <h2 style="
+                font-size: 2.5em;
+                font-weight: bold;
+                color: #81C784;
+                margin-bottom: 30px;
+                text-shadow: 0 0 15px rgba(129,199,132,0.8);
+            ">VITÓRIA!</h2>
+
+            <div id="victory-stats-content" style="
+                color: #ccc;
+                font-size: 1.1em;
+                line-height: 1.8;
+                margin-bottom: 30px;
+                text-align: left;
+            ">
+                <!-- Conteúdo será preenchido via JavaScript -->
+            </div>
+
+            <button id="victory-continue-btn" style="
+                background: linear-gradient(145deg, #4CAF50, #388E3C);
+                border: 2px solid #81C784;
+                color: white;
+                padding: 15px 30px;
+                font-size: 1.1em;
+                font-weight: bold;
+                border-radius: 10px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            ">Nova Run</button>
+        </div>
+    </div>
+
     <!-- Pop-up de Estatísticas da Run -->
     <div id="run-stats-overlay" style="
         position: fixed;
@@ -321,19 +393,118 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Verificar se veio da tela de morte
+        // Verificar se veio da tela de morte ou vitória
         const urlParams = new URLSearchParams(window.location.search);
         const fromDeath = urlParams.get('from') === 'death';
+        const fromVictory = urlParams.get('from') === 'victory';
+
         document.getElementById('from-death-input').value = fromDeath ? 'true' : 'false';
-        
+        document.getElementById('from-victory-input').value = fromVictory ? 'true' : 'false';
+
         if (fromDeath) {
             console.log("Detectado que veio da tela de morte - carregando estatísticas...");
             showRunStatistics();
+        } else if (fromVictory) {
+            console.log("Detectado que veio da tela de vitória - carregando estatísticas...");
+            showVictoryStatistics();
         }
     });
 
-    // Variável global para controlar o áudio de derrota
+    // Variável global para controlar o áudio de derrota/vitória
     let defeatAudio = null;
+    let victoryAudio = null;
+
+    async function showVictoryStatistics() {
+        try {
+            // Buscar estatísticas do servidor
+            const response = await fetch('{{ url_for("battle.get_victory_statistics") }}');
+            const data = await response.json();
+
+            if (data.success) {
+                // Preencher conteúdo do pop-up
+                const statsContent = document.getElementById('victory-stats-content');
+
+                // Montar HTML para relíquias
+                let relicsHtml = '';
+                if (data.relics && data.relics.length > 0) {
+                    relicsHtml = '<div style="margin-bottom: 20px;"><strong style="color: #81C784;">Relíquias Adquiridas:</strong><div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">';
+                    data.relics.forEach(relic => {
+                        const rarityColors = {
+                            'common': '#aaa',
+                            'uncommon': '#4CAF50',
+                            'rare': '#2196F3',
+                            'epic': '#9C27B0',
+                            'legendary': '#FF9800'
+                        };
+                        const color = rarityColors[relic.rarity] || '#aaa';
+                        relicsHtml += `<div style="background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 8px; border-left: 3px solid ${color}; font-size: 0.9em;">${relic.name}</div>`;
+                    });
+                    relicsHtml += '</div></div>';
+                }
+
+                // Montar HTML para lembranças
+                let memoriesHtml = '';
+                if (data.memories && data.memories.length > 0) {
+                    memoriesHtml = '<div style="margin-bottom: 20px;"><strong style="color: #81C784;">Lembranças Adquiridas:</strong><div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">';
+                    data.memories.forEach(memory => {
+                        memoriesHtml += `<div style="background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 8px; font-size: 0.9em;">${memory.type}: +${memory.value}</div>`;
+                    });
+                    memoriesHtml += '</div></div>';
+                }
+
+                statsContent.innerHTML = `
+                    ${relicsHtml}
+                    ${memoriesHtml}
+                    <div style="margin-bottom: 15px;">
+                        <strong style="color: #81C784;">Ouro obtido:</strong> ${data.gold_gained.toLocaleString()}
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <strong style="color: #81C784;">Inimigos derrotados:</strong> ${data.enemies_defeated.toLocaleString()}
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <strong style="color: #81C784;">Elites derrotados:</strong> ${data.elites_defeated.toLocaleString()}
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <strong style="color: #81C784;">Bosses derrotados:</strong> ${data.bosses_defeated.toLocaleString()}
+                    </div>
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
+                        <strong style="color: #FFD700;">Dificuldade:</strong> ${data.difficulty}
+                    </div>
+                `;
+
+                // Mostrar pop-up
+                const overlay = document.getElementById('victory-stats-overlay');
+                overlay.style.display = 'flex';
+
+                // Tocar som de vitória
+                victoryAudio = new Audio('/static/game.data/sounds/victory.wav');
+                victoryAudio.volume = 0.5;
+                victoryAudio.play().catch(err => console.warn("Som de vitória não pôde ser reproduzido:", err));
+
+                // Event listener para fechar pop-up
+                document.getElementById('victory-continue-btn').addEventListener('click', function() {
+                    overlay.style.display = 'none';
+
+                    // Parar som de vitória ao fechar
+                    if (victoryAudio) {
+                        victoryAudio.pause();
+                        victoryAudio.currentTime = 0;
+                        victoryAudio = null;
+                    }
+
+                    // Limpar parâmetro da URL
+                    const newUrl = window.location.pathname;
+                    window.history.replaceState({}, document.title, newUrl);
+                });
+
+            } else {
+                console.error('Erro ao carregar estatísticas de vitória:', data.message);
+            }
+
+        } catch (error) {
+            console.error('Erro ao buscar estatísticas de vitória:', error);
+        }
+    }
 
     async function showRunStatistics() {
         try {

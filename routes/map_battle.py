@@ -15,6 +15,7 @@ from .battle_modules.enemy_generation import (
     get_infernal_challenger_template,
     create_enemy_from_template
 )
+from .relics import hooks as relic_hooks
 import json
 import random
 
@@ -120,6 +121,10 @@ def start_battle():
         progress.selected_enemy_id = enemy.id
         progress.selected_boss_id = None  # Não é boss
 
+        # ===== TRIGGER RELIC HOOKS ON_COMBAT_START =====
+        relic_hooks.trigger_relic_hooks(player, 'on_combat_start', {'enemy': enemy})
+        print(f"✨ Relic hooks on_combat_start triggered")
+
         db.session.commit()
 
         print(f"⚔️ MAP BATTLE: Iniciando batalha contra {enemy.name} (nível {current_node.y})")
@@ -178,6 +183,10 @@ def start_boss_battle(boss_id):
     progress.selected_boss_id = final_boss.id
     progress.selected_enemy_id = None
 
+    # ===== TRIGGER RELIC HOOKS ON_COMBAT_START =====
+    relic_hooks.trigger_relic_hooks(player, 'on_combat_start', {'enemy': final_boss})
+    print(f"✨ Relic hooks on_combat_start triggered for boss")
+
     db.session.commit()
 
     print(f"💀 MAP BOSS: Iniciando batalha contra {final_boss.name}")
@@ -192,6 +201,9 @@ def handle_map_victory():
     Chamado após vitória em batalha do mapa.
     Atualiza o nó como completado e prepara para próximo movimento.
     """
+    from models import PlayerRelic
+    from routes.relics.registry import get_relic_definition
+
     player = Player.query.first()
     if not player:
         return jsonify({'error': 'Não logado'}), 401
@@ -207,6 +219,9 @@ def handle_map_victory():
     # Marcar nó como completado
     current_node.is_completed = True
 
+    game_completed = False
+    victory_summary = None
+
     # Atualizar estatísticas
     if current_node.node_type == 'battle':
         map_progress.battles_won += 1
@@ -221,21 +236,74 @@ def handle_map_victory():
             current_map.boss_defeated = True
         map_progress.total_acts_completed += 1
 
-        # CRÍTICO: Incrementar o ato atual para o próximo mapa
-        if map_progress.current_act < 3:
+        # CRÍTICO: Verificar se é o ato 3 (fim de jogo!)
+        if map_progress.current_act >= 3:
+            game_completed = True
+            print(f"🏆 TODOS OS ATOS COMPLETADOS! Parabéns!")
+
+            # Incrementar vitória do personagem
+            player.total_victories = (player.total_victories or 0) + 1
+            print(f"🎖️ Vitória registrada! Total: {player.total_victories}")
+
+            # Montar sumário da vitória
+            # Buscar relíquias adquiridas
+            player_relics = PlayerRelic.query.filter_by(player_id=player.id, is_active=True).all()
+            relics_list = []
+            for pr in player_relics:
+                relic_def = get_relic_definition(pr.relic_id)
+                if relic_def:
+                    relics_list.append({
+                        'id': pr.relic_id,
+                        'name': relic_def['name'],
+                        'icon': relic_def['icon'],
+                        'rarity': relic_def['rarity']
+                    })
+
+            # Buscar lembranças (run buffs)
+            from models import PlayerRunBuff
+            run_buffs = PlayerRunBuff.query.filter_by(player_id=player.id).all()
+            memories_list = []
+            for buff in run_buffs:
+                memories_list.append({
+                    'type': buff.buff_type,
+                    'value': buff.value,
+                    'icon': f"resources/memory-{buff.buff_type}.png"
+                })
+
+            victory_summary = {
+                'relics': relics_list,
+                'memories': memories_list,
+                'gold_gained': player.run_gold_gained or 0,
+                'crystals_gained': player.run_crystals_gained or 0,
+                'hourglasses_gained': player.run_hourglasses_gained or 0,
+                'enemies_defeated': map_progress.battles_won or 0,
+                'elites_defeated': map_progress.elites_defeated or 0,
+                'bosses_defeated': (player.run_bosses_defeated or 0) + 1,  # +1 para o Nefasto
+                'difficulty': 'Fácil',
+                'character_id': player.character_id,
+                'total_victories': player.total_victories,
+                'total_runs': player.total_runs or 0
+            }
+        else:
+            # Avançar para o próximo ato
             map_progress.current_act += 1
             print(f"🎉 ATO {map_progress.current_act - 1} COMPLETO! Avançando para Ato {map_progress.current_act}")
-        else:
-            print(f"🏆 TODOS OS ATOS COMPLETADOS! Parabéns!")
 
     db.session.commit()
 
-    return jsonify({
+    response = {
         'success': True,
         'node_type': current_node.node_type,
         'map_completed': current_node.node_type == 'boss',
-        'redirect_url': url_for('map.map_view')
-    })
+        'redirect_url': url_for('map.map_view'),
+        'game_completed': game_completed
+    }
+
+    if game_completed and victory_summary:
+        response['victory_summary'] = victory_summary
+        response['redirect_url'] = '/choose-character?from=victory'
+
+    return jsonify(response)
 
 
 @map_battle_bp.route('/defeat', methods=['POST'])
@@ -520,6 +588,10 @@ def api_prepare_battle():
         progress.selected_enemy_id = enemy.id
         progress.selected_boss_id = None
 
+        # ===== TRIGGER RELIC HOOKS ON_COMBAT_START =====
+        relic_hooks.trigger_relic_hooks(player, 'on_combat_start', {'enemy': enemy})
+        print(f"✨ Relic hooks on_combat_start triggered (API)")
+
         db.session.commit()
 
         print(f"⚔️ MAP BATTLE API: Preparado batalha contra {enemy.name}")
@@ -531,7 +603,9 @@ def api_prepare_battle():
                 'name': enemy.name,
                 'hp': enemy.hp,
                 'max_hp': enemy.max_hp
-            }
+            },
+            'player_energy': player.energy,
+            'player_max_energy': player.max_energy
         })
 
     except Exception as e:
@@ -606,6 +680,10 @@ def api_prepare_elite_battle(boss_id):
         next_intentions = next_turn_data['actions']
         boss.next_intentions_cached = json.dumps(next_intentions)
 
+        # ===== TRIGGER RELIC HOOKS ON_COMBAT_START =====
+        relic_hooks.trigger_relic_hooks(player, 'on_combat_start', {'enemy': boss})
+        print(f"✨ Relic hooks on_combat_start triggered for elite (API)")
+
         db.session.commit()
 
         print(f"⚔️ ELITE BATTLE API: Preparado batalha contra {boss.name}")
@@ -617,7 +695,9 @@ def api_prepare_elite_battle(boss_id):
                 'name': boss.name,
                 'hp': boss.hp,
                 'max_hp': boss.max_hp
-            }
+            },
+            'player_energy': player.energy,
+            'player_max_energy': player.max_energy
         })
 
     except Exception as e:
@@ -694,6 +774,10 @@ def api_prepare_boss_battle(boss_id):
         next_intentions = next_turn_data['actions']
         boss.next_intentions_cached = json.dumps(next_intentions)
 
+        # ===== TRIGGER RELIC HOOKS ON_COMBAT_START =====
+        relic_hooks.trigger_relic_hooks(player, 'on_combat_start', {'enemy': boss})
+        print(f"✨ Relic hooks on_combat_start triggered for final boss (API)")
+
         db.session.commit()
 
         print(f"💀 BOSS BATTLE API: Preparado batalha contra {boss.name} (Ato {act_number})")
@@ -705,7 +789,9 @@ def api_prepare_boss_battle(boss_id):
                 'name': boss.name,
                 'hp': boss.hp,
                 'max_hp': boss.max_hp
-            }
+            },
+            'player_energy': player.energy,
+            'player_max_energy': player.max_energy
         })
 
     except Exception as e:

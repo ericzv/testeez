@@ -115,6 +115,17 @@ class Player(db.Model):
     subclass_available        = db.Column(db.Boolean, default=False)
     specialization            = db.Column(db.String(50), nullable=True)
 
+    # ===============================================================================
+    # ESTATÍSTICAS DE PERSONAGEM - PERSISTEM ENTRE RUNS
+    # ===============================================================================
+    # Contadores permanentes de runs e vitórias por personagem
+    total_runs                = db.Column(db.Integer, default=0)    # Total de runs iniciadas
+    total_victories           = db.Column(db.Integer, default=0)    # Total de vitórias (completou ato 3)
+
+    # Rastreamento da run atual para sumário de vitória/derrota
+    run_relics_acquired       = db.Column(db.Text, default='[]')    # JSON: IDs de relíquias adquiridas nesta run
+    run_memories_acquired     = db.Column(db.Text, default='[]')    # JSON: tipos de lembranças adquiridas nesta run
+
     # Contadores globais de batalha (resetam ao vencer/morrer)
     attacks_this_battle = db.Column(db.Integer, default=0)
     kills_this_run = db.Column(db.Integer, default=0)
