@@ -3192,10 +3192,26 @@ function performAttack(skill) {
             setTimeout(() => {
                 console.log("🔮 Criando efeito ultimate sobre o boss");
 
+                // Pegar o sprite visual real do boss (não o container)
+                const bossSprite = boss.querySelector('.boss-sprite-idle');
+                let effectX, effectY;
+
+                if (bossSprite) {
+                    const spriteRect = bossSprite.getBoundingClientRect();
+                    effectX = spriteRect.left + spriteRect.width / 2;
+                    effectY = spriteRect.top + spriteRect.height / 2;
+                    console.log("📍 Usando posição do boss-sprite-idle:", effectX, effectY);
+                } else {
+                    // Fallback para o container se não encontrar o sprite
+                    effectX = endX;
+                    effectY = endY;
+                    console.log("📍 Fallback para posição do container:", effectX, effectY);
+                }
+
                 const ultimateEffect = document.createElement('div');
                 ultimateEffect.className = 'vlad-ultimate-effect';
-                ultimateEffect.style.left = `${endX - 72}px`; // Centralizar (144/2 = 72)
-                ultimateEffect.style.top = `${endY - 72}px`;
+                ultimateEffect.style.left = `${effectX - 72}px`; // Centralizar (144/2 = 72)
+                ultimateEffect.style.top = `${effectY - 72}px`;
                 document.body.appendChild(ultimateEffect);
 
                 // Remover após a animação (800ms)
