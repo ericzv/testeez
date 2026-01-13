@@ -4256,12 +4256,12 @@ function performAttack(skill) {
                 console.log("📍 Power effect fallback para container:", effectX, effectY);
             }
 
-            // Configuração do sprite: power-effect-purple.png (17 frames, 32x128px)
+            // Configuração do sprite: power-effect-purple.png (8 frames, 32x128px)
             const imageUrl = '/static/game.data/character/vlad/power/power-effect-purple.png';
             const frameWidth = 32;
             const frameHeight = 128;
-            const frameCount = 17;
-            const duration = 0.7; // 17 frames em 0.7s
+            const frameCount = 8;
+            const duration = 0.6; // 8 frames em 0.6s
             const scale = 2.0;
 
             const totalWidth = frameWidth * frameCount;
