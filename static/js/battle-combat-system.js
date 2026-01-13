@@ -3188,6 +3188,22 @@ function performAttack(skill) {
 
             }, 750);
 
+            // Fase 3.5: Efeito ultimate sobre o inimigo (1200ms)
+            setTimeout(() => {
+                console.log("🔮 Criando efeito ultimate sobre o boss");
+
+                const ultimateEffect = document.createElement('div');
+                ultimateEffect.className = 'vlad-ultimate-effect';
+                ultimateEffect.style.left = `${endX - 72}px`; // Centralizar (144/2 = 72)
+                ultimateEffect.style.top = `${endY - 72}px`;
+                document.body.appendChild(ultimateEffect);
+
+                // Remover após a animação (800ms)
+                setTimeout(() => {
+                    ultimateEffect.remove();
+                }, 900);
+            }, 1200);
+
             // Fase 4: Aplicar dano (1400ms)
             setTimeout(() => {
                 console.log(`💥 Aplicando dano! (Tier ${tier}, ${bloodStacks} stacks)`);
