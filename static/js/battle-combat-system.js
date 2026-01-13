@@ -4239,19 +4239,34 @@ function performAttack(skill) {
                 return;
             }
 
-            // Pegar posição do boss na tela
-            const bossRect = boss.getBoundingClientRect();
+            // Pegar o sprite visual real do boss (não o container)
+            const bossSprite = boss.querySelector('.boss-sprite-idle');
+            let effectX, effectY;
 
-            // Configuração do sprite: powerhiteffect-86x69-5f.png
-            const imageUrl = '/static/game.data/fx/powerhiteffect-86x69-5f.png';
-            const frameWidth = 86;
-            const frameHeight = 69;
-            const frameCount = 5;
-            const duration = 0.4; // 5 frames em 0.4s = animação rápida de impacto
-            const scale = 2.5; // Escala maior para impacto mais visível
+            if (bossSprite) {
+                const spriteRect = bossSprite.getBoundingClientRect();
+                effectX = spriteRect.left + spriteRect.width / 2;
+                effectY = spriteRect.top + spriteRect.height; // Parte inferior do sprite
+                console.log("📍 Power effect usando posição do boss-sprite-idle:", effectX, effectY);
+            } else {
+                // Fallback para o container
+                const bossRect = boss.getBoundingClientRect();
+                effectX = bossRect.left + bossRect.width / 2;
+                effectY = bossRect.top + bossRect.height;
+                console.log("📍 Power effect fallback para container:", effectX, effectY);
+            }
+
+            // Configuração do sprite: power-effect-purple.png (17 frames, 32x128px)
+            const imageUrl = '/static/game.data/character/vlad/power/power-effect-purple.png';
+            const frameWidth = 32;
+            const frameHeight = 128;
+            const frameCount = 17;
+            const duration = 0.6; // 17 frames em 0.6s
+            const scale = 1.0;
 
             const totalWidth = frameWidth * frameCount;
             const scaledWidth = frameWidth * scale;
+            const scaledHeight = frameHeight * scale;
 
             // Criar keyframes dinamicamente
             const keyframeId = `power-hit-fx-${Date.now()}`;
@@ -4265,20 +4280,17 @@ function performAttack(skill) {
             `;
             document.head.appendChild(styleEl);
 
-            // Posição centralizada sobre o boss (position: fixed no body)
-            const centerX = bossRect.left + bossRect.width / 2 - scaledWidth / 2;
-            const topY = bossRect.top;
+            // Posição: centralizado horizontalmente, parte inferior alinhada com o inimigo
+            const centerX = effectX - scaledWidth / 2;
+            const topY = effectY - scaledHeight; // Parte inferior alinhada
 
-            // Criar elemento da sprite animation no BODY (não no boss)
-            // Isso garante z-index global acima de projéteis e outros efeitos
+            // Criar elemento da sprite animation no BODY
             const spriteLayer = document.createElement('div');
-            spriteLayer.className = 'boss-power-hit-layer';
+            spriteLayer.className = 'vlad-power-hit-effect';
             spriteLayer.style.cssText = `
                 position: fixed;
                 top: ${topY}px;
                 left: ${centerX}px;
-                transform: scale(${scale});
-                transform-origin: top left;
                 width: ${frameWidth}px;
                 height: ${frameHeight}px;
                 background-image: url("${imageUrl}");
@@ -4289,11 +4301,13 @@ function performAttack(skill) {
                 pointer-events: none;
                 z-index: 9999;
                 image-rendering: pixelated;
+                transform: scale(${scale});
+                transform-origin: bottom center;
                 animation: ${keyframeId} ${duration}s steps(${frameCount}) forwards;
             `;
 
             document.body.appendChild(spriteLayer);
-            console.log(`✅ Power Hit Effect adicionado ao body (z-index: 9999)`);
+            console.log(`✅ Power Hit Effect (purple) adicionado ao body`);
 
             // Remover após animação
             setTimeout(() => {
