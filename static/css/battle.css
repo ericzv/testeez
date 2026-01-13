@@ -1729,6 +1729,7 @@
       z-index: 127;
       transform: scale(1.5);
       transform-origin: bottom center;
+      image-rendering: pixelated;
   }
 
   /* Animação de retorno do Vlad */
