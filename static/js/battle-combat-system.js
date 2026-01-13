@@ -3519,12 +3519,12 @@ function performAttack(skill) {
                 this.applyBossDamageEffect();
             }, 500);
 
-            // 1000ms depois: som execution.mp3 + dano
+            // 1200ms depois: som execution.mp3 + dano
             setTimeout(() => {
                 playSound(this.currentSkill.sound_effect_1, 0.8);
                 this.calculateAndApplyDamage();
                 this.damageAlreadyApplied = true;
-            }, 1000);
+            }, 1200);
 
             // Restaurar idle após animação do Vlad terminar
             // A animação 'special' tem 28 frames, 1.4s
@@ -5062,11 +5062,8 @@ function saveBossDamage(skill, damage, isCritical) {
                     battleMessage.classList.remove('visible');
                 }
 
-                // Aguardar animação do jogador terminar antes de iniciar animação de morte
-                // Delay de 600ms permite que animações como a Execução do Vlad completem
-                setTimeout(() => {
-                    handleBossDeathAnimation(data.has_memory_reward, data.enemy_rarity);
-                }, 600);
+                // Chamar animação de morte do boss
+                handleBossDeathAnimation(data.has_memory_reward, data.enemy_rarity);
             }
         } else {
             console.error("Erro ao aplicar dano:", data.message);
