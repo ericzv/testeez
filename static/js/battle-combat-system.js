@@ -3199,25 +3199,76 @@ function performAttack(skill) {
                 if (bossSprite) {
                     const spriteRect = bossSprite.getBoundingClientRect();
                     effectX = spriteRect.left + spriteRect.width / 2;
-                    effectY = spriteRect.top + spriteRect.height / 2;
+                    effectY = spriteRect.top + spriteRect.height; // Parte inferior do sprite
                     console.log("📍 Usando posição do boss-sprite-idle:", effectX, effectY);
                 } else {
                     // Fallback para o container se não encontrar o sprite
                     effectX = endX;
-                    effectY = endY;
+                    effectY = endY + 50;
                     console.log("📍 Fallback para posição do container:", effectX, effectY);
                 }
 
-                const ultimateEffect = document.createElement('div');
-                ultimateEffect.className = 'vlad-ultimate-effect';
-                ultimateEffect.style.left = `${effectX - 72}px`; // Centralizar (144/2 = 72)
-                ultimateEffect.style.top = `${effectY - 72}px`;
-                document.body.appendChild(ultimateEffect);
+                // Escolher efeito baseado em blood_stacks
+                const useWeakEffect = bloodStacks <= 9;
+                console.log(`🩸 Blood stacks: ${bloodStacks}, usando efeito ${useWeakEffect ? 'weak' : 'normal'}`);
 
-                // Remover após a animação (800ms)
-                setTimeout(() => {
-                    ultimateEffect.remove();
-                }, 900);
+                const ultimateEffect = document.createElement('div');
+
+                if (useWeakEffect) {
+                    // Efeito fraco: ultimate-effect-weak.png (8 frames, 32x128px)
+                    const frameWidth = 32;
+                    const frameHeight = 128;
+                    const frameCount = 8;
+                    const totalWidth = frameWidth * frameCount;
+                    const duration = 0.8;
+                    const scale = 1.5;
+
+                    const keyframeId = `ultimate-effect-weak-${Date.now()}`;
+                    const styleEl = document.createElement('style');
+                    styleEl.id = keyframeId;
+                    styleEl.textContent = `
+                        @keyframes ${keyframeId} {
+                            from { background-position: 0 0; }
+                            to { background-position: -${totalWidth}px 0; }
+                        }
+                    `;
+                    document.head.appendChild(styleEl);
+
+                    ultimateEffect.className = 'vlad-ultimate-effect-weak';
+                    ultimateEffect.style.cssText = `
+                        position: fixed;
+                        left: ${effectX - frameWidth / 2}px;
+                        top: ${effectY - frameHeight}px;
+                        width: ${frameWidth}px;
+                        height: ${frameHeight}px;
+                        background-image: url('/static/game.data/character/vlad/ultimate/ultimate-effect-weak.png');
+                        background-size: ${totalWidth}px ${frameHeight}px;
+                        background-repeat: no-repeat;
+                        animation: ${keyframeId} ${duration}s steps(${frameCount}) forwards;
+                        pointer-events: none;
+                        z-index: 127;
+                        transform: scale(${scale});
+                        transform-origin: bottom center;
+                        image-rendering: pixelated;
+                    `;
+
+                    setTimeout(() => {
+                        ultimateEffect.remove();
+                        const styleToRemove = document.getElementById(keyframeId);
+                        if (styleToRemove) styleToRemove.remove();
+                    }, duration * 1000 + 100);
+                } else {
+                    // Efeito normal: ultimate-effect.png (8 frames, 144x144px)
+                    ultimateEffect.className = 'vlad-ultimate-effect';
+                    ultimateEffect.style.left = `${effectX - 72}px`; // Centralizar (144/2 = 72)
+                    ultimateEffect.style.top = `${effectY - 144}px`; // Alinhar parte inferior
+
+                    setTimeout(() => {
+                        ultimateEffect.remove();
+                    }, 900);
+                }
+
+                document.body.appendChild(ultimateEffect);
             }, 1200);
 
             // Fase 4: Aplicar dano (1400ms)
@@ -4256,13 +4307,13 @@ function performAttack(skill) {
                 console.log("📍 Power effect fallback para container:", effectX, effectY);
             }
 
-            // Configuração do sprite: power-effect-purple.png (8 frames, 32x128px)
-            const imageUrl = '/static/game.data/character/vlad/power/power-effect-purple.png';
-            const frameWidth = 32;
-            const frameHeight = 128;
+            // Configuração do sprite: power-effect-purple-head.png (8 frames, 96x96px)
+            const imageUrl = '/static/game.data/character/vlad/power/power-effect-purple-head.png';
+            const frameWidth = 96;
+            const frameHeight = 96;
             const frameCount = 8;
-            const duration = 0.8; // 8 frames em 0.8s
-            const scale = 1.5;
+            const duration = 0.6; // 8 frames em 0.6s
+            const scale = 1.0;
 
             const totalWidth = frameWidth * frameCount;
 
