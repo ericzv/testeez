@@ -4265,8 +4265,6 @@ function performAttack(skill) {
             const scale = 2.0;
 
             const totalWidth = frameWidth * frameCount;
-            const scaledWidth = frameWidth * scale;
-            const scaledHeight = frameHeight * scale;
 
             // Criar keyframes dinamicamente
             const keyframeId = `power-hit-fx-${Date.now()}`;
@@ -4281,8 +4279,9 @@ function performAttack(skill) {
             document.head.appendChild(styleEl);
 
             // Posição: centralizado horizontalmente, parte inferior alinhada com o inimigo
-            const centerX = effectX - scaledWidth / 2;
-            const topY = effectY - scaledHeight; // Parte inferior alinhada
+            // Usar tamanho original porque transform: scale() expande a partir do transform-origin
+            const centerX = effectX - frameWidth / 2;
+            const topY = effectY - frameHeight; // Parte inferior alinhada
 
             // Criar elemento da sprite animation no BODY
             const spriteLayer = document.createElement('div');
