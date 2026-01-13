@@ -1711,6 +1711,27 @@
       to { background-position: -3584px 0; } /* 28 frames × 128px */
   }
 
+  /* Animação do efeito ultimate do Vlad (sobre o inimigo) */
+  @keyframes vlad-ultimate-effect-animation {
+      from { background-position: 0 0; }
+      to { background-position: -1152px 0; } /* 8 frames × 144px */
+  }
+
+  .vlad-ultimate-effect {
+      position: fixed;
+      width: 144px;
+      height: 144px;
+      background-image: url('/static/game.data/character/vlad/ultimate/ultimate-effect.png');
+      background-size: auto 100%;
+      background-repeat: no-repeat;
+      animation: vlad-ultimate-effect-animation 0.8s steps(8) forwards;
+      pointer-events: none;
+      z-index: 127;
+      transform: scale(1.5);
+      transform-origin: bottom center;
+      image-rendering: pixelated;
+  }
+
   /* Animação de retorno do Vlad */
   @keyframes vlad-return-animation {
       from { background-position: 0 0; }

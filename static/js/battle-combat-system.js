@@ -3188,6 +3188,89 @@ function performAttack(skill) {
 
             }, 750);
 
+            // Fase 3.5: Efeito ultimate sobre o inimigo (1200ms)
+            setTimeout(() => {
+                console.log("🔮 Criando efeito ultimate sobre o boss");
+
+                // Pegar o sprite visual real do boss (não o container)
+                const bossSprite = boss.querySelector('.boss-sprite-idle');
+                let effectX, effectY;
+
+                if (bossSprite) {
+                    const spriteRect = bossSprite.getBoundingClientRect();
+                    effectX = spriteRect.left + spriteRect.width / 2;
+                    effectY = spriteRect.top + spriteRect.height; // Parte inferior do sprite
+                    console.log("📍 Usando posição do boss-sprite-idle:", effectX, effectY);
+                } else {
+                    // Fallback para o container se não encontrar o sprite
+                    effectX = endX;
+                    effectY = endY + 50;
+                    console.log("📍 Fallback para posição do container:", effectX, effectY);
+                }
+
+                // Escolher efeito baseado em blood_stacks
+                const useWeakEffect = bloodStacks <= 9;
+                console.log(`🩸 Blood stacks: ${bloodStacks}, usando efeito ${useWeakEffect ? 'weak' : 'normal'}`);
+
+                const ultimateEffect = document.createElement('div');
+
+                if (useWeakEffect) {
+                    // Efeito fraco: ultimate-effect-weak.png (8 frames, 32x128px)
+                    const frameWidth = 32;
+                    const frameHeight = 128;
+                    const frameCount = 8;
+                    const totalWidth = frameWidth * frameCount;
+                    const duration = 0.8;
+                    const scale = 1.5;
+
+                    const keyframeId = `ultimate-effect-weak-${Date.now()}`;
+                    const styleEl = document.createElement('style');
+                    styleEl.id = keyframeId;
+                    styleEl.textContent = `
+                        @keyframes ${keyframeId} {
+                            from { background-position: 0 0; }
+                            to { background-position: -${totalWidth}px 0; }
+                        }
+                    `;
+                    document.head.appendChild(styleEl);
+
+                    ultimateEffect.className = 'vlad-ultimate-effect-weak';
+                    ultimateEffect.style.cssText = `
+                        position: fixed;
+                        left: ${effectX - frameWidth / 2}px;
+                        top: ${effectY - frameHeight}px;
+                        width: ${frameWidth}px;
+                        height: ${frameHeight}px;
+                        background-image: url('/static/game.data/character/vlad/ultimate/ultimate-effect-weak.png');
+                        background-size: ${totalWidth}px ${frameHeight}px;
+                        background-repeat: no-repeat;
+                        animation: ${keyframeId} ${duration}s steps(${frameCount}) forwards;
+                        pointer-events: none;
+                        z-index: 127;
+                        transform: scale(${scale});
+                        transform-origin: bottom center;
+                        image-rendering: pixelated;
+                    `;
+
+                    setTimeout(() => {
+                        ultimateEffect.remove();
+                        const styleToRemove = document.getElementById(keyframeId);
+                        if (styleToRemove) styleToRemove.remove();
+                    }, duration * 1000 + 100);
+                } else {
+                    // Efeito normal: ultimate-effect.png (8 frames, 144x144px)
+                    ultimateEffect.className = 'vlad-ultimate-effect';
+                    ultimateEffect.style.left = `${effectX - 72}px`; // Centralizar (144/2 = 72)
+                    ultimateEffect.style.top = `${effectY - 144}px`; // Alinhar parte inferior
+
+                    setTimeout(() => {
+                        ultimateEffect.remove();
+                    }, 900);
+                }
+
+                document.body.appendChild(ultimateEffect);
+            }, 1200);
+
             // Fase 4: Aplicar dano (1400ms)
             setTimeout(() => {
                 console.log(`💥 Aplicando dano! (Tier ${tier}, ${bloodStacks} stacks)`);
@@ -3436,12 +3519,12 @@ function performAttack(skill) {
                 this.applyBossDamageEffect();
             }, 500);
 
-            // 1000ms depois: som execution.mp3 + dano
+            // 1200ms depois: som execution.mp3 + dano
             setTimeout(() => {
                 playSound(this.currentSkill.sound_effect_1, 0.8);
                 this.calculateAndApplyDamage();
                 this.damageAlreadyApplied = true;
-            }, 1000);
+            }, 1200);
 
             // Restaurar idle após animação do Vlad terminar
             // A animação 'special' tem 28 frames, 1.4s
@@ -4207,19 +4290,32 @@ function performAttack(skill) {
                 return;
             }
 
-            // Pegar posição do boss na tela
-            const bossRect = boss.getBoundingClientRect();
+            // Pegar o sprite visual real do boss (não o container)
+            const bossSprite = boss.querySelector('.boss-sprite-idle');
+            let effectX, effectY;
 
-            // Configuração do sprite: powerhiteffect-86x69-5f.png
-            const imageUrl = '/static/game.data/fx/powerhiteffect-86x69-5f.png';
-            const frameWidth = 86;
-            const frameHeight = 69;
-            const frameCount = 5;
-            const duration = 0.4; // 5 frames em 0.4s = animação rápida de impacto
-            const scale = 2.5; // Escala maior para impacto mais visível
+            if (bossSprite) {
+                const spriteRect = bossSprite.getBoundingClientRect();
+                effectX = spriteRect.left + spriteRect.width / 2;
+                effectY = spriteRect.top + spriteRect.height; // Parte inferior do sprite
+                console.log("📍 Power effect usando posição do boss-sprite-idle:", effectX, effectY);
+            } else {
+                // Fallback para o container
+                const bossRect = boss.getBoundingClientRect();
+                effectX = bossRect.left + bossRect.width / 2;
+                effectY = bossRect.top + bossRect.height;
+                console.log("📍 Power effect fallback para container:", effectX, effectY);
+            }
+
+            // Configuração do sprite: power-effect-purple-head.png (8 frames, 96x96px)
+            const imageUrl = '/static/game.data/character/vlad/power/power-effect-purple-head.png';
+            const frameWidth = 96;
+            const frameHeight = 96;
+            const frameCount = 8;
+            const duration = 0.8; // 8 frames em 0.8s
+            const scale = 1.5;
 
             const totalWidth = frameWidth * frameCount;
-            const scaledWidth = frameWidth * scale;
 
             // Criar keyframes dinamicamente
             const keyframeId = `power-hit-fx-${Date.now()}`;
@@ -4233,20 +4329,18 @@ function performAttack(skill) {
             `;
             document.head.appendChild(styleEl);
 
-            // Posição centralizada sobre o boss (position: fixed no body)
-            const centerX = bossRect.left + bossRect.width / 2 - scaledWidth / 2;
-            const topY = bossRect.top;
+            // Posição: centralizado horizontalmente, parte inferior alinhada com o inimigo
+            // Usar tamanho original porque transform: scale() expande a partir do transform-origin
+            const centerX = effectX - frameWidth / 2;
+            const topY = effectY - frameHeight; // Parte inferior alinhada
 
-            // Criar elemento da sprite animation no BODY (não no boss)
-            // Isso garante z-index global acima de projéteis e outros efeitos
+            // Criar elemento da sprite animation no BODY
             const spriteLayer = document.createElement('div');
-            spriteLayer.className = 'boss-power-hit-layer';
+            spriteLayer.className = 'vlad-power-hit-effect';
             spriteLayer.style.cssText = `
                 position: fixed;
                 top: ${topY}px;
                 left: ${centerX}px;
-                transform: scale(${scale});
-                transform-origin: top left;
                 width: ${frameWidth}px;
                 height: ${frameHeight}px;
                 background-image: url("${imageUrl}");
@@ -4257,11 +4351,13 @@ function performAttack(skill) {
                 pointer-events: none;
                 z-index: 9999;
                 image-rendering: pixelated;
+                transform: scale(${scale});
+                transform-origin: bottom center;
                 animation: ${keyframeId} ${duration}s steps(${frameCount}) forwards;
             `;
 
             document.body.appendChild(spriteLayer);
-            console.log(`✅ Power Hit Effect adicionado ao body (z-index: 9999)`);
+            console.log(`✅ Power Hit Effect (purple) adicionado ao body`);
 
             // Remover após animação
             setTimeout(() => {
@@ -4966,7 +5062,7 @@ function saveBossDamage(skill, damage, isCritical) {
                     battleMessage.classList.remove('visible');
                 }
 
-                // Chamar animação de morte do boss, passando informações sobre memória
+                // Chamar animação de morte do boss
                 handleBossDeathAnimation(data.has_memory_reward, data.enemy_rarity);
             }
         } else {
