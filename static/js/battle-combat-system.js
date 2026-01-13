@@ -4261,7 +4261,7 @@ function performAttack(skill) {
             const frameWidth = 32;
             const frameHeight = 128;
             const frameCount = 17;
-            const duration = 1.2; // 17 frames em 1.2s
+            const duration = 0.7; // 17 frames em 0.7s
             const scale = 2.0;
 
             const totalWidth = frameWidth * frameCount;
