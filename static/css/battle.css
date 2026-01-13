@@ -1727,6 +1727,8 @@
       animation: vlad-ultimate-effect-animation 0.8s steps(8) forwards;
       pointer-events: none;
       z-index: 127;
+      transform: scale(1.5);
+      transform-origin: bottom center;
   }
 
   /* Animação de retorno do Vlad */
