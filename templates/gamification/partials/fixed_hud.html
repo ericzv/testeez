@@ -54,6 +54,23 @@
 
 </div>
 
+<!-- HUD INFERIOR - FAIXA DECORATIVA (estilo do top) -->
+<div class="fixed-hud-bar-bottom" id="fixed-hud-bar-bottom">
+  <!-- Borda SVG superior (mesma do top, invertida) -->
+  <svg class="hud-bar-bottom-border" viewBox="0 0 1920 8" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="goldBorderGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" style="stop-color:rgba(139, 105, 20, 0.5)"/>
+        <stop offset="15%" style="stop-color:#B8860B"/>
+        <stop offset="50%" style="stop-color:#FFD700"/>
+        <stop offset="85%" style="stop-color:#B8860B"/>
+        <stop offset="100%" style="stop-color:rgba(139, 105, 20, 0.5)"/>
+      </linearGradient>
+    </defs>
+    <rect x="0" y="0" width="1920" height="2" fill="url(#goldBorderGradient)"/>
+  </svg>
+</div>
+
 <!-- HUD INFERIOR - 5 SEÇÕES (3 grupos: esquerda, centro, direita) -->
 <div class="fixed-hud-bottom" id="fixed-hud-bottom">
 

@@ -807,6 +807,48 @@ body.has-fixed-hud .battle-arena {
 }
 
 /* ============================================== */
+/* HUD INFERIOR - FAIXA DECORATIVA (estilo do top) */
+/* ============================================== */
+.fixed-hud-bar-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20vh; /* 20% da altura da viewport */
+  z-index: 900; /* Menor que hud-section-1 e hud-section-3 */
+  pointer-events: none; /* Click-through */
+
+  /* Fundo com textura - igual ao top */
+  background:
+    linear-gradient(90deg,
+      rgba(20, 15, 10, 0.92) 0%,
+      rgba(30, 22, 15, 0.88) 50%,
+      rgba(20, 15, 10, 0.92) 100%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 2px,
+      rgba(255, 215, 0, 0.03) 2px,
+      rgba(255, 215, 0, 0.03) 4px
+    );
+
+  box-shadow:
+    0 -2px 10px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 215, 0, 0.1);
+}
+
+/* Borda SVG no topo da faixa */
+.hud-bar-bottom-border {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  pointer-events: none;
+}
+
+/* ============================================== */
 /* HUD INFERIOR - 5 SEÇÕES (TAMANHO FIXO) */
 /* ============================================== */
 .fixed-hud-bottom {
@@ -852,13 +894,14 @@ body.has-fixed-hud .battle-arena {
   gap: 0; /* Seções coladas */
   height: 100%;
   pointer-events: none;
+  z-index: 1001; /* Acima da faixa decorativa inferior */
 }
 
 .hud-group-left > * {
   pointer-events: auto;
 }
 
-/* Grupo central (seção 3) - centralizado, baixo z-index, transparente */
+/* Grupo central (seção 3) - centralizado, acima da faixa decorativa */
 .hud-group-center {
   position: absolute;
   left: 50%;
@@ -869,7 +912,7 @@ body.has-fixed-hud .battle-arena {
   justify-content: center;
   height: 100%;
   pointer-events: none; /* Click-through */
-  z-index: -1; /* Atrás das outras seções */
+  z-index: 1001; /* Acima da faixa decorativa inferior */
   opacity: 1;
 }
 
@@ -926,6 +969,7 @@ body.has-fixed-hud .battle-arena {
   transform: scale(var(--hud-section-1-scale)) translateY(var(--hud-section-1-offset-y));
   transform-origin: bottom left; /* Ancora na esquerda */
   overflow: visible;
+  z-index: 1001; /* Acima da faixa decorativa inferior */
 }
 
 .hud-section-1::before {
@@ -1146,7 +1190,7 @@ body.has-fixed-hud .battle-arena {
   gap: 40px;
   transform: scale(var(--hud-section-3-scale)) translateY(var(--hud-section-3-offset-y));
   transform-origin: bottom center;
-  z-index: -1; /* Atrás de tudo */
+  z-index: 1001; /* Acima da faixa decorativa inferior */
   pointer-events: none; /* Click-through */
 }
 
