@@ -814,7 +814,7 @@ body.has-fixed-hud .battle-arena {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 25vh; /* 25% da altura da viewport */
+  height: 22vh; /* 22% da altura da viewport */
   z-index: 1; /* Bem baixo para ficar atrás de tudo exceto o fundo */
   pointer-events: none; /* Click-through */
 
