@@ -880,54 +880,55 @@ body.has-fixed-hud .battle-arena {
   pointer-events: none;
 }
 
-/* Faíscas douradas individuais */
-.sparkle {
+/* Poeira/Cinzas - pontinhos claros subindo lentamente */
+.dust {
   position: absolute;
-  bottom: 10%;
-  width: 3px;
-  height: 3px;
-  background: radial-gradient(circle, #FFD700 0%, #B8860B 50%, transparent 70%);
-  border-radius: 50%;
-  opacity: 0;
-  animation: sparkle-float 4s ease-in-out infinite;
-  box-shadow:
-    0 0 4px #FFD700,
-    0 0 8px rgba(255, 215, 0, 0.6),
-    0 0 12px rgba(184, 134, 11, 0.4);
-}
-
-/* Variações de tamanho para algumas faíscas */
-.sparkle:nth-child(2n) {
+  bottom: 5%;
   width: 2px;
   height: 2px;
+  background: rgba(200, 190, 170, 0.6);
+  border-radius: 50%;
+  opacity: 0;
+  animation: dust-rise 12s linear infinite;
 }
 
-.sparkle:nth-child(3n) {
-  width: 4px;
-  height: 4px;
+/* Variações de tamanho e cor */
+.dust:nth-child(2n) {
+  width: 1px;
+  height: 1px;
+  background: rgba(180, 170, 150, 0.5);
 }
 
-/* Animação de flutuar e brilhar */
-@keyframes sparkle-float {
+.dust:nth-child(3n) {
+  width: 3px;
+  height: 3px;
+  background: rgba(220, 210, 190, 0.4);
+}
+
+.dust:nth-child(5n) {
+  animation-duration: 15s;
+}
+
+.dust:nth-child(7n) {
+  animation-duration: 10s;
+}
+
+/* Animação lenta de subir e desaparecer */
+@keyframes dust-rise {
   0% {
     opacity: 0;
-    transform: translateY(0) scale(0.5);
+    transform: translateY(0) translateX(0);
   }
-  10% {
-    opacity: 1;
-    transform: translateY(-5px) scale(1);
+  5% {
+    opacity: 0.5;
   }
   50% {
-    opacity: 0.8;
-    transform: translateY(-30px) scale(0.9);
-  }
-  80% {
     opacity: 0.4;
-    transform: translateY(-50px) scale(0.7);
+    transform: translateY(-60px) translateX(5px);
   }
   100% {
     opacity: 0;
-    transform: translateY(-70px) scale(0.3);
+    transform: translateY(-120px) translateX(-3px);
   }
 }
 
