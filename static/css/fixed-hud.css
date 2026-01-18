@@ -818,39 +818,24 @@ body.has-fixed-hud .battle-arena {
   z-index: 1; /* Bem baixo para ficar atrás de tudo exceto o fundo */
   pointer-events: none; /* Click-through */
 
-  /* Fundo com múltiplas camadas */
+  /* Fundo sólido com gradiente visível */
   background:
-    /* 1. Vinheta - escurece os cantos */
+    /* Gradiente principal - centro marrom claro, bordas escuras */
     radial-gradient(
-      ellipse 70% 80% at 50% 100%,
-      transparent 0%,
-      transparent 30%,
-      rgba(0, 0, 0, 0.7) 100%
+      ellipse 100% 150% at 50% 0%,
+      rgb(65, 50, 32) 0%,
+      rgb(45, 35, 22) 30%,
+      rgb(25, 20, 12) 60%,
+      rgb(12, 10, 6) 100%
     ),
-    /* 2. Gradiente vertical - claro em cima, escuro embaixo */
-    linear-gradient(180deg,
-      rgba(60, 45, 30, 0.9) 0%,
-      rgba(35, 28, 18, 0.95) 40%,
-      rgba(12, 10, 6, 1) 100%
-    ),
-    /* 3. Gradiente horizontal - centro iluminado */
-    linear-gradient(90deg,
-      rgba(8, 6, 4, 1) 0%,
-      rgba(55, 42, 25, 0.9) 30%,
-      rgba(70, 55, 35, 0.85) 50%,
-      rgba(55, 42, 25, 0.9) 70%,
-      rgba(8, 6, 4, 1) 100%
-    ),
-    /* 4. Textura dourada sutil */
+    /* Textura dourada sutil */
     repeating-linear-gradient(
       90deg,
       transparent 0px,
       transparent 2px,
-      rgba(255, 215, 0, 0.04) 2px,
-      rgba(255, 215, 0, 0.04) 4px
-    ),
-    /* 5. Cor base */
-    rgb(15, 12, 8);
+      rgba(255, 215, 0, 0.06) 2px,
+      rgba(255, 215, 0, 0.06) 4px
+    );
 
   /* Borda dupla dourada */
   border-top: 3px solid;
