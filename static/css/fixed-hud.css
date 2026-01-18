@@ -818,13 +818,27 @@ body.has-fixed-hud .battle-arena {
   z-index: 1; /* Bem baixo para ficar atrás de tudo exceto o fundo */
   pointer-events: none; /* Click-through */
 
-  /* Fundo com textura */
+  /* Fundo com múltiplas camadas */
   background:
-    linear-gradient(90deg,
-      rgba(10, 8, 5, 0.98) 0%,
-      rgba(35, 28, 18, 0.92) 50%,
-      rgba(10, 8, 5, 0.98) 100%
+    /* 1. Vinheta - escurece os cantos */
+    radial-gradient(
+      ellipse 80% 100% at 50% 100%,
+      transparent 0%,
+      transparent 40%,
+      rgba(0, 0, 0, 0.4) 100%
     ),
+    /* 2. Gradiente vertical - mais escuro embaixo */
+    linear-gradient(180deg,
+      rgba(25, 20, 15, 0.7) 0%,
+      rgba(8, 6, 4, 0.95) 100%
+    ),
+    /* 3. Gradiente horizontal - bordas mais escuras */
+    linear-gradient(90deg,
+      rgba(5, 4, 3, 0.98) 0%,
+      rgba(40, 32, 20, 0.85) 50%,
+      rgba(5, 4, 3, 0.98) 100%
+    ),
+    /* 4. Textura dourada sutil */
     repeating-linear-gradient(
       90deg,
       transparent 0px,
@@ -833,19 +847,26 @@ body.has-fixed-hud .battle-arena {
       rgba(255, 215, 0, 0.05) 4px
     );
 
-  /* Borda superior dourada (igual ao HUD top) */
-  border-top: 2px solid;
+  /* Borda dupla dourada */
+  border-top: 3px solid;
   border-image: linear-gradient(90deg,
-    rgba(139, 105, 20, 0.5) 0%,
-    var(--gold-dark) 15%,
+    rgba(139, 105, 20, 0.3) 0%,
+    var(--gold-dark) 10%,
     var(--gold-primary) 50%,
-    var(--gold-dark) 85%,
-    rgba(139, 105, 20, 0.5) 100%
+    var(--gold-dark) 90%,
+    rgba(139, 105, 20, 0.3) 100%
   ) 1;
 
   box-shadow:
-    0 -2px 10px rgba(0, 0, 0, 0.8),
-    inset 0 1px 0 rgba(255, 215, 0, 0.15);
+    /* Sombra externa para cima */
+    0 -4px 15px rgba(0, 0, 0, 0.9),
+    /* Segunda borda dourada (interna) */
+    inset 0 2px 0 rgba(184, 134, 11, 0.4),
+    /* Terceira borda (linha fina dourada) */
+    inset 0 6px 0 rgba(0, 0, 0, 0.5),
+    inset 0 7px 0 rgba(255, 215, 0, 0.2),
+    /* Brilho interno sutil */
+    inset 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 /* Borda SVG no topo da faixa */
