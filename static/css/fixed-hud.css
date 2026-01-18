@@ -883,7 +883,6 @@ body.has-fixed-hud .battle-arena {
 /* Poeira/Cinzas - pontinhos claros subindo lentamente */
 .dust {
   position: absolute;
-  bottom: 5%;
   width: 2px;
   height: 2px;
   background: rgba(200, 190, 170, 0.6);
@@ -902,14 +901,6 @@ body.has-fixed-hud .battle-arena {
   width: 3px;
   height: 3px;
   background: rgba(220, 210, 190, 0.4);
-}
-
-.dust:nth-child(4n) {
-  bottom: 8%;
-}
-
-.dust:nth-child(5n) {
-  bottom: 3%;
 }
 
 /* Padrão A - deriva para direita */
@@ -934,88 +925,79 @@ body.has-fixed-hud .battle-arena {
 .dust:nth-child(9n).drift-a { animation-duration: 15s; }
 .dust:nth-child(10n).drift-b { animation-duration: 19s; }
 
-/* Animação A - sobe derivando para direita */
+/* Animação A - sobe derivando para direita (movimento menor e difuso) */
 @keyframes dust-drift-a {
   0% {
-    opacity: 0;
+    opacity: 0.4;
     transform: translateY(0) translateX(0);
   }
-  8% {
+  25% {
     opacity: 0.5;
-  }
-  25% {
-    opacity: 0.45;
-    transform: translateY(-30px) translateX(8px);
-  }
-  50% {
-    opacity: 0.4;
-    transform: translateY(-65px) translateX(4px);
-  }
-  75% {
-    opacity: 0.25;
-    transform: translateY(-95px) translateX(12px);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-130px) translateX(6px);
-  }
-}
-
-/* Animação B - sobe derivando para esquerda */
-@keyframes dust-drift-b {
-  0% {
-    opacity: 0;
-    transform: translateY(0) translateX(0);
-  }
-  8% {
-    opacity: 0.45;
-  }
-  25% {
-    opacity: 0.4;
-    transform: translateY(-35px) translateX(-6px);
+    transform: translateY(-15px) translateX(12px);
   }
   50% {
     opacity: 0.35;
-    transform: translateY(-70px) translateX(-12px);
+    transform: translateY(-35px) translateX(-5px);
   }
   75% {
-    opacity: 0.2;
-    transform: translateY(-100px) translateX(-5px);
+    opacity: 0.45;
+    transform: translateY(-55px) translateX(8px);
   }
   100% {
-    opacity: 0;
-    transform: translateY(-135px) translateX(-10px);
+    opacity: 0.4;
+    transform: translateY(-75px) translateX(-2px);
   }
 }
 
-/* Animação C - sobe com zigue-zague suave */
-@keyframes dust-drift-c {
+/* Animação B - sobe derivando para esquerda (movimento menor e difuso) */
+@keyframes dust-drift-b {
   0% {
-    opacity: 0;
+    opacity: 0.35;
     transform: translateY(0) translateX(0);
   }
-  8% {
-    opacity: 0.5;
-  }
-  20% {
+  25% {
     opacity: 0.45;
-    transform: translateY(-25px) translateX(10px);
+    transform: translateY(-20px) translateX(-10px);
   }
-  40% {
-    opacity: 0.4;
-    transform: translateY(-55px) translateX(-8px);
-  }
-  60% {
+  50% {
     opacity: 0.3;
-    transform: translateY(-85px) translateX(6px);
+    transform: translateY(-40px) translateX(3px);
   }
-  80% {
-    opacity: 0.15;
-    transform: translateY(-110px) translateX(-4px);
+  75% {
+    opacity: 0.5;
+    transform: translateY(-60px) translateX(-8px);
   }
   100% {
-    opacity: 0;
-    transform: translateY(-140px) translateX(3px);
+    opacity: 0.35;
+    transform: translateY(-80px) translateX(5px);
+  }
+}
+
+/* Animação C - zigue-zague suave (movimento menor e difuso) */
+@keyframes dust-drift-c {
+  0% {
+    opacity: 0.45;
+    transform: translateY(0) translateX(0);
+  }
+  20% {
+    opacity: 0.35;
+    transform: translateY(-12px) translateX(15px);
+  }
+  40% {
+    opacity: 0.5;
+    transform: translateY(-28px) translateX(-10px);
+  }
+  60% {
+    opacity: 0.4;
+    transform: translateY(-45px) translateX(8px);
+  }
+  80% {
+    opacity: 0.3;
+    transform: translateY(-62px) translateX(-12px);
+  }
+  100% {
+    opacity: 0.45;
+    transform: translateY(-78px) translateX(4px);
   }
 }
 
