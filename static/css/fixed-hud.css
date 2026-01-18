@@ -807,6 +807,201 @@ body.has-fixed-hud .battle-arena {
 }
 
 /* ============================================== */
+/* HUD INFERIOR - FAIXA DECORATIVA (estilo do top) */
+/* ============================================== */
+.fixed-hud-bar-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 24vh; /* 24% da altura da viewport */
+  z-index: 1; /* Bem baixo para ficar atrás de tudo exceto o fundo */
+  pointer-events: none; /* Click-through */
+
+  /* Fundo sólido com gradiente visível */
+  background:
+    /* Gradiente principal - centro marrom claro, bordas escuras */
+    radial-gradient(
+      ellipse 100% 150% at 50% 0%,
+      rgb(65, 50, 32) 0%,
+      rgb(45, 35, 22) 30%,
+      rgb(25, 20, 12) 60%,
+      rgb(12, 10, 6) 100%
+    ),
+    /* Textura dourada sutil */
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 2px,
+      rgba(255, 215, 0, 0.06) 2px,
+      rgba(255, 215, 0, 0.06) 4px
+    );
+
+  /* Borda dupla dourada */
+  border-top: 3px solid;
+  border-image: linear-gradient(90deg,
+    rgba(139, 105, 20, 0.3) 0%,
+    var(--gold-dark) 10%,
+    var(--gold-primary) 50%,
+    var(--gold-dark) 90%,
+    rgba(139, 105, 20, 0.3) 100%
+  ) 1;
+
+  box-shadow:
+    /* Sombra externa para cima */
+    0 -4px 15px rgba(0, 0, 0, 0.9),
+    /* Segunda borda dourada (interna) */
+    inset 0 2px 0 rgba(184, 134, 11, 0.4),
+    /* Terceira borda (linha fina dourada) */
+    inset 0 6px 0 rgba(0, 0, 0, 0.5),
+    inset 0 7px 0 rgba(255, 215, 0, 0.2),
+    /* Brilho interno sutil */
+    inset 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Borda SVG no topo da faixa */
+.hud-bar-bottom-border {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  pointer-events: none;
+}
+
+/* Container de partículas */
+.hud-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Poeira/Cinzas - pontinhos claros subindo lentamente */
+.dust {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: rgba(200, 190, 170, 0.6);
+  border-radius: 50%;
+  opacity: 0;
+}
+
+/* Variações de tamanho e cor */
+.dust:nth-child(2n) {
+  width: 1px;
+  height: 1px;
+  background: rgba(180, 170, 150, 0.5);
+}
+
+.dust:nth-child(3n) {
+  width: 3px;
+  height: 3px;
+  background: rgba(220, 210, 190, 0.4);
+}
+
+/* Padrão A - deriva para direita */
+.dust.drift-a {
+  animation: dust-drift-a 14s linear infinite;
+}
+
+/* Padrão B - deriva para esquerda */
+.dust.drift-b {
+  animation: dust-drift-b 16s linear infinite;
+}
+
+/* Padrão C - zigue-zague suave */
+.dust.drift-c {
+  animation: dust-drift-c 18s linear infinite;
+}
+
+/* Variações de velocidade */
+.dust:nth-child(6n).drift-a { animation-duration: 17s; }
+.dust:nth-child(7n).drift-b { animation-duration: 13s; }
+.dust:nth-child(8n).drift-c { animation-duration: 20s; }
+.dust:nth-child(9n).drift-a { animation-duration: 15s; }
+.dust:nth-child(10n).drift-b { animation-duration: 19s; }
+
+/* Animação A - sobe derivando para direita (movimento menor e difuso) */
+@keyframes dust-drift-a {
+  0% {
+    opacity: 0.4;
+    transform: translateY(0) translateX(0);
+  }
+  25% {
+    opacity: 0.5;
+    transform: translateY(-15px) translateX(12px);
+  }
+  50% {
+    opacity: 0.35;
+    transform: translateY(-35px) translateX(-5px);
+  }
+  75% {
+    opacity: 0.45;
+    transform: translateY(-55px) translateX(8px);
+  }
+  100% {
+    opacity: 0.4;
+    transform: translateY(-75px) translateX(-2px);
+  }
+}
+
+/* Animação B - sobe derivando para esquerda (movimento menor e difuso) */
+@keyframes dust-drift-b {
+  0% {
+    opacity: 0.35;
+    transform: translateY(0) translateX(0);
+  }
+  25% {
+    opacity: 0.45;
+    transform: translateY(-20px) translateX(-10px);
+  }
+  50% {
+    opacity: 0.3;
+    transform: translateY(-40px) translateX(3px);
+  }
+  75% {
+    opacity: 0.5;
+    transform: translateY(-60px) translateX(-8px);
+  }
+  100% {
+    opacity: 0.35;
+    transform: translateY(-80px) translateX(5px);
+  }
+}
+
+/* Animação C - zigue-zague suave (movimento menor e difuso) */
+@keyframes dust-drift-c {
+  0% {
+    opacity: 0.45;
+    transform: translateY(0) translateX(0);
+  }
+  20% {
+    opacity: 0.35;
+    transform: translateY(-12px) translateX(15px);
+  }
+  40% {
+    opacity: 0.5;
+    transform: translateY(-28px) translateX(-10px);
+  }
+  60% {
+    opacity: 0.4;
+    transform: translateY(-45px) translateX(8px);
+  }
+  80% {
+    opacity: 0.3;
+    transform: translateY(-62px) translateX(-12px);
+  }
+  100% {
+    opacity: 0.45;
+    transform: translateY(-78px) translateX(4px);
+  }
+}
+
+/* ============================================== */
 /* HUD INFERIOR - 5 SEÇÕES (TAMANHO FIXO) */
 /* ============================================== */
 .fixed-hud-bottom {
@@ -852,13 +1047,14 @@ body.has-fixed-hud .battle-arena {
   gap: 0; /* Seções coladas */
   height: 100%;
   pointer-events: none;
+  z-index: 1001; /* Acima da faixa decorativa inferior */
 }
 
 .hud-group-left > * {
   pointer-events: auto;
 }
 
-/* Grupo central (seção 3) - centralizado, baixo z-index, transparente */
+/* Grupo central (seção 3) - centralizado, acima da faixa decorativa */
 .hud-group-center {
   position: absolute;
   left: 50%;
@@ -869,7 +1065,7 @@ body.has-fixed-hud .battle-arena {
   justify-content: center;
   height: 100%;
   pointer-events: none; /* Click-through */
-  z-index: -1; /* Atrás das outras seções */
+  z-index: 1001; /* Acima da faixa decorativa inferior */
   opacity: 1;
 }
 
@@ -926,6 +1122,7 @@ body.has-fixed-hud .battle-arena {
   transform: scale(var(--hud-section-1-scale)) translateY(var(--hud-section-1-offset-y));
   transform-origin: bottom left; /* Ancora na esquerda */
   overflow: visible;
+  z-index: 1001; /* Acima da faixa decorativa inferior */
 }
 
 .hud-section-1::before {
@@ -963,7 +1160,7 @@ body.has-fixed-hud .battle-arena {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('/static/game.data/hud/hud1.png');
+  /* background-image: url('/static/game.data/hud/hud1.png'); */ /* Removido */
   background-size: cover;
   background-repeat: no-repeat;
   background-position: bottom center;
@@ -1146,7 +1343,7 @@ body.has-fixed-hud .battle-arena {
   gap: 40px;
   transform: scale(var(--hud-section-3-scale)) translateY(var(--hud-section-3-offset-y));
   transform-origin: bottom center;
-  z-index: -1; /* Atrás de tudo */
+  z-index: 1001; /* Acima da faixa decorativa inferior */
   pointer-events: none; /* Click-through */
 }
 
@@ -1157,7 +1354,7 @@ body.has-fixed-hud .battle-arena {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('/static/game.data/hud/hud2.png');
+  /* background-image: url('/static/game.data/hud/hud2.png'); */ /* Removido */
   background-size: cover;
   background-repeat: no-repeat;
   background-position: bottom center;
@@ -1184,7 +1381,7 @@ body.has-fixed-hud .battle-arena {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('/static/game.data/hud/hud3.png');
+  /* background-image: url('/static/game.data/hud/hud3.png'); */ /* Removido */
   background-size: cover;
   background-repeat: no-repeat;
   background-position: bottom center;
