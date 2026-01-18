@@ -889,7 +889,6 @@ body.has-fixed-hud .battle-arena {
   background: rgba(200, 190, 170, 0.6);
   border-radius: 50%;
   opacity: 0;
-  animation: dust-rise 12s linear infinite;
 }
 
 /* Variações de tamanho e cor */
@@ -905,30 +904,118 @@ body.has-fixed-hud .battle-arena {
   background: rgba(220, 210, 190, 0.4);
 }
 
+.dust:nth-child(4n) {
+  bottom: 8%;
+}
+
 .dust:nth-child(5n) {
-  animation-duration: 15s;
+  bottom: 3%;
 }
 
-.dust:nth-child(7n) {
-  animation-duration: 10s;
+/* Padrão A - deriva para direita */
+.dust.drift-a {
+  animation: dust-drift-a 14s linear infinite;
 }
 
-/* Animação lenta de subir e desaparecer */
-@keyframes dust-rise {
+/* Padrão B - deriva para esquerda */
+.dust.drift-b {
+  animation: dust-drift-b 16s linear infinite;
+}
+
+/* Padrão C - zigue-zague suave */
+.dust.drift-c {
+  animation: dust-drift-c 18s linear infinite;
+}
+
+/* Variações de velocidade */
+.dust:nth-child(6n).drift-a { animation-duration: 17s; }
+.dust:nth-child(7n).drift-b { animation-duration: 13s; }
+.dust:nth-child(8n).drift-c { animation-duration: 20s; }
+.dust:nth-child(9n).drift-a { animation-duration: 15s; }
+.dust:nth-child(10n).drift-b { animation-duration: 19s; }
+
+/* Animação A - sobe derivando para direita */
+@keyframes dust-drift-a {
   0% {
     opacity: 0;
     transform: translateY(0) translateX(0);
   }
-  5% {
+  8% {
     opacity: 0.5;
+  }
+  25% {
+    opacity: 0.45;
+    transform: translateY(-30px) translateX(8px);
   }
   50% {
     opacity: 0.4;
-    transform: translateY(-60px) translateX(5px);
+    transform: translateY(-65px) translateX(4px);
+  }
+  75% {
+    opacity: 0.25;
+    transform: translateY(-95px) translateX(12px);
   }
   100% {
     opacity: 0;
-    transform: translateY(-120px) translateX(-3px);
+    transform: translateY(-130px) translateX(6px);
+  }
+}
+
+/* Animação B - sobe derivando para esquerda */
+@keyframes dust-drift-b {
+  0% {
+    opacity: 0;
+    transform: translateY(0) translateX(0);
+  }
+  8% {
+    opacity: 0.45;
+  }
+  25% {
+    opacity: 0.4;
+    transform: translateY(-35px) translateX(-6px);
+  }
+  50% {
+    opacity: 0.35;
+    transform: translateY(-70px) translateX(-12px);
+  }
+  75% {
+    opacity: 0.2;
+    transform: translateY(-100px) translateX(-5px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-135px) translateX(-10px);
+  }
+}
+
+/* Animação C - sobe com zigue-zague suave */
+@keyframes dust-drift-c {
+  0% {
+    opacity: 0;
+    transform: translateY(0) translateX(0);
+  }
+  8% {
+    opacity: 0.5;
+  }
+  20% {
+    opacity: 0.45;
+    transform: translateY(-25px) translateX(10px);
+  }
+  40% {
+    opacity: 0.4;
+    transform: translateY(-55px) translateX(-8px);
+  }
+  60% {
+    opacity: 0.3;
+    transform: translateY(-85px) translateX(6px);
+  }
+  80% {
+    opacity: 0.15;
+    transform: translateY(-110px) translateX(-4px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-140px) translateX(3px);
   }
 }
 
