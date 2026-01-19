@@ -859,6 +859,78 @@ body.has-fixed-hud .battle-arena {
     inset 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
+/* ============================================== */
+/* CÍRCULOS CONCÊNTRICOS DECORATIVOS            */
+/* ============================================== */
+
+/* Container dos círculos - centralizado na parte inferior do HUD */
+.hud-concentric-circles {
+  position: absolute;
+  bottom: -50%;  /* Metade para baixo, metade visível */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 400px;
+  height: 400px;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.6;
+}
+
+/* Anel externo - rotação sentido horário */
+.hud-concentric-circles::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 50%;
+  border: 2px dashed rgba(184, 134, 11, 0.5);
+  animation: hudCircleRotate 25s linear infinite;
+}
+
+/* Anel interno - rotação sentido anti-horário */
+.hud-concentric-circles::after {
+  content: '';
+  position: absolute;
+  top: 40px; left: 40px; right: 40px; bottom: 40px;
+  border-radius: 50%;
+  border-top: 2px solid rgba(255, 215, 0, 0.4);
+  border-bottom: 2px solid rgba(255, 215, 0, 0.4);
+  border-left: 2px solid transparent;
+  border-right: 2px solid transparent;
+  animation: hudCircleRotateReverse 15s linear infinite;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
+}
+
+/* Anel intermediário (via elemento filho) */
+.hud-concentric-circles .circle-mid {
+  position: absolute;
+  top: 80px; left: 80px; right: 80px; bottom: 80px;
+  border-radius: 50%;
+  border: 1px solid rgba(184, 134, 11, 0.3);
+  animation: hudCircleRotate 20s linear infinite;
+}
+
+/* Anel mais interno */
+.hud-concentric-circles .circle-inner {
+  position: absolute;
+  top: 120px; left: 120px; right: 120px; bottom: 120px;
+  border-radius: 50%;
+  border: 1px dashed rgba(255, 215, 0, 0.25);
+  animation: hudCircleRotateReverse 30s linear infinite;
+}
+
+/* Animações de rotação */
+@keyframes hudCircleRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes hudCircleRotateReverse {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* ============================================== */
+
 /* Borda SVG no topo da faixa */
 .hud-bar-bottom-border {
   position: absolute;
