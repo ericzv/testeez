@@ -523,12 +523,12 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 36px;
-  height: 36px;
+  width: 52px;
+  height: 52px;
   z-index: 100;
   pointer-events: none;
   transition: opacity 0.2s ease, transform 0.3s ease;
-  opacity: 0.8;
+  opacity: 1;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1051,18 +1051,18 @@
   box-shadow: 0 0 10px rgba(0, 100, 200, 0.2);
 }
 
-/* Símbolo Central - Olho Arcano */
+/* Símbolo Central - Estrela Mágica */
 .fast-specials-main .center-symbol {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 36px;
-  height: 36px;
+  width: 52px;
+  height: 52px;
   z-index: 100;
   pointer-events: none;
   transition: opacity 0.2s ease, transform 0.3s ease;
-  opacity: 0.8;
+  opacity: 1;
   display: flex;
   justify-content: center;
   align-items: center;
