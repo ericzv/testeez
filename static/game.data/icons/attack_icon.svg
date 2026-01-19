@@ -28,7 +28,7 @@
 
   <!-- Guarda da espada (horizontal) -->
   <rect x="20" y="44" width="24" height="5" rx="2"
-        fill="#8B0000" stroke="#5C0000" stroke-width="1"/>
+        fill="#4A3728" stroke="#2D1A0C" stroke-width="1"/>
 
   <!-- Detalhe dourado na guarda -->
   <rect x="22" y="45.5" width="20" height="2" rx="1" fill="#DAA520"/>
@@ -39,8 +39,4 @@
 
   <!-- Pomo (base do cabo) -->
   <circle cx="32" cy="60" r="3" fill="#DAA520" stroke="#B8860B" stroke-width="1"/>
-
-  <!-- Efeito de impacto/energia -->
-  <circle cx="32" cy="26" r="8" fill="none" stroke="#FF4444" stroke-width="1" opacity="0.4"/>
-  <circle cx="32" cy="26" r="12" fill="none" stroke="#FF6666" stroke-width="0.5" opacity="0.3"/>
 </svg>
