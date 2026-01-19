@@ -819,22 +819,31 @@ body.has-fixed-hud .battle-arena {
   pointer-events: none; /* Click-through */
 
   /* Fundo sólido com gradiente visível */
-  background:
+  background-color: rgb(20, 16, 10);
+  background-image:
     /* Gradiente principal - centro marrom claro, bordas escuras */
     radial-gradient(
       ellipse 100% 150% at 50% 0%,
-      rgb(65, 50, 32) 0%,
-      rgb(45, 35, 22) 30%,
-      rgb(25, 20, 12) 60%,
-      rgb(12, 10, 6) 100%
+      rgba(65, 50, 32, 0.9) 0%,
+      rgba(45, 35, 22, 0.9) 30%,
+      rgba(25, 20, 12, 0.9) 60%,
+      rgba(12, 10, 6, 0.9) 100%
+    ),
+    /* Padrão de círculos concêntricos estáticos (centralizado embaixo) */
+    repeating-radial-gradient(
+      circle at 50% 100%,
+      rgb(20, 16, 10) 0,
+      rgb(20, 16, 10) 3px,
+      rgb(28, 22, 14) 4px,
+      rgb(28, 22, 14) 5px
     ),
     /* Textura dourada sutil */
     repeating-linear-gradient(
       90deg,
       transparent 0px,
       transparent 2px,
-      rgba(255, 215, 0, 0.06) 2px,
-      rgba(255, 215, 0, 0.06) 4px
+      rgba(255, 215, 0, 0.04) 2px,
+      rgba(255, 215, 0, 0.04) 4px
     );
 
   /* Borda dupla dourada */
@@ -873,7 +882,7 @@ body.has-fixed-hud .battle-arena {
   height: 400px;
   pointer-events: none;
   z-index: 2;
-  opacity: 0.6;
+  opacity: 0.3;
 }
 
 /* Anel externo - rotação sentido horário */
