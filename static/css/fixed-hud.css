@@ -876,11 +876,12 @@ body.has-fixed-hud .battle-arena {
   opacity: 0.2;
   border-radius: 50%;
   background-color: #1a1410;
-  background-image: repeating-radial-gradient(
-    #1a1410 0,
-    #1a1410 6px,
-    #241c14 8px,
-    #241c14 10px
+  background-image: repeating-conic-gradient(
+    from 0deg at 50% 100%,
+    transparent 0deg,
+    transparent 2deg,
+    rgba(36, 28, 20, 0.15) 2deg,
+    rgba(36, 28, 20, 0.15) 4deg
   );
 }
 
