@@ -876,13 +876,21 @@ body.has-fixed-hud .battle-arena {
   opacity: 0.6;
   border-radius: 50%;
   background-color: transparent;
-  background-image: repeating-conic-gradient(
-    from 0deg at 50% 100%,
-    transparent 0deg,
-    transparent 2deg,
-    rgba(60, 45, 30, 0.5) 2deg,
-    rgba(60, 45, 30, 0.5) 4deg
-  );
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      transparent 0,
+      transparent 10px,
+      rgba(36, 28, 20, 0.2) 10px,
+      rgba(36, 28, 20, 0.2) 12px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent 0,
+      transparent 10px,
+      rgba(36, 28, 20, 0.2) 10px,
+      rgba(36, 28, 20, 0.2) 12px
+    );
 }
 
 /* Anel externo - rotação sentido horário */
