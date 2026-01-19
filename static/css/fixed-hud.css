@@ -817,6 +817,7 @@ body.has-fixed-hud .battle-arena {
   height: 24vh; /* 24% da altura da viewport */
   z-index: 1; /* Bem baixo para ficar atrás de tudo exceto o fundo */
   pointer-events: none; /* Click-through */
+  overflow: hidden; /* Esconde elementos que ultrapassam a borda */
 
   /* Fundo sólido com gradiente visível */
   background:
@@ -863,7 +864,7 @@ body.has-fixed-hud .battle-arena {
 /* CÍRCULOS CONCÊNTRICOS DECORATIVOS            */
 /* ============================================== */
 
-/* Container dos círculos - centralizado na parte inferior do HUD */
+/* Container do padrão de grade - centralizado na parte inferior do HUD */
 .hud-concentric-circles {
   position: absolute;
   bottom: -50%;  /* Metade para baixo, metade visível */
@@ -873,7 +874,7 @@ body.has-fixed-hud .battle-arena {
   height: 382px;
   pointer-events: none;
   z-index: 2;
-  opacity: 0.6;
+  opacity: 1;
   border-radius: 50%;
   background-color: transparent;
   background-image:
