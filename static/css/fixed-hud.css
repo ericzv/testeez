@@ -883,6 +883,14 @@ body.has-fixed-hud .battle-arena {
   pointer-events: none;
   z-index: 2;
   opacity: 0.3;
+  border-radius: 50%;
+  background-color: #1a1410;
+  background-image: repeating-radial-gradient(
+    #1a1410 0,
+    #1a1410 2px,
+    #241c14 3px,
+    #241c14 4px
+  );
 }
 
 /* Anel externo - rotação sentido horário */
