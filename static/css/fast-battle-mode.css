@@ -490,7 +490,7 @@
   border-radius: 50%;
   border: 2px dashed #5a0a0a;
   opacity: 0.7;
-  animation: fastSealRotate 20s linear infinite;
+  animation: fastSealRotateReverse 20s linear infinite;
 }
 
 /* Segundo anel instável */
@@ -503,7 +503,7 @@
   border-bottom: 2px solid #800;
   border-left: 2px solid transparent;
   border-right: 2px solid transparent;
-  animation: fastSealRotateReverse 10s linear infinite;
+  animation: fastSealRotate 10s linear infinite;
   box-shadow: 0 0 10px rgba(100, 0, 0, 0.2);
 }
 
