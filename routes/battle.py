@@ -1333,29 +1333,38 @@ def damage_boss():
             target.is_active = False
             progress.selected_boss_id = None
             player.run_bosses_defeated += 1
-            
-            # Gerar recompensa de relíquia após boss
-            boss_number = player.run_bosses_defeated
-            base_relic_count = 1  # Base: sempre 1 relíquia por boss
 
-            # Verificar ID 48: +1 relíquia de boss
-            bonus_boss_relic = PlayerRelic.query.filter_by(
-                player_id=player.id,
-                relic_id='48',
-                is_active=True
-            ).first()
+            # Verificar se é o boss final do ato 3 (fim de jogo)
+            from models_map import PlayerMapProgress
+            map_progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+            is_final_boss = map_progress and map_progress.current_act >= 3
 
-            if bonus_boss_relic:
-                base_relic_count += 1
-                print(f"⚜️ Relicário de Helena: +1 relíquia de boss")
-            
-            session['pending_relic_selection'] = {
-                'count': base_relic_count,
-                'context': 'last_boss',
-                'boss_number': boss_number,
-                'timestamp': datetime.utcnow().isoformat()
-            }
-            print(f"👑 Boss #{boss_number} derrotado! {base_relic_count} relíquia(s) para escolher")
+            if is_final_boss:
+                # Boss final do ato 3 - NÃO dar recompensa de relíquia, jogo acaba
+                print(f"🏆 BOSS FINAL DO ATO 3 DERROTADO! Jogo completo - sem recompensa de relíquia")
+            else:
+                # Gerar recompensa de relíquia após boss (atos 1 e 2)
+                boss_number = player.run_bosses_defeated
+                base_relic_count = 1  # Base: sempre 1 relíquia por boss
+
+                # Verificar ID 48: +1 relíquia de boss
+                bonus_boss_relic = PlayerRelic.query.filter_by(
+                    player_id=player.id,
+                    relic_id='48',
+                    is_active=True
+                ).first()
+
+                if bonus_boss_relic:
+                    base_relic_count += 1
+                    print(f"⚜️ Relicário de Helena: +1 relíquia de boss")
+
+                session['pending_relic_selection'] = {
+                    'count': base_relic_count,
+                    'context': 'last_boss',
+                    'boss_number': boss_number,
+                    'timestamp': datetime.utcnow().isoformat()
+                }
+                print(f"👑 Boss #{boss_number} derrotado! {base_relic_count} relíquia(s) para escolher")
 
         else:
             # Recompensas de inimigo genérico (seu código existente)
