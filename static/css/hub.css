@@ -425,8 +425,8 @@ body.gamification-page {
   padding: 0;
   margin: 0;
   
-  /* ✅ BRILHO BRANCO LEVE PADRÃO (sem hover) */
-  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
+  /* ✅ OUTLINE SÓLIDO BRANCO (como currencies) */
+  filter: drop-shadow(1px 0 0 #fff) drop-shadow(-1px 0 0 #fff) drop-shadow(0 1px 0 #fff) drop-shadow(0 -1px 0 #fff);
 }
 
 /* Brilho aumentado + colorido no hover */

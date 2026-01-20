@@ -821,13 +821,13 @@ body.has-fixed-hud .battle-arena {
 
   /* Fundo sólido com gradiente visível */
   background:
-    /* Gradiente principal - centro marrom claro, bordas escuras */
+    /* Gradiente principal - centro marrom claro, bordas bem escuras */
     radial-gradient(
-      ellipse 100% 150% at 50% 0%,
-      rgb(65, 50, 32) 0%,
-      rgb(45, 35, 22) 30%,
-      rgb(25, 20, 12) 60%,
-      rgb(12, 10, 6) 100%
+      ellipse 40% 200% at 50% 30%,
+      rgb(65, 50, 32) 5%,
+      rgb(38, 28, 15) 27%,
+      rgb(15, 12, 7) 58%,
+      rgb(5, 4, 2) 100%
     ),
     /* Textura dourada sutil */
     repeating-linear-gradient(
@@ -917,27 +917,39 @@ body.has-fixed-hud .battle-arena {
   pointer-events: none;
 }
 
-/* Poeira/Cinzas - pontinhos claros subindo lentamente */
+/* Pó de Ouro - partículas douradas subindo lentamente */
 .dust {
   position: absolute;
   width: 2px;
   height: 2px;
-  background: rgba(200, 190, 170, 0.6);
+  background: rgba(255, 200, 50, 0.7);
   border-radius: 50%;
   opacity: 0;
+  box-shadow: 0 0 4px rgba(255, 215, 0, 0.6);
 }
 
 /* Variações de tamanho e cor */
 .dust:nth-child(2n) {
   width: 1px;
   height: 1px;
-  background: rgba(180, 170, 150, 0.5);
+  background: rgba(218, 165, 32, 0.6);
+  box-shadow: 0 0 2px rgba(218, 165, 32, 0.5);
 }
 
 .dust:nth-child(3n) {
   width: 3px;
   height: 3px;
-  background: rgba(220, 210, 190, 0.4);
+  background: rgba(255, 223, 100, 0.5);
+  box-shadow: 0 0 6px rgba(255, 215, 0, 0.5);
+}
+
+/* Desabilita glow e animações em dispositivos que pedem menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  .dust {
+    box-shadow: none;
+    animation: none !important;
+    display: none;
+  }
 }
 
 /* Padrão A - deriva para direita */
@@ -962,78 +974,74 @@ body.has-fixed-hud .battle-arena {
 .dust:nth-child(9n).drift-a { animation-duration: 15s; }
 .dust:nth-child(10n).drift-b { animation-duration: 19s; }
 
-/* Animação A - sobe derivando para direita (movimento menor e difuso) */
+/* Animação A - sobe derivando para direita (com fade in/out) */
 @keyframes dust-drift-a {
   0% {
-    opacity: 0.4;
+    opacity: 0;
     transform: translateY(0) translateX(0);
   }
-  25% {
+  10% {
     opacity: 0.5;
-    transform: translateY(-15px) translateX(12px);
+    transform: translateY(-8px) translateX(5px);
   }
   50% {
-    opacity: 0.35;
+    opacity: 0.4;
     transform: translateY(-35px) translateX(-5px);
   }
-  75% {
-    opacity: 0.45;
-    transform: translateY(-55px) translateX(8px);
+  90% {
+    opacity: 0.5;
+    transform: translateY(-68px) translateX(8px);
   }
   100% {
-    opacity: 0.4;
+    opacity: 0;
     transform: translateY(-75px) translateX(-2px);
   }
 }
 
-/* Animação B - sobe derivando para esquerda (movimento menor e difuso) */
+/* Animação B - sobe derivando para esquerda (com fade in/out) */
 @keyframes dust-drift-b {
   0% {
-    opacity: 0.35;
+    opacity: 0;
     transform: translateY(0) translateX(0);
   }
-  25% {
+  10% {
     opacity: 0.45;
-    transform: translateY(-20px) translateX(-10px);
+    transform: translateY(-8px) translateX(-4px);
   }
   50% {
-    opacity: 0.3;
+    opacity: 0.35;
     transform: translateY(-40px) translateX(3px);
   }
-  75% {
-    opacity: 0.5;
-    transform: translateY(-60px) translateX(-8px);
+  90% {
+    opacity: 0.45;
+    transform: translateY(-72px) translateX(-8px);
   }
   100% {
-    opacity: 0.35;
+    opacity: 0;
     transform: translateY(-80px) translateX(5px);
   }
 }
 
-/* Animação C - zigue-zague suave (movimento menor e difuso) */
+/* Animação C - zigue-zague suave (com fade in/out) */
 @keyframes dust-drift-c {
   0% {
-    opacity: 0.45;
+    opacity: 0;
     transform: translateY(0) translateX(0);
   }
-  20% {
-    opacity: 0.35;
-    transform: translateY(-12px) translateX(15px);
+  10% {
+    opacity: 0.45;
+    transform: translateY(-8px) translateX(8px);
   }
-  40% {
-    opacity: 0.5;
-    transform: translateY(-28px) translateX(-10px);
-  }
-  60% {
+  50% {
     opacity: 0.4;
-    transform: translateY(-45px) translateX(8px);
+    transform: translateY(-39px) translateX(-6px);
   }
-  80% {
-    opacity: 0.3;
-    transform: translateY(-62px) translateX(-12px);
+  90% {
+    opacity: 0.4;
+    transform: translateY(-70px) translateX(6px);
   }
   100% {
-    opacity: 0.45;
+    opacity: 0;
     transform: translateY(-78px) translateX(4px);
   }
 }
@@ -1905,7 +1913,7 @@ body.has-fixed-hud .battle-arena {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
+  display: none; /* Escondido por padrão, JS mostra durante batalha */
   align-items: flex-end;
   justify-content: center;
   gap: 30px;

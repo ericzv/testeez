@@ -4611,21 +4611,28 @@ function handleBossDeathAnimation(hasMemoryReward, enemyRarity) {
     // Criar e mostrar banner de vitória
     createVictoryBanner(enemyName);
 
+    // Variável para armazenar se o jogo foi completado (boss final ato 3)
+    let gameCompleted = false;
+    let victorySummary = null;
+
     // IMPORTANTE: Marcar nó como completo para liberar próximos nodes
     fetch('/map/api/complete-node', { method: 'POST' })
         .then(response => response.json())
         .then(data => {
             console.log("✅ Nó de batalha marcado como completo:", data);
+            // Verificar se é fim de jogo (boss final do ato 3)
+            if (data.game_completed) {
+                gameCompleted = true;
+                victorySummary = data.victory_summary;
+                console.log("🏆 JOGO COMPLETO! Boss final derrotado!");
+            }
         })
         .catch(error => {
             console.error("❌ Erro ao marcar nó como completo:", error);
         });
 
-    // Auto-redirect para o hub após 5 segundos (após banner de vitória de 4.5s terminar)
-    // O hub irá verificar se há recompensa de memória pendente via checkPendingMemoryReward
+    // Auto-redirect após 5 segundos (após banner de vitória de 4.5s terminar)
     setTimeout(() => {
-        console.log("🏠 Inimigo derrotado - indo automaticamente para HUB");
-
         // RESETAR HUD: Restaurar energia para máximo e remover barreira
         // Isso garante que o hub não mostre valores da batalha anterior
         if (window.gameState && window.gameState.player) {
@@ -4660,7 +4667,19 @@ function handleBossDeathAnimation(hasMemoryReward, enemyRarity) {
         localStorage.setItem('victoryData', JSON.stringify(victoryData));
         console.log("💾 Dados de vitória salvos no localStorage:", victoryData);
 
-        // Usar SPA se disponível
+        // VERIFICAR SE É FIM DE JOGO (boss final ato 3)
+        if (gameCompleted) {
+            console.log("🏆 Redirecionando para tela de vitória final!");
+            // Salvar sumário de vitória se disponível
+            if (victorySummary) {
+                localStorage.setItem('victorySummary', JSON.stringify(victorySummary));
+            }
+            window.location.href = '/choose-character?from=victory';
+            return;
+        }
+
+        // Caso contrário, ir para o hub normalmente
+        console.log("🏠 Inimigo derrotado - indo automaticamente para HUB");
         if (typeof SPA !== 'undefined' && typeof SPA.goToHub === 'function') {
             console.log("🏠 Usando SPA para voltar ao hub");
             SPA.goToHub();

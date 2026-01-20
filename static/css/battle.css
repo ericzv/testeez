@@ -4539,7 +4539,7 @@
       width: 128px;
       height: 128px;
       background-size: 1152px 128px; /* 128px * 9 frames = 1152px */
-      animation: nefasto-idle 1.8s steps(9) infinite;
+      animation: nefasto-idle 0.8s steps(9) infinite;
       scale: 1.3;
       left: -5%;
       top: 25%;
