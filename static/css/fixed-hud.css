@@ -821,13 +821,13 @@ body.has-fixed-hud .battle-arena {
 
   /* Fundo sólido com gradiente visível */
   background:
-    /* Gradiente principal - centro marrom claro, bordas escuras */
+    /* Gradiente principal - centro marrom claro, bordas bem escuras */
     radial-gradient(
       ellipse 100% 150% at 50% 0%,
       rgb(65, 50, 32) 0%,
-      rgb(45, 35, 22) 30%,
-      rgb(25, 20, 12) 60%,
-      rgb(12, 10, 6) 100%
+      rgb(38, 28, 16) 25%,
+      rgb(15, 12, 7) 50%,
+      rgb(5, 4, 2) 100%
     ),
     /* Textura dourada sutil */
     repeating-linear-gradient(
