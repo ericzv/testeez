@@ -917,27 +917,30 @@ body.has-fixed-hud .battle-arena {
   pointer-events: none;
 }
 
-/* Poeira/Cinzas - pontinhos claros subindo lentamente */
+/* Pó de Ouro - partículas douradas subindo lentamente */
 .dust {
   position: absolute;
   width: 2px;
   height: 2px;
-  background: rgba(200, 190, 170, 0.6);
+  background: rgba(255, 200, 50, 0.7);
   border-radius: 50%;
   opacity: 0;
+  box-shadow: 0 0 4px rgba(255, 215, 0, 0.6);
 }
 
 /* Variações de tamanho e cor */
 .dust:nth-child(2n) {
   width: 1px;
   height: 1px;
-  background: rgba(180, 170, 150, 0.5);
+  background: rgba(218, 165, 32, 0.6);
+  box-shadow: 0 0 2px rgba(218, 165, 32, 0.5);
 }
 
 .dust:nth-child(3n) {
   width: 3px;
   height: 3px;
-  background: rgba(220, 210, 190, 0.4);
+  background: rgba(255, 223, 100, 0.5);
+  box-shadow: 0 0 6px rgba(255, 215, 0, 0.5);
 }
 
 /* Padrão A - deriva para direita */
