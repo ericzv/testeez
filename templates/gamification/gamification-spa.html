@@ -758,6 +758,12 @@ window.SPA = {
             await this.initBattle(data);
             this.battleInitialized = true;
 
+            // Mostrar battle-ui-container (menus de ataque/especiais)
+            const battleUiContainer = document.getElementById('battle-ui-container');
+            if (battleUiContainer) {
+                battleUiContainer.style.display = 'flex';
+            }
+
             // GARANTIR renderização de sprites após tudo inicializado
             setTimeout(() => {
                 const enemy = data.boss || data.enemy;
@@ -799,6 +805,12 @@ window.SPA = {
             const fastBattleContainer = document.querySelector('.fast-battle-container');
             if (fastBattleContainer) {
                 fastBattleContainer.style.display = 'none';
+            }
+
+            // Esconder battle-ui-container (menus de ataque/especiais só na batalha)
+            const battleUiContainer = document.getElementById('battle-ui-container');
+            if (battleUiContainer) {
+                battleUiContainer.style.display = 'none';
             }
 
             // Executar transição

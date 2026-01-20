@@ -1913,7 +1913,7 @@ body.has-fixed-hud .battle-arena {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
+  display: none; /* Escondido por padrão, JS mostra durante batalha */
   align-items: flex-end;
   justify-content: center;
   gap: 30px;
