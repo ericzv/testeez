@@ -4346,7 +4346,7 @@ function performAttack(skill) {
             const frameWidth = 96;
             const frameHeight = 96;
             const frameCount = 8;
-            const duration = 0.8; // 8 frames em 0.8s
+            const duration = 0.6; // Reduzido de 0.8s para 0.6s
             const scale = 1.5;
 
             const totalWidth = frameWidth * frameCount;
@@ -4363,16 +4363,18 @@ function performAttack(skill) {
             `;
             document.head.appendChild(styleEl);
 
-            // Usar mesma abordagem da lâmina de sangue: posição relativa ao boss-container
-            // Boss-sprite-layers: 256x256 CENTRALIZADAS no boss-container 128x128
-            // Parte inferior visual: top: 192px (128 + 64)
-            // Ajuste similar à lâmina de sangue
+            // Calcular posição baseada no boss-container (para evitar herdar o outline filter)
+            // Posição: parte inferior visual do sprite (192px relativo ao container)
+            const bossRect = boss.getBoundingClientRect();
+            const effectX = bossRect.left + bossRect.width / 2;
+            const effectY = bossRect.top + 192; // 192px = parte inferior visual do sprite
+
             const spriteLayer = document.createElement('div');
             spriteLayer.className = 'vlad-power-hit-effect';
             spriteLayer.style.cssText = `
-                position: absolute;
-                top: 192px;
-                left: 50%;
+                position: fixed;
+                top: ${effectY}px;
+                left: ${effectX}px;
                 transform: translateX(-50%) translateY(-100%) scale(${scale});
                 transform-origin: bottom center;
                 width: ${frameWidth}px;
@@ -4381,15 +4383,16 @@ function performAttack(skill) {
                 background-repeat: no-repeat;
                 background-position: 0 0;
                 background-size: ${totalWidth}px ${frameHeight}px;
-                opacity: 1;
+                opacity: 0.5;
                 pointer-events: none;
                 z-index: 9999;
                 image-rendering: pixelated;
                 animation: ${keyframeId} ${duration}s steps(${frameCount}) forwards;
             `;
 
-            boss.appendChild(spriteLayer);
-            console.log(`✅ Power Hit Effect adicionado ao boss-container`);
+            // Adicionar ao body (não ao boss) para evitar herdar o filter outline
+            document.body.appendChild(spriteLayer);
+            console.log(`✅ Power Hit Effect adicionado ao body (sem outline)`);
 
             // Remover após animação
             setTimeout(() => {
