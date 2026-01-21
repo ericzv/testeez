@@ -2415,20 +2415,21 @@ function performAttack(skill) {
             const startY = characterRect.top + characterRect.height / 2;
 
             // Usar o sprite visual do boss (não o container) para alinhar corretamente
+            // Alinhar na parte central INFERIOR do sprite (como a lâmina de sangue)
             const bossSprite = boss.querySelector('.boss-sprite-idle');
             let endX, endY;
 
             if (bossSprite) {
                 const spriteRect = bossSprite.getBoundingClientRect();
                 endX = spriteRect.left + spriteRect.width / 2;
-                endY = spriteRect.top + spriteRect.height / 2; // Centro do sprite visual
-                console.log("📍 Projétil usando posição do boss-sprite-idle:", endX, endY);
+                endY = spriteRect.top + spriteRect.height; // Parte INFERIOR do sprite
+                console.log("📍 Projétil usando parte inferior do boss-sprite-idle:", endX, endY);
             } else {
                 // Fallback para o container se não encontrar o sprite
                 const bossRect = boss.getBoundingClientRect();
                 endX = bossRect.left + bossRect.width / 2;
-                endY = bossRect.top + bossRect.height / 2;
-                console.log("📍 Projétil fallback para posição do container:", endX, endY);
+                endY = bossRect.top + bossRect.height; // Parte INFERIOR do container
+                console.log("📍 Projétil fallback para parte inferior do container:", endX, endY);
             }
 
             const skillTestResult = this.currentSkill?.skillTestResult;
@@ -2946,20 +2947,21 @@ function performAttack(skill) {
             const startY = characterRect.top + characterRect.height / 2;
 
             // Usar o sprite visual do boss (não o container) para alinhar corretamente o beam
+            // Alinhar na parte central INFERIOR do sprite (como a lâmina de sangue)
             const bossSprite = boss.querySelector('.boss-sprite-idle');
             let endX, endY;
 
             if (bossSprite) {
                 const spriteRect = bossSprite.getBoundingClientRect();
                 endX = spriteRect.left + spriteRect.width / 2;
-                endY = spriteRect.top + spriteRect.height / 2; // Centro do sprite visual
-                console.log("📍 Beam usando posição do boss-sprite-idle:", endX, endY);
+                endY = spriteRect.top + spriteRect.height; // Parte INFERIOR do sprite
+                console.log("📍 Beam usando parte inferior do boss-sprite-idle:", endX, endY);
             } else {
                 // Fallback para o container se não encontrar o sprite
                 const bossRect = boss.getBoundingClientRect();
                 endX = bossRect.left + bossRect.width / 2;
-                endY = bossRect.top + bossRect.height / 2;
-                console.log("📍 Beam fallback para posição do container:", endX, endY);
+                endY = bossRect.top + bossRect.height; // Parte INFERIOR do container
+                console.log("📍 Beam fallback para parte inferior do container:", endX, endY);
             }
 
             // Calcular ângulo e distância
