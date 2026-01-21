@@ -2414,9 +2414,22 @@ function performAttack(skill) {
             const startX = characterRect.left + characterRect.width / 2;
             const startY = characterRect.top + characterRect.height / 2;
 
-            const bossRect = boss.getBoundingClientRect();
-            const endX = bossRect.left + bossRect.width / 2;
-            const endY = bossRect.top + bossRect.height / 2;
+            // Usar o sprite visual do boss (não o container) para alinhar corretamente
+            const bossSprite = boss.querySelector('.boss-sprite-idle');
+            let endX, endY;
+
+            if (bossSprite) {
+                const spriteRect = bossSprite.getBoundingClientRect();
+                endX = spriteRect.left + spriteRect.width / 2;
+                endY = spriteRect.top + spriteRect.height / 2; // Centro do sprite visual
+                console.log("📍 Projétil usando posição do boss-sprite-idle:", endX, endY);
+            } else {
+                // Fallback para o container se não encontrar o sprite
+                const bossRect = boss.getBoundingClientRect();
+                endX = bossRect.left + bossRect.width / 2;
+                endY = bossRect.top + bossRect.height / 2;
+                console.log("📍 Projétil fallback para posição do container:", endX, endY);
+            }
 
             const skillTestResult = this.currentSkill?.skillTestResult;
             // CORRIGIDO: usar 'value' ao invés de 'score' (é assim que o skill test retorna)
@@ -2928,12 +2941,26 @@ function performAttack(skill) {
 
             // Pegar posições atuais na tela
             const characterRect = character.getBoundingClientRect();
-            const bossRect = boss.getBoundingClientRect();
 
             const startX = characterRect.left + characterRect.width / 2;
             const startY = characterRect.top + characterRect.height / 2;
-            const endX = bossRect.left + bossRect.width / 2;
-            const endY = bossRect.top + bossRect.height / 2;
+
+            // Usar o sprite visual do boss (não o container) para alinhar corretamente o beam
+            const bossSprite = boss.querySelector('.boss-sprite-idle');
+            let endX, endY;
+
+            if (bossSprite) {
+                const spriteRect = bossSprite.getBoundingClientRect();
+                endX = spriteRect.left + spriteRect.width / 2;
+                endY = spriteRect.top + spriteRect.height / 2; // Centro do sprite visual
+                console.log("📍 Beam usando posição do boss-sprite-idle:", endX, endY);
+            } else {
+                // Fallback para o container se não encontrar o sprite
+                const bossRect = boss.getBoundingClientRect();
+                endX = bossRect.left + bossRect.width / 2;
+                endY = bossRect.top + bossRect.height / 2;
+                console.log("📍 Beam fallback para posição do container:", endX, endY);
+            }
 
             // Calcular ângulo e distância
             const deltaX = endX - startX;
@@ -3200,12 +3227,13 @@ function performAttack(skill) {
                     const spriteRect = bossSprite.getBoundingClientRect();
                     effectX = spriteRect.left + spriteRect.width / 2;
                     effectY = spriteRect.top + spriteRect.height; // Parte inferior do sprite
-                    console.log("📍 Usando posição do boss-sprite-idle:", effectX, effectY);
+                    console.log("📍 Ultimate effect usando posição do boss-sprite-idle:", effectX, effectY);
                 } else {
-                    // Fallback para o container se não encontrar o sprite
-                    effectX = endX;
-                    effectY = endY + 50;
-                    console.log("📍 Fallback para posição do container:", effectX, effectY);
+                    // Fallback para o container - usar parte inferior (não centro)
+                    const bossRect = boss.getBoundingClientRect();
+                    effectX = bossRect.left + bossRect.width / 2;
+                    effectY = bossRect.top + bossRect.height; // Parte inferior do container
+                    console.log("📍 Ultimate effect fallback para container:", effectX, effectY);
                 }
 
                 // Escolher efeito baseado em blood_stacks
