@@ -1066,7 +1066,7 @@ function useSpecialSkill(skillId, skillName) {
 
                         // APLICAR DANO APÓS ANIMAÇÃO (delay para view swap + som + efeito)
                         if (pendingDamageData) {
-                            const delayForDamage = 2500; // 600ms view + 1500ms som/efeito + 400ms buffer
+                            const delayForDamage = 1200; // 600ms view + 600ms som/efeito
                             console.log(`⏳ Agendando aplicação de dano em ${delayForDamage}ms`);
 
                             setTimeout(() => {
@@ -1097,8 +1097,14 @@ function useSpecialSkill(skillId, skillName) {
                                         window.hideEnemyActionsHUD();
                                     }
 
+                                    // DEFINIR variáveis globais para handleBossDeathAnimation usar
+                                    // (ela sobrescreve localStorage com esses valores)
+                                    window.lastVictoryRewardType = data.details.reward_type || 'crystals';
+                                    window.lastVictoryCrystals = data.details.crystals_gained || 0;
+                                    window.lastVictoryGold = data.details.gold_gained || 0;
+                                    window.lastVictoryHourglasses = data.details.hourglasses_gained || 0;
+
                                     // Salvar dados de vitória no localStorage
-                                    // Usar dados de recompensa retornados pelo backend
                                     localStorage.setItem('lastVictoryTime', Date.now());
                                     localStorage.setItem('victoryData', JSON.stringify({
                                         bossDefeated: true,
@@ -1112,7 +1118,7 @@ function useSpecialSkill(skillId, skillName) {
                                         timestamp: Date.now()
                                     }));
 
-                                    // Aguardar um pouco e então processar morte
+                                    // Processar morte imediatamente após mostrar dano
                                     setTimeout(() => {
                                         if (typeof handleBossDeathAnimation === 'function') {
                                             handleBossDeathAnimation(true, gameState.boss.rarity || 1);
@@ -1124,7 +1130,7 @@ function useSpecialSkill(skillId, skillName) {
                                                 window.location.href = '/gamification';
                                             }
                                         }
-                                    }, 1500);
+                                    }, 500);
                                 }
                             }, delayForDamage);
                         }
