@@ -3221,23 +3221,6 @@ function performAttack(skill) {
             setTimeout(() => {
                 console.log("🔮 Criando efeito ultimate sobre o boss");
 
-                // Pegar o sprite visual real do boss (não o container)
-                const bossSprite = boss.querySelector('.boss-sprite-idle');
-                let effectX, effectY;
-
-                if (bossSprite) {
-                    const spriteRect = bossSprite.getBoundingClientRect();
-                    effectX = spriteRect.left + spriteRect.width / 2;
-                    effectY = spriteRect.top + spriteRect.height; // Parte inferior do sprite
-                    console.log("📍 Ultimate effect usando posição do boss-sprite-idle:", effectX, effectY);
-                } else {
-                    // Fallback para o container - usar parte inferior (não centro)
-                    const bossRect = boss.getBoundingClientRect();
-                    effectX = bossRect.left + bossRect.width / 2;
-                    effectY = bossRect.top + bossRect.height; // Parte inferior do container
-                    console.log("📍 Ultimate effect fallback para container:", effectX, effectY);
-                }
-
                 // Escolher efeito baseado em blood_stacks
                 const useWeakEffect = bloodStacks <= 9;
                 console.log(`🩸 Blood stacks: ${bloodStacks}, usando efeito ${useWeakEffect ? 'weak' : 'normal'}`);
@@ -3264,11 +3247,15 @@ function performAttack(skill) {
                     `;
                     document.head.appendChild(styleEl);
 
+                    // Usar mesma abordagem da lâmina de sangue: posição relativa ao boss-container
+                    // Parte inferior visual: top: 192px (128 + 64)
                     ultimateEffect.className = 'vlad-ultimate-effect-weak';
                     ultimateEffect.style.cssText = `
-                        position: fixed;
-                        left: ${effectX - frameWidth / 2}px;
-                        top: ${effectY - frameHeight}px;
+                        position: absolute;
+                        top: 192px;
+                        left: 50%;
+                        transform: translateX(-50%) translateY(-100%) scale(${scale});
+                        transform-origin: bottom center;
                         width: ${frameWidth}px;
                         height: ${frameHeight}px;
                         background-image: url('/static/game.data/character/vlad/ultimate/ultimate-effect-weak.png');
@@ -3277,8 +3264,6 @@ function performAttack(skill) {
                         animation: ${keyframeId} ${duration}s steps(${frameCount}) forwards;
                         pointer-events: none;
                         z-index: 127;
-                        transform: scale(${scale});
-                        transform-origin: bottom center;
                         image-rendering: pixelated;
                     `;
 
@@ -3289,16 +3274,52 @@ function performAttack(skill) {
                     }, duration * 1000 + 100);
                 } else {
                     // Efeito normal: ultimate-effect.png (8 frames, 144x144px)
+                    const frameWidth = 144;
+                    const frameHeight = 144;
+                    const frameCount = 8;
+                    const totalWidth = frameWidth * frameCount;
+                    const duration = 0.8;
+                    const scale = 1.5;
+
+                    const keyframeId = `ultimate-effect-normal-${Date.now()}`;
+                    const styleEl = document.createElement('style');
+                    styleEl.id = keyframeId;
+                    styleEl.textContent = `
+                        @keyframes ${keyframeId} {
+                            from { background-position: 0 0; }
+                            to { background-position: -${totalWidth}px 0; }
+                        }
+                    `;
+                    document.head.appendChild(styleEl);
+
+                    // Usar mesma abordagem da lâmina de sangue: posição relativa ao boss-container
+                    // Parte inferior visual: top: 192px (128 + 64)
                     ultimateEffect.className = 'vlad-ultimate-effect';
-                    ultimateEffect.style.left = `${effectX - 72}px`; // Centralizar (144/2 = 72)
-                    ultimateEffect.style.top = `${effectY - 144}px`; // Alinhar parte inferior
+                    ultimateEffect.style.cssText = `
+                        position: absolute;
+                        top: 192px;
+                        left: 50%;
+                        transform: translateX(-50%) translateY(-100%) scale(${scale});
+                        transform-origin: bottom center;
+                        width: ${frameWidth}px;
+                        height: ${frameHeight}px;
+                        background-image: url('/static/game.data/character/vlad/ultimate/ultimate-effect.png');
+                        background-size: ${totalWidth}px ${frameHeight}px;
+                        background-repeat: no-repeat;
+                        animation: ${keyframeId} ${duration}s steps(${frameCount}) forwards;
+                        pointer-events: none;
+                        z-index: 127;
+                        image-rendering: pixelated;
+                    `;
 
                     setTimeout(() => {
                         ultimateEffect.remove();
-                    }, 900);
+                        const styleToRemove = document.getElementById(keyframeId);
+                        if (styleToRemove) styleToRemove.remove();
+                    }, duration * 1000 + 100);
                 }
 
-                document.body.appendChild(ultimateEffect);
+                boss.appendChild(ultimateEffect);
             }, 1200);
 
             // Fase 4: Aplicar dano (1400ms)
@@ -4320,23 +4341,6 @@ function performAttack(skill) {
                 return;
             }
 
-            // Pegar o sprite visual real do boss (não o container)
-            const bossSprite = boss.querySelector('.boss-sprite-idle');
-            let effectX, effectY;
-
-            if (bossSprite) {
-                const spriteRect = bossSprite.getBoundingClientRect();
-                effectX = spriteRect.left + spriteRect.width / 2;
-                effectY = spriteRect.top + spriteRect.height; // Parte inferior do sprite
-                console.log("📍 Power effect usando posição do boss-sprite-idle:", effectX, effectY);
-            } else {
-                // Fallback para o container
-                const bossRect = boss.getBoundingClientRect();
-                effectX = bossRect.left + bossRect.width / 2;
-                effectY = bossRect.top + bossRect.height;
-                console.log("📍 Power effect fallback para container:", effectX, effectY);
-            }
-
             // Configuração do sprite: power-effect-purple-head.png (8 frames, 96x96px)
             const imageUrl = '/static/game.data/character/vlad/power/power-effect-purple-head.png';
             const frameWidth = 96;
@@ -4359,18 +4363,18 @@ function performAttack(skill) {
             `;
             document.head.appendChild(styleEl);
 
-            // Posição: centralizado horizontalmente, parte inferior alinhada com o inimigo
-            // Usar tamanho original porque transform: scale() expande a partir do transform-origin
-            const centerX = effectX - frameWidth / 2;
-            const topY = effectY - frameHeight; // Parte inferior alinhada
-
-            // Criar elemento da sprite animation no BODY
+            // Usar mesma abordagem da lâmina de sangue: posição relativa ao boss-container
+            // Boss-sprite-layers: 256x256 CENTRALIZADAS no boss-container 128x128
+            // Parte inferior visual: top: 192px (128 + 64)
+            // Ajuste similar à lâmina de sangue
             const spriteLayer = document.createElement('div');
             spriteLayer.className = 'vlad-power-hit-effect';
             spriteLayer.style.cssText = `
-                position: fixed;
-                top: ${topY}px;
-                left: ${centerX}px;
+                position: absolute;
+                top: 192px;
+                left: 50%;
+                transform: translateX(-50%) translateY(-100%) scale(${scale});
+                transform-origin: bottom center;
                 width: ${frameWidth}px;
                 height: ${frameHeight}px;
                 background-image: url("${imageUrl}");
@@ -4381,13 +4385,11 @@ function performAttack(skill) {
                 pointer-events: none;
                 z-index: 9999;
                 image-rendering: pixelated;
-                transform: scale(${scale});
-                transform-origin: bottom center;
                 animation: ${keyframeId} ${duration}s steps(${frameCount}) forwards;
             `;
 
-            document.body.appendChild(spriteLayer);
-            console.log(`✅ Power Hit Effect (purple) adicionado ao body`);
+            boss.appendChild(spriteLayer);
+            console.log(`✅ Power Hit Effect adicionado ao boss-container`);
 
             // Remover após animação
             setTimeout(() => {
