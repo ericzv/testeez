@@ -494,16 +494,15 @@ def apply_relic_effect(player_relic, player, context):
             current_bonus = getattr(player, 'max_hp_bonus', 0)
             player.max_hp_bonus = current_bonus + value
 
-            # CORREÇÃO: Atualizar também o max_hp real do jogador
-            from game_formulas import calculate_max_hp
+            # CORREÇÃO: Adicionar ao HP atual ao invés de recalcular do zero
+            # Isso preserva reduções de HP de eventos (ex: -10% HP máximo)
             old_max_hp = player.max_hp
-            player.max_hp = calculate_max_hp(player.vitality) + int(player.max_hp_bonus)
+            player.max_hp = old_max_hp + value
 
-            # Curar o HP adicional ganho (para não ficar 80/98)
-            hp_gained = player.max_hp - old_max_hp
-            player.hp = min(player.hp + hp_gained, player.max_hp)
+            # Curar o HP adicional ganho (para não ficar 72/90)
+            player.hp = min(player.hp + value, player.max_hp)
 
-            print(f"   ↳ max_hp: {old_max_hp} → {player.max_hp} (+{hp_gained} HP)")
+            print(f"   ↳ max_hp: {old_max_hp} → {player.max_hp} (+{value} HP)")
 
             # Forçar recálculo do cache
             from routes.battle_cache import calculate_attack_cache

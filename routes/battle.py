@@ -2291,6 +2291,11 @@ def reset_player_run(player_id):
         # ===== LIMPAR BUFFS TEMPORÁRIOS =====
         PlayerRunBuff.query.filter_by(player_id=player.id).delete()
         print(f"🧠 Buffs de run limpos")
+
+        # ===== LIMPAR INVENTÁRIOS DE SHOP =====
+        from models import ShopInventory
+        shop_items_deleted = ShopInventory.query.filter_by(player_id=player.id).delete()
+        print(f"🛒 {shop_items_deleted} itens de shop limpos")
         
         # ===== LIMPAR DEBUFFS DE INIMIGOS (como Nictalopia) =====
         EnemySkillDebuff.query.filter_by(player_id=player.id).delete()
