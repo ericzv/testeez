@@ -2414,22 +2414,22 @@ function performAttack(skill) {
             const startX = characterRect.left + characterRect.width / 2;
             const startY = characterRect.top + characterRect.height / 2;
 
-            // Usar o sprite visual do boss (não o container) para alinhar corretamente
-            // Alinhar na parte central INFERIOR do sprite (como a lâmina de sangue)
+            // Verificar se é um boss (tem boss-sprite-idle) ou inimigo genérico
             const bossSprite = boss.querySelector('.boss-sprite-idle');
             let endX, endY;
 
             if (bossSprite) {
+                // É um BOSS: centralizar no sprite idle
                 const spriteRect = bossSprite.getBoundingClientRect();
                 endX = spriteRect.left + spriteRect.width / 2;
-                endY = spriteRect.top + spriteRect.height; // Parte INFERIOR do sprite
-                console.log("📍 Projétil usando parte inferior do boss-sprite-idle:", endX, endY);
+                endY = spriteRect.top + spriteRect.height / 2; // CENTRO do sprite
+                console.log("📍 Projétil centralizado no boss-sprite-idle:", endX, endY);
             } else {
-                // Fallback para o container se não encontrar o sprite
+                // É um INIMIGO GENÉRICO: usar parte inferior do container
                 const bossRect = boss.getBoundingClientRect();
                 endX = bossRect.left + bossRect.width / 2;
                 endY = bossRect.top + bossRect.height; // Parte INFERIOR do container
-                console.log("📍 Projétil fallback para parte inferior do container:", endX, endY);
+                console.log("📍 Projétil na parte inferior do container (inimigo genérico):", endX, endY);
             }
 
             const skillTestResult = this.currentSkill?.skillTestResult;
