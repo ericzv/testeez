@@ -1296,6 +1296,7 @@ def use_special_skill(player_id, skill_id):
 
         elif positive_type == "blood_blade":
             # Lâmina de Sangue: Consome Blood Stacks, causa dano
+            # NOTA: A morte do inimigo é processada pelo sistema normal de ataques (damage_boss)
             params = json.loads(positive_value)
             damage_per_stack = params.get("damage_per_stack", 2)
             energy_cost = params.get("energy_cost", 2)
@@ -1314,64 +1315,21 @@ def use_special_skill(player_id, skill_id):
 
             total_damage = blood_stacks * damage_per_stack
 
-            # Aplicar dano no inimigo
-            hp_before = current_enemy.hp
+            # Aplicar dano no inimigo (NÃO processa morte - deixa para damage_boss)
             current_enemy.hp = max(0, current_enemy.hp - total_damage)
 
             # Consumir todos os Blood Stacks
             current_enemy.blood_stacks = 0
 
-            # IMPORTANTE: Verificar se o inimigo morreu
-            enemy_defeated = False
-            if current_enemy.hp <= 0:
-                enemy_defeated = True
-                from routes.relics.hooks import on_kill, reset_battle_counters
-                from models import PlayerProgress, LastBoss
-
-                enemy_data = {
-                    'enemy_id': current_enemy.id,
-                    'enemy_name': getattr(current_enemy, 'name', 'Inimigo')
-                }
-                on_kill(player, enemy_data)
-
-                # MARCAR INIMIGO COMO DERROTADO
-                # Verificar se é LastBoss ou GenericEnemy
-                is_boss = isinstance(current_enemy, LastBoss)
-
-                if is_boss:
-                    current_enemy.is_active = False
-                else:
-                    current_enemy.is_available = False
-
-                # LIMPAR SELEÇÃO DO INIMIGO
-                progress = PlayerProgress.query.filter_by(player_id=player.id).first()
-                if progress:
-                    if is_boss:
-                        progress.selected_boss_id = None
-                        player.run_bosses_defeated += 1
-                    else:
-                        progress.selected_enemy_id = None
-
-                # RESETAR CONTADORES DE BATALHA
-                reset_battle_counters(player)
-
-                print(f"💀 {'Boss' if is_boss else 'Inimigo'} morto por Lâmina de Sangue! HP: {current_enemy.hp}")
-                print(f"✅ {'Boss' if is_boss else 'Inimigo'} marcado como derrotado e seleção limpa")
-
             effect_msg = f"Consumiu {blood_stacks}x Sangue Coagulado e causou {total_damage} de dano!"
 
-            # Adicionar informações extras para o frontend
+            # Informações para o frontend - ele vai chamar damage_boss se HP <= 0
             negative_effects["damage_dealt"] = total_damage
             negative_effects["enemy_hp"] = current_enemy.hp
             negative_effects["enemy_max_hp"] = current_enemy.max_hp
-            negative_effects["enemy_defeated"] = enemy_defeated
             negative_effects["blood_stacks"] = 0
-            negative_effects["enemy_id"] = current_enemy.id  # Para buscar recompensas
 
-            # Indicar se é boss para o backend buscar recompensas corretas
-            if enemy_defeated:
-                from models import LastBoss
-                negative_effects["is_boss"] = isinstance(current_enemy, LastBoss)
+            print(f"🗡️ Lâmina de Sangue: {total_damage} de dano, HP restante: {current_enemy.hp}")
 
         elif positive_type == "blood_barrier":
             # Barreira de Sangue: Consome Blood Stacks, gera barreira
