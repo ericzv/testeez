@@ -1358,6 +1358,46 @@ def use_special_skill(player_id, skill_id):
                 print(f"💀 {'Boss' if is_boss else 'Inimigo'} morto por Lâmina de Sangue! HP: {current_enemy.hp}")
                 print(f"✅ {'Boss' if is_boss else 'Inimigo'} marcado como derrotado e seleção limpa")
 
+                # ===== PRÉ-CALCULAR RECOMPENSAS PARA O FRONTEND =====
+                # Isso garante que os dados estejam disponíveis mesmo se a rota não encontrar o inimigo
+                import random
+                if is_boss:
+                    # Recompensas de boss
+                    reward_crystals = getattr(current_enemy, 'reward_crystals', 100)
+                    negative_effects["reward_exp"] = reward_crystals // 4
+                    negative_effects["reward_crystals"] = reward_crystals
+                    negative_effects["reward_gold"] = 0
+                    negative_effects["reward_hourglasses"] = 0
+                    negative_effects["reward_type"] = 'crystals'
+                else:
+                    # Recompensas de inimigo genérico
+                    enemy_number = getattr(current_enemy, 'enemy_number', 1)
+                    rarity = getattr(current_enemy, 'rarity', 1)
+                    rarity_multipliers = {1: 1.0, 2: 1.2, 3: 1.5, 4: 2.0}
+                    rarity_multiplier = rarity_multipliers.get(rarity, 1.0)
+                    equipment_bonus = getattr(current_enemy, 'reward_bonus_percentage', 0) or 0
+
+                    base_exp = random.randint(30 + (enemy_number * 10), 50 + (enemy_number * 20))
+                    negative_effects["reward_exp"] = int(base_exp * rarity_multiplier * (1 + equipment_bonus / 100))
+
+                    reward_type = getattr(current_enemy, 'reward_type', 'crystals') or 'crystals'
+                    negative_effects["reward_type"] = reward_type
+                    negative_effects["reward_crystals"] = 0
+                    negative_effects["reward_gold"] = 0
+                    negative_effects["reward_hourglasses"] = 0
+
+                    if reward_type == 'crystals':
+                        base_crystals = random.randint(30 + (enemy_number * 5), 50 + (enemy_number * 8))
+                        negative_effects["reward_crystals"] = int(base_crystals * rarity_multiplier * (1 + equipment_bonus / 100))
+                    elif reward_type == 'gold':
+                        base_gold = random.randint(15 + (enemy_number * 3), 25 + (enemy_number * 5))
+                        negative_effects["reward_gold"] = int(base_gold * rarity_multiplier * (1 + equipment_bonus / 100))
+                    elif reward_type == 'hourglasses':
+                        negative_effects["reward_hourglasses"] = 1 if rarity <= 2 else (2 if rarity == 3 else 3)
+
+                negative_effects["enemy_name"] = getattr(current_enemy, 'name', 'Inimigo')
+                print(f"💰 Recompensas pré-calculadas: {negative_effects['reward_type']}={negative_effects.get('reward_crystals', 0) or negative_effects.get('reward_gold', 0) or negative_effects.get('reward_hourglasses', 0)}")
+
             effect_msg = f"Consumiu {blood_stacks}x Sangue Coagulado e causou {total_damage} de dano!"
 
             # Adicionar informações extras para o frontend

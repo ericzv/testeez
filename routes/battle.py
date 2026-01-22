@@ -1723,6 +1723,7 @@ def use_special():
 
             if current_enemy:
                 # Calcular recompensas baseado no tipo de inimigo
+                print(f"✅ Inimigo encontrado: {current_enemy.name} (ID: {current_enemy.id})")
                 if is_boss_fight:
                     # Recompensas de boss
                     base_exp = current_enemy.reward_crystals // 4
@@ -1812,7 +1813,60 @@ def use_special():
 
                 print(f"✅ Recompensas criadas: EXP={exp_reward}, Crystals={crystals_gained}, Gold={gold_gained}")
             else:
-                print("⚠️ Não foi possível encontrar o inimigo derrotado")
+                print("⚠️ Não foi possível encontrar o inimigo derrotado, usando dados pré-calculados")
+                # FALLBACK: Usar dados pré-calculados do characters.py
+                if negative_effects.get('reward_type'):
+                    exp_reward = negative_effects.get('reward_exp', 0)
+                    crystals_gained = negative_effects.get('reward_crystals', 0)
+                    gold_gained = negative_effects.get('reward_gold', 0)
+                    hourglasses_gained = negative_effects.get('reward_hourglasses', 0)
+                    reward_type = negative_effects.get('reward_type', 'crystals')
+                    enemy_name = negative_effects.get('enemy_name', 'Inimigo')
+                    enemy_rarity = 1  # Default
+
+                    # Criar PendingReward com dados pré-calculados
+                    pending_reward = PendingReward(
+                        player_id=player.id,
+                        exp_reward=exp_reward,
+                        crystals_gained=crystals_gained,
+                        gold_gained=gold_gained,
+                        hourglasses_gained=hourglasses_gained,
+                        reward_type=reward_type,
+                        reward_icon='...',
+                        victory_heal_amount=0,
+                        enemy_name=enemy_name,
+                        damage_dealt=details.get('damage_dealt', negative_effects.get('damage_dealt', 0)),
+                        damage_taken=0,
+                        relic_bonus_messages=''
+                    )
+                    db.session.add(pending_reward)
+
+                    # Gerar opções de lembranças
+                    memory_options = select_random_memory_options()
+                    session['pending_memory_reward'] = {
+                        'enemy_rarity': enemy_rarity,
+                        'timestamp': datetime.utcnow().isoformat(),
+                        'memory_options': memory_options
+                    }
+
+                    # Chamar on_victory
+                    relic_hooks.on_victory(player)
+
+                    # Resetar flags de batalha
+                    session['battle_started'] = False
+                    session['player_took_damage'] = False
+
+                    db.session.commit()
+
+                    # Adicionar informações de recompensa aos details
+                    details['exp_reward'] = exp_reward
+                    details['crystals_gained'] = crystals_gained
+                    details['gold_gained'] = gold_gained
+                    details['hourglasses_gained'] = hourglasses_gained
+                    details['reward_type'] = reward_type
+                    details['enemy_name'] = enemy_name
+
+                    print(f"✅ Recompensas criadas (fallback): EXP={exp_reward}, Crystals={crystals_gained}, Gold={gold_gained}")
 
         # Se for uma requisição AJAX, retornar JSON
         if request.headers.get('Accept') == 'application/json':

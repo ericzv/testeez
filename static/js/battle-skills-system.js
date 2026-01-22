@@ -1097,24 +1097,35 @@ function useSpecialSkill(skillId, skillName) {
                                         window.hideEnemyActionsHUD();
                                     }
 
+                                    // Obter dados de recompensa (podem vir de details ou negative_effects)
+                                    const negEffects = data.details.negative_effects || {};
+                                    const rewardType = data.details.reward_type || negEffects.reward_type || 'crystals';
+                                    const crystalsGained = data.details.crystals_gained || negEffects.reward_crystals || 0;
+                                    const goldGained = data.details.gold_gained || negEffects.reward_gold || 0;
+                                    const hourglassesGained = data.details.hourglasses_gained || negEffects.reward_hourglasses || 0;
+                                    const expGained = data.details.exp_reward || negEffects.reward_exp || 0;
+                                    const enemyName = data.details.enemy_name || negEffects.enemy_name || gameState.boss?.name || 'Inimigo';
+
+                                    console.log("💰 Dados de recompensa:", { rewardType, crystalsGained, goldGained, hourglassesGained, expGained, enemyName });
+
                                     // DEFINIR variáveis globais para handleBossDeathAnimation usar
                                     // (ela sobrescreve localStorage com esses valores)
-                                    window.lastVictoryRewardType = data.details.reward_type || 'crystals';
-                                    window.lastVictoryCrystals = data.details.crystals_gained || 0;
-                                    window.lastVictoryGold = data.details.gold_gained || 0;
-                                    window.lastVictoryHourglasses = data.details.hourglasses_gained || 0;
+                                    window.lastVictoryRewardType = rewardType;
+                                    window.lastVictoryCrystals = crystalsGained;
+                                    window.lastVictoryGold = goldGained;
+                                    window.lastVictoryHourglasses = hourglassesGained;
 
                                     // Salvar dados de vitória no localStorage
                                     localStorage.setItem('lastVictoryTime', Date.now());
                                     localStorage.setItem('victoryData', JSON.stringify({
                                         bossDefeated: true,
                                         damageDealt: window.totalBattleDamage || pendingDamageData.damage_dealt,
-                                        enemyName: data.details.enemy_name || gameState.boss?.name || 'Inimigo',
-                                        expGained: data.details.exp_reward || 0,
-                                        crystalsGained: data.details.crystals_gained || 0,
-                                        goldGained: data.details.gold_gained || 0,
-                                        hourglassesGained: data.details.hourglasses_gained || 0,
-                                        rewardType: data.details.reward_type || 'crystals',
+                                        enemyName: enemyName,
+                                        expGained: expGained,
+                                        crystalsGained: crystalsGained,
+                                        goldGained: goldGained,
+                                        hourglassesGained: hourglassesGained,
+                                        rewardType: rewardType,
                                         timestamp: Date.now()
                                     }));
 
