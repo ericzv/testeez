@@ -1688,11 +1688,6 @@ def use_special():
             print(f"TRACEBACK:\n{error_traceback}")
             raise  # Re-lançar a exceção para ser capturada pelo bloco externo
 
-        # NOTA: A morte do inimigo por skill especial (como Lâmina de Sangue) agora é
-        # processada pelo frontend chamando saveBossDamage(), que usa o mesmo fluxo
-        # dos ataques normais (rota damage_boss). Isso garante consistência no
-        # processamento de recompensas e evita código duplicado.
-
         # Se for uma requisição AJAX, retornar JSON
         if request.headers.get('Accept') == 'application/json':
             response_data = {
@@ -1728,6 +1723,224 @@ def use_special():
         
         flash(f"Erro interno: {str(e)}", "danger")
         return redirect(url_for('battle.battle'))
+
+@battle_bp.route('/process_skill_kill', methods=['POST'])
+def process_skill_kill():
+    """
+    Processa a morte de um inimigo causada por skill especial (como Lâmina de Sangue).
+    Chamada pelo frontend quando o HP do inimigo chega a 0 após uma skill especial.
+    Usa a mesma lógica de recompensas que damage_boss.
+    """
+    try:
+        player = Player.query.first()
+        if not player:
+            return jsonify({'success': False, 'message': 'Jogador não encontrado'})
+
+        # Buscar inimigo atual
+        progress = PlayerProgress.query.filter_by(player_id=player.id).first()
+        if not progress:
+            return jsonify({'success': False, 'message': 'Progresso não encontrado'})
+
+        # Buscar target (boss ou inimigo genérico)
+        from models import LastBoss, GenericEnemy, PendingReward, PlayerRelic
+        target = None
+        current_enemy = None
+        is_boss_fight = False
+
+        if progress.selected_boss_id:
+            target = LastBoss.query.get(progress.selected_boss_id)
+            if target and target.is_active:
+                is_boss_fight = True
+
+        if not target and progress.selected_enemy_id:
+            target = GenericEnemy.query.get(progress.selected_enemy_id)
+            current_enemy = target
+
+        if not target:
+            return jsonify({'success': False, 'message': 'Nenhum inimigo ativo'})
+
+        # Verificar se HP <= 0
+        target_hp = target.current_hp if is_boss_fight else target.hp
+        if target_hp > 0:
+            return jsonify({'success': False, 'message': f'Inimigo ainda tem HP: {target_hp}'})
+
+        print(f"\n{'='*60}")
+        print(f"🗡️ PROCESSANDO MORTE POR SKILL ESPECIAL")
+        print(f"🎯 {'BOSS' if is_boss_fight else 'INIMIGO'}: {target.name}")
+
+        # ===== HOOK AO MATAR =====
+        relic_hooks.on_kill(player, {
+            'enemy_name': target.name,
+            'enemy_rarity': getattr(target, 'rarity', 1) if not is_boss_fight else 5
+        })
+
+        # Verificar se tomou dano
+        took_damage = session.get('player_took_damage', False)
+
+        # ===== CALCULAR RECOMPENSAS =====
+        exp_reward = 0
+        crystals_gained = 0
+        gold_gained = 0
+        hourglasses_gained = 0
+        victory_heal_amount = 0
+        reward_type = 'crystals'
+        relic_bonus_messages = []
+        potion_drop = None
+
+        if is_boss_fight:
+            # Recompensas de boss
+            base_exp = target.reward_crystals // 4
+            final_exp = base_exp
+
+            if hasattr(player, 'exp_boost') and player.exp_boost > 0:
+                final_exp += int(base_exp * player.exp_boost)
+
+            if not took_damage and hasattr(player, 'perfect_exp_bonus') and player.perfect_exp_bonus > 0:
+                final_exp += int(final_exp * (player.perfect_exp_bonus / 100))
+
+            exp_reward = final_exp
+            crystals_gained = target.reward_crystals
+            reward_type = 'crystals'
+
+            # Marcar boss como derrotado
+            target.is_active = False
+            progress.selected_boss_id = None
+            player.run_bosses_defeated += 1
+
+            # Verificar se é o boss final
+            from models_map import PlayerMapProgress
+            map_progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
+            is_final_boss = map_progress and map_progress.current_act >= 3
+
+            if not is_final_boss:
+                boss_number = player.run_bosses_defeated
+                base_relic_count = 1
+                bonus_relic = PlayerRelic.query.filter_by(player_id=player.id, relic_id='48', is_active=True).first()
+                if bonus_relic:
+                    base_relic_count += 1
+                session['pending_relic_selection'] = {
+                    'count': base_relic_count,
+                    'context': 'last_boss',
+                    'boss_number': boss_number,
+                    'timestamp': datetime.utcnow().isoformat()
+                }
+
+            enemy_rarity = 4
+        else:
+            # Recompensas de inimigo genérico
+            base_exp = random.randint(30 + (current_enemy.enemy_number * 10), 50 + (current_enemy.enemy_number * 20))
+            rarity_multipliers = {1: 1.0, 2: 1.2, 3: 1.5, 4: 2.0}
+            rarity_multiplier = rarity_multipliers.get(current_enemy.rarity, 1.0)
+            equipment_bonus_percent = current_enemy.reward_bonus_percentage or 0
+
+            final_exp = int(base_exp * rarity_multiplier * (1 + equipment_bonus_percent / 100))
+            if hasattr(player, 'exp_boost') and player.exp_boost > 0:
+                final_exp += int(final_exp * player.exp_boost)
+            exp_reward = final_exp
+
+            # Obter recompensas do template
+            try:
+                equipment_modifiers = json.loads(current_enemy.equipment_modifiers_applied or '{}')
+                fixed_rewards = equipment_modifiers.get('_rewards', {})
+                crystals_gained = fixed_rewards.get('memory_crystals', 10)
+                gold_gained = fixed_rewards.get('gold', 5)
+                potion_drop = fixed_rewards.get('potion', None)
+                reward_type = 'mixed'
+            except:
+                crystals_gained = int(random.randint(30, 50) * rarity_multiplier)
+                gold_gained = 0
+                reward_type = 'crystals'
+
+            # Aplicar modificadores de relíquias
+            rewards = relic_hooks.on_rewards(player, {'crystals': crystals_gained, 'gold': gold_gained, 'hourglasses': 0})
+            crystals_gained = rewards['crystals']
+            gold_gained = rewards['gold']
+            hourglasses_gained = rewards['hourglasses']
+
+            # Marcar inimigo como derrotado
+            current_enemy.is_available = False
+            progress.selected_enemy_id = None
+
+            enemy_rarity = current_enemy.rarity
+
+        # ===== BÔNUS DE TALENTOS =====
+        try:
+            from routes.talents import apply_talent_on_victory
+            talent_hp, talent_gold = apply_talent_on_victory(player, is_boss=is_boss_fight)
+            victory_heal_amount += talent_hp
+            gold_gained += talent_gold
+        except:
+            pass
+
+        # ===== OURO EXTRA DE RELÍQUIAS =====
+        extra_gold = 0
+        midas = PlayerRelic.query.filter_by(player_id=player.id, relic_id='33', is_active=True).first()
+        if midas:
+            from routes.relics.registry import get_relic_definition
+            extra_gold += get_relic_definition('33')['effect']['value']
+        gold_gained += extra_gold
+
+        # ===== SALVAR RECOMPENSAS PENDENTES =====
+        pending_reward = PendingReward(
+            player_id=player.id,
+            exp_reward=exp_reward,
+            crystals_gained=crystals_gained,
+            gold_gained=gold_gained,
+            hourglasses_gained=hourglasses_gained,
+            reward_type=reward_type,
+            reward_icon='...',
+            victory_heal_amount=victory_heal_amount,
+            enemy_name=target.name,
+            damage_dealt=0,
+            damage_taken=0 if not took_damage else 1,
+            relic_bonus_messages='\n'.join(relic_bonus_messages),
+            potion_drop=potion_drop if not is_boss_fight else None
+        )
+        db.session.add(pending_reward)
+
+        # Gerar opções de lembrança para inimigos genéricos
+        if not is_boss_fight:
+            from .battle_modules.reward_system import select_random_memory_options
+            memory_options = select_random_memory_options()
+            session['pending_memory_reward'] = {
+                'enemy_rarity': enemy_rarity,
+                'timestamp': datetime.utcnow().isoformat(),
+                'memory_options': memory_options
+            }
+
+        # Resetar flags
+        session['battle_started'] = False
+        session['player_took_damage'] = False
+
+        # Hooks de vitória
+        relic_hooks.on_victory(player)
+        relic_hooks.reset_battle_counters(player)
+
+        db.session.commit()
+
+        print(f"✅ Morte processada! EXP={exp_reward}, Cristais={crystals_gained}, Ouro={gold_gained}")
+
+        return jsonify({
+            'success': True,
+            'boss_defeated': True,
+            'boss_hp': 0,
+            'boss_max_hp': target.max_hp,
+            'enemy_name': target.name,
+            'exp_reward': exp_reward,
+            'crystals_gained': crystals_gained,
+            'gold_gained': gold_gained,
+            'hourglasses_gained': hourglasses_gained,
+            'reward_type': reward_type,
+            'has_memory_reward': not is_boss_fight,
+            'enemy_rarity': enemy_rarity,
+            'potion_drop': potion_drop
+        })
+
+    except Exception as e:
+        import traceback
+        print(f"❌ Erro em process_skill_kill: {e}")
+        print(traceback.format_exc())
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @battle_bp.route('/skills')
 def skills():

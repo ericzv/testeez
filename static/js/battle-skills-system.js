@@ -1089,24 +1089,64 @@ function useSpecialSkill(skillId, skillName) {
                                 }
 
                                 // VERIFICAR SE INIMIGO FOI DERROTADO (HP <= 0)
-                                // Usar o MESMO fluxo dos ataques normais (saveBossDamage)
                                 if (pendingDamageData.enemy_hp <= 0) {
-                                    console.log("💀 INIMIGO DERROTADO POR LÂMINA DE SANGUE!");
-                                    console.log("🔄 Chamando saveBossDamage para processar morte pelo fluxo normal...");
+                                    console.log("💀 INIMIGO DERROTADO POR SKILL ESPECIAL!");
+                                    console.log("🔄 Chamando process_skill_kill para processar morte...");
 
                                     // Esconder HUD de ações do inimigo
                                     if (typeof window.hideEnemyActionsHUD === 'function') {
                                         window.hideEnemyActionsHUD();
                                     }
 
-                                    // Chamar saveBossDamage com dano 0 para processar a morte
-                                    // Isso usa EXATAMENTE o mesmo fluxo dos ataques normais
+                                    // Chamar rota específica para processar morte por skill
                                     setTimeout(() => {
-                                        if (typeof saveBossDamage === 'function') {
-                                            saveBossDamage(null, 0, false);
-                                        } else {
-                                            console.error("❌ saveBossDamage não encontrada!");
-                                        }
+                                        fetch('/gamification/process_skill_kill', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'Accept': 'application/json'
+                                            }
+                                        })
+                                        .then(response => response.json())
+                                        .then(deathData => {
+                                            console.log("✅ Morte processada:", deathData);
+
+                                            if (deathData.success && deathData.boss_defeated) {
+                                                // Salvar dados de vitória no localStorage
+                                                localStorage.setItem('lastVictoryTime', Date.now());
+                                                localStorage.setItem('victoryData', JSON.stringify({
+                                                    bossDefeated: true,
+                                                    damageDealt: window.totalBattleDamage || pendingDamageData.damage_dealt,
+                                                    enemyName: deathData.enemy_name || gameState.boss?.name || 'Inimigo',
+                                                    expGained: deathData.exp_reward || 0,
+                                                    crystalsGained: deathData.crystals_gained || 0,
+                                                    goldGained: deathData.gold_gained || 0,
+                                                    hourglassesGained: deathData.hourglasses_gained || 0,
+                                                    rewardType: deathData.reward_type || 'crystals',
+                                                    timestamp: Date.now()
+                                                }));
+
+                                                // Definir variáveis globais para handleBossDeathAnimation
+                                                window.lastVictoryRewardType = deathData.reward_type || 'crystals';
+                                                window.lastVictoryCrystals = deathData.crystals_gained || 0;
+                                                window.lastVictoryGold = deathData.gold_gained || 0;
+                                                window.lastVictoryHourglasses = deathData.hourglasses_gained || 0;
+
+                                                // Chamar animação de morte
+                                                if (typeof handleBossDeathAnimation === 'function') {
+                                                    handleBossDeathAnimation(deathData.has_memory_reward, deathData.enemy_rarity || 1);
+                                                } else if (typeof SPA !== 'undefined' && typeof SPA.goToHub === 'function') {
+                                                    SPA.goToHub();
+                                                } else {
+                                                    window.location.href = '/gamification';
+                                                }
+                                            } else {
+                                                console.error("❌ Erro ao processar morte:", deathData.message);
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error("❌ Erro na requisição:", error);
+                                        });
                                     }, 300);
                                 }
                             }, delayForDamage);
