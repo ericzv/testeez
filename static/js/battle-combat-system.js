@@ -2414,22 +2414,41 @@ function performAttack(skill) {
             const startX = characterRect.left + characterRect.width / 2;
             const startY = characterRect.top + characterRect.height / 2;
 
-            // Verificar se é um boss (tem boss-sprite-idle) ou inimigo genérico
+            // Verificar se é um LAST_BOSS (tem boss-sprite-idle) ou inimigo genérico (tem boss-sprite-layer)
             const bossSprite = boss.querySelector('.boss-sprite-idle');
+            const spriteLayers = boss.querySelectorAll('.boss-sprite-layer');
             let endX, endY;
 
             if (bossSprite) {
-                // É um BOSS: centralizar no sprite idle
+                // É um LAST_BOSS: centralizar no sprite idle
                 const spriteRect = bossSprite.getBoundingClientRect();
                 endX = spriteRect.left + spriteRect.width / 2;
                 endY = spriteRect.top + spriteRect.height / 2; // CENTRO do sprite
                 console.log("📍 Projétil centralizado no boss-sprite-idle:", endX, endY);
+            } else if (spriteLayers.length > 0) {
+                // É um INIMIGO GENÉRICO: calcular centro das camadas de sprite
+                let minX = Infinity, maxX = -Infinity;
+                let minY = Infinity, maxY = -Infinity;
+
+                spriteLayers.forEach(layer => {
+                    const rect = layer.getBoundingClientRect();
+                    if (rect.width > 0 && rect.height > 0) { // Ignorar camadas invisíveis
+                        minX = Math.min(minX, rect.left);
+                        maxX = Math.max(maxX, rect.right);
+                        minY = Math.min(minY, rect.top);
+                        maxY = Math.max(maxY, rect.bottom);
+                    }
+                });
+
+                endX = (minX + maxX) / 2; // Centro horizontal
+                endY = (minY + maxY) / 2; // Centro vertical (onde o projétil atinge)
+                console.log("📍 Projétil centralizado nas boss-sprite-layers:", endX, endY);
             } else {
-                // É um INIMIGO GENÉRICO: usar parte inferior do container
+                // Fallback: usar container
                 const bossRect = boss.getBoundingClientRect();
                 endX = bossRect.left + bossRect.width / 2;
-                endY = bossRect.top + bossRect.height; // Parte INFERIOR do container
-                console.log("📍 Projétil na parte inferior do container (inimigo genérico):", endX, endY);
+                endY = bossRect.top + bossRect.height / 2;
+                console.log("📍 Projétil fallback para centro do container:", endX, endY);
             }
 
             // Armazenar posição de impacto para uso posterior no efeito de hit
@@ -3226,15 +3245,37 @@ function performAttack(skill) {
             setTimeout(() => {
                 console.log("🔮 Criando efeito ultimate sobre o boss");
 
-                // Obter posição real do sprite (não do container)
+                // Obter posição real do sprite do inimigo
+                // Para LAST_BOSS: usa .boss-sprite-idle
+                // Para inimigos genéricos: usa as camadas .boss-sprite-layer
                 const bossSprite = boss.querySelector('.boss-sprite-idle');
+                const spriteLayers = boss.querySelectorAll('.boss-sprite-layer');
                 let effectX, effectY;
 
                 if (bossSprite) {
+                    // LAST_BOSS: usar boss-sprite-idle
                     const spriteRect = bossSprite.getBoundingClientRect();
                     effectX = spriteRect.left + spriteRect.width / 2;
                     effectY = spriteRect.top + spriteRect.height; // Parte inferior do sprite
                     console.log("📍 Ultimate effect usando posição do boss-sprite-idle:", effectX, effectY);
+                } else if (spriteLayers.length > 0) {
+                    // INIMIGO GENÉRICO: calcular bounding box combinado de todas as camadas
+                    let minX = Infinity, maxX = -Infinity;
+                    let minY = Infinity, maxY = -Infinity;
+
+                    spriteLayers.forEach(layer => {
+                        const rect = layer.getBoundingClientRect();
+                        if (rect.width > 0 && rect.height > 0) { // Ignorar camadas invisíveis
+                            minX = Math.min(minX, rect.left);
+                            maxX = Math.max(maxX, rect.right);
+                            minY = Math.min(minY, rect.top);
+                            maxY = Math.max(maxY, rect.bottom);
+                        }
+                    });
+
+                    effectX = (minX + maxX) / 2; // Centro horizontal
+                    effectY = maxY; // Parte inferior (maior Y = mais embaixo)
+                    console.log("📍 Ultimate effect usando posição das boss-sprite-layers:", effectX, effectY);
                 } else {
                     // Fallback para o container
                     const bossRect = boss.getBoundingClientRect();
@@ -4365,12 +4406,34 @@ function performAttack(skill) {
             } else {
                 // Fallback: calcular posição do sprite (caso projétil não tenha sido criado)
                 const bossSprite = boss.querySelector('.boss-sprite-idle');
+                const spriteLayers = boss.querySelectorAll('.boss-sprite-layer');
+
                 if (bossSprite) {
+                    // LAST_BOSS
                     const spriteRect = bossSprite.getBoundingClientRect();
                     effectX = spriteRect.left + spriteRect.width / 2;
                     effectY = spriteRect.top + spriteRect.height / 2;
                     console.log("📍 Power hit effect fallback para centro do boss-sprite-idle:", effectX, effectY);
+                } else if (spriteLayers.length > 0) {
+                    // INIMIGO GENÉRICO: calcular centro das camadas
+                    let minX = Infinity, maxX = -Infinity;
+                    let minY = Infinity, maxY = -Infinity;
+
+                    spriteLayers.forEach(layer => {
+                        const rect = layer.getBoundingClientRect();
+                        if (rect.width > 0 && rect.height > 0) {
+                            minX = Math.min(minX, rect.left);
+                            maxX = Math.max(maxX, rect.right);
+                            minY = Math.min(minY, rect.top);
+                            maxY = Math.max(maxY, rect.bottom);
+                        }
+                    });
+
+                    effectX = (minX + maxX) / 2;
+                    effectY = (minY + maxY) / 2;
+                    console.log("📍 Power hit effect fallback para centro das boss-sprite-layers:", effectX, effectY);
                 } else {
+                    // Fallback final: container
                     const bossRect = boss.getBoundingClientRect();
                     effectX = bossRect.left + bossRect.width / 2;
                     effectY = bossRect.top + bossRect.height / 2;
