@@ -3249,102 +3249,64 @@ function performAttack(skill) {
 
                 const ultimateEffect = document.createElement('div');
 
-                if (useWeakEffect) {
-                    // Efeito fraco: ultimate-effect-weak.png (8 frames, 32x128px)
-                    const frameWidth = 32;
-                    const frameHeight = 128;
-                    const frameCount = 8;
-                    const totalWidth = frameWidth * frameCount;
-                    const duration = 0.8;
-                    const scale = 1.5;
+                // Configuração comum para ambos os efeitos
+                const scale = 1.5;
+                const duration = 0.8;
+                const frameCount = 8;
 
-                    // Calcular offset para alinhar com o efeito normal (144px)
-                    // O efeito normal usa 144px de altura, o fraco usa 128px
-                    // Para alinhar visualmente, ajustamos o translateY para compensar a diferença
-                    const normalFrameHeight = 144;
-                    const translateYPercent = (normalFrameHeight / frameHeight) * 100; // ~112.5%
+                // Dimensões baseadas no tipo de efeito
+                const frameWidth = useWeakEffect ? 32 : 144;
+                const frameHeight = useWeakEffect ? 128 : 144;
+                const totalWidth = frameWidth * frameCount;
+                const imageUrl = useWeakEffect
+                    ? '/static/game.data/character/vlad/ultimate/ultimate-effect-weak.png'
+                    : '/static/game.data/character/vlad/ultimate/ultimate-effect.png';
 
-                    const keyframeId = `ultimate-effect-weak-${Date.now()}`;
-                    const styleEl = document.createElement('style');
-                    styleEl.id = keyframeId;
-                    styleEl.textContent = `
-                        @keyframes ${keyframeId} {
-                            from { background-position: 0 0; }
-                            to { background-position: -${totalWidth}px 0; }
-                        }
-                    `;
-                    document.head.appendChild(styleEl);
+                // Calcular dimensões escaladas
+                const scaledWidth = frameWidth * scale;
+                const scaledHeight = frameHeight * scale;
 
-                    // Usar position: fixed com coordenadas calculadas do sprite real
-                    // translateY ajustado para compensar diferença de altura com efeito normal
-                    ultimateEffect.className = 'vlad-ultimate-effect-weak';
-                    ultimateEffect.style.cssText = `
-                        position: fixed;
-                        top: ${effectY}px;
-                        left: ${effectX}px;
-                        transform: translateX(-50%) translateY(-${translateYPercent}%) scale(${scale});
-                        transform-origin: bottom center;
-                        width: ${frameWidth}px;
-                        height: ${frameHeight}px;
-                        background-image: url('/static/game.data/character/vlad/ultimate/ultimate-effect-weak.png');
-                        background-size: ${totalWidth}px ${frameHeight}px;
-                        background-repeat: no-repeat;
-                        animation: ${keyframeId} ${duration}s steps(${frameCount}) forwards;
-                        pointer-events: none;
-                        z-index: 127;
-                        image-rendering: pixelated;
-                    `;
+                // Posicionar para que a PARTE INFERIOR do efeito fique na PARTE INFERIOR do sprite inimigo
+                // effectY já é a parte inferior do sprite do inimigo
+                // Então o TOP do efeito deve ser: effectY - altura_escalada
+                const effectTop = effectY - scaledHeight;
+                const effectLeft = effectX - (scaledWidth / 2); // Centralizar horizontalmente
 
-                    setTimeout(() => {
-                        ultimateEffect.remove();
-                        const styleToRemove = document.getElementById(keyframeId);
-                        if (styleToRemove) styleToRemove.remove();
-                    }, duration * 1000 + 100);
-                } else {
-                    // Efeito normal: ultimate-effect.png (8 frames, 144x144px)
-                    const frameWidth = 144;
-                    const frameHeight = 144;
-                    const frameCount = 8;
-                    const totalWidth = frameWidth * frameCount;
-                    const duration = 0.8;
-                    const scale = 1.5;
+                const keyframeId = `ultimate-effect-${useWeakEffect ? 'weak' : 'normal'}-${Date.now()}`;
+                const styleEl = document.createElement('style');
+                styleEl.id = keyframeId;
+                styleEl.textContent = `
+                    @keyframes ${keyframeId} {
+                        from { background-position: 0 0; }
+                        to { background-position: -${totalWidth * scale}px 0; }
+                    }
+                `;
+                document.head.appendChild(styleEl);
 
-                    const keyframeId = `ultimate-effect-normal-${Date.now()}`;
-                    const styleEl = document.createElement('style');
-                    styleEl.id = keyframeId;
-                    styleEl.textContent = `
-                        @keyframes ${keyframeId} {
-                            from { background-position: 0 0; }
-                            to { background-position: -${totalWidth}px 0; }
-                        }
-                    `;
-                    document.head.appendChild(styleEl);
+                // Posicionamento direto sem transforms complexos para maior consistência
+                ultimateEffect.className = useWeakEffect ? 'vlad-ultimate-effect-weak' : 'vlad-ultimate-effect';
+                ultimateEffect.style.cssText = `
+                    position: fixed;
+                    top: ${effectTop}px;
+                    left: ${effectLeft}px;
+                    width: ${scaledWidth}px;
+                    height: ${scaledHeight}px;
+                    background-image: url('${imageUrl}');
+                    background-size: ${totalWidth * scale}px ${scaledHeight}px;
+                    background-repeat: no-repeat;
+                    animation: ${keyframeId} ${duration}s steps(${frameCount}) forwards;
+                    pointer-events: none;
+                    z-index: 127;
+                    image-rendering: pixelated;
+                `;
 
-                    // Usar position: fixed com coordenadas calculadas do sprite real
-                    ultimateEffect.className = 'vlad-ultimate-effect';
-                    ultimateEffect.style.cssText = `
-                        position: fixed;
-                        top: ${effectY}px;
-                        left: ${effectX}px;
-                        transform: translateX(-50%) translateY(-100%) scale(${scale});
-                        transform-origin: bottom center;
-                        width: ${frameWidth}px;
-                        height: ${frameHeight}px;
-                        background-image: url('/static/game.data/character/vlad/ultimate/ultimate-effect.png');
-                        background-size: ${totalWidth}px ${frameHeight}px;
-                        background-repeat: no-repeat;
-                        animation: ${keyframeId} ${duration}s steps(${frameCount}) forwards;
-                        pointer-events: none;
-                        z-index: 127;
-                        image-rendering: pixelated;
-                    `;
+                console.log(`📍 Ultimate effect (${useWeakEffect ? 'weak' : 'normal'}): top=${effectTop}, left=${effectLeft}, bottom alinhado em=${effectY}`);
 
-                    setTimeout(() => {
-                        ultimateEffect.remove();
-                        const styleToRemove = document.getElementById(keyframeId);
-                        if (styleToRemove) styleToRemove.remove();
-                    }, duration * 1000 + 100);
-                }
+                setTimeout(() => {
+                    ultimateEffect.remove();
+                    const styleToRemove = document.getElementById(keyframeId);
+                    if (styleToRemove) styleToRemove.remove();
+                }, duration * 1000 + 100);
 
                 // Adicionar ao body para evitar herdar transformações do boss-container
                 document.body.appendChild(ultimateEffect);
