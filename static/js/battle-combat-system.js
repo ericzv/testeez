@@ -3221,6 +3221,23 @@ function performAttack(skill) {
             setTimeout(() => {
                 console.log("🔮 Criando efeito ultimate sobre o boss");
 
+                // Obter posição real do sprite (não do container)
+                const bossSprite = boss.querySelector('.boss-sprite-idle');
+                let effectX, effectY;
+
+                if (bossSprite) {
+                    const spriteRect = bossSprite.getBoundingClientRect();
+                    effectX = spriteRect.left + spriteRect.width / 2;
+                    effectY = spriteRect.top + spriteRect.height; // Parte inferior do sprite
+                    console.log("📍 Ultimate effect usando posição do boss-sprite-idle:", effectX, effectY);
+                } else {
+                    // Fallback para o container
+                    const bossRect = boss.getBoundingClientRect();
+                    effectX = bossRect.left + bossRect.width / 2;
+                    effectY = bossRect.top + bossRect.height;
+                    console.log("📍 Ultimate effect fallback para container:", effectX, effectY);
+                }
+
                 // Escolher efeito baseado em blood_stacks
                 const useWeakEffect = bloodStacks <= 9;
                 console.log(`🩸 Blood stacks: ${bloodStacks}, usando efeito ${useWeakEffect ? 'weak' : 'normal'}`);
@@ -3247,13 +3264,12 @@ function performAttack(skill) {
                     `;
                     document.head.appendChild(styleEl);
 
-                    // Usar mesma abordagem da lâmina de sangue: posição relativa ao boss-container
-                    // Parte inferior visual: top: 192px (128 + 64)
+                    // Usar position: fixed com coordenadas calculadas do sprite real
                     ultimateEffect.className = 'vlad-ultimate-effect-weak';
                     ultimateEffect.style.cssText = `
-                        position: absolute;
-                        top: 192px;
-                        left: 50%;
+                        position: fixed;
+                        top: ${effectY}px;
+                        left: ${effectX}px;
                         transform: translateX(-50%) translateY(-100%) scale(${scale});
                         transform-origin: bottom center;
                         width: ${frameWidth}px;
@@ -3292,13 +3308,12 @@ function performAttack(skill) {
                     `;
                     document.head.appendChild(styleEl);
 
-                    // Usar mesma abordagem da lâmina de sangue: posição relativa ao boss-container
-                    // Parte inferior visual: top: 192px (128 + 64)
+                    // Usar position: fixed com coordenadas calculadas do sprite real
                     ultimateEffect.className = 'vlad-ultimate-effect';
                     ultimateEffect.style.cssText = `
-                        position: absolute;
-                        top: 192px;
-                        left: 50%;
+                        position: fixed;
+                        top: ${effectY}px;
+                        left: ${effectX}px;
                         transform: translateX(-50%) translateY(-100%) scale(${scale});
                         transform-origin: bottom center;
                         width: ${frameWidth}px;
@@ -3319,7 +3334,8 @@ function performAttack(skill) {
                     }, duration * 1000 + 100);
                 }
 
-                boss.appendChild(ultimateEffect);
+                // Adicionar ao body para evitar herdar transformações do boss-container
+                document.body.appendChild(ultimateEffect);
             }, 1200);
 
             // Fase 4: Aplicar dano (1400ms)
@@ -4363,11 +4379,22 @@ function performAttack(skill) {
             `;
             document.head.appendChild(styleEl);
 
-            // Calcular posição baseada no boss-container (para evitar herdar o outline filter)
-            // Posição: parte inferior visual do sprite (192px relativo ao container)
-            const bossRect = boss.getBoundingClientRect();
-            const effectX = bossRect.left + bossRect.width / 2;
-            const effectY = bossRect.top + 192; // 192px = parte inferior visual do sprite
+            // Obter posição real do sprite (não do container)
+            const bossSprite = boss.querySelector('.boss-sprite-idle');
+            let effectX, effectY;
+
+            if (bossSprite) {
+                const spriteRect = bossSprite.getBoundingClientRect();
+                effectX = spriteRect.left + spriteRect.width / 2;
+                effectY = spriteRect.top + spriteRect.height; // Parte inferior do sprite
+                console.log("📍 Power hit effect usando posição do boss-sprite-idle:", effectX, effectY);
+            } else {
+                // Fallback para o container
+                const bossRect = boss.getBoundingClientRect();
+                effectX = bossRect.left + bossRect.width / 2;
+                effectY = bossRect.top + bossRect.height;
+                console.log("📍 Power hit effect fallback para container:", effectX, effectY);
+            }
 
             const spriteLayer = document.createElement('div');
             spriteLayer.className = 'vlad-power-hit-effect';
