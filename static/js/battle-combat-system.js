@@ -2432,6 +2432,11 @@ function performAttack(skill) {
                 console.log("📍 Projétil na parte inferior do container (inimigo genérico):", endX, endY);
             }
 
+            // Armazenar posição de impacto para uso posterior no efeito de hit
+            this.projectileImpactX = endX;
+            this.projectileImpactY = endY;
+            console.log("💾 Posição de impacto armazenada:", endX, endY);
+
             const skillTestResult = this.currentSkill?.skillTestResult;
             // CORRIGIDO: usar 'value' ao invés de 'score' (é assim que o skill test retorna)
             const score = skillTestResult?.value || 5;
@@ -3253,6 +3258,12 @@ function performAttack(skill) {
                     const duration = 0.8;
                     const scale = 1.5;
 
+                    // Calcular offset para alinhar com o efeito normal (144px)
+                    // O efeito normal usa 144px de altura, o fraco usa 128px
+                    // Para alinhar visualmente, ajustamos o translateY para compensar a diferença
+                    const normalFrameHeight = 144;
+                    const translateYPercent = (normalFrameHeight / frameHeight) * 100; // ~112.5%
+
                     const keyframeId = `ultimate-effect-weak-${Date.now()}`;
                     const styleEl = document.createElement('style');
                     styleEl.id = keyframeId;
@@ -3265,12 +3276,13 @@ function performAttack(skill) {
                     document.head.appendChild(styleEl);
 
                     // Usar position: fixed com coordenadas calculadas do sprite real
+                    // translateY ajustado para compensar diferença de altura com efeito normal
                     ultimateEffect.className = 'vlad-ultimate-effect-weak';
                     ultimateEffect.style.cssText = `
                         position: fixed;
                         top: ${effectY}px;
                         left: ${effectX}px;
-                        transform: translateX(-50%) translateY(-100%) scale(${scale});
+                        transform: translateX(-50%) translateY(-${translateYPercent}%) scale(${scale});
                         transform-origin: bottom center;
                         width: ${frameWidth}px;
                         height: ${frameHeight}px;
@@ -4379,22 +4391,29 @@ function performAttack(skill) {
             `;
             document.head.appendChild(styleEl);
 
-            // Obter posição real do sprite (não do container)
-            // Usar o CENTRO do sprite (mesmo local onde o projétil atinge)
-            const bossSprite = boss.querySelector('.boss-sprite-idle');
+            // Usar a posição de impacto do projétil (onde ele realmente atingiu)
+            // Isso garante que o efeito apareça exatamente onde o projétil terminou
             let effectX, effectY;
 
-            if (bossSprite) {
-                const spriteRect = bossSprite.getBoundingClientRect();
-                effectX = spriteRect.left + spriteRect.width / 2;
-                effectY = spriteRect.top + spriteRect.height / 2; // CENTRO do sprite (onde o projétil atinge)
-                console.log("📍 Power hit effect no centro do boss-sprite-idle:", effectX, effectY);
+            if (this.projectileImpactX !== undefined && this.projectileImpactY !== undefined) {
+                // Usar posição de impacto armazenada pelo projétil
+                effectX = this.projectileImpactX;
+                effectY = this.projectileImpactY;
+                console.log("📍 Power hit effect usando posição de impacto do projétil:", effectX, effectY);
             } else {
-                // Fallback para o container
-                const bossRect = boss.getBoundingClientRect();
-                effectX = bossRect.left + bossRect.width / 2;
-                effectY = bossRect.top + bossRect.height / 2;
-                console.log("📍 Power hit effect fallback para centro do container:", effectX, effectY);
+                // Fallback: calcular posição do sprite (caso projétil não tenha sido criado)
+                const bossSprite = boss.querySelector('.boss-sprite-idle');
+                if (bossSprite) {
+                    const spriteRect = bossSprite.getBoundingClientRect();
+                    effectX = spriteRect.left + spriteRect.width / 2;
+                    effectY = spriteRect.top + spriteRect.height / 2;
+                    console.log("📍 Power hit effect fallback para centro do boss-sprite-idle:", effectX, effectY);
+                } else {
+                    const bossRect = boss.getBoundingClientRect();
+                    effectX = bossRect.left + bossRect.width / 2;
+                    effectY = bossRect.top + bossRect.height / 2;
+                    console.log("📍 Power hit effect fallback para centro do container:", effectX, effectY);
+                }
             }
 
             const spriteLayer = document.createElement('div');
