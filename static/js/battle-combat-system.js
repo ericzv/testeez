@@ -2414,23 +2414,47 @@ function performAttack(skill) {
             const startX = characterRect.left + characterRect.width / 2;
             const startY = characterRect.top + characterRect.height / 2;
 
-            // Verificar se é um boss (tem boss-sprite-idle) ou inimigo genérico
+            // Verificar se é um LAST_BOSS (tem boss-sprite-idle) ou inimigo genérico (tem boss-sprite-layer)
             const bossSprite = boss.querySelector('.boss-sprite-idle');
+            const spriteLayers = boss.querySelectorAll('.boss-sprite-layer');
             let endX, endY;
 
             if (bossSprite) {
-                // É um BOSS: centralizar no sprite idle
+                // É um LAST_BOSS: centralizar no sprite idle
                 const spriteRect = bossSprite.getBoundingClientRect();
                 endX = spriteRect.left + spriteRect.width / 2;
                 endY = spriteRect.top + spriteRect.height / 2; // CENTRO do sprite
                 console.log("📍 Projétil centralizado no boss-sprite-idle:", endX, endY);
+            } else if (spriteLayers.length > 0) {
+                // É um INIMIGO GENÉRICO: calcular centro das camadas de sprite
+                let minX = Infinity, maxX = -Infinity;
+                let minY = Infinity, maxY = -Infinity;
+
+                spriteLayers.forEach(layer => {
+                    const rect = layer.getBoundingClientRect();
+                    if (rect.width > 0 && rect.height > 0) { // Ignorar camadas invisíveis
+                        minX = Math.min(minX, rect.left);
+                        maxX = Math.max(maxX, rect.right);
+                        minY = Math.min(minY, rect.top);
+                        maxY = Math.max(maxY, rect.bottom);
+                    }
+                });
+
+                endX = (minX + maxX) / 2; // Centro horizontal
+                endY = (minY + maxY) / 2; // Centro vertical (onde o projétil atinge)
+                console.log("📍 Projétil centralizado nas boss-sprite-layers:", endX, endY);
             } else {
-                // É um INIMIGO GENÉRICO: usar parte inferior do container
+                // Fallback: usar container
                 const bossRect = boss.getBoundingClientRect();
                 endX = bossRect.left + bossRect.width / 2;
-                endY = bossRect.top + bossRect.height; // Parte INFERIOR do container
-                console.log("📍 Projétil na parte inferior do container (inimigo genérico):", endX, endY);
+                endY = bossRect.top + bossRect.height / 2;
+                console.log("📍 Projétil fallback para centro do container:", endX, endY);
             }
+
+            // Armazenar posição de impacto para uso posterior no efeito de hit
+            this.projectileImpactX = endX;
+            this.projectileImpactY = endY;
+            console.log("💾 Posição de impacto armazenada:", endX, endY);
 
             const skillTestResult = this.currentSkill?.skillTestResult;
             // CORRIGIDO: usar 'value' ao invés de 'score' (é assim que o skill test retorna)
@@ -3221,15 +3245,37 @@ function performAttack(skill) {
             setTimeout(() => {
                 console.log("🔮 Criando efeito ultimate sobre o boss");
 
-                // Obter posição real do sprite (não do container)
+                // Obter posição real do sprite do inimigo
+                // Para LAST_BOSS: usa .boss-sprite-idle
+                // Para inimigos genéricos: usa as camadas .boss-sprite-layer
                 const bossSprite = boss.querySelector('.boss-sprite-idle');
+                const spriteLayers = boss.querySelectorAll('.boss-sprite-layer');
                 let effectX, effectY;
 
                 if (bossSprite) {
+                    // LAST_BOSS: usar boss-sprite-idle
                     const spriteRect = bossSprite.getBoundingClientRect();
                     effectX = spriteRect.left + spriteRect.width / 2;
                     effectY = spriteRect.top + spriteRect.height; // Parte inferior do sprite
                     console.log("📍 Ultimate effect usando posição do boss-sprite-idle:", effectX, effectY);
+                } else if (spriteLayers.length > 0) {
+                    // INIMIGO GENÉRICO: calcular bounding box combinado de todas as camadas
+                    let minX = Infinity, maxX = -Infinity;
+                    let minY = Infinity, maxY = -Infinity;
+
+                    spriteLayers.forEach(layer => {
+                        const rect = layer.getBoundingClientRect();
+                        if (rect.width > 0 && rect.height > 0) { // Ignorar camadas invisíveis
+                            minX = Math.min(minX, rect.left);
+                            maxX = Math.max(maxX, rect.right);
+                            minY = Math.min(minY, rect.top);
+                            maxY = Math.max(maxY, rect.bottom);
+                        }
+                    });
+
+                    effectX = (minX + maxX) / 2; // Centro horizontal
+                    effectY = maxY; // Parte inferior (maior Y = mais embaixo)
+                    console.log("📍 Ultimate effect usando posição das boss-sprite-layers:", effectX, effectY);
                 } else {
                     // Fallback para o container
                     const bossRect = boss.getBoundingClientRect();
@@ -3244,95 +3290,64 @@ function performAttack(skill) {
 
                 const ultimateEffect = document.createElement('div');
 
-                if (useWeakEffect) {
-                    // Efeito fraco: ultimate-effect-weak.png (8 frames, 32x128px)
-                    const frameWidth = 32;
-                    const frameHeight = 128;
-                    const frameCount = 8;
-                    const totalWidth = frameWidth * frameCount;
-                    const duration = 0.8;
-                    const scale = 1.5;
+                // Configuração comum para ambos os efeitos
+                const scale = 1.5;
+                const duration = 0.8;
+                const frameCount = 8;
 
-                    const keyframeId = `ultimate-effect-weak-${Date.now()}`;
-                    const styleEl = document.createElement('style');
-                    styleEl.id = keyframeId;
-                    styleEl.textContent = `
-                        @keyframes ${keyframeId} {
-                            from { background-position: 0 0; }
-                            to { background-position: -${totalWidth}px 0; }
-                        }
-                    `;
-                    document.head.appendChild(styleEl);
+                // Dimensões baseadas no tipo de efeito
+                const frameWidth = useWeakEffect ? 32 : 144;
+                const frameHeight = useWeakEffect ? 128 : 144;
+                const totalWidth = frameWidth * frameCount;
+                const imageUrl = useWeakEffect
+                    ? '/static/game.data/character/vlad/ultimate/ultimate-effect-weak.png'
+                    : '/static/game.data/character/vlad/ultimate/ultimate-effect.png';
 
-                    // Usar position: fixed com coordenadas calculadas do sprite real
-                    ultimateEffect.className = 'vlad-ultimate-effect-weak';
-                    ultimateEffect.style.cssText = `
-                        position: fixed;
-                        top: ${effectY}px;
-                        left: ${effectX}px;
-                        transform: translateX(-50%) translateY(-100%) scale(${scale});
-                        transform-origin: bottom center;
-                        width: ${frameWidth}px;
-                        height: ${frameHeight}px;
-                        background-image: url('/static/game.data/character/vlad/ultimate/ultimate-effect-weak.png');
-                        background-size: ${totalWidth}px ${frameHeight}px;
-                        background-repeat: no-repeat;
-                        animation: ${keyframeId} ${duration}s steps(${frameCount}) forwards;
-                        pointer-events: none;
-                        z-index: 127;
-                        image-rendering: pixelated;
-                    `;
+                // Calcular dimensões escaladas
+                const scaledWidth = frameWidth * scale;
+                const scaledHeight = frameHeight * scale;
 
-                    setTimeout(() => {
-                        ultimateEffect.remove();
-                        const styleToRemove = document.getElementById(keyframeId);
-                        if (styleToRemove) styleToRemove.remove();
-                    }, duration * 1000 + 100);
-                } else {
-                    // Efeito normal: ultimate-effect.png (8 frames, 144x144px)
-                    const frameWidth = 144;
-                    const frameHeight = 144;
-                    const frameCount = 8;
-                    const totalWidth = frameWidth * frameCount;
-                    const duration = 0.8;
-                    const scale = 1.5;
+                // Posicionar para que a PARTE INFERIOR do efeito fique na PARTE INFERIOR do sprite inimigo
+                // effectY já é a parte inferior do sprite do inimigo
+                // Então o TOP do efeito deve ser: effectY - altura_escalada
+                const effectTop = effectY - scaledHeight;
+                const effectLeft = effectX - (scaledWidth / 2); // Centralizar horizontalmente
 
-                    const keyframeId = `ultimate-effect-normal-${Date.now()}`;
-                    const styleEl = document.createElement('style');
-                    styleEl.id = keyframeId;
-                    styleEl.textContent = `
-                        @keyframes ${keyframeId} {
-                            from { background-position: 0 0; }
-                            to { background-position: -${totalWidth}px 0; }
-                        }
-                    `;
-                    document.head.appendChild(styleEl);
+                const keyframeId = `ultimate-effect-${useWeakEffect ? 'weak' : 'normal'}-${Date.now()}`;
+                const styleEl = document.createElement('style');
+                styleEl.id = keyframeId;
+                styleEl.textContent = `
+                    @keyframes ${keyframeId} {
+                        from { background-position: 0 0; }
+                        to { background-position: -${totalWidth * scale}px 0; }
+                    }
+                `;
+                document.head.appendChild(styleEl);
 
-                    // Usar position: fixed com coordenadas calculadas do sprite real
-                    ultimateEffect.className = 'vlad-ultimate-effect';
-                    ultimateEffect.style.cssText = `
-                        position: fixed;
-                        top: ${effectY}px;
-                        left: ${effectX}px;
-                        transform: translateX(-50%) translateY(-100%) scale(${scale});
-                        transform-origin: bottom center;
-                        width: ${frameWidth}px;
-                        height: ${frameHeight}px;
-                        background-image: url('/static/game.data/character/vlad/ultimate/ultimate-effect.png');
-                        background-size: ${totalWidth}px ${frameHeight}px;
-                        background-repeat: no-repeat;
-                        animation: ${keyframeId} ${duration}s steps(${frameCount}) forwards;
-                        pointer-events: none;
-                        z-index: 127;
-                        image-rendering: pixelated;
-                    `;
+                // Posicionamento direto sem transforms complexos para maior consistência
+                ultimateEffect.className = useWeakEffect ? 'vlad-ultimate-effect-weak' : 'vlad-ultimate-effect';
+                ultimateEffect.style.cssText = `
+                    position: fixed;
+                    top: ${effectTop}px;
+                    left: ${effectLeft}px;
+                    width: ${scaledWidth}px;
+                    height: ${scaledHeight}px;
+                    background-image: url('${imageUrl}');
+                    background-size: ${totalWidth * scale}px ${scaledHeight}px;
+                    background-repeat: no-repeat;
+                    animation: ${keyframeId} ${duration}s steps(${frameCount}) forwards;
+                    pointer-events: none;
+                    z-index: 127;
+                    image-rendering: pixelated;
+                `;
 
-                    setTimeout(() => {
-                        ultimateEffect.remove();
-                        const styleToRemove = document.getElementById(keyframeId);
-                        if (styleToRemove) styleToRemove.remove();
-                    }, duration * 1000 + 100);
-                }
+                console.log(`📍 Ultimate effect (${useWeakEffect ? 'weak' : 'normal'}): top=${effectTop}, left=${effectLeft}, bottom alinhado em=${effectY}`);
+
+                setTimeout(() => {
+                    ultimateEffect.remove();
+                    const styleToRemove = document.getElementById(keyframeId);
+                    if (styleToRemove) styleToRemove.remove();
+                }, duration * 1000 + 100);
 
                 // Adicionar ao body para evitar herdar transformações do boss-container
                 document.body.appendChild(ultimateEffect);
@@ -4379,22 +4394,51 @@ function performAttack(skill) {
             `;
             document.head.appendChild(styleEl);
 
-            // Obter posição real do sprite (não do container)
-            // Usar o CENTRO do sprite (mesmo local onde o projétil atinge)
-            const bossSprite = boss.querySelector('.boss-sprite-idle');
+            // Usar a posição de impacto do projétil (onde ele realmente atingiu)
+            // Isso garante que o efeito apareça exatamente onde o projétil terminou
             let effectX, effectY;
 
-            if (bossSprite) {
-                const spriteRect = bossSprite.getBoundingClientRect();
-                effectX = spriteRect.left + spriteRect.width / 2;
-                effectY = spriteRect.top + spriteRect.height / 2; // CENTRO do sprite (onde o projétil atinge)
-                console.log("📍 Power hit effect no centro do boss-sprite-idle:", effectX, effectY);
+            if (this.projectileImpactX !== undefined && this.projectileImpactY !== undefined) {
+                // Usar posição de impacto armazenada pelo projétil
+                effectX = this.projectileImpactX;
+                effectY = this.projectileImpactY;
+                console.log("📍 Power hit effect usando posição de impacto do projétil:", effectX, effectY);
             } else {
-                // Fallback para o container
-                const bossRect = boss.getBoundingClientRect();
-                effectX = bossRect.left + bossRect.width / 2;
-                effectY = bossRect.top + bossRect.height / 2;
-                console.log("📍 Power hit effect fallback para centro do container:", effectX, effectY);
+                // Fallback: calcular posição do sprite (caso projétil não tenha sido criado)
+                const bossSprite = boss.querySelector('.boss-sprite-idle');
+                const spriteLayers = boss.querySelectorAll('.boss-sprite-layer');
+
+                if (bossSprite) {
+                    // LAST_BOSS
+                    const spriteRect = bossSprite.getBoundingClientRect();
+                    effectX = spriteRect.left + spriteRect.width / 2;
+                    effectY = spriteRect.top + spriteRect.height / 2;
+                    console.log("📍 Power hit effect fallback para centro do boss-sprite-idle:", effectX, effectY);
+                } else if (spriteLayers.length > 0) {
+                    // INIMIGO GENÉRICO: calcular centro das camadas
+                    let minX = Infinity, maxX = -Infinity;
+                    let minY = Infinity, maxY = -Infinity;
+
+                    spriteLayers.forEach(layer => {
+                        const rect = layer.getBoundingClientRect();
+                        if (rect.width > 0 && rect.height > 0) {
+                            minX = Math.min(minX, rect.left);
+                            maxX = Math.max(maxX, rect.right);
+                            minY = Math.min(minY, rect.top);
+                            maxY = Math.max(maxY, rect.bottom);
+                        }
+                    });
+
+                    effectX = (minX + maxX) / 2;
+                    effectY = (minY + maxY) / 2;
+                    console.log("📍 Power hit effect fallback para centro das boss-sprite-layers:", effectX, effectY);
+                } else {
+                    // Fallback final: container
+                    const bossRect = boss.getBoundingClientRect();
+                    effectX = bossRect.left + bossRect.width / 2;
+                    effectY = bossRect.top + bossRect.height / 2;
+                    console.log("📍 Power hit effect fallback para centro do container:", effectX, effectY);
+                }
             }
 
             const spriteLayer = document.createElement('div');
