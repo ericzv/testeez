@@ -4380,20 +4380,21 @@ function performAttack(skill) {
             document.head.appendChild(styleEl);
 
             // Obter posição real do sprite (não do container)
+            // Usar o CENTRO do sprite (mesmo local onde o projétil atinge)
             const bossSprite = boss.querySelector('.boss-sprite-idle');
             let effectX, effectY;
 
             if (bossSprite) {
                 const spriteRect = bossSprite.getBoundingClientRect();
                 effectX = spriteRect.left + spriteRect.width / 2;
-                effectY = spriteRect.top + spriteRect.height; // Parte inferior do sprite
-                console.log("📍 Power hit effect usando posição do boss-sprite-idle:", effectX, effectY);
+                effectY = spriteRect.top + spriteRect.height / 2; // CENTRO do sprite (onde o projétil atinge)
+                console.log("📍 Power hit effect no centro do boss-sprite-idle:", effectX, effectY);
             } else {
                 // Fallback para o container
                 const bossRect = boss.getBoundingClientRect();
                 effectX = bossRect.left + bossRect.width / 2;
-                effectY = bossRect.top + bossRect.height;
-                console.log("📍 Power hit effect fallback para container:", effectX, effectY);
+                effectY = bossRect.top + bossRect.height / 2;
+                console.log("📍 Power hit effect fallback para centro do container:", effectX, effectY);
             }
 
             const spriteLayer = document.createElement('div');
@@ -4402,8 +4403,8 @@ function performAttack(skill) {
                 position: fixed;
                 top: ${effectY}px;
                 left: ${effectX}px;
-                transform: translateX(-50%) translateY(-100%) scale(${scale});
-                transform-origin: bottom center;
+                transform: translateX(-50%) translateY(-50%) scale(${scale});
+                transform-origin: center center;
                 width: ${frameWidth}px;
                 height: ${frameHeight}px;
                 background-image: url("${imageUrl}");
