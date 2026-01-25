@@ -33,6 +33,11 @@ from flask import session
 import json
 import random
 
+# Logging
+from utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 def apply_relic_effect(player_relic, player, context):
     """
     Aplica o efeito de uma relíquia baseado no contexto.
@@ -55,7 +60,7 @@ def apply_relic_effect(player_relic, player, context):
     effect_type = effect['type']
     
     # Log de ativação
-    print(f"🗡️ RELÍQUIA: {definition['name']} ({effect_type})")
+    logger.debug(f"RELÍQUIA: {definition['name']} ({effect_type})")
     
     # Aplicar efeito baseado no tipo
     result = None
@@ -65,14 +70,14 @@ def apply_relic_effect(player_relic, player, context):
     if effect_type == 'heal_on_damage':
         result = _apply_heal(player, effect['value'])
         if result:
-            print(f"   ↳ Curou {result} HP")
+            logger.debug(f"↳ Curou {result} HP")
             
     elif effect_type == 'heal_on_critical':
         if context.get('is_critical'):
             heal_amount = int(player.max_hp * effect['heal_percent'])
             result = _apply_heal(player, heal_amount)
             if result:
-                print(f"   ↳ Crítico curou {result} HP")
+                logger.debug(f"↳ Crítico curou {result} HP")
                 
     elif effect_type == 'heal_on_combat_start':
         # Verificar se já curou nesta batalha
@@ -96,7 +101,7 @@ def apply_relic_effect(player_relic, player, context):
         player_relic.state_data = json.dumps(state_data)
         
         result = {'hp_healed': hp_heal}
-        print(f"   ↳ Curou {hp_heal} HP (1ª vez nesta batalha)")
+        logger.debug(f"↳ Curou {hp_heal} HP (1ª vez nesta batalha)")
         
     elif effect_type == 'full_heal_vs_boss':
         enemy = context.get('enemy')
@@ -121,9 +126,9 @@ def apply_relic_effect(player_relic, player, context):
             player_relic.state_data = json.dumps(state_data)
             
             result = {'full_heal': True}
-            print(f"   ↳ Cura completa de HP vs Boss! (HP: {player.hp}/{player.max_hp})")
+            logger.debug(f"↳ Cura completa de HP vs Boss! (HP: {player.hp}/{player.max_hp})")
         else:
-            print(f"   ↳ Não é boss, não curou")
+            logger.debug(f"↳ Não é boss, não curou")
             result = None
             
     elif effect_type == 'heal_per_memory':
@@ -151,7 +156,7 @@ def apply_relic_effect(player_relic, player, context):
             state_data[battle_key] = True
             player_relic.state_data = json.dumps(state_data)
             
-            print(f"   ↳ {memory_count} lembranças = {heal_amount} HP (1ª vez nesta batalha)")
+            logger.debug(f"↳ {memory_count} lembranças = {heal_amount} HP (1ª vez nesta batalha)")
         else:
             result = None
             
@@ -161,7 +166,7 @@ def apply_relic_effect(player_relic, player, context):
         
         if special_count > 0 and special_count % effect['every_n'] == 0:
             result = _apply_heal(player, effect['heal_amount'])
-            print(f"   ↳ {special_count}º especial, curou {effect['heal_amount']} HP")
+            logger.debug(f"↳ {special_count}º especial, curou {effect['heal_amount']} HP")
             
     elif effect_type == 'heal_all_skills_used':
         skills_used = json.loads(player.skills_used_this_battle)
@@ -174,7 +179,7 @@ def apply_relic_effect(player_relic, player, context):
                 result = _apply_heal(player, effect['heal_amount'])
                 state['healed_this_battle'] = True
                 player_relic.state_data = json.dumps(state)
-                print(f"   ↳ Usou todos os ataques, curou {effect['heal_amount']} HP")
+                logger.debug(f"↳ Usou todos os ataques, curou {effect['heal_amount']} HP")
                 
     elif effect_type == 'low_hp_victory_heal':
         # Chamado em on_victory
@@ -185,7 +190,7 @@ def apply_relic_effect(player_relic, player, context):
                 if player.hp < heal_to:
                     player.hp = heal_to
                     result = heal_to
-                    print(f"   ↳ HP baixo na vitória, restaurou para {effect['restore_to']*100}%")
+                    logger.debug(f"↳ HP baixo na vitória, restaurou para {effect['restore_to']*100}%")
     
     # ===== MULTIPLICADORES DE CURA (PASSIVO) =====
     # Estes são aplicados em _apply_heal, não aqui
@@ -197,31 +202,31 @@ def apply_relic_effect(player_relic, player, context):
             if context.get('attack_data'):
                 context['attack_data']['damage_multiplier'] *= (1 + effect['damage_bonus'])
                 result = context['attack_data']
-                print(f"   ↳ Primeiro ataque +{effect['damage_bonus']*100}% dano")
+                logger.debug(f"↳ Primeiro ataque +{effect['damage_bonus']*100}% dano")
                 
     elif effect_type == 'first_attack_lifesteal':
         if not player.first_attack_done:
             if context.get('attack_data'):
                 context['attack_data']['lifesteal_bonus'] += effect['lifesteal_bonus']
                 result = context['attack_data']
-                print(f"   ↳ Primeiro ataque +{effect['lifesteal_bonus']*100:.1f}% vampirismo (qualquer tipo)")
+                logger.debug(f"↳ Primeiro ataque +{effect['lifesteal_bonus']*100:.1f}% vampirismo (qualquer tipo)")
                 
     elif effect_type == 'first_power_special_crit':
-        print(f"   🔍 PEDRA ANGULAR: Verificando... first_power_or_special_done={player.first_power_or_special_done}")
+        logger.debug(f"🔍 PEDRA ANGULAR: Verificando... first_power_or_special_done={player.first_power_or_special_done}")
         if not player.first_power_or_special_done:
             skill_type = context.get('skill_type')
-            print(f"   🔍 PEDRA ANGULAR: skill_type={skill_type}")
+            logger.debug(f"🔍 PEDRA ANGULAR: skill_type={skill_type}")
             if skill_type in ['power', 'special']:
                 if context.get('attack_data'):
                     context['attack_data']['force_critical'] = True
                     result = context['attack_data']
-                    print(f"   ✅ PEDRA ANGULAR: Primeiro {skill_type} forçou crítico!")
+                    logger.debug(f"✅ PEDRA ANGULAR: Primeiro {skill_type} forçou crítico!")
                 else:
-                    print(f"   ⚠️ PEDRA ANGULAR: attack_data não encontrado no context")
+                    logger.debug(f"⚠️ PEDRA ANGULAR: attack_data não encontrado no context")
             else:
-                print(f"   ⚠️ PEDRA ANGULAR: skill_type '{skill_type}' não é power/special")
+                logger.debug(f"⚠️ PEDRA ANGULAR: skill_type '{skill_type}' não é power/special")
         else:
-            print(f"   ⚠️ PEDRA ANGULAR: Já foi usado (flag=True)")
+            logger.debug(f"⚠️ PEDRA ANGULAR: Já foi usado (flag=True)")
                     
     elif effect_type == 'double_first_attack':
         if not player.first_attack_done:
@@ -231,7 +236,7 @@ def apply_relic_effect(player_relic, player, context):
                 state['should_double'] = True
                 player_relic.state_data = json.dumps(state)
                 result = True
-                print(f"   ↳ Primeiro ataque será aplicado 2x")
+                logger.debug(f"↳ Primeiro ataque será aplicado 2x")
             
     elif effect_type == 'damage_multiplier_on_threshold':
         counter_type = definition.get('counter_type')
@@ -244,7 +249,7 @@ def apply_relic_effect(player_relic, player, context):
                 if context.get('attack_data'):
                     context['attack_data']['damage_multiplier'] *= effect['multiplier']
                     result = context['attack_data']
-                    print(f"   ↳ {next_count}º ataque, dano x{effect['multiplier']}")
+                    logger.debug(f"↳ {next_count}º ataque, dano x{effect['multiplier']}")
                 
     elif effect_type == 'accumulating_damage':
         result = _apply_accumulating_damage(player_relic, player, effect, context)
@@ -262,7 +267,7 @@ def apply_relic_effect(player_relic, player, context):
             calculate_attack_cache(player.id)
             
             result = effect['initial_bonus']
-            print(f"   ↳ Bônus inicial de {effect['initial_bonus']} no Poder")
+            logger.debug(f"↳ Bônus inicial de {effect['initial_bonus']} no Poder")
         elif context.get('event') == 'kill':
             # Só acumula se NÃO usou poder
             skills_used = json.loads(player.skills_used_this_battle)
@@ -275,7 +280,7 @@ def apply_relic_effect(player_relic, player, context):
                 calculate_attack_cache(player.id)
                 
                 result = effect['stack_bonus']
-                print(f"   ↳ Matou sem Poder, acumulou +{effect['stack_bonus']}")
+                logger.debug(f"↳ Matou sem Poder, acumulou +{effect['stack_bonus']}")
                 
     elif effect_type == 'power_kill_bonus':
         if context.get('event') == 'acquire':
@@ -286,7 +291,7 @@ def apply_relic_effect(player_relic, player, context):
             calculate_attack_cache(player.id)
             
             result = effect['initial_bonus']
-            print(f"   ↳ Bônus inicial de {effect['initial_bonus']} no Poder")
+            logger.debug(f"↳ Bônus inicial de {effect['initial_bonus']} no Poder")
         elif context.get('event') == 'kill':
             # Só acumula se USOU poder
             skills_used = json.loads(player.skills_used_this_battle)
@@ -299,7 +304,7 @@ def apply_relic_effect(player_relic, player, context):
                 calculate_attack_cache(player.id)
                 
                 result = effect['stack_bonus']
-                print(f"   ↳ Matou com Poder, acumulou +{effect['stack_bonus']}")
+                logger.debug(f"↳ Matou com Poder, acumulou +{effect['stack_bonus']}")
                 
     elif effect_type == 'special_trade':
         # Modificador passivo aplicado no cache
@@ -318,9 +323,9 @@ def apply_relic_effect(player_relic, player, context):
                     state['used_this_battle'] = True
                     player_relic.state_data = json.dumps(state)
                     db.session.commit()
-                    print(f"   ↳ Suprema x{effect['damage_multiplier']} (1x por batalha)")
+                    logger.debug(f"↳ Suprema x{effect['damage_multiplier']} (1x por batalha)")
             else:
-                print(f"   ↳ Suprema já usada nesta batalha")
+                logger.debug(f"↳ Suprema já usada nesta batalha")
                 
                 # Sinalizar para o frontend que skill está desabilitada
                 if context.get('attack_data'):
@@ -331,7 +336,7 @@ def apply_relic_effect(player_relic, player, context):
         if len(last_three) >= 3 and len(set(last_three[-3:])) == 1:
             # Últimos 3 ataques foram iguais - aplica debuff
             # TODO: aplicar debuff ao inimigo
-            print(f"   ↳ 3x seguidas, inimigo debuffado")
+            logger.debug(f"↳ 3x seguidas, inimigo debuffado")
             
     elif effect_type == 'crit_chain':
         if context.get('is_critical'):
@@ -340,7 +345,7 @@ def apply_relic_effect(player_relic, player, context):
             state['bonus_crit_next'] = effect['bonus_crit']
             player_relic.state_data = json.dumps(state)
             result = True
-            print(f"   ↳ Crítico dá +{effect['bonus_crit']*100}% crit no próximo")
+            logger.debug(f"↳ Crítico dá +{effect['bonus_crit']*100}% crit no próximo")
         else:
             # Verifica se tem bônus acumulado
             state = json.loads(player_relic.state_data or '{}')
@@ -356,7 +361,7 @@ def apply_relic_effect(player_relic, player, context):
             if context.get('attack_data'):
                 context['attack_data']['lifesteal_bonus'] += effect['lifesteal_percent']
                 result = context['attack_data']
-                print(f"   ↳ Crítico +{effect['lifesteal_percent']*100}% vampirismo")
+                logger.debug(f"↳ Crítico +{effect['lifesteal_percent']*100}% vampirismo")
                 
     elif effect_type == 'lifesteal_on_threshold':
         counter_type = definition.get('counter_type')
@@ -369,7 +374,7 @@ def apply_relic_effect(player_relic, player, context):
                 if context.get('attack_data'):
                     context['attack_data']['lifesteal_bonus'] += effect['lifesteal_percent']
                     result = context['attack_data']
-                    print(f"   ↳ {next_count}º especial, +{effect['lifesteal_percent']*100}% vampirismo")
+                    logger.debug(f"↳ {next_count}º especial, +{effect['lifesteal_percent']*100}% vampirismo")
     
     # ===== ENERGIA =====
     
@@ -392,7 +397,7 @@ def apply_relic_effect(player_relic, player, context):
                 state['energy_given_this_battle'] = True
                 player_relic.state_data = json.dumps(state)
                 result = energy_reward
-                print(f"   ↳ Usou todos os ataques, ganhou {energy_reward} energia (Energia: {player.energy}/{player.max_energy})")
+                logger.debug(f"↳ Usou todos os ataques, ganhou {energy_reward} energia (Energia: {player.energy}/{player.max_energy})")
                 
     elif effect_type in ['power_every_n_in_battle', 'special_every_n_in_battle']:
         # ID 31 (Trinitas) - Dar energia a cada N usos de uma skill no combate (não consecutivo)
@@ -411,10 +416,10 @@ def apply_relic_effect(player_relic, player, context):
                 player.energy += energy_reward
                 result = energy_reward
                 skill_name = 'Poder' if required_skill == 'power' else 'Especial' if required_skill == 'special' else required_skill.title()
-                print(f"   ↳ {skill_count}º {skill_name} no combate, ganhou {energy_reward} energia (Energia: {player.energy}/{player.max_energy})")
+                logger.debug(f"↳ {skill_count}º {skill_name} no combate, ganhou {energy_reward} energia (Energia: {player.energy}/{player.max_energy})")
             else:
                 skill_name = 'Poder' if required_skill == 'power' else 'Especial' if required_skill == 'special' else required_skill.title()
-                print(f"   ↳ {skill_name} usado no combate: {skill_count}/{effect['every_n']}")
+                logger.debug(f"↳ {skill_name} usado no combate: {skill_count}/{effect['every_n']}")
 
             # Atualizar contador
             state['skill_count_battle'] = skill_count
@@ -426,7 +431,7 @@ def apply_relic_effect(player_relic, player, context):
             energy_reward = effect['energy_reward']
             player.energy += energy_reward
             result = energy_reward
-            print(f"   ↳ {effect['every_n']}º ataque, ganhou {energy_reward} energia (Energia: {player.energy}/{player.max_energy})")
+            logger.debug(f"↳ {effect['every_n']}º ataque, ganhou {energy_reward} energia (Energia: {player.energy}/{player.max_energy})")
     
     elif effect_type == 'heal_per_relic_on_attack':
         # ID 44 - Curar 1HP por relíquia ao usar Ataque Básico
@@ -441,7 +446,7 @@ def apply_relic_effect(player_relic, player, context):
             heal_amount = relic_count * effect['hp_per_relic']
             if heal_amount > 0:
                 result = _apply_heal(player, heal_amount)
-                print(f"   ↳ {relic_count} relíquias: curou {result} HP")
+                logger.debug(f"↳ {relic_count} relíquias: curou {result} HP")
 
     # ===== RECURSOS (PD, OURO, ETC) =====
             
@@ -449,7 +454,7 @@ def apply_relic_effect(player_relic, player, context):
     #    player.run_gold += effect['value']
     #    player.run_gold_gained += effect['value']
         result = effect['value']
-        print(f"   ↳ Ganhou {effect['value']} ouro")
+        logger.debug(f"↳ Ganhou {effect['value']} ouro")
         
     elif effect_type == 'gold_on_ultimate_kill':
         skills_used = json.loads(player.skills_used_this_battle)
@@ -457,13 +462,13 @@ def apply_relic_effect(player_relic, player, context):
     #        player.run_gold += effect['value']
     #        player.run_gold_gained += effect['value']
             result = effect['value']
-            print(f"   ↳ Matou com Suprema, ganhou {effect['value']} ouro")
+            logger.debug(f"↳ Matou com Suprema, ganhou {effect['value']} ouro")
             
     elif effect_type == 'instant_gold':
         player.run_gold += effect['value']
         player.run_gold_gained += effect['value']
         result = effect['value']
-        print(f"   ↳ Ganhou {effect['value']} ouro instantâneo")
+        logger.debug(f"↳ Ganhou {effect['value']} ouro instantâneo")
         
     elif effect_type == 'sacrifice_relic':
         # Escolher relíquia aleatória para sacrificar (exceto a si mesma)
@@ -481,9 +486,9 @@ def apply_relic_effect(player_relic, player, context):
         if other_relics:
             sacrificed = random.choice(other_relics)
             sacrificed.is_active = False
-            print(f"   ↳ Sacrificou {len(other_relics)} relíquia(s), ganhou {effect['gold_reward']} ouro")
+            logger.debug(f"↳ Sacrificou {len(other_relics)} relíquia(s), ganhou {effect['gold_reward']} ouro")
         else:
-            print(f"   ↳ Nenhuma relíquia para sacrificar, mas ganhou {effect['gold_reward']} ouro")
+            logger.debug(f"↳ Nenhuma relíquia para sacrificar, mas ganhou {effect['gold_reward']} ouro")
             
     elif effect_type == 'stat_boost':
         stat = effect['stat']
@@ -502,7 +507,7 @@ def apply_relic_effect(player_relic, player, context):
             # Curar o HP adicional ganho (para não ficar 72/90)
             player.hp = min(player.hp + value, player.max_hp)
 
-            print(f"   ↳ max_hp: {old_max_hp} → {player.max_hp} (+{value} HP)")
+            logger.debug(f"↳ max_hp: {old_max_hp} → {player.max_hp} (+{value} HP)")
 
             # Forçar recálculo do cache
             from routes.battle_cache import calculate_attack_cache
@@ -511,7 +516,7 @@ def apply_relic_effect(player_relic, player, context):
         elif stat == 'max_energy':
             # Adicionar diretamente à energia máxima
             player.max_energy += value
-            print(f"   ↳ max_energy aumentada para {player.max_energy}")
+            logger.debug(f"↳ max_energy aumentada para {player.max_energy}")
             
             # Forçar recálculo do cache
             from routes.battle_cache import calculate_attack_cache
@@ -528,7 +533,7 @@ def apply_relic_effect(player_relic, player, context):
                 old_value = context['rewards'][reward_type]
                 context['rewards'][reward_type] = int(old_value * effect['multiplier'])
                 result = context['rewards']
-                print(f"   ↳ {reward_type} x{effect['multiplier']}")
+                logger.debug(f"↳ {reward_type} x{effect['multiplier']}")
                 
     elif effect_type == 'hourglass_to_gold':
         if context.get('event') == 'rewards':
@@ -537,14 +542,14 @@ def apply_relic_effect(player_relic, player, context):
                 bonus_gold = hourglasses * effect['gold_per_hourglass']
                 context['rewards']['gold'] = context['rewards'].get('gold', 0) + bonus_gold
                 result = context['rewards']
-                print(f"   ↳ {hourglasses} ampulhetas viraram {bonus_gold} ouro")
+                logger.debug(f"↳ {hourglasses} ampulhetas viraram {bonus_gold} ouro")
                 
     elif effect_type == 'hourglass_bonus':
         # SÓ adicionar se o inimigo JÁ dropa ampulhetas (> 0)
         if context['rewards'].get('hourglasses', 0) > 0:
             context['rewards']['hourglasses'] += effect['bonus_amount']
             result = context['rewards']
-            print(f"   ↳ +{effect['bonus_amount']} Ampulheta Eterna extra")
+            logger.debug(f"↳ +{effect['bonus_amount']} Ampulheta Eterna extra")
     
     # ===== ESPECIAIS E META =====
     
@@ -602,7 +607,7 @@ def apply_relic_effect(player_relic, player, context):
             lifesteal_bonus = relic_count * effect['lifesteal_percent']
             context['attack_data']['lifesteal_bonus'] += lifesteal_bonus
             result = context['attack_data']
-            print(f"   ↳ {relic_count} relíquias: +{lifesteal_bonus*100:.1f}% vampirismo")
+            logger.debug(f"↳ {relic_count} relíquias: +{lifesteal_bonus*100:.1f}% vampirismo")
     
     # Incrementar contador de ativações se teve resultado
     if result is not None:
@@ -635,7 +640,7 @@ def _apply_heal(player, amount):
             # Se multiplier = 1.5 → bônus = +0.5 (50%)
             bonus = definition['effect']['multiplier'] - 1.0
             heal_bonus_total += bonus
-            print(f"   ↳ {definition['name']}: +{bonus*100:.0f}% bônus de cura")
+            logger.debug(f"↳ {definition['name']}: +{bonus*100:.0f}% bônus de cura")
     
     # Calcular multiplicador final
     heal_multiplier = 1.0 + heal_bonus_total
@@ -662,14 +667,14 @@ def _apply_heal(player, amount):
     if flat_bonus > 0:
         final_heal += flat_bonus
         for source in flat_bonus_sources:
-            print(f"   ↳ {source} bônus flat")
+            logger.debug(f"↳ {source} bônus flat")
     
     old_hp = player.hp
     player.hp = min(player.hp + final_heal, player.max_hp)
     actual_heal = player.hp - old_hp
     
     if heal_multiplier > 1.0:
-        print(f"   ↳ Cura multiplicada: {amount} × {heal_multiplier:.1f} = {final_heal}")
+        logger.debug(f"↳ Cura multiplicada: {amount} × {heal_multiplier:.1f} = {final_heal}")
     
     return actual_heal
 

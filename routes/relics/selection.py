@@ -8,6 +8,11 @@ from models import Player, PlayerRelic, RelicDefinition
 from .registry import get_relic_definition, get_all_relic_ids, get_rarity_weights
 from .hooks import on_acquire
 
+# Logging
+from utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 def generate_relic_options(player_id, context='first_relic'):
     """
     Gera opções de relíquias para escolha.
@@ -33,7 +38,7 @@ def generate_relic_options(player_id, context='first_relic'):
     ).first()
     if extra_option_relic:
         count += 1
-        print(f"🔿 Coleção de Tecla: +1 opção ({count} opções)")
+        logger.debug(f"🔿 Coleção de Tecla: +1 opção ({count} opções)")
 
     player = Player.query.get(player_id)
     
@@ -58,7 +63,7 @@ def generate_relic_options(player_id, context='first_relic'):
     for rid in available_ids:
         definition = get_relic_definition(rid)
         if not definition:
-            print(f"⚠️ AVISO: Relíquia ID '{rid}' retornou None em generate_relic_options - pulando")
+            logger.warning(f"AVISO: Relíquia ID '{rid}' retornou None em generate_relic_options - pulando")
             continue
         rarity = definition['rarity']
         if rarity not in by_rarity:
