@@ -7,15 +7,14 @@ from database import db
 from models import Player, Boss, BestiaryEntry, PlayerTalent, EnemyTheme, GenericEnemy, PlayerProgress
 from characters import ActiveBuff, PlayerSkill, SpecialSkill
 from game_formulas import (
-
-# Logging
-from utils.logger import get_logger
-logger = get_logger(__name__)
-
     calculate_critical_chance,
     calculate_critical_bonus,
     calculate_dodge_chance
 )
+
+# Logging
+from utils.logger import get_logger
+logger = get_logger(__name__)
 
 def apply_damage_to_player(player, damage):
     """
