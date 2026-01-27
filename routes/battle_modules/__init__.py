@@ -49,6 +49,19 @@ from .player_state import (
     reset_player_energy
 )
 
+from .damage_calculations import (
+    get_attack_target,
+    apply_buff_modifiers,
+    apply_debuff_modifiers,
+    calculate_lifesteal,
+    calculate_barrier_gain,
+    apply_damage_to_target,
+    check_double_first_attack,
+    calculate_generic_enemy_rewards,
+    calculate_boss_rewards,
+    get_extra_gold_from_kill_relics
+)
+
 # ❌ REMOVER ESTA LINHA (causava o erro circular):
 # from ..battle import battle_bp
 
