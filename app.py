@@ -408,7 +408,7 @@ def choose_character_route():
             # Recarregar player para garantir dados atualizados
             db.session.refresh(player)
 
-            from routes.battle import reset_player_run
+            from routes.battle_modules import reset_player_run
             success, message = reset_player_run(player.id)
             if not success:
                 flash(f'Erro ao resetar run: {message}', "danger")

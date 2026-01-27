@@ -44,6 +44,11 @@ from .battle_utils import (
     apply_buffs_to_stats
 )
 
+from .player_state import (
+    reset_player_run,
+    reset_player_energy
+)
+
 # ❌ REMOVER ESTA LINHA (causava o erro circular):
 # from ..battle import battle_bp
 
@@ -77,5 +82,7 @@ __all__ = [
     'check_login_rewards',
     'update_rounds_for_all_enemies',
     'initialize_game_for_new_player',
-    'format_buff_duration'
+    'format_buff_duration',
+    'reset_player_run',
+    'reset_player_energy'
 ]
