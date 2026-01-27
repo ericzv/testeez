@@ -6,22 +6,11 @@ from datetime import datetime
 from database import db
 from models import GenericEnemy, LastBoss
 from .battle_log import log_turn, get_battle_log, clear_battle_log
+from .battle_utils import load_enemy_skills_data, get_enemy_skills
 
 # Logging
 from utils.logger import get_logger
 logger = get_logger(__name__)
-
-
-def load_enemy_skills_data():
-    """Carrega dados das skills dos inimigos"""
-    import os
-    try:
-        skills_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'static', 'game.data', 'enemy_skills_data.json')
-        with open(skills_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception as e:
-        logger.error(f"Erro ao carregar enemy skills data: {e}")
-        return {}
 
 
 def get_next_actions(enemy):
@@ -61,17 +50,11 @@ def get_next_actions(enemy):
     
     # --- INÍCIO DA LÓGICA DE RESOLUÇÃO COM OBJETOS RICOS ---
     
-    # Carregar dados das skills (NECESSÁRIO AQUI AGORA)
+    # Carregar dados das skills
     skills_data = load_enemy_skills_data()
-    
-    # Precisamos saber quais skills o inimigo tem
-    if hasattr(enemy, 'enemy_skills') and enemy.enemy_skills:
-        enemy_skills = json.loads(enemy.enemy_skills)
-    elif hasattr(enemy, 'skills') and enemy.skills:
-        enemy_skills = json.loads(enemy.skills)
-    else:
-        enemy_skills = []
 
+    # Obter skills do inimigo usando helper centralizado
+    enemy_skills = get_enemy_skills(enemy)
     attack_skills = [s for s in enemy_skills if s['type'] == 'attack']
     buff_skills = [s for s in enemy_skills if s['type'] == 'buff']
     debuff_skills = [s for s in enemy_skills if s['type'] == 'debuff']
@@ -245,17 +228,10 @@ def process_enemy_turn(enemy, player_id=None):
     buff_debuff_queue = []
     logger.debug(f"🗑️ Filas antigas limpas")
     
-    # Carregar skills do inimigo (compatível com GenericEnemy e LastBoss)
-    # GenericEnemy usa 'enemy_skills', LastBoss usa 'skills'
-    if hasattr(enemy, 'enemy_skills') and enemy.enemy_skills:
-        enemy_skills = json.loads(enemy.enemy_skills)
-    elif hasattr(enemy, 'skills') and enemy.skills:
-        enemy_skills = json.loads(enemy.skills)
-    else:
-        enemy_skills = []
-    
+    # Obter skills do inimigo usando helper centralizado
+    enemy_skills = get_enemy_skills(enemy)
     logger.debug(f"Skills carregadas: {len(enemy_skills)} encontrada(s)")
-    
+
     # Separar skills por tipo
     attack_skills = [s for s in enemy_skills if s['type'] == 'attack']
     buff_skills = [s for s in enemy_skills if s['type'] == 'buff']

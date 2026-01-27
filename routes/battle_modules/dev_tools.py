@@ -148,7 +148,7 @@ def init_dev_routes(battle_bp):
     def dev_add_skill_charges():
         """Rota DEV para adicionar cargas de skills específicas ao inimigo"""
         from routes.battle import get_current_battle_enemy
-        from routes.enemy_attacks import load_enemy_skills_data
+        from .battle_utils import load_enemy_skills_data
 
         skill_id = request.args.get('skill_id')
         charges = int(request.args.get('charges', 1))

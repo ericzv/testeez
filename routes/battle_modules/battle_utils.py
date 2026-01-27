@@ -285,13 +285,79 @@ def format_buff_duration(buff):
 def apply_buffs_to_stats(buffs, stats_dict):
     """Aplica buffs a um dicionário de stats."""
     from database import db
-    
+
     for buff in buffs:
         if hasattr(buff, 'is_expired') and buff.is_expired():
             db.session.delete(buff)
             continue
-        
+
         if buff.effect_type in stats_dict:
             stats_dict[buff.effect_type] += buff.effect_value
-    
+
     return stats_dict
+
+
+# ===== FUNÇÕES DE SKILLS DE INIMIGOS =====
+
+_enemy_skills_cache = None
+
+def load_enemy_skills_data():
+    """
+    Carrega dados das skills dos inimigos do arquivo JSON.
+    Usa cache para evitar leituras repetidas do arquivo.
+    """
+    global _enemy_skills_cache
+
+    if _enemy_skills_cache is not None:
+        return _enemy_skills_cache
+
+    import os
+    import json
+
+    try:
+        # Caminho absoluto para evitar problemas de diretório
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        skills_path = os.path.join(base_dir, 'static', 'game.data', 'enemy_skills_data.json')
+
+        with open(skills_path, 'r', encoding='utf-8') as f:
+            _enemy_skills_cache = json.load(f)
+            return _enemy_skills_cache
+    except Exception as e:
+        logger.error(f"Erro ao carregar enemy skills data: {e}")
+        return {}
+
+
+def get_enemy_skills(enemy):
+    """
+    Retorna a lista de skills de um inimigo (GenericEnemy ou LastBoss).
+
+    GenericEnemy usa o campo 'enemy_skills'
+    LastBoss usa o campo 'skills'
+
+    Returns:
+        list: Lista de skills do inimigo, ou lista vazia se não houver
+    """
+    import json
+
+    if hasattr(enemy, 'enemy_skills') and enemy.enemy_skills:
+        return json.loads(enemy.enemy_skills)
+    elif hasattr(enemy, 'skills') and enemy.skills:
+        return json.loads(enemy.skills)
+    else:
+        return []
+
+
+def get_enemy_skills_by_type(enemy):
+    """
+    Retorna as skills de um inimigo separadas por tipo.
+
+    Returns:
+        dict: {'attack': [...], 'buff': [...], 'debuff': [...]}
+    """
+    skills = get_enemy_skills(enemy)
+
+    return {
+        'attack': [s for s in skills if s.get('type') == 'attack'],
+        'buff': [s for s in skills if s.get('type') == 'buff'],
+        'debuff': [s for s in skills if s.get('type') == 'debuff']
+    }

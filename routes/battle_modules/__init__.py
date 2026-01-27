@@ -41,7 +41,10 @@ from .battle_utils import (
     update_rounds_for_all_enemies,
     initialize_game_for_new_player,
     format_buff_duration,
-    apply_buffs_to_stats
+    apply_buffs_to_stats,
+    load_enemy_skills_data,
+    get_enemy_skills,
+    get_enemy_skills_by_type
 )
 
 from .player_state import (
