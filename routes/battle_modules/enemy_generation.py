@@ -8,6 +8,10 @@ import os
 from database import db
 from models import Player, Boss, BestiaryEntry, PlayerTalent, EnemyTheme, GenericEnemy, PlayerProgress
 
+# Logging
+from utils.logger import get_logger
+logger = get_logger(__name__)
+
 # Cache para configuração dos temas
 _enemy_themes_config = None
 # Cache para configuração de nomes
@@ -51,7 +55,7 @@ def load_enemy_skills_config():
         with open(skills_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except Exception as e:
-        print(f"Erro ao carregar skills data: {e}")
+        logger.error(f"Erro ao carregar skills data: {e}")
         return {}
 
 def load_equipment_skills_config():
@@ -61,7 +65,7 @@ def load_equipment_skills_config():
         with open(equipment_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except Exception as e:
-        print(f"Erro ao carregar equipment skills config: {e}")
+        logger.error(f"Erro ao carregar equipment skills config: {e}")
         return {}
 
 def calculate_skill_probability(enemy_number, rarity, equipment_file):
@@ -80,7 +84,7 @@ def calculate_skill_probability(enemy_number, rarity, equipment_file):
     # Somar probabilidades (cumulativa)
     total_prob = number_prob + rarity_prob + equipment_prob
     
-    print(f"Probabilidade skill para {equipment_file}: {number_prob}% (number) + {rarity_prob}% (rarity) + {equipment_prob}% (equipment) = {total_prob}%")
+    logger.debug(f"Probabilidade skill para {equipment_file}: {number_prob}% (number) + {rarity_prob}% (rarity) + {equipment_prob}% (equipment) = {total_prob}%")
     
     return total_prob
 
@@ -91,7 +95,7 @@ def generate_enemy_skills(enemy_number, rarity, selected_equipment):
     skill_cooldown_reductions = {}
     
     # Debug: mostrar configuração carregada
-    print(f"🎯 SKILLS DEBUG: Configuração carregada com {len(equipment_config)} equipamentos")
+    logger.debug(f"SKILLS DEBUG: Configuração carregada com {len(equipment_config)} equipamentos")
     
     # Verificar cada equipamento (head, body, weapon - ignorar back)
     equipment_types = ['head', 'body', 'weapon']
@@ -99,48 +103,48 @@ def generate_enemy_skills(enemy_number, rarity, selected_equipment):
     for eq_type in equipment_types:
         equipment_file = selected_equipment.get(eq_type)
         if not equipment_file:
-            print(f"⚠️ {eq_type}: Equipamento não encontrado")
+            logger.warning(f"{eq_type}: Equipamento não encontrado")
             continue
             
-        print(f"🔍 VERIFICANDO {eq_type}: {equipment_file}")
+        logger.debug(f"VERIFICANDO {eq_type}: {equipment_file}")
         
         # Verificar se equipamento existe na configuração
         if equipment_file not in equipment_config:
-            print(f"❌ {eq_type} ({equipment_file}): NÃO tem skills disponíveis no JSON")
+            logger.error(f"{eq_type} ({equipment_file}): NÃO tem skills disponíveis no JSON")
             continue
         
         # Mostrar skills possíveis
         possible_skills = equipment_config[equipment_file].get('possible_skills', [])
         skill_probability = equipment_config[equipment_file].get('skill_probability', 0)
         
-        print(f"📋 {eq_type} ({equipment_file}):")
-        print(f"   Skills possíveis: {possible_skills}")
-        print(f"   Probabilidade base: {skill_probability}%")
+        logger.debug(f"{eq_type} ({equipment_file}):")
+        logger.debug(f"Skills possíveis: {possible_skills}")
+        logger.debug(f"Probabilidade base: {skill_probability}%")
         
         # Calcular probabilidade total
         total_prob = calculate_skill_probability(enemy_number, rarity, equipment_file)
         
         # Fazer rolagem
         roll = random.random() * 100
-        print(f"🎲 Rolagem {eq_type} ({equipment_file}): {roll:.1f}% (precisa <= {total_prob}%)")
+        logger.debug(f"Rolagem {eq_type} ({equipment_file}): {roll:.1f}% (precisa <= {total_prob}%)")
         
         if roll <= total_prob:
             # Tem skill! Escolher uma aleatória da lista
             if possible_skills:
                 chosen_skill = random.choice(possible_skills)
-                print(f"✅ Skill escolhida para {eq_type}: {chosen_skill}")
+                logger.info(f"Skill escolhida para {eq_type}: {chosen_skill}")
                 
                 # Verificar se já temos esta skill (duplicata)
                 if chosen_skill in selected_skills:
-                    print(f"⚡ Skill {chosen_skill} duplicada! Reduzindo tempo de recarga pela metade")
+                    logger.debug(f"Skill {chosen_skill} duplicada! Reduzindo tempo de recarga pela metade")
                     skill_cooldown_reductions[chosen_skill] = 0.5
                 else:
                     selected_skills[chosen_skill] = eq_type
                     skill_cooldown_reductions[chosen_skill] = 1.0
         else:
-            print(f"❌ Sem skill para {eq_type}")
+            logger.error(f"Sem skill para {eq_type}")
     
-    print(f"🎯 RESULTADO FINAL: {len(selected_skills)} skills selecionadas: {list(selected_skills.keys())}")
+    logger.debug(f"RESULTADO FINAL: {len(selected_skills)} skills selecionadas: {list(selected_skills.keys())}")
     return selected_skills, skill_cooldown_reductions
 
 def convert_skills_to_list_format(selected_skills, skill_cooldown_reductions):
@@ -184,20 +188,20 @@ def load_enemy_themes_config():
         try:
             # Caminho correto: volta um diretório do routes/ para chegar na raiz
             config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'static', 'game.data', 'enemy_themes_config.json')
-            print(f"🔍 Tentando carregar arquivo de: {config_path}")
+            logger.debug(f"Tentando carregar arquivo de: {config_path}")
             
             if not os.path.exists(config_path):
-                print(f"❌ Arquivo não encontrado em: {config_path}")
+                logger.error(f"Arquivo não encontrado em: {config_path}")
                 _enemy_themes_config = {}
                 return _enemy_themes_config
                 
             with open(config_path, 'r', encoding='utf-8') as f:
                 _enemy_themes_config = json.load(f)
-            print("✅ Configuração de temas carregada com sucesso")
-            print(f"📊 Temas encontrados no JSON: {list(_enemy_themes_config.get('themes', {}).keys())}")
+            logger.info("Configuração de temas carregada com sucesso")
+            logger.debug(f"Temas encontrados no JSON: {list(_enemy_themes_config.get('themes', {}).keys())}")
         except Exception as e:
-            print(f"❌ Erro ao carregar configuração de temas: {e}")
-            print(f"❌ Caminho tentado: {config_path}")
+            logger.error(f"Erro ao carregar configuração de temas: {e}")
+            logger.error(f"Caminho tentado: {config_path}")
             _enemy_themes_config = {}
     return _enemy_themes_config
 
@@ -207,7 +211,7 @@ def load_action_patterns_config():
     if config and 'action_patterns' in config:
         return config['action_patterns']
     else:
-        print("⚠️ Padrões de ação não encontrados no JSON, usando padrão genérico")
+        logger.warning("Padrões de ação não encontrados no JSON, usando padrão genérico")
         return {
             "default": ["attack", "attack_skill", "attack", "buff", "attack", "debuff"]
         }
@@ -266,8 +270,8 @@ def generate_action_pattern(theme_name, enemy_skills):
     patterns_config = load_action_patterns_config()
     base_pattern = patterns_config.get(theme_name, patterns_config.get("default", ["attack", "attack", "attack"]))
     
-    print(f"🎯 Gerando padrão para tema '{theme_name}'")
-    print(f"   Padrão base: {base_pattern}")
+    logger.debug(f"Gerando padrão para tema '{theme_name}'")
+    logger.debug(f"Padrão base: {base_pattern}")
     
     # Analisar quais skills o inimigo TEM
     has_attack_skill = False
@@ -287,7 +291,7 @@ def generate_action_pattern(theme_name, enemy_skills):
             elif skill_type == 'debuff':
                 has_debuff = True
     
-    print(f"   Skills disponíveis: attack_skill={has_attack_skill}, buff={has_buff}, debuff={has_debuff}")
+    logger.debug(f"Skills disponíveis: attack_skill={has_attack_skill}, buff={has_buff}, debuff={has_debuff}")
     
     # Ajustar padrão baseado nas skills disponíveis
     adjusted_pattern = []
@@ -305,7 +309,7 @@ def generate_action_pattern(theme_name, enemy_skills):
             else:
                 # NÃO TEM attack skill → substituir por ataque básico
                 adjusted_pattern.append("attack")
-                print(f"   ⚠️ Substituindo 'attack_skill' por 'attack' (inimigo não tem attack skill)")
+                logger.debug(f"⚠️ Substituindo 'attack_skill' por 'attack' (inimigo não tem attack skill)")
         
         elif action == "buff_debuff":
             # Ação unificada: usa buff OU debuff (o que tiver disponível)
@@ -313,7 +317,7 @@ def generate_action_pattern(theme_name, enemy_skills):
                 adjusted_pattern.append("buff_debuff")
             else:
                 # NÃO TEM nem buff nem debuff → PULAR
-                print(f"   ⚠️ Pulando 'buff_debuff' (inimigo não tem buff nem debuff)")
+                logger.debug(f"⚠️ Pulando 'buff_debuff' (inimigo não tem buff nem debuff)")
                 # Não adiciona nada ao pattern
         
         else:
@@ -323,9 +327,9 @@ def generate_action_pattern(theme_name, enemy_skills):
     # Garantir que sempre tenha pelo menos uma ação
     if not adjusted_pattern:
         adjusted_pattern = ["attack"]
-        print(f"   ⚠️ Padrão vazio! Adicionando ataque básico como fallback")
+        logger.debug(f"⚠️ Padrão vazio! Adicionando ataque básico como fallback")
     
-    print(f"   ✅ Padrão final: {adjusted_pattern}")
+    logger.debug(f"✅ Padrão final: {adjusted_pattern}")
     return adjusted_pattern
 
 def load_enemy_names_config():
@@ -334,18 +338,18 @@ def load_enemy_names_config():
     if _enemy_names_config is None:
         try:
             config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'static', 'game.data', 'enemy_names_config.json')
-            print(f"🔍 Tentando carregar arquivo de nomes de: {config_path}")
+            logger.debug(f"Tentando carregar arquivo de nomes de: {config_path}")
 
             if not os.path.exists(config_path):
-                print(f"❌ Arquivo de nomes não encontrado em: {config_path}")
+                logger.error(f"Arquivo de nomes não encontrado em: {config_path}")
                 _enemy_names_config = {}
                 return _enemy_names_config
 
             with open(config_path, 'r', encoding='utf-8') as f:
                 _enemy_names_config = json.load(f)
-            print("✅ Configuração de nomes carregada com sucesso")
+            logger.info("Configuração de nomes carregada com sucesso")
         except Exception as e:
-            print(f"❌ Erro ao carregar configuração de nomes: {e}")
+            logger.error(f"Erro ao carregar configuração de nomes: {e}")
             _enemy_names_config = {}
     return _enemy_names_config
 
@@ -360,10 +364,10 @@ def load_enemy_templates():
     if _enemy_templates is None:
         try:
             templates_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'static', 'game.data', 'enemy_templates.json')
-            print(f"🔍 Carregando templates de inimigos de: {templates_path}")
+            logger.debug(f"Carregando templates de inimigos de: {templates_path}")
 
             if not os.path.exists(templates_path):
-                print(f"❌ Arquivo de templates não encontrado em: {templates_path}")
+                logger.error(f"Arquivo de templates não encontrado em: {templates_path}")
                 _enemy_templates = []
                 _enemy_templates_by_group = [[] for _ in range(7)]
                 return _enemy_templates
@@ -395,12 +399,12 @@ def load_enemy_templates():
             _enemy_templates = templates
             _enemy_templates_by_group = groups
 
-            print(f"✅ {len(templates)} templates carregados em 7 grupos:")
+            logger.info(f"{len(templates)} templates carregados em 7 grupos:")
             for i, group in enumerate(groups):
-                print(f"   Grupo {i+1}: {len(group)} inimigos")
+                logger.debug(f"Grupo {i+1}: {len(group)} inimigos")
 
         except Exception as e:
-            print(f"❌ Erro ao carregar templates: {e}")
+            logger.error(f"Erro ao carregar templates: {e}")
             import traceback
             traceback.print_exc()
             _enemy_templates = []
@@ -449,11 +453,11 @@ def get_enemy_template_by_act_and_position(act_number, node_y):
     group = _enemy_templates_by_group[group_idx]
 
     if not group:
-        print(f"⚠️ Grupo {group_idx + 1} vazio! Usando grupo 1 como fallback")
+        logger.warning(f"Grupo {group_idx + 1} vazio! Usando grupo 1 como fallback")
         group = _enemy_templates_by_group[0]
 
     if not group:
-        print(f"❌ Nenhum template disponível!")
+        logger.error(f"Nenhum template disponível!")
         return None
 
     # Selecionar inimigo ALEATORIAMENTE dentro do grupo
@@ -463,7 +467,7 @@ def get_enemy_template_by_act_and_position(act_number, node_y):
     template['group_index'] = group_idx
 
     half_name = "2ª metade" if is_second_half else "1ª metade"
-    print(f"🎯 Ato {act_number}, Node Y={node_y} ({half_name}) → Grupo {group_idx + 1} → {template['name']} [ALEATÓRIO]")
+    logger.debug(f"Ato {act_number}, Node Y={node_y} ({half_name}) → Grupo {group_idx + 1} → {template['name']} [ALEATÓRIO]")
 
     return template
 
@@ -494,7 +498,7 @@ def get_enemy_template_excluding_names(act_number, node_y, excluded_names):
     group = _enemy_templates_by_group[group_idx]
 
     if not group:
-        print(f"⚠️ Grupo {group_idx + 1} vazio!")
+        logger.warning(f"Grupo {group_idx + 1} vazio!")
         return None
 
     # Filtrar templates que não foram usados
@@ -504,7 +508,7 @@ def get_enemy_template_excluding_names(act_number, node_y, excluded_names):
         template = random.choice(available_templates)
         template['group_index'] = group_idx
         half_name = "2ª metade" if is_second_half else "1ª metade"
-        print(f"🎯 Ato {act_number}, Node Y={node_y} ({half_name}) → Grupo {group_idx + 1} → {template['name']} [ANTI-REP: {len(available_templates)}/{len(group)} disponíveis]")
+        logger.debug(f"Ato {act_number}, Node Y={node_y} ({half_name}) → Grupo {group_idx + 1} → {template['name']} [ANTI-REP: {len(available_templates)}/{len(group)} disponíveis]")
         return template
 
     # Todos os inimigos do grupo já foram usados
@@ -521,11 +525,11 @@ def get_enemy_template_excluding_names(act_number, node_y, excluded_names):
         if available_in_adj:
             template = random.choice(available_in_adj)
             template['group_index'] = adj_idx
-            print(f"⚠️ Grupo {group_idx + 1} esgotado! Usando Grupo {adj_idx + 1} → {template['name']}")
+            logger.warning(f"Grupo {group_idx + 1} esgotado! Usando Grupo {adj_idx + 1} → {template['name']}")
             return template
 
     # Último recurso: permitir repetição do grupo original
-    print(f"⚠️ TODOS OS GRUPOS ESGOTADOS! Permitindo repetição no Grupo {group_idx + 1}")
+    logger.warning(f"TODOS OS GRUPOS ESGOTADOS! Permitindo repetição no Grupo {group_idx + 1}")
     template = random.choice(group)
     template['group_index'] = group_idx
     return template
@@ -574,7 +578,7 @@ def get_infernal_challenger_template(act_number=1):
     infernal_group = _enemy_templates_by_group[6]  # Grupo 7 = índice 6
 
     if not infernal_group:
-        print("⚠️ Nenhum Desafiante Infernal disponível!")
+        logger.warning("Nenhum Desafiante Infernal disponível!")
         return None
 
     # Definir quais Infernais por ato (por nome)
@@ -591,9 +595,9 @@ def get_infernal_challenger_template(act_number=1):
     available = [t for t in infernal_group if t['name'] in valid_names]
 
     if not available:
-        print(f"⚠️ Nenhum Infernal com nomes válidos encontrado para Ato {act_number}!")
-        print(f"   Buscando: {valid_names}")
-        print(f"   Disponíveis: {[t['name'] for t in infernal_group]}")
+        logger.warning(f"Nenhum Infernal com nomes válidos encontrado para Ato {act_number}!")
+        logger.debug(f"Buscando: {valid_names}")
+        logger.debug(f"Disponíveis: {[t['name'] for t in infernal_group]}")
         # Fallback: usar qualquer do grupo
         available = infernal_group
 
@@ -602,7 +606,7 @@ def get_infernal_challenger_template(act_number=1):
     # Adicionar informação de grupo (Grupo 7 = índice 6)
     template['group_index'] = 6
 
-    print(f"🔥 Desafiante Infernal (Ato {act_number}): {template['name']}")
+    logger.debug(f"Desafiante Infernal (Ato {act_number}): {template['name']}")
 
     return template
 
@@ -618,12 +622,12 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
     Returns:
         GenericEnemy instance
     """
-    print(f"\n🎭 Criando inimigo a partir do template: {template['name']}")
+    logger.debug(f"🎭 Criando inimigo a partir do template: {template['name']}")
 
     # Carregar configurações necessárias
     config = load_enemy_themes_config()
     if not config:
-        print("❌ Configuração de temas não encontrada")
+        logger.error("Configuração de temas não encontrada")
         return None
 
     sprite_modifiers = config.get('sprite_modifiers', {})
@@ -674,7 +678,7 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
     final_hp = template.get('fixed_hp', 50)  # Fallback para 50 se não tiver
     final_damage = template.get('fixed_damage', 10)  # Fallback para 10 se não tiver
 
-    print(f"📊 Stats FIXOS: HP={final_hp}, Dano={final_damage}, Grupo {group_idx+1}")
+    logger.debug(f"Stats FIXOS: HP={final_hp}, Dano={final_damage}, Grupo {group_idx+1}")
 
     # Block percentage baseado na raridade
     block_percentage = 5 + (rarity * 2)
@@ -706,7 +710,7 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
         'potion_chance': 0
     })
     equipment_modifiers['_rewards'] = rewards
-    print(f"💰 Recompensas FIXAS: {rewards['memory_crystals']} cristais, {rewards['gold']} ouro, Poção: {rewards.get('potion', 'Nenhuma')}")
+    logger.debug(f"Recompensas FIXAS: {rewards['memory_crystals']} cristais, {rewards['gold']} ouro, Poção: {rewards.get('potion', 'Nenhuma')}")
 
     # Equipment rank
     equipment_rank = get_rank_from_total_modifiers(total_modifier_sum)
@@ -730,7 +734,7 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
     # Usar hit sprite do template se disponível
     if template_hit_sprite:
         hit_animation = template_hit_sprite.replace('.png', '')
-        print(f"🎨 Animação de hit do template: {hit_animation}")
+        logger.debug(f"Animação de hit do template: {hit_animation}")
     else:
         # Fallback: baseado no grupo
         group_idx = template.get('group_index', 0)
@@ -742,7 +746,7 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
             hit_animation = "hit3"
         else:  # Grupo 7 (índice 6)
             hit_animation = "blackhit-32-32-5f-160x32"
-        print(f"🎨 Animação de hit fallback: {hit_animation} (Grupo {group_idx+1})")
+        logger.debug(f"Animação de hit fallback: {hit_animation} (Grupo {group_idx+1})")
 
     # Sons de ataque do template
     attack_sfx = None
@@ -751,7 +755,7 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
         hit_sounds_list = [f"/static/game.data/sounds/hit-sounds/{s}" for s in template_hit_sounds]
         hit_sounds_json = json.dumps(hit_sounds_list)
         attack_sfx = random.choice(hit_sounds_list)
-        print(f"🔊 Sons de ataque: {len(hit_sounds_list)} disponíveis")
+        logger.debug(f"Sons de ataque: {len(hit_sounds_list)} disponíveis")
 
     # Gerar skills baseado nos equipamentos
     selected_skills, skill_cooldown_reductions = generate_enemy_skills(enemy_number, rarity, sprite_layers)
@@ -765,7 +769,7 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
     # ========================================
     action_pattern = template.get('action_pattern', ['attack', 'attack', 'attack'])
     action_pattern_json = json.dumps(action_pattern)
-    print(f"⚔️ Padrão de ações FIXO: {' → '.join(action_pattern)}")
+    logger.debug(f"Padrão de ações FIXO: {' → '.join(action_pattern)}")
 
     # Ações por turno são sempre 1 (o pattern define o que acontece)
     # Não usamos mais probabilidades de múltiplas ações
@@ -810,7 +814,7 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
     db.session.add(enemy)
     db.session.commit()
 
-    print(f"✅ Inimigo criado: {name} (HP: {final_hp}, Dano: {final_damage}, Rank: {equipment_rank})")
+    logger.info(f"Inimigo criado: {name} (HP: {final_hp}, Dano: {final_damage}, Rank: {equipment_rank})")
 
     return enemy
 
@@ -844,17 +848,17 @@ def update_json_with_tiers():
     with open(config_path, 'w', encoding='utf-8') as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
     
-    print("✅ JSON atualizado com tiers!")
+    logger.info("JSON atualizado com tiers!")
 
 def initialize_equipment_tiers_smart():
     """Initialize smart equipment tier system using actual point values"""
     global EQUIPMENT_BY_TIER_AND_THEME
     
-    print("🔧 Initializing smart equipment tier system with CORRECT tier classification...")
+    logger.debug("Initializing smart equipment tier system with CORRECT tier classification...")
     
     config = load_enemy_themes_config()
     if not config:
-        print("❌ Failed to load config")
+        logger.error("Failed to load config")
         return
     
     sprite_modifiers = config.get('sprite_modifiers', {})
@@ -894,12 +898,12 @@ def initialize_equipment_tiers_smart():
                 for tier in range(1, 7):
                     items = EQUIPMENT_BY_TIER_AND_THEME[theme_name][eq_type][tier]
                     if items:
-                        print(f"   DEBUG {theme_name} {eq_type} tier {tier}: {len(items)} items")
+                        logger.debug(f"DEBUG {theme_name} {eq_type} tier {tier}: {len(items)} items")
                         # Show point ranges for verification
                         points = [sprite_modifiers[item].get('total_points', 0) for item in items[:3]]
-                        print(f"      Sample points: {points}")
+                        logger.debug(f"   Sample points: {points}")
     
-    print("🔍 VERIFICAÇÃO DE CLASSIFICAÇÃO:")
+    logger.debug("VERIFICAÇÃO DE CLASSIFICAÇÃO:")
     test_items = ["body3.png", "head22.png", "weapon58.png"]
     config = load_enemy_themes_config()
     sprite_modifiers = config.get('sprite_modifiers', {})
@@ -908,26 +912,26 @@ def initialize_equipment_tiers_smart():
         if item in sprite_modifiers:
             points = sprite_modifiers[item].get('total_points', 0)
             calculated_tier = calculate_tier_for_points(points)
-            print(f"   {item}: {points} pontos → tier {calculated_tier}")
-    print("✅ Smart equipment tier system initialized with CORRECT classification!")
+            logger.debug(f"{item}: {points} pontos → tier {calculated_tier}")
+    logger.info("Smart equipment tier system initialized with CORRECT classification!")
 
 def get_equipment_by_tier_direct(theme_name, equipment_type, target_tier, recent_equipment=None):
     """Get equipment directly by tier"""
     
-    print(f"🔧 DEBUG SELECTION: Procurando {equipment_type} tier {target_tier} no tema {theme_name}")
+    logger.debug(f"DEBUG SELECTION: Procurando {equipment_type} tier {target_tier} no tema {theme_name}")
     
     if theme_name not in EQUIPMENT_BY_TIER_AND_THEME:
-        print(f"❌ Theme {theme_name} not found in EQUIPMENT_BY_TIER_AND_THEME")
+        logger.error(f"Theme {theme_name} not found in EQUIPMENT_BY_TIER_AND_THEME")
         return None
     
     theme_data = EQUIPMENT_BY_TIER_AND_THEME[theme_name]
     if equipment_type not in theme_data:
-        print(f"❌ Equipment type {equipment_type} not found")
+        logger.error(f"Equipment type {equipment_type} not found")
         return None
     
     # Show what's available in target tier
     available_in_tier = theme_data[equipment_type][target_tier]
-    print(f"🔧 DEBUG: Tier {target_tier} tem {len(available_in_tier)} items: {available_in_tier[:3]}")
+    logger.debug(f"DEBUG: Tier {target_tier} tem {len(available_in_tier)} items: {available_in_tier[:3]}")
     
     # Try exact tier first, then adjacent
     tiers_to_try = [target_tier]
@@ -946,17 +950,17 @@ def get_equipment_by_tier_direct(theme_name, equipment_type, target_tier, recent
                     
                     filtered_out = [eq for eq in before_filter if eq in recent_equipment]
                     
-                    print(f"🔍 DEBUG FILTRO: {equipment_type} tier {tier}: {original_count}→{len(available)} itens após filtro")
-                    print(f"    Recent equipment: {list(recent_equipment)}")
-                    print(f"    Filtrados por repetição: {filtered_out}")
-                    print(f"    Disponível após filtro: {available[:5]}")
+                    logger.debug(f"DEBUG FILTRO: {equipment_type} tier {tier}: {original_count}→{len(available)} itens após filtro")
+                    logger.debug(f" Recent equipment: {list(recent_equipment)}")
+                    logger.debug(f" Filtrados por repetição: {filtered_out}")
+                    logger.debug(f" Disponível após filtro: {available[:5]}")
         
         if available:
             selected = random.choice(available)
-            print(f"🔧 DEBUG: SELECIONADO {selected} do tier {tier}")
+            logger.debug(f"DEBUG: SELECIONADO {selected} do tier {tier}")
             return selected
     
-    print(f"❌ Tier {target_tier} não disponível, tentando fallback inteligente")
+    logger.error(f"Tier {target_tier} não disponível, tentando fallback inteligente")
     
     # Fallback inteligente: tenta tiers adjacentes de forma sistemática
     fallback_tiers = []
@@ -980,18 +984,18 @@ def get_equipment_by_tier_direct(theme_name, equipment_type, target_tier, recent
         
         if recent_equipment:
             available = [eq for eq in available if eq not in recent_equipment]
-            print(f"🔍 DEBUG FILTRO FALLBACK: {equipment_type} tier {fallback_tier}: {original_count}→{len(available)} itens após filtro")  # ← ADICIONAR
-            print(f"    Recent equipment: {recent_equipment}")
-            print(f"    Disponível após filtro: {available[:3]}")
+            logger.debug(f"DEBUG FILTRO FALLBACK: {equipment_type} tier {fallback_tier}: {original_count}→{len(available)} itens após filtro")  # ← ADICIONAR
+            logger.debug(f" Recent equipment: {recent_equipment}")
+            logger.debug(f" Disponível após filtro: {available[:3]}")
         
         if available:
             selected = random.choice(available)
-            print(f"🔧 DEBUG: FALLBACK INTELIGENTE selecionou {selected} do tier {fallback_tier} (target era {target_tier})")
+            logger.debug(f"DEBUG: FALLBACK INTELIGENTE selecionou {selected} do tier {fallback_tier} (target era {target_tier})")
             return selected
         else:
-            print(f"🔧 DEBUG: Fallback tier {fallback_tier} também vazia, continuando...")
+            logger.debug(f"DEBUG: Fallback tier {fallback_tier} também vazia, continuando...")
     
-    print(f"❌ ERRO: Nenhuma tier disponível para {equipment_type} no tema {theme_name}")
+    logger.error(f"ERRO: Nenhuma tier disponível para {equipment_type} no tema {theme_name}")
     return None
 
 def calculate_tier_for_points(target_points):
@@ -1008,7 +1012,7 @@ def get_equipment_points_from_json(equipment_file):
     
     if equipment_file in sprite_modifiers:
         total_points = sprite_modifiers[equipment_file].get('total_points', 0)
-        print(f"🔍 DEBUG POINTS: {equipment_file} → {total_points} pontos")
+        logger.debug(f"DEBUG POINTS: {equipment_file} → {total_points} pontos")
         return total_points
     return 0
 
@@ -1028,10 +1032,10 @@ def smart_fallback(target_rarity, current_total, target_range, enemy_number, pla
     need_more_power = current_total < target_points
     
     if need_more_power:
-        print(f"🔥 SMART FALLBACK: Need MORE power, using STRONG themes")
+        logger.debug(f"SMART FALLBACK: Need MORE power, using STRONG themes")
         fallback_themes = STRONG_THEMES
     else:
-        print(f"🔥 SMART FALLBACK: Need LESS power, using WEAK themes")
+        logger.debug(f"SMART FALLBACK: Need LESS power, using WEAK themes")
         fallback_themes = WEAK_THEMES
     
     for theme_name in fallback_themes:
@@ -1040,13 +1044,13 @@ def smart_fallback(target_rarity, current_total, target_range, enemy_number, pla
             try:
                 enemy = generate_enemy_by_theme(theme.id, enemy_number, player_id)
                 if enemy:
-                    print(f"✅ Smart fallback successful with {theme_name}")
+                    logger.info(f"Smart fallback successful with {theme_name}")
                     return enemy
             except Exception as e:
-                print(f"❌ Smart fallback failed for {theme_name}: {e}")
+                logger.error(f"Smart fallback failed for {theme_name}: {e}")
                 continue
     
-    print("❌ All smart fallback attempts failed!")
+    logger.error("All smart fallback attempts failed!")
     return None
 
 def calculate_total_modifiers(equipment_dict):
@@ -1055,16 +1059,16 @@ def calculate_total_modifiers(equipment_dict):
     sprite_modifiers = config.get('sprite_modifiers', {})
     
     total = 0
-    print(f"🔍 DEBUG TOTAL CALCULATION (USANDO total_points):")
+    logger.debug(f"DEBUG TOTAL CALCULATION (USANDO total_points):")
     for equipment_type, equipment_file in equipment_dict.items():
         if equipment_file and equipment_file in sprite_modifiers:
             # USAR total_points em vez de sum(modifiers.values())
             points = sprite_modifiers[equipment_file].get('total_points', 0)
             total += points
-            print(f"   {equipment_type}: {equipment_file} = {points} points")
+            logger.debug(f"{equipment_type}: {equipment_file} = {points} points")
         elif equipment_file:
-            print(f"   {equipment_type}: {equipment_file} = NOT FOUND IN MODIFIERS")
-    print(f"   TOTAL: {total}")
+            logger.debug(f"{equipment_type}: {equipment_file} = NOT FOUND IN MODIFIERS")
+    logger.debug(f"TOTAL: {total}")
     return total
 
 def get_rank_from_total_modifiers(total_modifiers):
@@ -1177,7 +1181,7 @@ def update_theme_proportions():
 def get_recent_equipment(player_id, limit=5):
     """Get recently used equipment"""
     if not player_id:
-        print("⚠️ ANTI-REPETIÇÃO: player_id é None, retornando set vazio")
+        logger.warning("ANTI-REPETIÇÃO: player_id é None, retornando set vazio")
         return set()
         
     from models import EnemyEquipmentHistory
@@ -1189,20 +1193,20 @@ def get_recent_equipment(player_id, limit=5):
     for item in recent:
         recent_equipment.add(item.equipment_id)
     
-    print(f"🔍 ANTI-REPETIÇÃO: Encontrados {len(recent)} registros no histórico para player {player_id}")
-    print(f"   Equipment IDs: {list(recent_equipment)}")
+    logger.debug(f"ANTI-REPETIÇÃO: Encontrados {len(recent)} registros no histórico para player {player_id}")
+    logger.debug(f"Equipment IDs: {list(recent_equipment)}")
     
     return recent_equipment
 
 def add_equipment_to_history(player_id, equipment_type, equipment_id):
     """Adiciona equipamento ao histórico e mantém limite de 150 registros"""
     if not player_id:
-        print("⚠️ HISTÓRICO: player_id é None, não salvando no histórico")
+        logger.warning("HISTÓRICO: player_id é None, não salvando no histórico")
         return
         
     from models import EnemyEquipmentHistory
     
-    print(f"💾 HISTÓRICO: Salvando {equipment_type}={equipment_id} para player {player_id}")
+    logger.debug(f"HISTÓRICO: Salvando {equipment_type}={equipment_id} para player {player_id}")
     
     # Adicionar novo registro
     history_entry = EnemyEquipmentHistory(
@@ -1222,31 +1226,31 @@ def add_equipment_to_history(player_id, equipment_type, equipment_id):
         for entry in oldest_entries:
             db.session.delete(entry)
         
-        print(f"🧹 HISTÓRICO: Removidos {len(oldest_entries)} registros antigos")
+        logger.debug(f"HISTÓRICO: Removidos {len(oldest_entries)} registros antigos")
 
 def select_theme_by_proportion(last_theme_used, allowed_themes=None):
     """Seleciona tema baseado nas proporções, evitando repetição consecutiva"""
-    print(f"🔍 DEBUG: _theme_proportions = {_theme_proportions}")
-    print(f"🔍 DEBUG: _theme_proportions.keys() = {list(_theme_proportions.keys())}")
+    logger.debug(f"DEBUG: _theme_proportions = {_theme_proportions}")
+    logger.debug(f"DEBUG: _theme_proportions.keys() = {list(_theme_proportions.keys())}")
     
     if allowed_themes is None:
         available_themes = list(_theme_proportions.keys())
     else:
         available_themes = [t for t in allowed_themes if t in _theme_proportions]
-        print(f"🔍 DEBUG: Temas filtrados fornecidos: {allowed_themes}")
-        print(f"🔍 DEBUG: Temas válidos após filtro: {available_themes}")
+        logger.debug(f"DEBUG: Temas filtrados fornecidos: {allowed_themes}")
+        logger.debug(f"DEBUG: Temas válidos após filtro: {available_themes}")
     
-    print(f"🔍 DEBUG: available_themes inicial = {available_themes}")
+    logger.debug(f"DEBUG: available_themes inicial = {available_themes}")
     
     # Remover último tema usado para evitar consecutivos
     if last_theme_used and last_theme_used in available_themes:
         available_themes.remove(last_theme_used)
-        print(f"🎲 Removendo tema '{last_theme_used}' para evitar repetição")
+        logger.debug(f"Removendo tema '{last_theme_used}' para evitar repetição")
     
     # Se não sobrou nenhum tema, usar todos (fallback)
     if not available_themes:
         available_themes = list(_theme_proportions.keys())
-        print("🔄 Todos os temas removidos, usando lista completa")
+        logger.debug("Todos os temas removidos, usando lista completa")
     
     # Criar lista ponderada baseada nas proporções
     weighted_themes = []
@@ -1255,7 +1259,7 @@ def select_theme_by_proportion(last_theme_used, allowed_themes=None):
         weighted_themes.extend([theme] * weight)
     
     selected = random.choice(weighted_themes)
-    print(f"🎯 Tema selecionado: {selected}")
+    logger.debug(f"Tema selecionado: {selected}")
     return selected
 
 def get_theme_proportions():
@@ -1426,7 +1430,7 @@ def check_and_create_boss_milestone(progress):
     db.session.add(new_boss)
     db.session.commit()
     
-    print(f"👑 Boss milestone criado: {new_boss.name} (Região {boss_number})")
+    logger.debug(f"Boss milestone criado: {new_boss.name} (Região {boss_number})")
     return new_boss
 
 def clean_expired_enemies():
@@ -1440,29 +1444,29 @@ def clean_expired_enemies():
             db.session.delete(enemy)
         
         db.session.commit()
-        print(f"🧹 Limpeza: {len(oldest_expired)} inimigos antigos removidos")
+        logger.debug(f"Limpeza: {len(oldest_expired)} inimigos antigos removidos")
         
     return len(expired_enemies)
 
 def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_equipment=None):
     """Generate enemy with smart rarity-compatible equipment system"""
     
-    print(f"🔍 Generating enemy #{enemy_number} with theme {theme_id}")
+    logger.debug(f"Generating enemy #{enemy_number} with theme {theme_id}")
     
     # Load configuration
     config = load_enemy_themes_config()
     if not config or 'themes' not in config or 'sprite_modifiers' not in config:
-        print("❌ Error: Theme configuration not found")
+        logger.error("Error: Theme configuration not found")
         return None
     
     theme = EnemyTheme.query.get(theme_id)
     if not theme:
-        print(f"❌ Error: Theme {theme_id} not found")
+        logger.error(f"Error: Theme {theme_id} not found")
         return None
     
     theme_name = theme.name
     if theme_name not in config['themes']:
-        print(f"❌ Error: Theme '{theme_name}' not found in configuration")
+        logger.error(f"Error: Theme '{theme_name}' not found in configuration")
         return None
     
     theme_config = config['themes'][theme_name]
@@ -1470,22 +1474,22 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
     
     # Calculate rarity
     rarity_chances = calculate_rarity_chances(enemy_number)
-    print(f"🎲 Rarity chances: {rarity_chances}")
+    logger.debug(f"Rarity chances: {rarity_chances}")
 
     rand = random.random() * 100
-    print(f"🎲 Valor sorteado: {rand:.2f}%")
+    logger.debug(f"Valor sorteado: {rand:.2f}%")
 
     cumulative = 0
     rarity = 1
     for r, chance in rarity_chances.items():
         cumulative += chance
-        print(f"   Verificando raridade {r}: {cumulative:.1f}% (sorteado: {rand:.2f}%)")
+        logger.debug(f"Verificando raridade {r}: {cumulative:.1f}% (sorteado: {rand:.2f}%)")
         if rand <= cumulative:
             rarity = r
-            print(f"   ✅ MATCH! Raridade {r} selecionada")
+            logger.debug(f"✅ MATCH! Raridade {r} selecionada")
             break
 
-    print(f"🎯 Selected rarity: {rarity} ({['', 'Comum', 'Raro', 'Épico', 'Lendário'][rarity]})")
+    logger.debug(f"Selected rarity: {rarity} ({['', 'Comum', 'Raro', 'Épico', 'Lendário'][rarity]})")
     
     # Get recent equipment for anti-repetition
     recent_equipment = get_recent_equipment(player_id, 5) if player_id else set()
@@ -1494,9 +1498,9 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
     if temp_recent_equipment:
         historic_count = len(recent_equipment)
         recent_equipment.update(temp_recent_equipment)
-        print(f"🔍 DEBUG ANTI-REPETIÇÃO: Histórico banco={historic_count}, Cache temporário={len(temp_recent_equipment)}, Total filtros={len(recent_equipment)}")
+        logger.debug(f"DEBUG ANTI-REPETIÇÃO: Histórico banco={historic_count}, Cache temporário={len(temp_recent_equipment)}, Total filtros={len(recent_equipment)}")
     else:
-        print(f"🔍 DEBUG ANTI-REPETIÇÃO: Histórico banco={len(recent_equipment)}, Cache temporário=0 (CHAMADA ISOLADA)")
+        logger.debug(f"DEBUG ANTI-REPETIÇÃO: Histórico banco={len(recent_equipment)}, Cache temporário=0 (CHAMADA ISOLADA)")
     
     # Select initial equipment using smart system
     selected_equipment = {}
@@ -1510,24 +1514,24 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
     for equipment_type in equipment_types:
         target_tier = tier_distribution[equipment_type]
         
-        print(f"🎯 DEBUG: {equipment_type} → Target tier {target_tier}")
+        logger.debug(f"DEBUG: {equipment_type} → Target tier {target_tier}")
         
         equipment = get_equipment_by_tier_direct(theme_name, equipment_type, target_tier, recent_equipment)
         if equipment:
             selected_equipment[equipment_type] = equipment
             points = get_equipment_points_from_json(equipment)
-            print(f"🎯 DEBUG: Selected {equipment} with {points} points")
+            logger.debug(f"DEBUG: Selected {equipment} with {points} points")
         else:
-            print(f"❌ Could not select {equipment_type} for theme {theme_name}")
+            logger.error(f"Could not select {equipment_type} for theme {theme_name}")
             return None
 
-    print(f"🔍 Equipment selected so far: {selected_equipment}")
+    logger.debug(f"Equipment selected so far: {selected_equipment}")
 
     # Check if total points are within rarity range and adjust if needed
     total_modifiers = calculate_total_modifiers(selected_equipment)
     target_range = get_target_range_for_rarity(rarity)
 
-    print(f"🎯 Initial total: {total_modifiers}, target range: {target_range}")
+    logger.debug(f"Initial total: {total_modifiers}, target range: {target_range}")
 
     # If below minimum, upgrade weakest equipment
     while total_modifiers < target_range[0]:
@@ -1552,7 +1556,7 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
                     selected_equipment[weakest_type] = new_equipment
                     tier_distribution[weakest_type] = new_tier
                     total_modifiers = calculate_total_modifiers(selected_equipment)
-                    print(f"🔧 Upgraded {weakest_type} to tier {new_tier}, new total: {total_modifiers}")
+                    logger.debug(f"Upgraded {weakest_type} to tier {new_tier}, new total: {total_modifiers}")
                 else:
                     break
             else:
@@ -1569,7 +1573,7 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
     # Ajustar apenas baseado em pontos (rank removido do jogo)
     while total_modifiers > target_range[1] and adjustment_attempts < max_attempts:
         adjustment_attempts += 1
-        print(f"🔧 AJUSTE #{adjustment_attempts}: Total {total_modifiers} > Máximo {target_range[1]}")
+        logger.debug(f"AJUSTE #{adjustment_attempts}: Total {total_modifiers} > Máximo {target_range[1]}")
         
         # Create list of all equipment sorted by points (highest first)
         equipment_by_points = []
@@ -1587,7 +1591,7 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
         for eq_type, eq_file, current_points, current_tier in equipment_by_points:
             if current_tier > 1:
                 new_tier = current_tier - 1
-                print(f"🔧 Tentando {eq_type} tier {current_tier}→{new_tier} ({current_points} pontos)")
+                logger.debug(f"Tentando {eq_type} tier {current_tier}→{new_tier} ({current_points} pontos)")
                 
                 new_equipment = get_equipment_by_tier_direct(theme_name, eq_type, new_tier, recent_equipment)
                 if new_equipment:
@@ -1600,28 +1604,28 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
                         old_total = total_modifiers
                         total_modifiers = calculate_total_modifiers(selected_equipment)
                         
-                        print(f"✅ {eq_type} ajustado: {current_points}→{new_points} pontos")
-                        print(f"   Total: {old_total}→{total_modifiers}")
+                        logger.info(f"{eq_type} ajustado: {current_points}→{new_points} pontos")
+                        logger.debug(f"Total: {old_total}→{total_modifiers}")
                         adjustment_made = True
                         break
                     else:
-                        print(f"❌ {eq_type} tier {new_tier} tem {new_points} pontos (não reduz de {current_points})")
+                        logger.error(f"{eq_type} tier {new_tier} tem {new_points} pontos (não reduz de {current_points})")
                 else:
-                    print(f"❌ Não encontrou equipamento tier {new_tier} para {eq_type}")
+                    logger.error(f"Não encontrou equipamento tier {new_tier} para {eq_type}")
         
         # If no adjustment was possible, break
         if not adjustment_made:
-            print(f"❌ FALHA: Nenhum ajuste eficaz possível após {adjustment_attempts} tentativas")
-            print(f"   Equipamentos atuais:")
+            logger.error(f"FALHA: Nenhum ajuste eficaz possível após {adjustment_attempts} tentativas")
+            logger.debug(f"Equipamentos atuais:")
             for eq_type, eq_file in selected_equipment.items():
                 points = get_equipment_points_from_json(eq_file)
                 tier = tier_distribution.get(eq_type, 1)
-                print(f"     {eq_type}: {eq_file} (tier {tier}, {points} pontos)")
+                logger.debug(f"  {eq_type}: {eq_file} (tier {tier}, {points} pontos)")
             break
 
     if total_modifiers > target_range[1]:
-        print(f"⚠️ AVISO CRÍTICO: Não foi possível ajustar equipamentos!")
-        print(f"   Total final: {total_modifiers} (máximo permitido: {target_range[1]})")
+        logger.warning(f"AVISO CRÍTICO: Não foi possível ajustar equipamentos!")
+        logger.debug(f"Total final: {total_modifiers} (máximo permitido: {target_range[1]})")
     
     # Set final equipment after all adjustments
     final_equipment = selected_equipment
@@ -1635,7 +1639,7 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
             current_total = calculate_total_modifiers(selected_equipment)
             available_margin = target_range[1] - current_total
             
-            print(f"🎒 BACK SELECTION: Total atual = {current_total}, margem disponível = {available_margin}")
+            logger.debug(f"BACK SELECTION: Total atual = {current_total}, margem disponível = {available_margin}")
             
             # Definir tiers permitidos baseado na margem disponível
             allowed_tiers = []
@@ -1652,7 +1656,7 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
             if available_margin >= 50:  # 50+ pontos disponíveis
                 allowed_tiers.append(6)
             
-            print(f"🎒 Tiers permitidos para back: {allowed_tiers}")
+            logger.debug(f"Tiers permitidos para back: {allowed_tiers}")
             
             # Tentar cada tier permitido aleatoriamente
             random.shuffle(allowed_tiers)  # Embaralhar para aleatoriedade
@@ -1662,7 +1666,7 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
                 back_equipment = get_equipment_by_tier_direct(theme_name, 'back', back_tier, recent_equipment)
                 if back_equipment:
                     back_points = get_equipment_points_from_json(back_equipment)
-                    print(f"🎒 Back selecionado: {back_equipment} (tier {back_tier}, {back_points} pontos)")
+                    logger.debug(f"Back selecionado: {back_equipment} (tier {back_tier}, {back_points} pontos)")
                     break
             
             # Adicionar o back se encontrado
@@ -1671,12 +1675,12 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
                 sprite_back = back_equipment
                 
                 # REAJUSTAR APÓS ADICIONAR BACK
-                print(f"🔧 REAJUSTE PÓS-BACK: Verificando compatibilidade...")
+                logger.debug(f"REAJUSTE PÓS-BACK: Verificando compatibilidade...")
                 total_with_back = calculate_total_modifiers(selected_equipment)
                 
                 # Se passou do máximo após adicionar back, fazer ajustes
                 while total_with_back > target_range[1]:
-                    print(f"🔧 REAJUSTE: Total {total_with_back} > Máximo {target_range[1]} após adicionar back")
+                    logger.debug(f"REAJUSTE: Total {total_with_back} > Máximo {target_range[1]} após adicionar back")
                     
                     # Encontrar equipamento mais forte (incluindo o back agora)
                     strongest_type = None
@@ -1699,36 +1703,36 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
                                 tier_distribution[strongest_type] = new_tier
                                 total_with_back = calculate_total_modifiers(selected_equipment)
                                 new_points = get_equipment_points_from_json(new_equipment)
-                                print(f"🔧 Reajustado {strongest_type}: tier {current_tier}→{new_tier} ({old_points}→{new_points} pts), novo total: {total_with_back}")
+                                logger.debug(f"Reajustado {strongest_type}: tier {current_tier}→{new_tier} ({old_points}→{new_points} pts), novo total: {total_with_back}")
                             else:
-                                print(f"❌ Não conseguiu reajustar {strongest_type}, removendo back")
+                                logger.error(f"Não conseguiu reajustar {strongest_type}, removendo back")
                                 del selected_equipment['back']
                                 sprite_back = None
                                 break
                         else:
-                            print(f"❌ {strongest_type} já está na tier mínima, removendo back")
+                            logger.error(f"{strongest_type} já está na tier mínima, removendo back")
                             del selected_equipment['back'] 
                             sprite_back = None
                             break
                     else:
                         # Se só sobrou o back como mais forte, remover o back
-                        print(f"❌ Só restou o back como ajustável, removendo back")
+                        logger.error(f"Só restou o back como ajustável, removendo back")
                         del selected_equipment['back']
                         sprite_back = None
                         break
                 
-                print(f"🎒 BACK FINAL: {'Adicionado' if sprite_back else 'Removido'}")
+                logger.debug(f"BACK FINAL: {'Adicionado' if sprite_back else 'Removido'}")
             else:
-                print(f"🎒 Nenhum back encontrado nos tiers permitidos: {allowed_tiers}")
+                logger.debug(f"Nenhum back encontrado nos tiers permitidos: {allowed_tiers}")
     
     # Verificação final após todas as modificações (incluindo back)
     final_total = calculate_total_modifiers(selected_equipment)
-    print(f"🔍 TOTAL APÓS BACK: {final_total} (faixa: {target_range})")
+    logger.debug(f"TOTAL APÓS BACK: {final_total} (faixa: {target_range})")
     
     if final_total < target_range[0] or final_total > target_range[1]:
-        print(f"❌ AVISO: Total final {final_total} fora da faixa {target_range}!")
+        logger.error(f"AVISO: Total final {final_total} fora da faixa {target_range}!")
     else:
-        print(f"✅ Total final dentro da faixa da raridade")
+        logger.info(f"Total final dentro da faixa da raridade")
 
     # Calculate final stats
     base_stats = calculate_enemy_base_stats(enemy_number)
@@ -1785,7 +1789,7 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
             if modifiers.get('armor', 0) > 0:
                 final_stats['block'] = min(75, final_stats['block'] + modifiers['armor'])
 
-    print(f"🔍 PONTOS FINAIS PARA RANK: {total_modifier_sum}")
+    logger.debug(f"PONTOS FINAIS PARA RANK: {total_modifier_sum}")
 
     # Calcular rank REAL baseado apenas nos pontos (SEM limitação por raridade)
     if total_modifier_sum >= 200:
@@ -1811,28 +1815,28 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
     else:
         equipment_rank = "F"
 
-    print(f"🏷️ RANK REAL: {equipment_rank} (baseado em {total_modifier_sum} pontos)")
+    logger.debug(f"RANK REAL: {equipment_rank} (baseado em {total_modifier_sum} pontos)")
 
     # Verificar se rank é compatível com raridade (mas NÃO alterar)
     compatible_ranks = RARITY_COMPATIBLE_RANKS[rarity]
     if equipment_rank not in compatible_ranks:
-        print(f"⚠️ INCOMPATIBILIDADE: Rank {equipment_rank} incompatível com raridade {rarity}")
-        print(f"   Ranks permitidos para raridade {rarity}: {compatible_ranks}")
-        print(f"   MANTENDO RANK REAL: {equipment_rank} (não mentiremos!)")
+        logger.warning(f"INCOMPATIBILIDADE: Rank {equipment_rank} incompatível com raridade {rarity}")
+        logger.debug(f"Ranks permitidos para raridade {rarity}: {compatible_ranks}")
+        logger.debug(f"MANTENDO RANK REAL: {equipment_rank} (não mentiremos!)")
     
     # Determinar tipo de recompensa
     from .reward_system import determine_enemy_reward_type, REWARD_SYSTEM
     reward_type = determine_enemy_reward_type()
     reward_icon = REWARD_SYSTEM[reward_type]['icon']
     
-    print(f"🎁 Recompensa definida: {reward_type} ({reward_icon})")
+    logger.debug(f"Recompensa definida: {reward_type} ({reward_icon})")
 
     # Determinar animação de hit e som de ataque
     # Prioridade: usar do template, senão calcular baseado no tier da weapon
     if template_hit_sprite:
         # Usar hit sprite do template (remover extensão .png se necessário)
         hit_animation = template_hit_sprite.replace('.png', '')
-        print(f"🎯 Hit animation do template: {hit_animation}")
+        logger.debug(f"Hit animation do template: {hit_animation}")
     else:
         # Fallback: calcular baseado no tier da weapon
         weapon_file = final_equipment.get('weapon', '')
@@ -1846,7 +1850,7 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
                 hit_animation = 'hit3'
         else:
             hit_animation = 'hit1'  # fallback
-        print(f"🎯 Hit animation calculada: {hit_animation} (weapon tier: {weapon_tier if weapon_file else 'N/A'})")
+        logger.debug(f"Hit animation calculada: {hit_animation} (weapon tier: {weapon_tier if weapon_file else 'N/A'})")
 
     # Determinar sons de ataque (armazenar array para alternância)
     attack_sfx = None
@@ -1857,7 +1861,7 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
         hit_sounds_json = json.dumps(hit_sounds_list)
         # Escolher um som inicial aleatório (fallback)
         attack_sfx = random.choice(hit_sounds_list)
-        print(f"🔊 Attack SFX do template: {len(hit_sounds_list)} sons disponíveis")
+        logger.debug(f"Attack SFX do template: {len(hit_sounds_list)} sons disponíveis")
 
     # ===== GERAR SKILLS DO INIMIGO =====
     # SEMPRE inicializar as variáveis primeiro (mesmo vazias)
@@ -1901,20 +1905,20 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
                     base_interval = skill_data.get('charge_interval', 8)
                     final_interval = int(base_interval * cooldown_reductions[skill_id])
                     
-                    print(f"🎯 Skill {skill_id} ({skill_type}) configurada com intervalo {final_interval}h")
+                    logger.debug(f"Skill {skill_id} ({skill_type}) configurada com intervalo {final_interval}h")
         
         # Converter para JSON
         enemy_skills_json = json.dumps(enemy_skills_list)
         
     except Exception as e:
-        print(f"Erro ao gerar skills do inimigo: {e}")
+        logger.error(f"Erro ao gerar skills do inimigo: {e}")
         # Manter valores padrão vazios se houver erro
         enemy_skills_json = '[]'
         skill_charges_json = '{}'
         skill_intervals_json = '{}'
 
     # ===== GERAR PADRÃO DE AÇÕES E PROBABILIDADES (NOVO SISTEMA DE TURNOS) =====
-    print(f"\n🎲 Gerando sistema de turnos para inimigo #{enemy_number}")
+    logger.debug(f"🎲 Gerando sistema de turnos para inimigo #{enemy_number}")
     
     # Gerar padrão de ações baseado no tema e skills
     action_pattern = generate_action_pattern(theme.name, enemy_skills_json)
@@ -1924,8 +1928,8 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
     actions_probability = calculate_actions_per_turn_probability(enemy_number)
     actions_probability_json = json.dumps(actions_probability)
     
-    print(f"📊 Probabilidades de ações: {actions_probability}")
-    print(f"🎯 Padrão de ações: {action_pattern}")
+    logger.debug(f"Probabilidades de ações: {actions_probability}")
+    logger.debug(f"Padrão de ações: {action_pattern}")
 
     # Create enemy
     enemy = GenericEnemy(
@@ -1977,9 +1981,9 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
             repeated_items.append(f"back: {final_equipment['back']}")
         
         if repeated_items:
-            print(f"⚠️ REPETIÇÃO DETECTADA: {', '.join(repeated_items)}")
-            print(f"   Cache atual: {temp_recent_equipment}")
-            print(f"   Equipamentos finais: {final_equipment}")
+            logger.warning(f"REPETIÇÃO DETECTADA: {', '.join(repeated_items)}")
+            logger.debug(f"Cache atual: {temp_recent_equipment}")
+            logger.debug(f"Equipamentos finais: {final_equipment}")
     else:
         # Verificar histórico persistente quando não há cache temporário
         persistent_equipment = get_recent_equipment(player_id, 5) if player_id else set()
@@ -1994,9 +1998,9 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
             repeated_items.append(f"back: {final_equipment['back']}")
         
         if repeated_items:
-            print(f"⚠️ REPETIÇÃO NO HISTÓRICO PERSISTENTE: {', '.join(repeated_items)}")
-            print(f"   Histórico persistente: {persistent_equipment}")
-            print(f"   Equipamentos finais: {final_equipment}")
+            logger.warning(f"REPETIÇÃO NO HISTÓRICO PERSISTENTE: {', '.join(repeated_items)}")
+            logger.debug(f"Histórico persistente: {persistent_equipment}")
+            logger.debug(f"Equipamentos finais: {final_equipment}")
 
     # VERIFICAÇÃO FINAL: Se ainda incompatível, FALHAR em vez de criar inimigo ruim
     final_total = calculate_total_modifiers(selected_equipment)
@@ -2004,12 +2008,12 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
     compatible_ranks = RARITY_COMPATIBLE_RANKS[rarity]
     
     if current_rank not in compatible_ranks or final_total < target_range[0] or final_total > target_range[1]:
-        print(f"❌ FALHA CRÍTICA: Impossível criar inimigo compatível com este tema")
-        print(f"   Tema: {theme_name}")
-        print(f"   Raridade: {rarity} (ranks permitidos: {compatible_ranks})")
-        print(f"   Total pontos: {final_total} (faixa: {target_range})")
-        print(f"   Rank resultante: {current_rank}")
-        print(f"   ABORTANDO criação deste inimigo")
+        logger.error(f"FALHA CRÍTICA: Impossível criar inimigo compatível com este tema")
+        logger.debug(f"Tema: {theme_name}")
+        logger.debug(f"Raridade: {rarity} (ranks permitidos: {compatible_ranks})")
+        logger.debug(f"Total pontos: {final_total} (faixa: {target_range})")
+        logger.debug(f"Rank resultante: {current_rank}")
+        logger.debug(f"ABORTANDO criação deste inimigo")
         return None  # RETORNAR None EM VEZ DE CRIAR INIMIGO INCOMPATÍVEL
 
     db.session.add(enemy)
@@ -2023,36 +2027,36 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
     db.session.commit()
     
     # Verificação final de compatibilidade
-    print(f"🔍 VERIFICAÇÃO FINAL:")
-    print(f"   Raridade: {rarity} ({'Comum' if rarity==1 else 'Raro' if rarity==2 else 'Épico' if rarity==3 else 'Lendário'})")
-    print(f"   Target range: {target_range}")
-    print(f"   Total pontos: {total_modifier_sum}")
-    print(f"   Rank calculado: {equipment_rank}")
+    logger.debug(f"VERIFICAÇÃO FINAL:")
+    logger.debug(f"Raridade: {rarity} ({'Comum' if rarity==1 else 'Raro' if rarity==2 else 'Épico' if rarity==3 else 'Lendário'})")
+    logger.debug(f"Target range: {target_range}")
+    logger.debug(f"Total pontos: {total_modifier_sum}")
+    logger.debug(f"Rank calculado: {equipment_rank}")
     
     # Verificar se está dentro da faixa
     if target_range[0] <= total_modifier_sum <= target_range[1]:
-        print(f"   ✅ COMPATÍVEL: Pontos dentro da faixa da raridade")
+        logger.debug(f"✅ COMPATÍVEL: Pontos dentro da faixa da raridade")
     else:
-        print(f"   ⚠️ Fora da faixa: Pontos {total_modifier_sum} (ideal: {target_range})")
+        logger.debug(f"⚠️ Fora da faixa: Pontos {total_modifier_sum} (ideal: {target_range})")
 
-    print(f"✅ Enemy created: {name} (Rarity: {rarity}, Modifiers: +{total_modifier_sum}%)")
+    logger.info(f"Enemy created: {name} (Rarity: {rarity}, Modifiers: +{total_modifier_sum}%)")
     return enemy
 
 def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None, temp_recent_equipment=None):
     """Generate enemy using theme name directly (without database lookup)"""
 
-    print(f"🔍 Generating enemy #{enemy_number} with theme '{theme_name}' (direct)")
+    logger.debug(f"Generating enemy #{enemy_number} with theme '{theme_name}' (direct)")
 
     # Load configuration
     config = load_enemy_themes_config()
     if not config or 'themes' not in config or 'sprite_modifiers' not in config:
-        print("❌ Error: Theme configuration not found")
+        logger.error("Error: Theme configuration not found")
         return None
 
     # Verificar se o tema existe no JSON
     if theme_name not in config['themes']:
-        print(f"❌ Error: Theme '{theme_name}' not found in configuration")
-        print(f"   Available themes: {list(config['themes'].keys())}")
+        logger.error(f"Error: Theme '{theme_name}' not found in configuration")
+        logger.debug(f"Available themes: {list(config['themes'].keys())}")
         return None
 
     theme_config = config['themes'][theme_name]
@@ -2060,22 +2064,22 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
 
     # Calculate rarity
     rarity_chances = calculate_rarity_chances(enemy_number)
-    print(f"🎲 Rarity chances: {rarity_chances}")
+    logger.debug(f"Rarity chances: {rarity_chances}")
 
     rand = random.random() * 100
-    print(f"🎲 Valor sorteado: {rand:.2f}%")
+    logger.debug(f"Valor sorteado: {rand:.2f}%")
 
     cumulative = 0
     rarity = 1
     for r, chance in rarity_chances.items():
         cumulative += chance
-        print(f"   Verificando raridade {r}: {cumulative:.1f}% (sorteado: {rand:.2f}%)")
+        logger.debug(f"Verificando raridade {r}: {cumulative:.1f}% (sorteado: {rand:.2f}%)")
         if rand <= cumulative:
             rarity = r
-            print(f"   ✅ MATCH! Raridade {r} selecionada")
+            logger.debug(f"✅ MATCH! Raridade {r} selecionada")
             break
 
-    print(f"🎯 Selected rarity: {rarity} ({['', 'Comum', 'Raro', 'Épico', 'Lendário'][rarity]})")
+    logger.debug(f"Selected rarity: {rarity} ({['', 'Comum', 'Raro', 'Épico', 'Lendário'][rarity]})")
 
     # Get recent equipment for anti-repetition
     recent_equipment = get_recent_equipment(player_id, 5) if player_id else set()
@@ -2084,9 +2088,9 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
     if temp_recent_equipment:
         historic_count = len(recent_equipment)
         recent_equipment.update(temp_recent_equipment)
-        print(f"🔍 DEBUG ANTI-REPETIÇÃO: Histórico banco={historic_count}, Cache temporário={len(temp_recent_equipment)}, Total filtros={len(recent_equipment)}")
+        logger.debug(f"DEBUG ANTI-REPETIÇÃO: Histórico banco={historic_count}, Cache temporário={len(temp_recent_equipment)}, Total filtros={len(recent_equipment)}")
     else:
-        print(f"🔍 DEBUG ANTI-REPETIÇÃO: Histórico banco={len(recent_equipment)}, Cache temporário=0 (CHAMADA ISOLADA)")
+        logger.debug(f"DEBUG ANTI-REPETIÇÃO: Histórico banco={len(recent_equipment)}, Cache temporário=0 (CHAMADA ISOLADA)")
 
     # Select initial equipment using smart system
     selected_equipment = {}
@@ -2100,24 +2104,24 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
     for equipment_type in equipment_types:
         target_tier = tier_distribution[equipment_type]
 
-        print(f"🎯 DEBUG: {equipment_type} → Target tier {target_tier}")
+        logger.debug(f"DEBUG: {equipment_type} → Target tier {target_tier}")
 
         equipment = get_equipment_by_tier_direct(theme_name, equipment_type, target_tier, recent_equipment)
         if equipment:
             selected_equipment[equipment_type] = equipment
             points = get_equipment_points_from_json(equipment)
-            print(f"🎯 DEBUG: Selected {equipment} with {points} points")
+            logger.debug(f"DEBUG: Selected {equipment} with {points} points")
         else:
-            print(f"❌ Could not select {equipment_type} for theme {theme_name}")
+            logger.error(f"Could not select {equipment_type} for theme {theme_name}")
             return None
 
-    print(f"🔍 Equipment selected so far: {selected_equipment}")
+    logger.debug(f"Equipment selected so far: {selected_equipment}")
 
     # Check if total points are within rarity range and adjust if needed
     total_modifiers = calculate_total_modifiers(selected_equipment)
     target_range = get_target_range_for_rarity(rarity)
 
-    print(f"🎯 Initial total: {total_modifiers}, target range: {target_range}")
+    logger.debug(f"Initial total: {total_modifiers}, target range: {target_range}")
 
     # If below minimum, upgrade weakest equipment
     while total_modifiers < target_range[0]:
@@ -2142,7 +2146,7 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
                     selected_equipment[weakest_type] = new_equipment
                     tier_distribution[weakest_type] = new_tier
                     total_modifiers = calculate_total_modifiers(selected_equipment)
-                    print(f"🔧 Upgraded {weakest_type} to tier {new_tier}, new total: {total_modifiers}")
+                    logger.debug(f"Upgraded {weakest_type} to tier {new_tier}, new total: {total_modifiers}")
                 else:
                     break
             else:
@@ -2159,7 +2163,7 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
     # Ajustar apenas baseado em pontos (rank removido do jogo)
     while total_modifiers > target_range[1] and adjustment_attempts < max_attempts:
         adjustment_attempts += 1
-        print(f"🔧 AJUSTE #{adjustment_attempts}: Total {total_modifiers} > Máximo {target_range[1]}")
+        logger.debug(f"AJUSTE #{adjustment_attempts}: Total {total_modifiers} > Máximo {target_range[1]}")
 
         # Create list of all equipment sorted by points (highest first)
         equipment_by_points = []
@@ -2177,7 +2181,7 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
         for eq_type, eq_file, current_points, current_tier in equipment_by_points:
             if current_tier > 1:
                 new_tier = current_tier - 1
-                print(f"🔧 Tentando {eq_type} tier {current_tier}→{new_tier} ({current_points} pontos)")
+                logger.debug(f"Tentando {eq_type} tier {current_tier}→{new_tier} ({current_points} pontos)")
 
                 new_equipment = get_equipment_by_tier_direct(theme_name, eq_type, new_tier, recent_equipment)
                 if new_equipment:
@@ -2190,28 +2194,28 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
                         old_total = total_modifiers
                         total_modifiers = calculate_total_modifiers(selected_equipment)
 
-                        print(f"✅ {eq_type} ajustado: {current_points}→{new_points} pontos")
-                        print(f"   Total: {old_total}→{total_modifiers}")
+                        logger.info(f"{eq_type} ajustado: {current_points}→{new_points} pontos")
+                        logger.debug(f"Total: {old_total}→{total_modifiers}")
                         adjustment_made = True
                         break
                     else:
-                        print(f"❌ {eq_type} tier {new_tier} tem {new_points} pontos (não reduz de {current_points})")
+                        logger.error(f"{eq_type} tier {new_tier} tem {new_points} pontos (não reduz de {current_points})")
                 else:
-                    print(f"❌ Não encontrou equipamento tier {new_tier} para {eq_type}")
+                    logger.error(f"Não encontrou equipamento tier {new_tier} para {eq_type}")
 
         # If no adjustment was possible, break
         if not adjustment_made:
-            print(f"❌ FALHA: Nenhum ajuste eficaz possível após {adjustment_attempts} tentativas")
-            print(f"   Equipamentos atuais:")
+            logger.error(f"FALHA: Nenhum ajuste eficaz possível após {adjustment_attempts} tentativas")
+            logger.debug(f"Equipamentos atuais:")
             for eq_type, eq_file in selected_equipment.items():
                 points = get_equipment_points_from_json(eq_file)
                 tier = tier_distribution.get(eq_type, 1)
-                print(f"     {eq_type}: {eq_file} (tier {tier}, {points} pontos)")
+                logger.debug(f"  {eq_type}: {eq_file} (tier {tier}, {points} pontos)")
             break
 
     if total_modifiers > target_range[1]:
-        print(f"⚠️ AVISO CRÍTICO: Não foi possível ajustar equipamentos!")
-        print(f"   Total final: {total_modifiers} (máximo permitido: {target_range[1]})")
+        logger.warning(f"AVISO CRÍTICO: Não foi possível ajustar equipamentos!")
+        logger.debug(f"Total final: {total_modifiers} (máximo permitido: {target_range[1]})")
 
     # Set final equipment after all adjustments
     final_equipment = selected_equipment
@@ -2225,7 +2229,7 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
             current_total = calculate_total_modifiers(selected_equipment)
             available_margin = target_range[1] - current_total
 
-            print(f"🎒 BACK SELECTION: Total atual = {current_total}, margem disponível = {available_margin}")
+            logger.debug(f"BACK SELECTION: Total atual = {current_total}, margem disponível = {available_margin}")
 
             # Definir tiers permitidos baseado na margem disponível
             if available_margin >= 30:
@@ -2237,7 +2241,7 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
             else:
                 allowed_tiers = [1, 2]        # Só tiers muito baixos
 
-            print(f"   Tiers permitidos para back: {allowed_tiers}")
+            logger.debug(f"Tiers permitidos para back: {allowed_tiers}")
 
             # Tentar selecionar back em ordem decrescente de tier (dentro dos permitidos)
             for tier in sorted(allowed_tiers, reverse=True):
@@ -2249,14 +2253,14 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
                     projected_total = current_total + back_points
                     if projected_total <= target_range[1]:
                         sprite_back = back
-                        print(f"✅ Back selecionado: {back} (tier {tier}, {back_points} pontos)")
-                        print(f"   Total com back: {projected_total}")
+                        logger.info(f"Back selecionado: {back} (tier {tier}, {back_points} pontos)")
+                        logger.debug(f"Total com back: {projected_total}")
                         break
                     else:
-                        print(f"❌ Back {back} ultrapassaria máximo ({projected_total} > {target_range[1]})")
+                        logger.error(f"Back {back} ultrapassaria máximo ({projected_total} > {target_range[1]})")
 
             if not sprite_back:
-                print(f"❌ Nenhum back adequado encontrado dentro da margem disponível")
+                logger.error(f"Nenhum back adequado encontrado dentro da margem disponível")
 
     # Update final equipment if back was selected
     if sprite_back:
@@ -2428,9 +2432,9 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
             repeated_items.append(f"back: {final_equipment['back']}")
 
         if repeated_items:
-            print(f"⚠️ REPETIÇÃO DETECTADA: {', '.join(repeated_items)}")
-            print(f"   Cache atual: {temp_recent_equipment}")
-            print(f"   Equipamentos finais: {final_equipment}")
+            logger.warning(f"REPETIÇÃO DETECTADA: {', '.join(repeated_items)}")
+            logger.debug(f"Cache atual: {temp_recent_equipment}")
+            logger.debug(f"Equipamentos finais: {final_equipment}")
     else:
         # Verificar histórico persistente quando não há cache temporário
         persistent_equipment = get_recent_equipment(player_id, 5) if player_id else set()
@@ -2445,21 +2449,21 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
             repeated_items.append(f"back: {final_equipment['back']}")
 
         if repeated_items:
-            print(f"⚠️ REPETIÇÃO NO HISTÓRICO PERSISTENTE: {', '.join(repeated_items)}")
-            print(f"   Histórico persistente: {persistent_equipment}")
-            print(f"   Equipamentos finais: {final_equipment}")
+            logger.warning(f"REPETIÇÃO NO HISTÓRICO PERSISTENTE: {', '.join(repeated_items)}")
+            logger.debug(f"Histórico persistente: {persistent_equipment}")
+            logger.debug(f"Equipamentos finais: {final_equipment}")
 
     # VERIFICAÇÃO FINAL: Apenas log, sem bloquear criação (rank removido)
     final_total = calculate_total_modifiers(selected_equipment)
 
     if final_total < target_range[0] or final_total > target_range[1]:
-        print(f"⚠️ AVISO: Inimigo fora da faixa ideal de pontos")
-        print(f"   Tema: {theme_name}")
-        print(f"   Raridade: {rarity}")
-        print(f"   Total pontos: {final_total} (faixa ideal: {target_range})")
-        print(f"   Continuando criação mesmo assim...")
+        logger.warning(f"AVISO: Inimigo fora da faixa ideal de pontos")
+        logger.debug(f"Tema: {theme_name}")
+        logger.debug(f"Raridade: {rarity}")
+        logger.debug(f"Total pontos: {final_total} (faixa ideal: {target_range})")
+        logger.debug(f"Continuando criação mesmo assim...")
     else:
-        print(f"✅ Inimigo dentro da faixa de pontos: {final_total}")
+        logger.info(f"Inimigo dentro da faixa de pontos: {final_total}")
 
     db.session.add(enemy)
 
@@ -2472,26 +2476,26 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
     db.session.commit()
 
     # Verificação final de compatibilidade
-    print(f"🔍 VERIFICAÇÃO FINAL:")
-    print(f"   Raridade: {rarity} ({'Comum' if rarity==1 else 'Raro' if rarity==2 else 'Épico' if rarity==3 else 'Lendário'})")
-    print(f"   Target range: {target_range}")
-    print(f"   Total pontos: {total_modifier_sum}")
-    print(f"   Rank calculado: {equipment_rank}")
+    logger.debug(f"VERIFICAÇÃO FINAL:")
+    logger.debug(f"Raridade: {rarity} ({'Comum' if rarity==1 else 'Raro' if rarity==2 else 'Épico' if rarity==3 else 'Lendário'})")
+    logger.debug(f"Target range: {target_range}")
+    logger.debug(f"Total pontos: {total_modifier_sum}")
+    logger.debug(f"Rank calculado: {equipment_rank}")
 
     # Verificar se está dentro da faixa
     if target_range[0] <= total_modifier_sum <= target_range[1]:
-        print(f"   ✅ COMPATÍVEL: Pontos dentro da faixa da raridade")
+        logger.debug(f"✅ COMPATÍVEL: Pontos dentro da faixa da raridade")
     else:
-        print(f"   ❌ INCOMPATÍVEL: Pontos fora da faixa da raridade!")
+        logger.debug(f"❌ INCOMPATÍVEL: Pontos fora da faixa da raridade!")
 
     # Verificar se rank está correto para a raridade
     compatible_ranks = RARITY_COMPATIBLE_RANKS[rarity]
     if equipment_rank in compatible_ranks:
-        print(f"   ✅ RANK COMPATÍVEL: {equipment_rank} permitido para raridade {rarity}")
+        logger.debug(f"✅ RANK COMPATÍVEL: {equipment_rank} permitido para raridade {rarity}")
     else:
-        print(f"   ❌ RANK INCOMPATÍVEL: {equipment_rank} NÃO permitido para raridade {rarity}")
-        print(f"   Ranks permitidos: {compatible_ranks}")
-    print(f"✅ Enemy created: {name} (Rarity: {rarity}, Rank: {equipment_rank}, Modifiers: +{total_modifier_sum}%)")
+        logger.debug(f"❌ RANK INCOMPATÍVEL: {equipment_rank} NÃO permitido para raridade {rarity}")
+        logger.debug(f"Ranks permitidos: {compatible_ranks}")
+    logger.info(f"Enemy created: {name} (Rarity: {rarity}, Rank: {equipment_rank}, Modifiers: +{total_modifier_sum}%)")
     return enemy
 
 def calculate_tier_distribution_for_rarity(rarity):
@@ -2543,7 +2547,7 @@ def calculate_tier_distribution_for_rarity(rarity):
         else:
             chosen_combination = (5, 4, 4)
     
-    print(f"🎯 Rarity {rarity}: Target tier sum {target_tier_sum}, chosen tiers: {chosen_combination}")
+    logger.debug(f"Rarity {rarity}: Target tier sum {target_tier_sum}, chosen tiers: {chosen_combination}")
     
     return {
         'body': chosen_combination[0],
@@ -2601,7 +2605,7 @@ def get_minimum_enemy_count(player_id):
     
     if extra_enemy_relic:
         base_count += 1
-        print(f"🪞 Guia de Contemplação ativo: mínimo = {base_count} inimigos")
+        logger.debug(f"Guia de Contemplação ativo: mínimo = {base_count} inimigos")
     
     return base_count
 
@@ -2662,7 +2666,7 @@ def ensure_minimum_enemies(progress, minimum=None):
     # enemy_number ainda é usado para tracking interno
     next_enemy_number = progress.generic_enemies_defeated + 1
 
-    print(f"📊 Gerando {needed} inimigos (Ato {act_number}, Node Y={node_y})")
+    logger.debug(f"Gerando {needed} inimigos (Ato {act_number}, Node Y={node_y})")
 
     # ================================================================
     # ANTI-REPETIÇÃO: Buscar TODOS os inimigos da run atual
@@ -2675,7 +2679,7 @@ def ensure_minimum_enemies(progress, minimum=None):
     for enemy in all_run_enemies:
         used_enemy_names.add(enemy.name)
 
-    print(f"🔧 Inimigos já usados ({len(used_enemy_names)}): {list(used_enemy_names)[:10]}...")
+    logger.debug(f"Inimigos já usados ({len(used_enemy_names)}): {list(used_enemy_names)[:10]}...")
 
     # Cache de equipamentos para evitar repetição visual
     temp_recent_equipment = set()
@@ -2700,7 +2704,7 @@ def ensure_minimum_enemies(progress, minimum=None):
             template = get_enemy_template_excluding_names(act_number, node_y, used_enemy_names)
 
             if not template:
-                print(f"❌ Nenhum template encontrado para Ato {act_number}, Node Y={node_y}")
+                logger.error(f"Nenhum template encontrado para Ato {act_number}, Node Y={node_y}")
                 continue
 
             # Criar inimigo a partir do template (usa stats FIXOS)
@@ -2709,7 +2713,7 @@ def ensure_minimum_enemies(progress, minimum=None):
             if new_enemy:
                 generated += 1
                 used_enemy_names.add(new_enemy.name)  # Adicionar ao set para evitar repetição
-                print(f"   ✅ {new_enemy.name} (HP: {new_enemy.hp}, Dano: {new_enemy.damage}, Grupo: {template.get('group_index', 0) + 1})")
+                logger.debug(f"✅ {new_enemy.name} (HP: {new_enemy.hp}, Dano: {new_enemy.damage}, Grupo: {template.get('group_index', 0) + 1})")
 
                 # Adicionar equipamentos ao cache
                 if new_enemy.sprite_body:
@@ -2721,18 +2725,18 @@ def ensure_minimum_enemies(progress, minimum=None):
                 if new_enemy.sprite_back:
                     temp_recent_equipment.add(new_enemy.sprite_back)
             else:
-                print(f"   ❌ Falha ao criar inimigo a partir do template: {template['name']}")
+                logger.debug(f"❌ Falha ao criar inimigo a partir do template: {template['name']}")
 
         except Exception as e:
-            print(f"   ❌ Erro ao gerar inimigo #{i+1}: {str(e)}")
+            logger.debug(f"❌ Erro ao gerar inimigo #{i+1}: {str(e)}")
             import traceback
             traceback.print_exc()
             continue
     
     if generated > 0:
         db.session.commit()
-        print(f"📊 Total gerado: {generated}/{needed} inimigos")
-        print(f"🔍 Equipamentos únicos usados nesta sessão: {len(temp_recent_equipment)}")
+        logger.debug(f"Total gerado: {generated}/{needed} inimigos")
+        logger.debug(f"Equipamentos únicos usados nesta sessão: {len(temp_recent_equipment)}")
     
     return generated
 
@@ -2753,14 +2757,14 @@ def initialize_enemy_themes():
     
     # Verificar se temas já existem no banco
     if EnemyTheme.query.count() > 0:
-        print("📊 Themes already exist in database, skipping theme creation")
+        logger.debug("Themes already exist in database, skipping theme creation")
     else:
-        print("🏗️ Initializing enemy themes from JSON...")
+        logger.info("Initializing enemy themes from JSON...")
         
         # Carregar configuração do JSON
         config = load_enemy_themes_config()
         if not config or 'themes' not in config:
-            print("❌ Configuração de temas não carregada, criando temas padrão")
+            logger.error("Configuração de temas não carregada, criando temas padrão")
             # Fallback para temas hardcoded
             create_default_themes()
         else:
@@ -2791,13 +2795,13 @@ def initialize_enemy_themes():
                     
                     db.session.add(new_theme)
                     themes_created += 1
-                    print(f"   ✅ Tema criado: {theme_name}")
+                    logger.debug(f"✅ Tema criado: {theme_name}")
                 
                 db.session.commit()
-                print(f"🎉 {themes_created} temas de inimigos inicializados com sucesso!")
+                logger.info(f"{themes_created} temas de inimigos inicializados com sucesso!")
                 
             except Exception as e:
-                print(f"❌ Erro ao criar temas do JSON: {e}")
+                logger.error(f"Erro ao criar temas do JSON: {e}")
                 db.session.rollback()
                 create_default_themes()
     
@@ -2810,7 +2814,7 @@ def initialize_enemy_themes():
 
 def create_default_themes():
     """Cria temas padrão caso o JSON falhe"""
-    print("🔧 Criando temas padrão (fallback)")
+    logger.debug("Criando temas padrão (fallback)")
     
     # Tema padrão simples
     default_theme = EnemyTheme(
@@ -2827,7 +2831,7 @@ def create_default_themes():
     
     db.session.add(default_theme)
     db.session.commit()
-    print("✅ Tema padrão criado")
+    logger.info("Tema padrão criado")
 
 def calculate_equipment_rank(bonus_percentage, rarity):
     """Calcula o rank do equipamento baseado no bônus total E raridade"""
@@ -2876,7 +2880,7 @@ def calculate_equipment_rank(bonus_percentage, rarity):
     # Se o rank calculado excede o máximo permitido, usar o máximo
     if calculated_index > max_index:
         final_rank = max_allowed
-        print(f"🔒 Rank limitado pela raridade: {calculated_rank} → {final_rank} (raridade {rarity})")
+        logger.debug(f"Rank limitado pela raridade: {calculated_rank} → {final_rank} (raridade {rarity})")
     else:
         final_rank = calculated_rank
     
@@ -2967,7 +2971,7 @@ def create_boss_by_name(boss_name):
     from models import LastBoss
     
     if boss_name not in BOSS_DATA:
-        print(f"❌ Boss '{boss_name}' não encontrado nos dados!")
+        logger.error(f"Boss '{boss_name}' não encontrado nos dados!")
         return None
     
     boss_data = BOSS_DATA[boss_name]
@@ -2979,7 +2983,7 @@ def create_boss_by_name(boss_name):
         # Boss já existe, apenas ativar
         existing_boss.is_active = True
         existing_boss.reset_to_full_health()
-        print(f"👑 Boss {existing_boss.name} reativado!")
+        logger.debug(f"Boss {existing_boss.name} reativado!")
         return existing_boss
     
     # Criar novo boss com skills configuradas
@@ -3003,7 +3007,7 @@ def create_boss_by_name(boss_name):
     skills_json = json.dumps(enemy_skills_list)
 
     # ===== GERAR PADRÃO DE AÇÕES PARA BOSS (SISTEMA DE TURNOS) =====
-    print(f"\n🎲 Gerando sistema de turnos para boss: {boss_data['name']}")
+    logger.debug(f"🎲 Gerando sistema de turnos para boss: {boss_data['name']}")
     
     # Padrão de ações customizado para bosses
     # Bosses são mais agressivos e variam mais as skills
@@ -3019,8 +3023,8 @@ def create_boss_by_name(boss_name):
     action_pattern_json = json.dumps(boss_action_pattern)
     actions_probability_json = json.dumps(boss_actions_probability)
     
-    print(f"📊 Probabilidades de ações: {boss_actions_probability}")
-    print(f"🎯 Padrão de ações: {boss_action_pattern}")
+    logger.debug(f"Probabilidades de ações: {boss_actions_probability}")
+    logger.debug(f"Padrão de ações: {boss_action_pattern}")
     
     new_boss = LastBoss(
         name=boss_data["name"],
@@ -3049,5 +3053,5 @@ def create_boss_by_name(boss_name):
     db.session.add(new_boss)
     db.session.commit()
     
-    print(f"👑 Boss {new_boss.name} criado com sucesso!")
+    logger.debug(f"Boss {new_boss.name} criado com sucesso!")
     return new_boss

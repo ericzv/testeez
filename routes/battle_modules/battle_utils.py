@@ -12,6 +12,10 @@ from game_formulas import (
     calculate_dodge_chance
 )
 
+# Logging
+from utils.logger import get_logger
+logger = get_logger(__name__)
+
 def apply_damage_to_player(player, damage):
     """
     Aplica dano ao jogador considerando esquiva e barreira.
@@ -29,7 +33,7 @@ def apply_damage_to_player(player, damage):
 
         # Verificar imunidade total (divine_intervention, etc.)
         if buff.effect_type in ['divine_intervention', 'invulnerability']:
-            print(f"Imunidade total ativada por {buff.effect_type}!")
+            logger.debug(f"Imunidade total ativada por {buff.effect_type}!")
             return 0  # Nao sofre dano
 
     # ===== BUSCAR CACHE DE DEFESA =====
@@ -40,7 +44,7 @@ def apply_damage_to_player(player, damage):
 
     if defense_cache:
         base_dodge = defense_cache.base_dodge_chance
-        print(f"🛡️  Usando cache de defesa: {base_dodge*100:.1f}% esquiva")
+        logger.debug(f" Usando cache de defesa: {base_dodge*100:.1f}% esquiva")
 
     # ===== APLICAR BUFFS TEMPORARIOS DE ESQUIVA =====
     dodge_bonus_from_buffs = 0
@@ -56,7 +60,7 @@ def apply_damage_to_player(player, damage):
 
     # ===== VERIFICAR ESQUIVA =====
     if random.random() < final_dodge:
-        print(f"🌀 ESQUIVOU! ({final_dodge*100:.1f}% chance)")
+        logger.debug(f"🌀 ESQUIVOU! ({final_dodge*100:.1f}% chance)")
         return 0
 
     # Dano a ser aplicado (sem reducao de bloqueio - bloqueio foi removido)
@@ -73,13 +77,13 @@ def apply_damage_to_player(player, damage):
             player.barrier -= damage_to_hp
             damage_to_hp = 0
             barrier_absorbed_all = True
-            print(f"🛡️ Barreira absorveu {damage_absorbed} de dano. Restante: {player.barrier}")
+            logger.debug(f"Barreira absorveu {damage_absorbed} de dano. Restante: {player.barrier}")
         else:
             # Barreira absorve PARCIALMENTE e quebra
             damage_absorbed = current_barrier
             damage_to_hp = damage_to_hp - current_barrier
             player.barrier = 0
-            print(f"🛡️ Barreira quebrou! Absorveu {damage_absorbed}. {damage_to_hp} de dano foi para o HP.")
+            logger.debug(f"Barreira quebrou! Absorveu {damage_absorbed}. {damage_to_hp} de dano foi para o HP.")
     # =========================================
 
     # Se a barreira absorveu todo o dano, podemos sair mais cedo.
@@ -105,7 +109,7 @@ def apply_damage_to_player(player, damage):
         if block_relic:
             player.enemy_first_attack_blocked = True
             db.session.commit()
-            print(f"🛡️ Manto de Martinho bloqueou o primeiro ataque!")
+            logger.debug(f"Manto de Martinho bloqueou o primeiro ataque!")
             return 0  # Bloqueia completamente o dano restante
 
     # ===== VERIFICAR PREVENÇÃO DE MORTE (ID 5) =====
@@ -130,7 +134,7 @@ def apply_damage_to_player(player, damage):
             death_prev_relic.is_active = False
             
             db.session.commit()
-            print(f"🪞 Espelho de Lázaro ativado! Restaurado para {restore_hp} HP (perdeu todo ouro)")
+            logger.debug(f"Espelho de Lázaro ativado! Restaurado para {restore_hp} HP (perdeu todo ouro)")
             
             # Retornar dict especial
             return {
@@ -172,7 +176,7 @@ def apply_damage_to_player(player, damage):
         from routes.enemy_attacks import update_buff_debuff_durations
         update_buff_debuff_durations('player_damage_taken', player_id=player.id)
     except Exception as e:
-        print(f"Erro ao atualizar durações de debuff: {e}")
+        logger.error(f"Erro ao atualizar durações de debuff: {e}")
     
     # Salvar o HP final e a barreira (se mudou)
     db.session.commit()
@@ -251,10 +255,10 @@ def initialize_game_for_new_player(player_id):
     # Verificar se já tem inimigos disponíveis
     available_count = GenericEnemy.query.filter_by(is_available=True).count()
     if available_count == 0:
-        print(f"🎮 Inicializando jogo para novo jogador (ID: {player_id})")
+        logger.debug(f"Inicializando jogo para novo jogador (ID: {player_id})")
         from .enemy_generation import ensure_minimum_enemies
         generated = ensure_minimum_enemies(progress, minimum=3)
-        print(f"🎮 {generated} inimigos iniciais criados")
+        logger.debug(f"{generated} inimigos iniciais criados")
     
     return progress
 
@@ -281,13 +285,79 @@ def format_buff_duration(buff):
 def apply_buffs_to_stats(buffs, stats_dict):
     """Aplica buffs a um dicionário de stats."""
     from database import db
-    
+
     for buff in buffs:
         if hasattr(buff, 'is_expired') and buff.is_expired():
             db.session.delete(buff)
             continue
-        
+
         if buff.effect_type in stats_dict:
             stats_dict[buff.effect_type] += buff.effect_value
-    
+
     return stats_dict
+
+
+# ===== FUNÇÕES DE SKILLS DE INIMIGOS =====
+
+_enemy_skills_cache = None
+
+def load_enemy_skills_data():
+    """
+    Carrega dados das skills dos inimigos do arquivo JSON.
+    Usa cache para evitar leituras repetidas do arquivo.
+    """
+    global _enemy_skills_cache
+
+    if _enemy_skills_cache is not None:
+        return _enemy_skills_cache
+
+    import os
+    import json
+
+    try:
+        # Caminho absoluto para evitar problemas de diretório
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        skills_path = os.path.join(base_dir, 'static', 'game.data', 'enemy_skills_data.json')
+
+        with open(skills_path, 'r', encoding='utf-8') as f:
+            _enemy_skills_cache = json.load(f)
+            return _enemy_skills_cache
+    except Exception as e:
+        logger.error(f"Erro ao carregar enemy skills data: {e}")
+        return {}
+
+
+def get_enemy_skills(enemy):
+    """
+    Retorna a lista de skills de um inimigo (GenericEnemy ou LastBoss).
+
+    GenericEnemy usa o campo 'enemy_skills'
+    LastBoss usa o campo 'skills'
+
+    Returns:
+        list: Lista de skills do inimigo, ou lista vazia se não houver
+    """
+    import json
+
+    if hasattr(enemy, 'enemy_skills') and enemy.enemy_skills:
+        return json.loads(enemy.enemy_skills)
+    elif hasattr(enemy, 'skills') and enemy.skills:
+        return json.loads(enemy.skills)
+    else:
+        return []
+
+
+def get_enemy_skills_by_type(enemy):
+    """
+    Retorna as skills de um inimigo separadas por tipo.
+
+    Returns:
+        dict: {'attack': [...], 'buff': [...], 'debuff': [...]}
+    """
+    skills = get_enemy_skills(enemy)
+
+    return {
+        'attack': [s for s in skills if s.get('type') == 'attack'],
+        'buff': [s for s in skills if s.get('type') == 'buff'],
+        'debuff': [s for s in skills if s.get('type') == 'debuff']
+    }

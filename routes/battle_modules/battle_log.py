@@ -5,6 +5,11 @@ import json
 from models import BattleLog
 from database import db
 
+# Logging
+from utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 def log_turn(player_id, enemy_id, enemy_name, is_boss, turn_number, turn_type, 
              actions, damage_dealt=0, damage_received=0, healing=0, 
@@ -47,11 +52,11 @@ def log_turn(player_id, enemy_id, enemy_name, is_boss, turn_number, turn_type,
         db.session.add(log)
         db.session.commit()
         
-        print(f"📜 LOG: Turno {turn_number} ({turn_type}) registrado")
+        logger.debug(f"LOG: Turno {turn_number} ({turn_type}) registrado")
         return True
         
     except Exception as e:
-        print(f"❌ Erro ao registrar log: {e}")
+        logger.error(f"Erro ao registrar log: {e}")
         db.session.rollback()
         return False
 
@@ -68,7 +73,7 @@ def get_battle_log(player_id, limit=20):
         
         return [log.to_dict() for log in reversed(logs)]
     except Exception as e:
-        print(f"❌ Erro ao buscar log: {e}")
+        logger.error(f"Erro ao buscar log: {e}")
         return []
 
 
@@ -79,9 +84,9 @@ def clear_battle_log(player_id):
     try:
         BattleLog.query.filter_by(player_id=player_id).delete()
         db.session.commit()
-        print(f"🗑️ Log de batalha limpo para player {player_id}")
+        logger.debug(f"🗑️ Log de batalha limpo para player {player_id}")
         return True
     except Exception as e:
-        print(f"❌ Erro ao limpar log: {e}")
+        logger.error(f"Erro ao limpar log: {e}")
         db.session.rollback()
         return False

@@ -11,6 +11,10 @@ Cache NÃO inclui valores TEMPORÁRIOS:
 from datetime import datetime
 from database import db
 from models import Player, PlayerAttackCache, PlayerDefenseCache
+
+# Logging
+from utils.logger import get_logger
+logger = get_logger(__name__)
 from game_formulas import (
     calculate_strength_damage,
     calculate_critical_chance,
@@ -32,7 +36,7 @@ def get_run_buff_total(player_id, buff_type):
         ).first()
         return buff.total_value if buff else 0.0
     except Exception as e:
-        print(f"Erro ao buscar run buff {buff_type}: {e}")
+        logger.error(f"Erro ao buscar run buff {buff_type}: {e}")
         return 0.0
 
 def get_skill_type_by_id(skill_id):
@@ -111,40 +115,40 @@ def calculate_attack_cache(player_id):
     try:
         player = Player.query.get(player_id)
         if not player:
-            print(f"ERRO: Player {player_id} não encontrado")
+            logger.error(f"Player {player_id} não encontrado")
             return False
         
-        print(f"\n{'='*60}")
-        print(f"CALCULANDO CACHE DE ATAQUE - Player {player_id}")
-        print(f"{'='*60}")
+        logger.debug("=" * 60)
+        logger.debug(f"CALCULANDO CACHE DE ATAQUE - Player {player_id}")
+        logger.debug("=" * 60)
         
         # 1. LIMPAR CACHE ANTIGO
         PlayerAttackCache.query.filter_by(player_id=player_id).delete()
-        print("Cache antigo removido")
+        logger.debug("Cache antigo removido")
         
         # 2. BUSCAR SKILLS DO JOGADOR
         from characters import get_player_attacks
         player_skills = get_player_attacks(player_id)
         
         if not player_skills:
-            print("AVISO: Nenhuma skill encontrada para o jogador")
+            logger.debug("AVISO: Nenhuma skill encontrada para o jogador")
             return False
         
-        print(f"Encontradas {len(player_skills)} skills")
+        logger.debug(f"Encontradas {len(player_skills)} skills")
         
         # 3. CALCULAR BÔNUS PERMANENTES GLOBAIS
         
         # 3b. Talentos
         talent_damage_bonus = getattr(player, 'damage_bonus', 0.0)
-        print(f"TALENTOS player.damage_bonus: +{talent_damage_bonus*100:.0f}% de dano")
+        logger.debug(f"TALENTOS player.damage_bonus: +{talent_damage_bonus*100:.0f}% de dano")
         
         # 3d. Lembranças globais
         memory_global = get_run_buff_total(player_id, 'damage_global')
-        print(f"LEMBRANÇA 'damage_global': +{memory_global*100:.0f}% de dano")
+        logger.debug(f"LEMBRANÇA 'damage_global': +{memory_global*100:.0f}% de dano")
         
         # 3e. Crítico base - REMOVIDO (agora é 0% para todos, exceto skills específicas)
         base_crit_multiplier = 1.5  # Multiplicador fixo quando crita
-        print(f"CRÍTICO BASE: 0% chance (só skills específicas têm crítico), {base_crit_multiplier:.2f}x multiplicador")
+        logger.debug(f"CRÍTICO BASE: 0% chance (só skills específicas têm crítico), {base_crit_multiplier:.2f}x multiplicador")
 
         # 3f. BÔNUS DE RELÍQUIAS PASSIVAS
         from models import PlayerRelic
@@ -168,29 +172,29 @@ def calculate_attack_cache(player_id):
         
         if relic_crit_bonus > 0:
             base_crit_chance += relic_crit_bonus
-            print(f"RELÍQUIAS: +{relic_crit_bonus*100:.1f}% crit ({relic_count} relíquias)")
+            logger.debug(f"RELÍQUIAS: +{relic_crit_bonus*100:.1f}% crit ({relic_count} relíquias)")
         
         # 4. PROCESSAR CADA SKILL
-        print(f"\n{'─'*60}")
-        print("PROCESSANDO SKILLS:")
-        print(f"{'─'*60}")
+        logger.debug("-" * 60)
+        logger.debug("PROCESSANDO SKILLS:")
+        logger.debug("-" * 60)
         
         for skill in player_skills:
             skill_id = skill['id']
             skill_name = skill['name']
-            print(f"\n[{skill_name}] (ID: {skill_id})")
+            logger.debug(f"\n[{skill_name}] (ID: {skill_id})")
             
             # 4a. DETERMINAR TIPO DA SKILL
             skill_type = get_skill_type_by_id(skill_id)
-            print(f"   Tipo: {skill_type.upper()}")
+            logger.debug(f"Tipo: {skill_type.upper()}")
             
             # 4b. OBTER STATS BASE POR TIPO
             skill_base_damage = get_base_stats_by_type(skill_type)
-            print(f"   Dano Base Fixo: {skill_base_damage}")
+            logger.debug(f"Dano Base Fixo: {skill_base_damage}")
 
             # 4b.2. OBTER CUSTO BASE DE ENERGIA
             energy_cost = get_base_energy_cost_by_type(skill_type)
-            print(f"   Custos: {energy_cost} ENERGIA")
+            logger.debug(f"Custos: {energy_cost} ENERGIA")
             
             # ===== MODIFICAR CUSTOS POR RELÍQUIAS =====
             # ID 23 - Doxologia (Especial: -1 energia)
@@ -208,9 +212,9 @@ def calculate_attack_cache(player_id):
                     if energy_cost < 1:
                         energy_cost = 1  # Custo mínimo de 1
                     
-                    print(f"   🕊️ DOXOLOGIA: Custo de energia reduzido em -{definition['effect']['energy_cost_reduction']} (Custo final: {energy_cost})")
+                    logger.debug(f"🕊️ DOXOLOGIA: Custo de energia reduzido em -{definition['effect']['energy_cost_reduction']} (Custo final: {energy_cost})")
             
-            print(f"   Custo Base de Energia: {energy_cost}")
+            logger.debug(f"Custo Base de Energia: {energy_cost}")
             
             # 4b.1. MODIFICAR CUSTOS POR RELÍQUIAS (ID 23)
             for relic in active_relics:
@@ -225,8 +229,8 @@ def calculate_attack_cache(player_id):
                 if effect_type == 'special_trade' and skill_type == 'special':
                     skill_base_damage = int(skill_base_damage * 2.0)
                     energy_cost = int(energy_cost * 1.7)  # ADICIONAR ESTA LINHA
-                    print(f"\n[{skill_name}] (ID: {skill_id})")
-                    print(f"   🔥 ESPECIALIZAÇÃO DE LUCAS: Dano x2, Custos x1.7")
+                    logger.debug(f"\n[{skill_name}] (ID: {skill_id})")
+                    logger.debug(f"🔥 ESPECIALIZAÇÃO DE LUCAS: Dano x2, Custos x1.7")
             
             # 4c. APLICAR BÔNUS PERMANENTES AO DANO BASE
             
@@ -238,7 +242,7 @@ def calculate_attack_cache(player_id):
                 damage_before = current_damage
                 current_damage = int(current_damage * (1 + talent_damage_bonus))
                 bonus_applied = current_damage - damage_before
-                print(f"   Talentos player.damage_bonus (+{talent_damage_bonus*100:.0f}%): {damage_before} + {bonus_applied} = {current_damage}")
+                logger.debug(f"Talentos player.damage_bonus (+{talent_damage_bonus*100:.0f}%): {damage_before} + {bonus_applied} = {current_damage}")
                         
             # Aplicar lembranças globais
             if memory_global > 0:
@@ -246,7 +250,7 @@ def calculate_attack_cache(player_id):
                 current_damage += int(memory_global)  # <-- CORRIGIDO para adição flat
                 bonus_applied = current_damage - damage_before
                 # CORRIGIDO: Log para mostrar adição flat
-                print(f"   Lembrança 'damage_global' (+{int(memory_global)} dano): {damage_before} + {bonus_applied} = {current_damage}")
+                logger.debug(f"Lembrança 'damage_global' (+{int(memory_global)} dano): {damage_before} + {bonus_applied} = {current_damage}")
                         
             # Aplicar lembranças específicas do tipo de ataque
             memory_specific_key = f'damage_{skill_type}'
@@ -256,17 +260,17 @@ def calculate_attack_cache(player_id):
                 damage_before = current_damage
                 current_damage += int(memory_specific)  # <-- CORRIGIDO para adição flat
                 bonus_applied = current_damage - damage_before
-                print(f"   Lembrança '{memory_specific_key}' (+{int(memory_specific)} dano): {damage_before} + {bonus_applied} = {current_damage}")
+                logger.debug(f"Lembrança '{memory_specific_key}' (+{int(memory_specific)} dano): {damage_before} + {bonus_applied} = {current_damage}")
 
             if skill_type == 'attack' and player.accumulated_attack_bonus > 0:
                 damage_before = current_damage
                 current_damage += player.accumulated_attack_bonus
-                print(f"   Relíquias acumuladas no Ataque: {damage_before} + {player.accumulated_attack_bonus} = {current_damage}")
+                logger.debug(f"Relíquias acumuladas no Ataque: {damage_before} + {player.accumulated_attack_bonus} = {current_damage}")
             
             elif skill_type == 'power' and player.accumulated_power_bonus > 0:
                 damage_before = current_damage
                 current_damage += player.accumulated_power_bonus
-                print(f"   Relíquias acumuladas no Poder: {damage_before} + {player.accumulated_power_bonus} = {current_damage}")
+                logger.debug(f"Relíquias acumuladas no Poder: {damage_before} + {player.accumulated_power_bonus} = {current_damage}")
 
             # ID 22 - Petrus: +10 dano no Poder por relíquia ativa
             if skill_type == 'power':
@@ -287,7 +291,7 @@ def calculate_attack_cache(player_id):
                 if petrus_bonus > 0:
                     damage_before = current_damage
                     current_damage += petrus_bonus
-                    print(f"   🗿 Relíquia Petrus: {damage_before} + {petrus_bonus} = {current_damage} ({relic_count} relíquias)")
+                    logger.debug(f"🗿 Relíquia Petrus: {damage_before} + {petrus_bonus} = {current_damage} ({relic_count} relíquias)")
 
             final_base_damage = current_damage
 
@@ -298,7 +302,7 @@ def calculate_attack_cache(player_id):
 
             if effect_type == 'crit_chance':
                 base_crit_chance = effect_value
-                print(f"   Chance de Crítico da Skill: {base_crit_chance*100:.0f}%")
+                logger.debug(f"Chance de Crítico da Skill: {base_crit_chance*100:.0f}%")
             
             # 4d. VAMPIRISMO (se a skill tiver)
             lifesteal_percent = 0.0
@@ -308,7 +312,7 @@ def calculate_attack_cache(player_id):
             
             if effect_type == 'lifesteal':
                 lifesteal_percent = effect_value
-                print(f"   Vampirismo: {lifesteal_percent*100:.0f}%")
+                logger.debug(f"Vampirismo: {lifesteal_percent*100:.0f}%")
 
             # ===== NOVA LÓGICA DE BARREIRA =====
             # Se for o "Poder" (ID 50), definimos seus efeitos de Barreira
@@ -316,7 +320,7 @@ def calculate_attack_cache(player_id):
                 effect_type = 'barrier'
                 effect_value = 0.20  # 20% do dano (aumentado de 10%)
                 effect_bonus = 2  # Flat bonus reduzido de 3 para 2
-                print(f"   🛡️ Skill (ID 50) concede BARREIRA: {effect_value*100:.0f}% Dano + {effect_bonus} flat")
+                logger.debug(f"🛡️ Skill (ID 50) concede BARREIRA: {effect_value*100:.0f}% Dano + {effect_bonus} flat")
             # =====================================
             
             # 4d.1. BÔNUS DE VAMPIRISMO POR RELÍQUIAS
@@ -333,7 +337,7 @@ def calculate_attack_cache(player_id):
                 if effect_type_relic == 'lifesteal_per_relic' and skill_type == 'attack': # <-- MUDANÇA AQUI
                     lifesteal_bonus = relic_count * definition['effect']['lifesteal_percent']
                     lifesteal_percent += lifesteal_bonus
-                    print(f"   Relíquias: +{lifesteal_bonus*100:.0f}% vampirismo ({relic_count} relíquias)")
+                    logger.debug(f"Relíquias: +{lifesteal_bonus*100:.0f}% vampirismo ({relic_count} relíquias)")
 
             # ===== VERIFICAR MODIFICADORES TEMPORÁRIOS ATIVOS =====
             temp_modifiers = []
@@ -399,23 +403,23 @@ def calculate_attack_cache(player_id):
             preview_lifesteal = lifesteal_percent + temp_lifesteal_bonus
             
             # Mostrar valores base
-            print(f"   >> DANO FINAL (sem crítico): {final_base_damage}")
-            print(f"   >> CRÍTICO: {base_crit_chance*100:.1f}% chance, {base_crit_multiplier:.2f}x multiplicador")
+            logger.debug(f">> DANO FINAL (sem crítico): {final_base_damage}")
+            logger.debug(f">> CRÍTICO: {base_crit_chance*100:.1f}% chance, {base_crit_multiplier:.2f}x multiplicador")
             
             # Mostrar modificadores temporários se houver
             if temp_modifiers:
-                print(f"   ⚡ MODIFICADORES TEMPORÁRIOS ATIVOS:")
+                logger.debug(f"⚡ MODIFICADORES TEMPORÁRIOS ATIVOS:")
                 for mod in temp_modifiers:
-                    print(f"      • {mod}")
+                    logger.debug(f"   • {mod}")
                 
                 # Mostrar preview com modificadores aplicados
-                print(f"   📊 PREVIEW COM MODIFICADORES:")
+                logger.debug(f"📊 PREVIEW COM MODIFICADORES:")
                 if temp_damage_mult != 1.0:
-                    print(f"      Dano: {final_base_damage} → {preview_damage} (x{temp_damage_mult})")
+                    logger.debug(f"   Dano: {final_base_damage} → {preview_damage} (x{temp_damage_mult})")
                 if temp_force_crit or temp_crit_bonus > 0:
-                    print(f"      Crítico: {base_crit_chance*100:.1f}% → {preview_crit*100:.1f}%")
+                    logger.debug(f"   Crítico: {base_crit_chance*100:.1f}% → {preview_crit*100:.1f}%")
                 if temp_lifesteal_bonus > 0:
-                    print(f"      Vampirismo: {lifesteal_percent*100:.0f}% → {preview_lifesteal*100:.0f}%")
+                    logger.debug(f"   Vampirismo: {lifesteal_percent*100:.0f}% → {preview_lifesteal*100:.0f}%")
             
             # 4e. SALVAR NO CACHE
             cache_entry = PlayerAttackCache(
@@ -437,9 +441,9 @@ def calculate_attack_cache(player_id):
             db.session.add(cache_entry)
         
         # 5. CALCULAR CACHE DE DEFESA (UMA VEZ PARA TODAS AS SKILLS)
-        print(f"\n{'─'*60}")
-        print("CALCULANDO DEFESA:")
-        print(f"{'─'*60}")
+        logger.debug("-" * 60)
+        logger.debug("CALCULANDO DEFESA:")
+        logger.debug("-" * 60)
         
         # Remover cache antigo de defesa
         PlayerDefenseCache.query.filter_by(player_id=player_id).delete()
@@ -464,7 +468,7 @@ def calculate_attack_cache(player_id):
                 dodge_per_relic = definition['effect']['dodge_percent']
                 dodge_bonus = relic_count * dodge_per_relic
                 base_dodge += dodge_bonus
-                print(f"🛡️ Estandarte de Constantino: +{dodge_bonus*100:.1f}% esquiva ({relic_count} relíquias)")
+                logger.debug(f"🛡️ Estandarte de Constantino: +{dodge_bonus*100:.1f}% esquiva ({relic_count} relíquias)")
 
         # Bloqueio removido do jogo - manter valor 0 para compatibilidade
         base_block = 0.0
@@ -477,10 +481,10 @@ def calculate_attack_cache(player_id):
         
         if hp_memory > 0:
             max_hp += int(hp_memory)
-            print(f"Lembrança 'maxhp': +{int(hp_memory)}")
+            logger.debug(f"Lembrança 'maxhp': +{int(hp_memory)}")
         
-        print(f"ESQUIVA: {base_dodge*100:.1f}%")
-        print(f"HP MÁXIMO: {max_hp}")
+        logger.debug(f"ESQUIVA: {base_dodge*100:.1f}%")
+        logger.debug(f"HP MÁXIMO: {max_hp}")
         
         # Salvar cache de defesa
         defense_cache = PlayerDefenseCache(
@@ -496,16 +500,16 @@ def calculate_attack_cache(player_id):
         # 6. COMMIT FINAL
         db.session.commit()
         
-        print(f"\n{'='*60}")
-        print(f"CACHE CALCULADO COM SUCESSO!")
-        print(f"   {len(player_skills)} skills processadas")
-        print(f"   Defesa calculada")
-        print(f"{'='*60}\n")
+        logger.debug("=" * 60)
+        logger.debug(f"CACHE CALCULADO COM SUCESSO!")
+        logger.debug(f"{len(player_skills)} skills processadas")
+        logger.debug(f"Defesa calculada")
+        logger.debug(f"{'='*60}\n")
         
         return True
         
     except Exception as e:
-        print(f"ERRO ao calcular cache: {e}")
+        logger.debug(f"ERRO ao calcular cache: {e}")
         import traceback
         traceback.print_exc()
         db.session.rollback()
@@ -527,7 +531,7 @@ def invalidate_cache(player_id):
     PlayerAttackCache.query.filter_by(player_id=player_id).delete()
     PlayerDefenseCache.query.filter_by(player_id=player_id).delete()
     db.session.commit()
-    print(f"🗑️  Cache do player {player_id} invalidado")
+    logger.debug(f"🗑️  Cache do player {player_id} invalidado")
 
 def update_cache_accumulated_bonuses(player_id):
     """
@@ -576,9 +580,9 @@ def update_cache_accumulated_bonuses(player_id):
         # O que REALMENTE precisamos é: ao recalcular o cache (após level up, etc),
         # incluir os accumulated_bonus no base_damage do cache.
         
-        print(f"📊 Cache atualizado: Ataque +{player.accumulated_attack_bonus}, Poder +{player.accumulated_power_bonus}")
+        logger.debug(f"📊 Cache atualizado: Ataque +{player.accumulated_attack_bonus}, Poder +{player.accumulated_power_bonus}")
         return True
         
     except Exception as e:
-        print(f"Erro ao atualizar cache acumulado: {e}")
+        logger.error(f"Erro ao atualizar cache acumulado: {e}")
         return False

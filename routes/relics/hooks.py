@@ -9,6 +9,11 @@ from .processor import apply_relic_effect
 from .registry import get_relic_definition
 import json
 
+# Logging
+from utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 def trigger_relic_hooks(player, event_name, event_data=None):
     """
@@ -42,7 +47,7 @@ def trigger_relic_hooks(player, event_name, event_data=None):
     if hook_func:
         return hook_func()
     else:
-        print(f"⚠️ Hook '{event_name}' não encontrado")
+        logger.warning(f"Hook '{event_name}' não encontrado")
         return None
 
 def get_active_relics(player_id):
@@ -68,7 +73,7 @@ def on_combat_start(player, enemy):
     # Isso garante que bônus de max_energy (como da Relíquia ID 42)
     # sejam aplicados corretamente no início do combate (ex: 12/12)
     player.energy = player.max_energy
-    print(f"⚡ Energia resetada para o máximo no início do combate: {player.energy}/{player.max_energy}")
+    logger.debug(f"Energia resetada para o máximo no início do combate: {player.energy}/{player.max_energy}")
     
     # Aplicar energia do primeiro turno (ID 29)
     # Fazer DEPOIS de resetar a energia
@@ -77,7 +82,7 @@ def on_combat_start(player, enemy):
         if definition and definition['effect']['type'] == 'gain_energy_first_turn':
             energy_bonus = definition['effect']['value']
             player.energy += energy_bonus # <-- Isso agora pode exceder o máximo
-            print(f"✨ {definition['name']}: +{energy_bonus} energia no primeiro turno (Energia: {player.energy}/{player.max_energy})")
+            logger.debug(f"{definition['name']}: +{energy_bonus} energia no primeiro turno (Energia: {player.energy}/{player.max_energy})")
     
     db.session.commit()
 
@@ -108,7 +113,7 @@ def before_attack(player, skill_data, attack_data):
                 if 'flat_damage_bonus' not in attack_data:
                     attack_data['flat_damage_bonus'] = 0
                 attack_data['flat_damage_bonus'] += bonus_damage
-                print(f"🩸 Ultimate consumirá {blood_stacks} stacks | +{bonus_damage} dano extra")
+                logger.debug(f"Ultimate consumirá {blood_stacks} stacks | +{bonus_damage} dano extra")
     
     for relic in active_relics:
         definition = get_relic_definition(relic.relic_id)
@@ -145,12 +150,12 @@ def after_attack(player, attack_result):
             # ID 51 (Garras Sangrentas - Ataque Básico) = +2 Blood Stacks
             if skill_id == 51:
                 current_enemy.blood_stacks = (current_enemy.blood_stacks or 0) + 2
-                print(f"🩸 Blood Stacks: +2 (Ataque Básico) | Total: {current_enemy.blood_stacks}")
+                logger.debug(f"Blood Stacks: +2 (Ataque Básico) | Total: {current_enemy.blood_stacks}")
 
             # ID 50 (Energia Escura - Poder) ou ID 52 (Execução - Especial) = +1 Blood Stack
             elif skill_id in [50, 52]:
                 current_enemy.blood_stacks = (current_enemy.blood_stacks or 0) + 1
-                print(f"🩸 Blood Stacks: +1 (Poder/Especial) | Total: {current_enemy.blood_stacks}")
+                logger.debug(f"Blood Stacks: +1 (Poder/Especial) | Total: {current_enemy.blood_stacks}")
 
             # ID 53 (Sombra da Morte - Ultimate) = CONSOME todos e adiciona +4 dano por stack
             elif skill_id == 53:
@@ -158,7 +163,7 @@ def after_attack(player, attack_result):
                 if blood_stacks > 0:
                     bonus_damage = blood_stacks * 4  # +4 dano por blood stack
                     # O dano bonus já deve ter sido aplicado, mas registramos aqui
-                    print(f"🩸 Blood Stacks: CONSUMIU {blood_stacks} stacks (+{bonus_damage} dano)")
+                    logger.debug(f"Blood Stacks: CONSUMIU {blood_stacks} stacks (+{bonus_damage} dano)")
                     current_enemy.blood_stacks = 0
 
     # Rastrear skill usada
@@ -185,13 +190,13 @@ def after_attack(player, attack_result):
     # Marcar primeira ação (QUALQUER ataque)
     if not player.first_attack_done:
         player.first_attack_done = True
-        print(f"✅ Marcada flag: first_attack_done = True")
+        logger.info(f"Marcada flag: first_attack_done = True")
 
     # Marcar primeira ação de Poder/Especial
     if skill_type in ['power', 'special']:
         if not player.first_power_or_special_done:
             player.first_power_or_special_done = True
-            print(f"✅ Marcada flag: first_power_or_special_done = True")
+            logger.info(f"Marcada flag: first_power_or_special_done = True")
     
     # Aplicar efeitos de relíquias
     for relic in active_relics:
@@ -356,7 +361,7 @@ def reset_battle_counters(player):
     ).all()
     for skill in special_skills:
         skill.last_used_at_enemy_turn = None
-    print(f"♻️ Skills especiais resetadas após vitória ({len(special_skills)} skills)")
+    logger.debug(f"♻️ Skills especiais resetadas após vitória ({len(special_skills)} skills)")
 
     # ===== LIMPAR STATE_DATA DAS RELÍQUIAS ENTRE BATALHAS =====
     battle_relics = PlayerRelic.query.filter_by(player_id=player.id, is_active=True).all()

@@ -6,6 +6,11 @@ from flask import Blueprint, request, redirect, url_for, flash, session, jsonify
 from database import db
 from models import Player, PlayerRunBuff
 
+# Logging
+from utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 # ===============================================================================
 # IMPORTANTE: SISTEMA DE CONTADORES DE RUN
 # ===============================================================================
@@ -195,12 +200,12 @@ def select_random_memory_options():
     # OBTER RARIDADE DO INIMIGO DA SESSÃO
     pending_memory = session.get('pending_memory_reward', {})
     enemy_rarity = pending_memory.get('enemy_rarity', 1)
-    print(f"🎲 Raridade do inimigo: {enemy_rarity}")
+    logger.debug(f"Raridade do inimigo: {enemy_rarity}")
     
     # Verificar relíquia de opção extra
     player = Player.query.first()
     if player:
-        print(f"🔍 DEBUG: Verificando relíquias do player {player.id}")
+        logger.debug(f"DEBUG: Verificando relíquias do player {player.id}")
         
         # Buscar TODAS as relíquias ativas para debug
         all_relics = PlayerRelic.query.filter_by(
@@ -208,7 +213,7 @@ def select_random_memory_options():
             is_active=True
         ).all()
         
-        print(f"🔍 DEBUG: Relíquias ativas: {[r.relic_id for r in all_relics]}")
+        logger.debug(f"DEBUG: Relíquias ativas: {[r.relic_id for r in all_relics]}")
         
         # Tentar buscar ID 46 como string E como int
         extra_relic = PlayerRelic.query.filter_by(
@@ -220,11 +225,11 @@ def select_random_memory_options():
         
         if extra_relic:
             count += 1
-            print(f"🔮 Rosário de Dominic encontrado! +1 opção ({count} opções)")
+            logger.debug(f"Rosário de Dominic encontrado! +1 opção ({count} opções)")
         else:
-            print(f"❌ Rosário de Dominic NÃO encontrado")
+            logger.error(f"Rosário de Dominic NÃO encontrado")
     else:
-        print("❌ DEBUG: Player não encontrado!")
+        logger.error("DEBUG: Player não encontrado!")
     
     # FILTRAR tipos de memória baseado na raridade
     available_types = []
@@ -233,15 +238,15 @@ def select_random_memory_options():
         if enemy_rarity in config['values']:
             available_types.append(memory_type)
         else:
-            print(f"⚠️ {memory_type} não disponível para raridade {enemy_rarity}")
+            logger.warning(f"{memory_type} não disponível para raridade {enemy_rarity}")
     
     # Selecionar tipos aleatórios (sem repetição)
     if len(available_types) == 0:
-        print("❌ ERRO: Nenhum tipo de memória disponível!")
+        logger.error("ERRO: Nenhum tipo de memória disponível!")
         return ['maxhp', 'heal', 'damage_attack']  # Fallback seguro
     
     selected = random.sample(available_types, min(count, len(available_types)))
-    print(f"🎲 DEBUG: {count} opções selecionadas: {selected}")
+    logger.debug(f"DEBUG: {count} opções selecionadas: {selected}")
     
     return selected
 
@@ -321,7 +326,7 @@ def register_memory_routes(bp):
             if memory_type in cache_affecting_types:
                 from ..battle_cache import calculate_attack_cache
                 calculate_attack_cache(player.id)
-                print(f"🔄 CACHE RECALCULADO - Lembrança {memory_config['name']} ({memory_type}) aplicada")
+                logger.debug(f"CACHE RECALCULADO - Lembrança {memory_config['name']} ({memory_type}) aplicada")
             
             # Aplicar efeitos imediatos
             if memory_type == 'maxhp':
@@ -335,7 +340,7 @@ def register_memory_routes(bp):
                 old_max_energy = player.max_energy
                 player.max_energy += value
                 player.energy += value  # Também aumenta Energia atual
-                print(f"⚡ Empyreum aplicado! Energia máxima: {old_max_energy} → {player.max_energy}")
+                logger.debug(f"Empyreum aplicado! Energia máxima: {old_max_energy} → {player.max_energy}")
 
             elif memory_type == 'heal':
                 # Curar instantaneamente
@@ -343,13 +348,13 @@ def register_memory_routes(bp):
 
             # ===== RESETAR CONTADOR DE REROLL DE MEMÓRIAS =====
             player.memory_reroll_count = 0
-            print("🔄 Contador de reroll de memórias resetado")
+            logger.debug("🔄 Contador de reroll de memórias resetado")
 
             db.session.commit()
 
             # ===== LIMPAR RECOMPENSA E OPÇÕES DA SESSÃO =====
             session.pop('pending_memory_reward', None)
-            print("✅ Recompensa de memória e opções REMOVIDAS da sessão")
+            logger.info("Recompensa de memória e opções REMOVIDAS da sessão")
             
             return jsonify({
                 'success': True,
@@ -361,7 +366,7 @@ def register_memory_routes(bp):
             })
             
         except Exception as e:
-            print(f"Erro ao selecionar memória: {str(e)}")
+            logger.error(f"Erro ao selecionar memória: {str(e)}")
             return jsonify({'success': False, 'message': str(e)})
 
     @bp.route('/get_memory_options')
@@ -378,7 +383,7 @@ def register_memory_routes(bp):
             if 'memory_options' in pending_memory and pending_memory['memory_options']:
                 # Usar opções já geradas
                 selected_types = pending_memory['memory_options']
-                print(f"🎲 Usando opções SALVAS da sessão: {selected_types}")
+                logger.debug(f"Usando opções SALVAS da sessão: {selected_types}")
             else:
                 # Gerar novas opções apenas se não existirem
                 selected_types = select_random_memory_options()
@@ -387,7 +392,7 @@ def register_memory_routes(bp):
                 pending_memory['memory_options'] = selected_types
                 session['pending_memory_reward'] = pending_memory
                 session.modified = True
-                print(f"🎲 Novas opções GERADAS e SALVAS: {selected_types}")
+                logger.debug(f"Novas opções GERADAS e SALVAS: {selected_types}")
             
             # Obter buffs atuais do jogador
             current_buffs = get_player_run_buffs(player.id)
@@ -419,7 +424,7 @@ def register_memory_routes(bp):
             })
             
         except Exception as e:
-            print(f"Erro ao obter opções de memória: {str(e)}")
+            logger.error(f"Erro ao obter opções de memória: {str(e)}")
             return jsonify({'success': False, 'message': str(e)})
         
     @bp.route('/get_active_run_buffs')
@@ -452,7 +457,7 @@ def register_memory_routes(bp):
             })
             
         except Exception as e:
-            print(f"Erro ao obter buffs ativos: {str(e)}")
+            logger.error(f"Erro ao obter buffs ativos: {str(e)}")
             return jsonify({'success': False, 'message': str(e)})
 
     @bp.route('/check_memory_reward')
@@ -483,7 +488,7 @@ def register_memory_routes(bp):
                 })
                 
         except Exception as e:
-            print(f"Erro ao verificar recompensa de memória: {str(e)}")
+            logger.error(f"Erro ao verificar recompensa de memória: {str(e)}")
             return jsonify({'success': False, 'message': str(e)})
         
 # ===============================================================================

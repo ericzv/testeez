@@ -41,7 +41,28 @@ from .battle_utils import (
     update_rounds_for_all_enemies,
     initialize_game_for_new_player,
     format_buff_duration,
-    apply_buffs_to_stats
+    apply_buffs_to_stats,
+    load_enemy_skills_data,
+    get_enemy_skills,
+    get_enemy_skills_by_type
+)
+
+from .player_state import (
+    reset_player_run,
+    reset_player_energy
+)
+
+from .damage_calculations import (
+    get_attack_target,
+    apply_buff_modifiers,
+    apply_debuff_modifiers,
+    calculate_lifesteal,
+    calculate_barrier_gain,
+    apply_damage_to_target,
+    check_double_first_attack,
+    calculate_generic_enemy_rewards,
+    calculate_boss_rewards,
+    get_extra_gold_from_kill_relics
 )
 
 # ❌ REMOVER ESTA LINHA (causava o erro circular):
@@ -77,5 +98,7 @@ __all__ = [
     'check_login_rewards',
     'update_rounds_for_all_enemies',
     'initialize_game_for_new_player',
-    'format_buff_duration'
+    'format_buff_duration',
+    'reset_player_run',
+    'reset_player_energy'
 ]

@@ -6,17 +6,11 @@ from datetime import datetime
 from database import db
 from models import GenericEnemy, LastBoss
 from .battle_log import log_turn, get_battle_log, clear_battle_log
+from .battle_utils import load_enemy_skills_data, get_enemy_skills
 
-def load_enemy_skills_data():
-    """Carrega dados das skills dos inimigos"""
-    import os
-    try:
-        skills_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'static', 'game.data', 'enemy_skills_data.json')
-        with open(skills_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception as e:
-        print(f"Erro ao carregar enemy skills data: {e}")
-        return {}
+# Logging
+from utils.logger import get_logger
+logger = get_logger(__name__)
 
 
 def get_next_actions(enemy):
@@ -29,7 +23,7 @@ def get_next_actions(enemy):
          {'type': 'debuff', 'name': 'Nictalopia', 'icon': '...', 'skill_id': 101}]
     """
     if not enemy.action_pattern:
-        print("⚠️ Inimigo sem action_pattern definido")
+        logger.warning("Inimigo sem action_pattern definido")
         return {'actions': [{'type': 'attack', 'name': 'Ataque Básico', 'icon': '/static/game.data/icons/attackcharge.png', 'damage': enemy.damage}], 'num_actions': 1}
     
     # Carregar padrão de ações
@@ -49,24 +43,18 @@ def get_next_actions(enemy):
             num_actions = int(actions_count)
             break
     
-    print(f"🎲 Rolagem de ações: {rand:.2f} → {num_actions} ação(ões) neste turno")
+    logger.debug(f"Rolagem de ações: {rand:.2f} → {num_actions} ação(ões) neste turno")
     
     # Pegar as próximas N ações do padrão
     current_index = enemy.current_action_index
     
     # --- INÍCIO DA LÓGICA DE RESOLUÇÃO COM OBJETOS RICOS ---
     
-    # Carregar dados das skills (NECESSÁRIO AQUI AGORA)
+    # Carregar dados das skills
     skills_data = load_enemy_skills_data()
-    
-    # Precisamos saber quais skills o inimigo tem
-    if hasattr(enemy, 'enemy_skills') and enemy.enemy_skills:
-        enemy_skills = json.loads(enemy.enemy_skills)
-    elif hasattr(enemy, 'skills') and enemy.skills:
-        enemy_skills = json.loads(enemy.skills)
-    else:
-        enemy_skills = []
 
+    # Obter skills do inimigo usando helper centralizado
+    enemy_skills = get_enemy_skills(enemy)
     attack_skills = [s for s in enemy_skills if s['type'] == 'attack']
     buff_skills = [s for s in enemy_skills if s['type'] == 'buff']
     debuff_skills = [s for s in enemy_skills if s['type'] == 'debuff']
@@ -121,12 +109,12 @@ def get_next_actions(enemy):
                     # Fallback se a skill não for encontrada nos dados
                     resolved_actions.append({'type': 'attack', 'name': 'Ataque Básico', 'icon': '/static/game.data/icons/attackcharge.png', 'damage': enemy.damage})
             else:
-                print(f"⚠️ Padrão pede 'buff_debuff', mas inimigo não tem. Trocando por 'attack'.")
+                logger.warning(f"Padrão pede 'buff_debuff', mas inimigo não tem. Trocando por 'attack'.")
                 resolved_actions.append({'type': 'attack', 'name': 'Ataque Básico', 'icon': '/static/game.data/icons/attackcharge.png', 'damage': enemy.damage})
         
         elif action.startswith('attack_skill'):
             if not attack_skills:
-                print(f"⚠️ Padrão pede 'attack_skill', mas inimigo não tem. Trocando por 'attack'.")
+                logger.warning(f"Padrão pede 'attack_skill', mas inimigo não tem. Trocando por 'attack'.")
                 resolved_actions.append({'type': 'attack', 'name': 'Ataque Básico', 'icon': '/static/game.data/icons/attackcharge.png', 'damage': enemy.damage})
                 continue
 
@@ -171,9 +159,9 @@ def get_next_actions(enemy):
     enemy.current_action_index = (current_index + num_actions) % len(action_pattern)
     enemy.buff_debuff_rotation_index = current_rotation_index
     
-    print(f"🎯 Ações RESOLVIDAS (objetos ricos): {[a['type'] for a in resolved_actions]}")
-    print(f"📍 Próximo índice de ação: {enemy.current_action_index}")
-    print(f"📍 Próximo índice de buff/debuff: {enemy.buff_debuff_rotation_index}")
+    logger.debug(f"Ações RESOLVIDAS (objetos ricos): {[a['type'] for a in resolved_actions]}")
+    logger.debug(f"📍 Próximo índice de ação: {enemy.current_action_index}")
+    logger.debug(f"📍 Próximo índice de buff/debuff: {enemy.buff_debuff_rotation_index}")
     
     return {
         'actions': resolved_actions,
@@ -197,7 +185,7 @@ def reorganize_actions_buffs_first(actions):
     reorganized = buffs_debuffs + attacks
     
     if buffs_debuffs:
-        print(f"🔄 Ações reorganizadas: {actions} → {reorganized}")
+        logger.debug(f"Ações reorganizadas: {actions} → {reorganized}")
     
     return reorganized
 
@@ -210,9 +198,9 @@ def process_enemy_turn(enemy, player_id=None):
     Returns:
         dict com status das ações geradas
     """
-    print(f"\n{'='*60}")
-    print(f"🎮 PROCESSANDO TURNO DO INIMIGO: {enemy.name}")
-    print(f"{'='*60}")
+    logger.debug(f"{'='*60}")
+    logger.debug(f"PROCESSANDO TURNO DO INIMIGO: {enemy.name}")
+    logger.debug("=" * 60)
 
     actions = []
     num_actions = 0
@@ -224,42 +212,35 @@ def process_enemy_turn(enemy, player_id=None):
             actions = json.loads(enemy.next_intentions_cached)
             num_actions = len(actions)
             # Log melhorado para mostrar os tipos de ação dos objetos
-            print(f"✅ Usando intenções do CACHE: {[a.get('type') for a in actions]} ({num_actions} ação(ões))")
+            logger.info(f"Usando intenções do CACHE: {[a.get('type') for a in actions]} ({num_actions} ação(ões))")
         except Exception as e:
             # Cache corrompido ou formato antigo
-            print(f"⚠️ Erro ao carregar cache (formato inválido?), pulando turno: {e}")
+            logger.warning(f"Erro ao carregar cache (formato inválido?), pulando turno: {e}")
             actions = [] # Garante que nada seja executado se o cache falhar
             num_actions = 0
     else:
         # Se o cache estiver vazio (None ou '[]'), o inimigo não fará nada.
         # Isso não deve mais acontecer no Turno 1, mas é um fallback seguro.
-        print(f"⚠️ Cache vazio. Inimigo não executará ações neste turno.")
+        logger.warning(f"Cache vazio. Inimigo não executará ações neste turno.")
         
     # ===== LIMPAR FILAS ANTIGAS (CRÍTICO!) =====
     action_queue = []
     buff_debuff_queue = []
-    print(f"🗑️ Filas antigas limpas")
+    logger.debug(f"🗑️ Filas antigas limpas")
     
-    # Carregar skills do inimigo (compatível com GenericEnemy e LastBoss)
-    # GenericEnemy usa 'enemy_skills', LastBoss usa 'skills'
-    if hasattr(enemy, 'enemy_skills') and enemy.enemy_skills:
-        enemy_skills = json.loads(enemy.enemy_skills)
-    elif hasattr(enemy, 'skills') and enemy.skills:
-        enemy_skills = json.loads(enemy.skills)
-    else:
-        enemy_skills = []
-    
-    print(f"📋 Skills carregadas: {len(enemy_skills)} encontrada(s)")
-    
+    # Obter skills do inimigo usando helper centralizado
+    enemy_skills = get_enemy_skills(enemy)
+    logger.debug(f"Skills carregadas: {len(enemy_skills)} encontrada(s)")
+
     # Separar skills por tipo
     attack_skills = [s for s in enemy_skills if s['type'] == 'attack']
     buff_skills = [s for s in enemy_skills if s['type'] == 'buff']
     debuff_skills = [s for s in enemy_skills if s['type'] == 'debuff']
     
-    print(f"📋 Skills disponíveis:")
-    print(f"   Attack skills: {[s['skill_id'] for s in attack_skills]}")
-    print(f"   Buff skills: {[s['skill_id'] for s in buff_skills]}")
-    print(f"   Debuff skills: {[s['skill_id'] for s in debuff_skills]}")
+    logger.debug(f"Skills disponíveis:")
+    logger.debug(f"Attack skills: {[s['skill_id'] for s in attack_skills]}")
+    logger.debug(f"Buff skills: {[s['skill_id'] for s in buff_skills]}")
+    logger.debug(f"Debuff skills: {[s['skill_id'] for s in debuff_skills]}")
     
     # Carregar dados das skills
     skills_data = load_enemy_skills_data()
@@ -268,7 +249,7 @@ def process_enemy_turn(enemy, player_id=None):
     for intention_object in actions:
         
         action_type = intention_object.get('type')
-        print(f"\n🔹 Processando ação: {action_type}")
+        logger.debug(f"🔹 Processando ação: {action_type}")
         
         if action_type == 'attack':
             # Ataque básico
@@ -294,7 +275,7 @@ def process_enemy_turn(enemy, player_id=None):
                     "attack_sfx": attack_sfx
                 }
             })
-            print(f"   ✅ Ataque básico adicionado (dano: {intention_object.get('damage', enemy.damage)})")
+            logger.debug(f"✅ Ataque básico adicionado (dano: {intention_object.get('damage', enemy.damage)})")
         
         elif action_type == 'attack_skill':
             # Attack skill
@@ -311,9 +292,9 @@ def process_enemy_turn(enemy, player_id=None):
                     "skill_id": intention_object.get('skill_id'),
                     "data": skill_info # Agora 'skill_info' contém o 'calculated_damage'
                 })
-                print(f"   ✅ Attack skill {intention_object.get('skill_id')} adicionada (skill: {skill_info.get('name')}, Dano: {skill_info['calculated_damage']})")
+                logger.debug(f"✅ Attack skill {intention_object.get('skill_id')} adicionada (skill: {skill_info.get('name')}, Dano: {skill_info['calculated_damage']})")
             else:
-                print(f"   ⚠️ Objeto de intenção 'attack_skill' não continha dados da skill.")
+                logger.debug(f"⚠️ Objeto de intenção 'attack_skill' não continha dados da skill.")
         
         elif action_type in ('buff', 'debuff'):
             # Buff ou Debuff
@@ -325,12 +306,12 @@ def process_enemy_turn(enemy, player_id=None):
                     "skill_id": intention_object.get('skill_id'),
                     "data": skill_info # Passar o objeto de dados da skill completo
                 })
-                print(f"   ✅ {action_type.capitalize()} skill {intention_object.get('skill_id')} adicionada (skill: {skill_info.get('name')})")
+                logger.debug(f"✅ {action_type.capitalize()} skill {intention_object.get('skill_id')} adicionada (skill: {skill_info.get('name')})")
             else:
-                 print(f"   ⚠️ Objeto de intenção '{action_type}' não continha dados da skill.")
+                 logger.debug(f"⚠️ Objeto de intenção '{action_type}' não continha dados da skill.")
         
         else:
-            print(f"   ❌ Tipo de ação desconhecido: {action_type}")
+            logger.debug(f"❌ Tipo de ação desconhecido: {action_type}")
     
     # Salvar filas atualizadas
     enemy.action_queue = json.dumps(action_queue)
@@ -341,57 +322,57 @@ def process_enemy_turn(enemy, player_id=None):
     
     db.session.commit()
     
-    print(f"\n✅ Turno processado:")
-    print(f"   Action queue: {len(action_queue)} ação(ões)")
-    print(f"   Buff/Debuff queue: {len(buff_debuff_queue)} skill(s)")
-    print(f"{'='*60}\n")
+    logger.debug(f"✅ Turno processado:")
+    logger.debug(f"Action queue: {len(action_queue)} ação(ões)")
+    logger.debug(f"Buff/Debuff queue: {len(buff_debuff_queue)} skill(s)")
+    logger.debug(f"{'='*60}\n")
     
     # ===== INCREMENTAR CONTADOR DE TURNOS =====
     enemy.battle_turn_counter = getattr(enemy, 'battle_turn_counter', 0) + 1
-    print(f"📊 Turno do inimigo #{enemy.battle_turn_counter}")
+    logger.debug(f"Turno do inimigo #{enemy.battle_turn_counter}")
 
     # ===== CALCULAR E SALVAR PRÓXIMAS INTENÇÕES =====
     next_turn_data = get_next_actions(enemy)
     next_intentions = next_turn_data['actions']
     enemy.next_intentions_cached = json.dumps(next_intentions)
     
-    print(f"💾 Próximas intenções salvas (cache): {next_intentions}")
-    print(f"🚨🚨🚨 TESTE: CHEGOU AQUI!")  # ← ADICIONE ESTA LINHA
-    print(f"📊 Verificação antes do commit: {enemy.next_intentions_cached}")
+    logger.debug(f"💾 Próximas intenções salvas (cache): {next_intentions}")
+    logger.debug(f"🚨🚨🚨 TESTE: CHEGOU AQUI!")  # ← ADICIONE ESTA LINHA
+    logger.debug(f"Verificação antes do commit: {enemy.next_intentions_cached}")
     
     db.session.commit()
     
     # VERIFICAR SE O COMMIT FUNCIONOU
     db.session.refresh(enemy)
     cached_after = json.loads(enemy.next_intentions_cached) if enemy.next_intentions_cached else []
-    print(f"✅ Verificação APÓS commit: {cached_after}")
+    logger.info(f"Verificação APÓS commit: {cached_after}")
     
     if cached_after != next_intentions:
-        print(f"⚠️ AVISO: Cache foi modificado após commit!")
-        print(f"   Esperado: {next_intentions}")
-        print(f"   Obtido: {cached_after}")
+        logger.warning(f"AVISO: Cache foi modificado após commit!")
+        logger.debug(f"Esperado: {next_intentions}")
+        logger.debug(f"Obtido: {cached_after}")
 
     # ===== REGISTRAR NO LOG =====
-    print(f"🔍 DEBUG LOG: player_id recebido = {player_id}")
+    logger.debug(f"DEBUG LOG: player_id recebido = {player_id}")
 
     # Validação crítica: garantir que player_id existe
     if player_id is None:
-        print(f"⚠️ AVISO CRÍTICO: player_id está None! Tentando obter do sistema...")
+        logger.warning(f"AVISO CRÍTICO: player_id está None! Tentando obter do sistema...")
         # Fallback: buscar player atual
         try:
             from models import Player
             player = Player.query.first()
             if player:
                 player_id = player.id
-                print(f"✅ Player_id recuperado: {player_id}")
+                logger.info(f"Player_id recuperado: {player_id}")
             else:
-                print(f"❌ ERRO: Nenhum player encontrado no banco!")
+                logger.error(f"ERRO: Nenhum player encontrado no banco!")
         except Exception as e:
-            print(f"❌ ERRO ao recuperar player_id: {e}")
+            logger.error(f"ERRO ao recuperar player_id: {e}")
 
     if player_id:
         turn_number = getattr(enemy, 'battle_turn_counter', 1)
-        print(f"🔍 DEBUG LOG: turn_number = {turn_number}")
+        logger.debug(f"DEBUG LOG: turn_number = {turn_number}")
         
         # Formatar ações para o log (lendo objetos ricos)
         actions_log = []
@@ -406,8 +387,8 @@ def process_enemy_turn(enemy, player_id=None):
             elif action_type in ('buff', 'debuff'):
                 actions_log.append({'type': action_type, 'description': action_name})
         
-        print(f"🔍 DEBUG LOG: actions_log = {actions_log}")
-        print(f"🔍 DEBUG LOG: next_intentions = {next_intentions}")
+        logger.debug(f"DEBUG LOG: actions_log = {actions_log}")
+        logger.debug(f"DEBUG LOG: next_intentions = {next_intentions}")
         
         try:
             log_turn(
@@ -420,13 +401,13 @@ def process_enemy_turn(enemy, player_id=None):
                 actions=actions_log,
                 next_intentions=next_intentions
             )
-            print(f"✅ LOG REGISTRADO COM SUCESSO!")
+            logger.info(f"LOG REGISTRADO COM SUCESSO!")
         except Exception as e:
-            print(f"❌ ERRO AO REGISTRAR LOG: {e}")
+            logger.error(f"ERRO AO REGISTRAR LOG: {e}")
             import traceback
             traceback.print_exc()
     else:
-        print(f"⚠️ DEBUG LOG: player_id não foi passado!")
+        logger.warning(f"DEBUG LOG: player_id não foi passado!")
 
     return {
         'success': True,

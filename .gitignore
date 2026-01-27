@@ -15,3 +15,8 @@ __pycache__/
 *.db-journal
 *.sqlite
 *.sqlite3
+
+# Logs
+logs/*.log
+logs/*.log.*
+!logs/.gitkeep

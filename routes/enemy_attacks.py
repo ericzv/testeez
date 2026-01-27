@@ -7,6 +7,11 @@ from database import db
 from models import Player, GenericEnemy
 from routes.battle_modules.battle_utils import apply_damage_to_player
 
+# Logging
+from utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 def load_enemy_skills_data():
     """Carrega dados das skills dos inimigos"""
     import os
@@ -15,7 +20,7 @@ def load_enemy_skills_data():
         with open(skills_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except Exception as e:
-        print(f"Erro ao carregar enemy skills data: {e}")
+        logger.error(f"Erro ao carregar enemy skills data: {e}")
         return {}
 
 def get_enemy_attack_status(player_id):
@@ -58,13 +63,13 @@ def get_enemy_attack_status(player_id):
                 if hasattr(boss, 'next_intentions_cached') and boss.next_intentions_cached:
                     try:
                         next_intentions = json.loads(boss.next_intentions_cached)
-                        print(f"📖 Usando intenções do cache (BOSS): {next_intentions}")
+                        logger.debug(f"📖 Usando intenções do cache (BOSS): {next_intentions}")
                     except Exception as e:
-                        print(f"⚠️ Erro ao carregar cache de intenções: {e}")
+                        logger.warning(f"Erro ao carregar cache de intenções: {e}")
                         next_intentions = [] # Adicionado fallback em caso de erro
                 else:
                     # Se não houver cache (batalha acabou de começar), apenas retorne uma lista vazia.
-                    print(f"📖 Cache de intenções (BOSS) vazio. Retornando [].")
+                    logger.debug(f"📖 Cache de intenções (BOSS) vazio. Retornando [].")
                     next_intentions = [] # NÃO RECALCULAR AQUI!
                 
                 return {
@@ -111,13 +116,13 @@ def get_enemy_attack_status(player_id):
         if hasattr(enemy, 'next_intentions_cached') and enemy.next_intentions_cached:
             try:
                 next_intentions = json.loads(enemy.next_intentions_cached)
-                print(f"📖 Usando intenções do cache (ENEMY): {next_intentions}")
+                logger.debug(f"📖 Usando intenções do cache (ENEMY): {next_intentions}")
             except Exception as e:
-                print(f"⚠️ Erro ao carregar cache de intenções: {e}")
+                logger.warning(f"Erro ao carregar cache de intenções: {e}")
                 next_intentions = [] # Adicionado fallback em caso de erro
         else:
             # Se não houver cache, apenas retorne uma lista vazia.
-            print(f"📖 Cache de intenções (ENEMY) vazio. Retornando [].")
+            logger.debug(f"📖 Cache de intenções (ENEMY) vazio. Retornando [].")
             next_intentions = [] # NÃO RECALCULAR AQUI!
         
         return {
@@ -133,7 +138,7 @@ def get_enemy_attack_status(player_id):
         }
         
     except Exception as e:
-        print(f"Erro ao obter status de ataque do inimigo: {e}")
+        logger.error(f"Erro ao obter status de ataque do inimigo: {e}")
         import traceback
         traceback.print_exc()
         return {
@@ -166,7 +171,7 @@ def execute_enemy_skill_attack(player, enemy, skill_data):
         try:
             update_buff_debuff_durations('enemy_attack', enemy_id=enemy.id)
         except Exception as e:
-            print(f"Erro ao atualizar durações após ataque: {e}")
+            logger.error(f"Erro ao atualizar durações após ataque: {e}")
         
         # ← NOVA LÓGICA: Detectar se Lázaro ativou
         if isinstance(damage_result, dict) and damage_result.get('lazaro_activated'):
@@ -229,7 +234,7 @@ def execute_enemy_skill_attack(player, enemy, skill_data):
             }
         
     except Exception as e:
-        print(f"Erro ao executar skill attack: {e}")
+        logger.error(f"Erro ao executar skill attack: {e}")
         return {'success': False, 'message': str(e)}
 
 def execute_enemy_attack(player, enemy):
@@ -257,11 +262,11 @@ def execute_enemy_attack(player, enemy):
         
         # CORREÇÃO: Decrementar charges também para attack_skill
         enemy.attack_charges_count = max(0, enemy.attack_charges_count - 1)
-        print(f"⚡ Attack skill consumida. Cargas restantes: {enemy.attack_charges_count}")
+        logger.debug(f"Attack skill consumida. Cargas restantes: {enemy.attack_charges_count}")
     else:       
         # Consumir uma carga normal
         enemy.attack_charges_count -= 1
-        print(f"⚡ Ataque básico consumido. Cargas restantes: {enemy.attack_charges_count}")
+        logger.debug(f"Ataque básico consumido. Cargas restantes: {enemy.attack_charges_count}")
         
         # Aplicar dano ao jogador usando sistema existente
         damage_result = apply_damage_to_player(player, enemy.damage)
@@ -403,7 +408,7 @@ def execute_buff_debuff_skills_sequence(player, enemy):
         }
         
     except Exception as e:
-        print(f"Erro ao executar sequência de buff/debuff: {e}")
+        logger.error(f"Erro ao executar sequência de buff/debuff: {e}")
         return {'success': False, 'message': str(e)}
 
 def execute_buff_skill(enemy, skill_id, skill_data):
@@ -411,46 +416,46 @@ def execute_buff_skill(enemy, skill_id, skill_data):
     try:
         from models import EnemySkillBuff
         
-        print(f"🩹 === INÍCIO EXECUTE_BUFF_SKILL ===")
-        print(f"🩹 Enemy ID: {enemy.id}, Name: {enemy.name}")
-        print(f"🩹 Skill ID: {skill_id}")
-        print(f"🩹 Skill Data: {skill_data}")
-        print(f"🩹 HP ANTES: {enemy.hp}/{enemy.max_hp}")
+        logger.debug(f"🩹 === INÍCIO EXECUTE_BUFF_SKILL ===")
+        logger.debug(f"🩹 Enemy ID: {enemy.id}, Name: {enemy.name}")
+        logger.debug(f"🩹 Skill ID: {skill_id}")
+        logger.debug(f"🩹 Skill Data: {skill_data}")
+        logger.debug(f"🩹 HP ANTES: {enemy.hp}/{enemy.max_hp}")
         
         effect_type = skill_data.get('effect_type')
         effect_value = skill_data.get('effect_value')
         duration_type = skill_data.get('duration_type', 'immediate')
         duration_value = skill_data.get('duration_value', 1)
         
-        print(f"🩹 Effect Type: {effect_type}")
-        print(f"🩹 Effect Value: {effect_value}")
-        print(f"🩹 Duration Type: {duration_type}")
-        print(f"🩹 Duration Value: {duration_value}")
+        logger.debug(f"🩹 Effect Type: {effect_type}")
+        logger.debug(f"🩹 Effect Value: {effect_value}")
+        logger.debug(f"🩹 Duration Type: {duration_type}")
+        logger.debug(f"🩹 Duration Value: {duration_value}")
         
         if duration_type == 'immediate':
-            print(f"🩹 ENTRANDO NO BLOCO IMMEDIATE")
+            logger.debug(f"🩹 ENTRANDO NO BLOCO IMMEDIATE")
             # Efeito imediato (como cura)
             if effect_type == 'heal':
-                print(f"🩹 ENTRANDO NO BLOCO HEAL")
+                logger.debug(f"🩹 ENTRANDO NO BLOCO HEAL")
                 healing = int(effect_value)
                 hp_antes = enemy.hp
                 enemy.hp = min(enemy.hp + healing, enemy.max_hp)
                 hp_depois = enemy.hp
-                print(f"🩹 Healing calculado: {healing}")
-                print(f"🩹 HP ANTES da cura: {hp_antes}")
-                print(f"🩹 HP DEPOIS da cura: {hp_depois}")
-                print(f"🩹 Diferença aplicada: {hp_depois - hp_antes}")
-                print(f"🩹 TENTANDO COMMIT...")
+                logger.debug(f"🩹 Healing calculado: {healing}")
+                logger.debug(f"🩹 HP ANTES da cura: {hp_antes}")
+                logger.debug(f"🩹 HP DEPOIS da cura: {hp_depois}")
+                logger.debug(f"🩹 Diferença aplicada: {hp_depois - hp_antes}")
+                logger.debug(f"🩹 TENTANDO COMMIT...")
                 db.session.commit()
-                print(f"🩹 COMMIT REALIZADO COM SUCESSO!")
+                logger.debug(f"🩹 COMMIT REALIZADO COM SUCESSO!")
                 
                 # Verificar se persistiu
                 db.session.refresh(enemy)
-                print(f"🩹 HP APÓS REFRESH: {enemy.hp}/{enemy.max_hp}")
+                logger.debug(f"🩹 HP APÓS REFRESH: {enemy.hp}/{enemy.max_hp}")
             else:
-                print(f"🩹 Effect type não é 'heal': {effect_type}")
+                logger.debug(f"🩹 Effect type não é 'heal': {effect_type}")
         else:
-            print(f"🩹 ENTRANDO NO BLOCO DE DURAÇÃO")
+            logger.debug(f"🩹 ENTRANDO NO BLOCO DE DURAÇÃO")
             # Efeito com duração - verificar se já existe
             existing_buff = EnemySkillBuff.query.filter_by(
                 enemy_id=enemy.id,
@@ -461,7 +466,7 @@ def execute_buff_skill(enemy, skill_id, skill_data):
             if existing_buff:
                 # Buff já existe - aumentar duração (cumulativo)
                 existing_buff.duration_remaining += duration_value
-                print(f"🩹 Buff {effect_type} renovado - nova duração: {existing_buff.duration_remaining}")
+                logger.debug(f"🩹 Buff {effect_type} renovado - nova duração: {existing_buff.duration_remaining}")
             else:
                 # Criar novo buff
                 new_buff = EnemySkillBuff(
@@ -473,11 +478,11 @@ def execute_buff_skill(enemy, skill_id, skill_data):
                     duration_remaining=duration_value
                 )
                 db.session.add(new_buff)
-                print(f"🩹 Novo buff {effect_type} aplicado por {duration_value} {duration_type}")
+                logger.debug(f"🩹 Novo buff {effect_type} aplicado por {duration_value} {duration_type}")
             
             db.session.commit()
         
-        print(f"🩹 === FIM EXECUTE_BUFF_SKILL ===")
+        logger.debug(f"🩹 === FIM EXECUTE_BUFF_SKILL ===")
         
         return {
             'success': True,
@@ -486,9 +491,9 @@ def execute_buff_skill(enemy, skill_id, skill_data):
         }
         
     except Exception as e:
-        print(f"🩹 ERRO ao executar buff skill: {e}")
+        logger.debug(f"🩹 ERRO ao executar buff skill: {e}")
         import traceback
-        print(f"🩹 TRACEBACK: {traceback.format_exc()}")
+        logger.debug(f"🩹 TRACEBACK: {traceback.format_exc()}")
         return {'success': False, 'message': str(e)}
 
 def execute_debuff_skill(player, enemy, skill_id, skill_data):
@@ -510,7 +515,7 @@ def execute_debuff_skill(player, enemy, skill_id, skill_data):
         if existing_debuff:
             # Debuff já existe - aumentar duração (cumulativo)
             existing_debuff.duration_remaining += duration_value
-            print(f"Debuff {effect_type} renovado - nova duração: {existing_debuff.duration_remaining}")
+            logger.debug(f"Debuff {effect_type} renovado - nova duração: {existing_debuff.duration_remaining}")
         else:
             # Criar novo debuff
             new_debuff = EnemySkillDebuff(
@@ -523,7 +528,7 @@ def execute_debuff_skill(player, enemy, skill_id, skill_data):
                 duration_remaining=duration_value
             )
             db.session.add(new_debuff)
-            print(f"Novo debuff {effect_type} aplicado por {duration_value} {duration_type}")
+            logger.debug(f"Novo debuff {effect_type} aplicado por {duration_value} {duration_type}")
         
         db.session.commit()
         
@@ -535,7 +540,7 @@ def execute_debuff_skill(player, enemy, skill_id, skill_data):
         }
         
     except Exception as e:
-        print(f"Erro ao executar debuff skill: {e}")
+        logger.error(f"Erro ao executar debuff skill: {e}")
         return {'success': False, 'message': str(e)}
 
 def clean_expired_buffs_debuffs():
@@ -555,10 +560,10 @@ def clean_expired_buffs_debuffs():
         
         if expired_buffs or expired_debuffs:
             db.session.commit()
-            print(f"Removidos {len(expired_buffs)} buffs e {len(expired_debuffs)} debuffs expirados")
+            logger.debug(f"Removidos {len(expired_buffs)} buffs e {len(expired_debuffs)} debuffs expirados")
             
     except Exception as e:
-        print(f"Erro ao limpar buffs/debuffs expirados: {e}")
+        logger.error(f"Erro ao limpar buffs/debuffs expirados: {e}")
 
 def update_buff_debuff_durations(trigger_type, player_id=None, enemy_id=None):
     """
@@ -581,7 +586,7 @@ def update_buff_debuff_durations(trigger_type, player_id=None, enemy_id=None):
                 debuff.duration_remaining -= 1
                 updated = True
                 if debuff.duration_remaining <= 0:
-                    print(f"Debuff {debuff.effect_type} expirou")
+                    logger.debug(f"Debuff {debuff.effect_type} expirou")
         
         elif trigger_type == 'enemy_attack' and enemy_id:
             # Reduzir durações de buffs que dependem de ataques do inimigo
@@ -594,14 +599,14 @@ def update_buff_debuff_durations(trigger_type, player_id=None, enemy_id=None):
                 buff.duration_remaining -= 1
                 updated = True
                 if buff.duration_remaining <= 0:
-                    print(f"Buff {buff.effect_type} expirou")
+                    logger.debug(f"Buff {buff.effect_type} expirou")
         
         if updated:
             db.session.commit()
             clean_expired_buffs_debuffs()
         
     except Exception as e:
-        print(f"Erro ao atualizar durações de buff/debuff: {e}")
+        logger.error(f"Erro ao atualizar durações de buff/debuff: {e}")
 
 def process_all_enemy_attacks(player_id):
     """
@@ -641,5 +646,5 @@ def process_all_enemy_attacks(player_id):
         }
         
     except Exception as e:
-        print(f"Erro ao processar ataques do inimigo: {e}")
+        logger.error(f"Erro ao processar ataques do inimigo: {e}")
         return {'success': False, 'message': str(e)}
