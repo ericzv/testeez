@@ -253,7 +253,8 @@ def _get_battle_data_for_template(player):
     try:
         attack_skills = get_player_attacks(player.id) or []
         special_skills = get_player_specials(player.id) or []
-    except:
+    except Exception as e:
+        logger.warning(f"Erro ao carregar skills do jogador: {e}")
         attack_skills = []
         special_skills = []
 
@@ -265,8 +266,8 @@ def _get_battle_data_for_template(player):
     try:
         equipment_mods = json.loads(current_enemy.equipment_modifiers_applied or '{}')
         boss_quote = equipment_mods.get('_typical_phrase', '')
-    except:
-        pass
+    except Exception as e:
+        logger.debug(f"Sem frase típica para inimigo: {e}")
 
     try:
         if current_enemy.next_intentions_cached:
@@ -275,8 +276,8 @@ def _get_battle_data_for_template(player):
                 if action.get('type') == 'attack':
                     boss_damage = action.get('damage', current_enemy.damage)
                     break
-    except:
-        pass
+    except Exception as e:
+        logger.debug(f"Erro ao processar intenções do inimigo: {e}")
 
     return {
         'player_hp': player.hp,
@@ -424,8 +425,8 @@ def get_battle_data():
                 try:
                     equipment_mods = json.loads(current_boss.equipment_modifiers_applied or '{}')
                     typical_phrase_boss = equipment_mods.get('_typical_phrase', '')
-                except:
-                    pass
+                except Exception as e:
+                    logger.debug(f"Sem frase típica para boss: {e}")
 
                 # Usar dados do boss
                 boss_data = {
@@ -457,8 +458,8 @@ def get_battle_data():
                 try:
                     equipment_mods = json.loads(current_enemy.equipment_modifiers_applied or '{}')
                     typical_phrase = equipment_mods.get('_typical_phrase', '')
-                except:
-                    pass
+                except Exception as e:
+                    logger.debug(f"Sem frase típica para inimigo: {e}")
 
                 # Calcular dano real do ataque básico a partir das intenções
                 basic_attack_damage = current_enemy.damage  # Fallback para o dano base
@@ -470,8 +471,8 @@ def get_battle_data():
                             if action.get('type') == 'attack':
                                 basic_attack_damage = action.get('damage', current_enemy.damage)
                                 break
-                except:
-                    pass
+                except Exception as e:
+                    logger.debug(f"Erro ao processar intenções: {e}")
 
                 # Usar dados do inimigo genérico (SEU CÓDIGO EXISTENTE)
                 boss_data = {
@@ -1779,7 +1780,8 @@ def process_skill_kill():
                 gold_gained = fixed_rewards.get('gold', 5)
                 potion_drop = fixed_rewards.get('potion', None)
                 reward_type = 'mixed'
-            except:
+            except Exception as e:
+                logger.warning(f"Erro ao ler recompensas do template, usando fallback: {e}")
                 crystals_gained = int(random.randint(30, 50) * rarity_multiplier)
                 gold_gained = 0
                 reward_type = 'crystals'
@@ -1802,8 +1804,8 @@ def process_skill_kill():
             talent_hp, talent_gold = apply_talent_on_victory(player, is_boss=is_boss_fight)
             victory_heal_amount += talent_hp
             gold_gained += talent_gold
-        except:
-            pass
+        except Exception as e:
+            logger.warning(f"Erro ao aplicar bônus de vitória de talentos: {e}")
 
         # ===== OURO EXTRA DE RELÍQUIAS =====
         extra_gold = 0
