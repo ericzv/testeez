@@ -5,7 +5,8 @@ import json
 import random
 import math
 from database import db
-from models import Player, PlayerProgress, PlayerRelic, GenericEnemy, LastBoss, ActiveBuff
+from models import Player, PlayerProgress, PlayerRelic, GenericEnemy, LastBoss
+from characters import ActiveBuff
 
 from utils.logger import get_logger
 logger = get_logger(__name__)
