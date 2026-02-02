@@ -700,6 +700,9 @@ def create_enemy_from_template(template, enemy_number, player_id=None):
     # Adicionar fala típica aos modifiers (para recuperar depois)
     equipment_modifiers['_typical_phrase'] = typical_phrase
 
+    # Armazenar grupo do inimigo (1-7) para o sistema de lembranças
+    equipment_modifiers['_enemy_group'] = group_idx + 1
+
     # ========================================
     # LER RECOMPENSAS FIXAS DO TEMPLATE
     # ========================================
@@ -1756,7 +1759,10 @@ def generate_enemy_by_theme(theme_id, enemy_number, player_id=None, temp_recent_
                 final_stats['block'] = min(75, final_stats['block'] + modifiers['armor'])
             
             total_modifier_sum += sum(modifiers.values())
-    
+
+    # Armazenar grupo do inimigo (fallback: grupo 1)
+    equipment_modifiers['_enemy_group'] = 1
+
     # Generate enemy name
     names_config = load_enemy_names_config()
     name = generate_enemy_name(names_config, theme_name, final_equipment)
@@ -2381,7 +2387,8 @@ def generate_enemy_direct_by_theme_name(theme_name, enemy_number, player_id=None
     equipment_modifiers = {
         'hp': hp_bonus,
         'armor': armor_bonus,
-        'damage': damage_bonus
+        'damage': damage_bonus,
+        '_enemy_group': 1  # Fallback: grupo padrão
     }
 
     # Create enemy (add to database)

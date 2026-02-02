@@ -243,7 +243,7 @@
 
   SISTEMA DE SESSÃO:
   - pending_rewards: {exp_reward, crystals_gained, gold_gained, etc}
-  - pending_memory_reward: {enemy_rarity, timestamp}
+  - pending_memory_reward: {enemy_group, timestamp}
   - session_revision_count: Pontos de dano disponíveis
 
   PONTOS CRÍTICOS:
@@ -365,7 +365,7 @@
           .then(data => {
               console.log("🔍 DEBUG: Resposta do check_memory_reward:", data);
               if (data.success && data.has_memory_reward) {
-                  showMemorySelectionPopup(data.enemy_rarity);
+                  showMemorySelectionPopup(data.enemy_group);
               }
           })
           .catch(error => {
@@ -374,11 +374,11 @@
   }
 
   // Mostrar pop-up de seleção de memórias
-  function showMemorySelectionPopup(enemyRarity) {
-      console.log("🧠 DEBUG: showMemorySelectionPopup chamada com raridade:", enemyRarity);
-      
+  function showMemorySelectionPopup(enemyGroup) {
+      console.log("🧠 DEBUG: showMemorySelectionPopup chamada com grupo:", enemyGroup);
+
       // Salvar dados da recompensa para usar depois
-      window.__pendingMemoryData = { enemy_rarity: enemyRarity };
+      window.__pendingMemoryData = { enemy_group: enemyGroup };
       
       fetch('/gamification/get_memory_options')
           .then(response => response.json())
@@ -386,7 +386,7 @@
               console.log("🧠 DEBUG: Opções recebidas:", data);
               if (data.success) {
                   memoryOptions = data.options;
-                  displayMemoryOptions(enemyRarity);
+                  displayMemoryOptions(enemyGroup);
                   
                   // Reset do estado de seleção
                   selectedMemoryType = null;
@@ -413,7 +413,7 @@
   }
 
     // Exibir opções de memória
-    function displayMemoryOptions(enemyRarity) {
+    function displayMemoryOptions(enemyGroup) {
         const container = document.getElementById('memory-options-container');
         container.innerHTML = '';
         
@@ -486,9 +486,9 @@
       
       // Obter raridade do inimigo da sessão
       const pendingMemory = window.__pendingMemoryData || {};
-      const enemyRarity = pendingMemory.enemy_rarity || 1;
-      
-      console.log("🧠 DEBUG: Confirmando seleção:", { memoryType: selectedMemoryType, enemyRarity });
+      const enemyGroup = pendingMemory.enemy_group || 1;
+
+      console.log("🧠 DEBUG: Confirmando seleção:", { memoryType: selectedMemoryType, enemyGroup });
       
       // Desabilitar botão para evitar cliques duplos
       const confirmBtn = document.getElementById('confirm-memory-btn');
@@ -503,7 +503,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
               memory_type: selectedMemoryType,
-              enemy_rarity: enemyRarity
+              enemy_group: enemyGroup
           })
       })
       .then(response => response.json())
@@ -1762,30 +1762,20 @@
   document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const showMemorySelection = urlParams.get('show_memory_selection');
-    const rarity = urlParams.get('rarity');
+    const groupParam = urlParams.get('group');
 
-    if (showMemorySelection === 'true' && rarity) {
-      console.log('🎁 Abrindo seleção de memória:', rarity);
-
-      // Converter raridade de string para número (shop usa strings, backend usa números)
-      const rarityMap = {
-        'common': 1,
-        'rare': 2,
-        'epic': 3,
-        'legendary': 4
-      };
-
-      const numericRarity = rarityMap[rarity] || 1;
-      console.log('🎁 Raridade convertida:', rarity, '->', numericRarity);
+    if (showMemorySelection === 'true' && groupParam) {
+      const numericGroup = parseInt(groupParam) || 1;
+      console.log('🎁 Abrindo seleção de memória, grupo:', numericGroup);
 
       // Configurar dados pendentes de memória (necessário para confirmação)
       window.__pendingMemoryData = {
-        enemy_rarity: numericRarity
+        enemy_group: numericGroup
       };
 
       // Chamar função de mostrar popup de memória
       if (typeof showMemorySelectionPopup === 'function') {
-        showMemorySelectionPopup(numericRarity);  // Passar número, não string
+        showMemorySelectionPopup(numericGroup);
       } else {
         console.error('❌ Função showMemorySelectionPopup não encontrada');
       }

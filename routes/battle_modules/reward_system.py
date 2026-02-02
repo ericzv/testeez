@@ -70,54 +70,55 @@ REWARD_SYSTEM = {
 }
 
 # Sistema de Lembranças
+# Chave 'values': {grupo: bônus} — Grupos 1-6 para lembranças padrão, Grupo 7 para especiais
 MEMORY_TYPES = {
     'maxhp': {
         'name': 'Arx',
         'description': 'Aumento do HP Máximo',
         'icon': 'maxhp.png',
-        'values': {1: 4, 2: 8, 3: 12, 4: 16}
+        'values': {1: 3, 2: 5, 3: 8, 4: 11, 5: 14, 6: 18}
     },
     'maxmp': {
         'name': 'Empyreum',
         'description': 'Aumento da Energia Máxima',
         'icon': 'maxmp.png',
-        'values': {3: 1, 4: 2}
+        'values': {7: 3}
     },
     'heal': {
         'name': 'Recuperatio',
         'description': 'Cura Instantânea',
-        'icon': 'heal.png', 
-        'values': {1: 40, 2: 80, 3: 120, 4: 160}
+        'icon': 'heal.png',
+        'values': {1: 30, 2: 50, 3: 80, 4: 110, 5: 140, 6: 180}
     },
     'damage_global': {
         'name': 'Ferocitas',
         'description': 'Aumenta o dano de todos os ataques',
         'icon': 'damage.png',
-        'values': {3: 2, 4: 4}
+        'values': {7: 5}
     },
     'damage_attack': {
         'name': 'Dominatio',
         'description': 'Aumenta dano do Ataque Básico',
         'icon': 'damageattack.png',
-        'values': {1: 2, 2: 3, 3: 4, 4: 6}
+        'values': {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 7}
     },
     'damage_special': {
         'name': 'Regalitas',
         'description': 'Aumenta dano do Especial',
         'icon': 'damagespecial.png',
-        'values': {1: 2, 2: 4, 3: 5, 4: 7}
+        'values': {1: 1, 2: 2, 3: 3, 4: 5, 5: 6, 6: 8}
     },
     'damage_power': {
         'name': 'Tyrannitas',
         'description': 'Aumenta dano do Poder',
         'icon': 'damagepower.png',
-        'values': {1: 2, 2: 4, 3: 5, 4: 7}
+        'values': {1: 1, 2: 2, 3: 3, 4: 5, 5: 6, 6: 8}
     },
     'damage_ultimate': {
         'name': 'Suprematia',
         'description': 'Aumenta dano da Suprema',
-        'icon': 'damageultimate.png', 
-        'values': {1: 4, 2: 6, 3: 8, 4: 12}
+        'icon': 'damageultimate.png',
+        'values': {1: 3, 2: 5, 3: 7, 4: 9, 5: 11, 6: 14}
     }
 }
 
@@ -133,31 +134,34 @@ def determine_enemy_reward_type():
     
     return random.choice(weighted_rewards)
 
-def calculate_gold_reward(enemy_number, rarity, equipment_bonus_percent):
-    """Calcula recompensa de ouro baseado no número do inimigo e modificadores"""
+def calculate_gold_reward(enemy_number, enemy_group, equipment_bonus_percent):
+    """Calcula recompensa de ouro baseado no número do inimigo e grupo"""
     # Base: 3-6 ouro, aumentando +1 a cada 5 inimigos
     tier_bonus = enemy_number // 5
     base_gold = random.randint(3 + tier_bonus, 6 + tier_bonus)
-    
-    # Modificador de raridade
-    rarity_multipliers = {1: 1.0, 2: 1.2, 3: 1.5, 4: 2.0}
-    rarity_multiplier = rarity_multipliers.get(rarity, 1.0)
-    
+
+    # Modificador por grupo do inimigo
+    group_multipliers = {1: 1.0, 2: 1.1, 3: 1.2, 4: 1.4, 5: 1.6, 6: 1.8, 7: 2.0}
+    group_multiplier = group_multipliers.get(enemy_group, 1.0)
+
     # Aplicar modificadores
-    gold_with_rarity = int(base_gold * rarity_multiplier)
-    gold_with_equipment = int(gold_with_rarity * (1 + equipment_bonus_percent / 100))
-    
+    gold_with_group = int(base_gold * group_multiplier)
+    gold_with_equipment = int(gold_with_group * (1 + equipment_bonus_percent / 100))
+
     return gold_with_equipment
 
-def calculate_hourglass_reward(rarity):
-    """Calcula recompensa de ampulhetas baseado apenas na raridade"""
-    hourglass_by_rarity = {
-        1: 1,  # Comum
-        2: 2,  # Raro
-        3: 3,  # Épico
-        4: 4   # Lendário
+def calculate_hourglass_reward(enemy_group):
+    """Calcula recompensa de ampulhetas baseado no grupo do inimigo"""
+    hourglass_by_group = {
+        1: 1,  # Grupo 1
+        2: 1,  # Grupo 2
+        3: 2,  # Grupo 3
+        4: 2,  # Grupo 4
+        5: 3,  # Grupo 5
+        6: 3,  # Grupo 6
+        7: 4   # Grupo 7
     }
-    return hourglass_by_rarity.get(rarity, 1)
+    return hourglass_by_group.get(enemy_group, 1)
 
 def get_player_run_buffs(player_id):
     """Retorna todos os buffs de run do jogador"""
@@ -192,29 +196,30 @@ def select_random_memory_options():
     Seleciona tipos aleatórios de memória para o jogador escolher.
     Base: 3 opções
     +1 se tiver relíquia ID 46 (Rosário de Dominic)
+    Filtra lembranças disponíveis pelo grupo do inimigo (1-7).
     """
     from models import Player, PlayerRelic
-    
+
     count = 3
-    
-    # OBTER RARIDADE DO INIMIGO DA SESSÃO
+
+    # OBTER GRUPO DO INIMIGO DA SESSÃO
     pending_memory = session.get('pending_memory_reward', {})
-    enemy_rarity = pending_memory.get('enemy_rarity', 1)
-    logger.debug(f"Raridade do inimigo: {enemy_rarity}")
-    
+    enemy_group = pending_memory.get('enemy_group', 1)
+    logger.debug(f"Grupo do inimigo: {enemy_group}")
+
     # Verificar relíquia de opção extra
     player = Player.query.first()
     if player:
         logger.debug(f"DEBUG: Verificando relíquias do player {player.id}")
-        
+
         # Buscar TODAS as relíquias ativas para debug
         all_relics = PlayerRelic.query.filter_by(
             player_id=player.id,
             is_active=True
         ).all()
-        
+
         logger.debug(f"DEBUG: Relíquias ativas: {[r.relic_id for r in all_relics]}")
-        
+
         # Tentar buscar ID 46 como string E como int
         extra_relic = PlayerRelic.query.filter_by(
             player_id=player.id,
@@ -222,7 +227,7 @@ def select_random_memory_options():
         ).filter(
             (PlayerRelic.relic_id == '46') | (PlayerRelic.relic_id == 46)
         ).first()
-        
+
         if extra_relic:
             count += 1
             logger.debug(f"Rosário de Dominic encontrado! +1 opção ({count} opções)")
@@ -230,24 +235,24 @@ def select_random_memory_options():
             logger.error(f"Rosário de Dominic NÃO encontrado")
     else:
         logger.error("DEBUG: Player não encontrado!")
-    
-    # FILTRAR tipos de memória baseado na raridade
+
+    # FILTRAR tipos de memória baseado no grupo do inimigo
     available_types = []
     for memory_type, config in MEMORY_TYPES.items():
-        # Verificar se esta lembrança está disponível para a raridade atual
-        if enemy_rarity in config['values']:
+        # Verificar se esta lembrança está disponível para o grupo atual
+        if enemy_group in config['values']:
             available_types.append(memory_type)
         else:
-            logger.warning(f"{memory_type} não disponível para raridade {enemy_rarity}")
-    
+            logger.debug(f"{memory_type} não disponível para grupo {enemy_group}")
+
     # Selecionar tipos aleatórios (sem repetição)
     if len(available_types) == 0:
         logger.error("ERRO: Nenhum tipo de memória disponível!")
         return ['maxhp', 'heal', 'damage_attack']  # Fallback seguro
-    
+
     selected = random.sample(available_types, min(count, len(available_types)))
     logger.debug(f"DEBUG: {count} opções selecionadas: {selected}")
-    
+
     return selected
 
 def format_buff_display_value(buff_type, total_value):
@@ -293,26 +298,26 @@ def register_memory_routes(bp):
         try:
             data = request.get_json()
             memory_type = data.get('memory_type')
-            enemy_rarity = data.get('enemy_rarity', 1)
-            
+            enemy_group = data.get('enemy_group', 1)
+
             player = Player.query.first()
             if not player:
                 return jsonify({'success': False, 'message': 'Jogador não encontrado'})
-            
+
             if memory_type not in MEMORY_TYPES:
                 return jsonify({'success': False, 'message': 'Tipo de memória inválido'})
-            
-            # Obter valor baseado na raridade do inimigo
+
+            # Obter valor baseado no grupo do inimigo
             memory_config = MEMORY_TYPES[memory_type]
-            
-            # VALIDAR se raridade existe
-            if enemy_rarity not in memory_config['values']:
+
+            # VALIDAR se o grupo existe para esta lembrança
+            if enemy_group not in memory_config['values']:
                 return jsonify({
-                    'success': False, 
-                    'message': f'Raridade {enemy_rarity} inválida para {memory_type}'
+                    'success': False,
+                    'message': f'Grupo {enemy_group} inválido para {memory_type}'
                 })
-            
-            value = memory_config['values'][enemy_rarity]
+
+            value = memory_config['values'][enemy_group]
             
             # Aplicar o buff
             buff = add_run_buff(player.id, memory_type, value)
@@ -398,14 +403,14 @@ def register_memory_routes(bp):
             current_buffs = get_player_run_buffs(player.id)
             buff_counts = {buff.buff_type: buff.count for buff in current_buffs}
             
-            # Obter rarity do inimigo derrotado
-            enemy_rarity = pending_memory.get('enemy_rarity', 1)
+            # Obter grupo do inimigo derrotado
+            enemy_group = pending_memory.get('enemy_group', 1)
 
             # Preparar dados para retorno
             options = []
             for memory_type in selected_types:
                 config = MEMORY_TYPES[memory_type]
-                value = config['values'][enemy_rarity]
+                value = config['values'][enemy_group]
                 formatted_value = format_memory_value_display(memory_type, value)
                 
                 options.append({
@@ -479,7 +484,7 @@ def register_memory_routes(bp):
                 return jsonify({
                     'success': True,
                     'has_memory_reward': True,
-                    'enemy_rarity': pending_memory['enemy_rarity']
+                    'enemy_group': pending_memory['enemy_group']
                 })
             else:
                 return jsonify({

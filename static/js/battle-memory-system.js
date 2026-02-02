@@ -23,11 +23,11 @@ function playRewriteSound() {
 }
 
 // Mostrar pop-up de seleção de memórias
-function showMemorySelectionPopup(enemyRarity) {
-    console.log("🧠 DEBUG: showMemorySelectionPopup chamada com raridade:", enemyRarity);
+function showMemorySelectionPopup(enemyGroup) {
+    console.log("🧠 DEBUG: showMemorySelectionPopup chamada com grupo:", enemyGroup);
 
     // Salvar dados da recompensa para usar depois
-    pendingMemoryData = { enemy_rarity: enemyRarity };
+    pendingMemoryData = { enemy_group: enemyGroup };
 
     fetch('/gamification/get_memory_options')
         .then(response => response.json())
@@ -35,7 +35,7 @@ function showMemorySelectionPopup(enemyRarity) {
             console.log("🧠 DEBUG: Opções recebidas:", data);
             if (data.success) {
                 memoryOptions = data.options;
-                displayMemoryOptions(enemyRarity);
+                displayMemoryOptions(enemyGroup);
 
                 // Reset do estado de seleção
                 selectedMemoryType = null;
@@ -142,7 +142,7 @@ async function executeMemoryRewrite() {
                         .then(newData => {
                             if (newData.success) {
                                 memoryOptions = newData.options;
-                                displayMemoryOptions(pendingMemoryData.enemy_rarity);
+                                displayMemoryOptions(pendingMemoryData.enemy_group);
 
                                 // Reset seleção
                                 selectedMemoryType = null;
@@ -180,7 +180,7 @@ async function executeMemoryRewrite() {
 }
 
 // Exibir opções de memória
-function displayMemoryOptions(enemyRarity) {
+function displayMemoryOptions(enemyGroup) {
     const container = document.getElementById('memory-options-container');
     container.innerHTML = '';
 
@@ -246,10 +246,10 @@ function confirmMemorySelection() {
         return;
     }
 
-    // Obter raridade do inimigo da sessão
-    const enemyRarity = pendingMemoryData?.enemy_rarity || 1;
+    // Obter grupo do inimigo da sessão
+    const enemyGroup = pendingMemoryData?.enemy_group || 1;
 
-    console.log("🧠 DEBUG: Confirmando seleção:", { memoryType: selectedMemoryType, enemyRarity });
+    console.log("🧠 DEBUG: Confirmando seleção:", { memoryType: selectedMemoryType, enemyGroup });
 
     // Desabilitar botão para evitar cliques duplos
     const confirmBtn = document.getElementById('confirm-memory-btn');
@@ -264,7 +264,7 @@ function confirmMemorySelection() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             memory_type: selectedMemoryType,
-            enemy_rarity: enemyRarity
+            enemy_group: enemyGroup
         })
     })
     .then(response => response.json())
@@ -359,7 +359,7 @@ function checkPendingMemoryReward() {
                 }
 
                 // Mostrar pop-up de memória imediatamente
-                showMemorySelectionPopup(data.enemy_rarity);
+                showMemorySelectionPopup(data.enemy_group);
             }
         })
         .catch(error => {

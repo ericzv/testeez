@@ -1476,8 +1476,12 @@ def damage_boss():
             memory_options = select_random_memory_options()
             logger.debug(f"Opções de lembranças GERADAS na vitória: {memory_options}")
 
+            # Obter grupo do inimigo a partir dos equipment_modifiers
+            _eq_mods = json.loads(current_enemy.equipment_modifiers_applied or '{}')
+            _enemy_group = _eq_mods.get('_enemy_group', 1)
+
             session['pending_memory_reward'] = {
-                'enemy_rarity': current_enemy.rarity,
+                'enemy_group': _enemy_group,
                 'timestamp': datetime.utcnow().isoformat(),
                 'memory_options': memory_options  # ← SALVAR AS OPÇÕES
             }
@@ -1547,7 +1551,7 @@ def damage_boss():
         'relic_bonus_messages': '\n'.join(relic_bonus_messages) if target_defeated else '',
         'should_refresh_skills': True,
         'has_memory_reward': (target_defeated and not is_boss_fight),
-        'enemy_rarity': current_enemy.rarity if (target_defeated and not is_boss_fight and current_enemy) else None
+        'enemy_group': _enemy_group if (target_defeated and not is_boss_fight and current_enemy) else None
     })
 
 @battle_bp.route('/get_player_specials_api')
@@ -1759,7 +1763,7 @@ def process_skill_kill():
                     'timestamp': datetime.utcnow().isoformat()
                 }
 
-            enemy_rarity = 4
+            enemy_group = 7  # Bosses são tratados como grupo 7
         else:
             # Recompensas de inimigo genérico
             base_exp = random.randint(30 + (current_enemy.enemy_number * 10), 50 + (current_enemy.enemy_number * 20))
@@ -1796,7 +1800,9 @@ def process_skill_kill():
             current_enemy.is_available = False
             progress.selected_enemy_id = None
 
-            enemy_rarity = current_enemy.rarity
+            # Obter grupo do inimigo a partir dos equipment_modifiers
+            _eq_mods_skill = json.loads(current_enemy.equipment_modifiers_applied or '{}')
+            enemy_group = _eq_mods_skill.get('_enemy_group', 1)
 
         # ===== BÔNUS DE TALENTOS =====
         try:
@@ -1838,7 +1844,7 @@ def process_skill_kill():
             from .battle_modules.reward_system import select_random_memory_options
             memory_options = select_random_memory_options()
             session['pending_memory_reward'] = {
-                'enemy_rarity': enemy_rarity,
+                'enemy_group': enemy_group,
                 'timestamp': datetime.utcnow().isoformat(),
                 'memory_options': memory_options
             }
@@ -1867,7 +1873,7 @@ def process_skill_kill():
             'hourglasses_gained': hourglasses_gained,
             'reward_type': reward_type,
             'has_memory_reward': not is_boss_fight,
-            'enemy_rarity': enemy_rarity,
+            'enemy_group': enemy_group,
             'potion_drop': potion_drop
         })
 

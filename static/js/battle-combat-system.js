@@ -4696,9 +4696,9 @@ function checkCritical(skill) {
 }
 
 // Função para tratar animação de morte do boss
-function handleBossDeathAnimation(hasMemoryReward, enemyRarity) {
+function handleBossDeathAnimation(hasMemoryReward, enemyGroup) {
     console.log("🎭 Iniciando animação de morte do boss");
-    console.log("🧠 Has memory reward:", hasMemoryReward, "Enemy rarity:", enemyRarity);
+    console.log("🧠 Has memory reward:", hasMemoryReward, "Enemy group:", enemyGroup);
 
     // Bloquear todas as ações
     gameState.inAction = true;
@@ -5189,7 +5189,7 @@ function saveBossDamage(skill, damage, isCritical) {
                 }
 
                 // Chamar animação de morte do boss
-                handleBossDeathAnimation(data.has_memory_reward, data.enemy_rarity);
+                handleBossDeathAnimation(data.has_memory_reward, data.enemy_group);
             }
         } else {
             console.error("Erro ao aplicar dano:", data.message);

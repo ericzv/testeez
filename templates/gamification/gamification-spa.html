@@ -1124,18 +1124,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Verificar se veio de compra de Lembrança no shop
     const showMemorySelection = urlParams.get('show_memory_selection');
-    const memoryRarity = urlParams.get('rarity');
-    if (showMemorySelection === 'true' && memoryRarity) {
-        // Converter string de raridade para número
-        const rarityMap = { 'common': 1, 'uncommon': 2, 'rare': 3, 'epic': 4, 'legendary': 5 };
-        let numericRarity = parseInt(memoryRarity);
-        if (isNaN(numericRarity)) {
-            numericRarity = rarityMap[memoryRarity.toLowerCase()] || 1;
-        }
-        console.log('🧠 SPA: Abrindo popup de seleção de lembrança (rarity:', numericRarity, ')');
+    const memoryGroup = urlParams.get('group');
+    if (showMemorySelection === 'true' && memoryGroup) {
+        const numericGroup = parseInt(memoryGroup) || 1;
+        console.log('🧠 SPA: Abrindo popup de seleção de lembrança (grupo:', numericGroup, ')');
         setTimeout(() => {
             if (typeof showMemorySelectionPopup === 'function') {
-                showMemorySelectionPopup(numericRarity);
+                showMemorySelectionPopup(numericGroup);
             } else {
                 console.error('❌ Função showMemorySelectionPopup não encontrada');
             }
@@ -1497,7 +1492,7 @@ async function checkMemoryReward() {
         const response = await fetch('/gamification/check_memory_reward');
         const data = await response.json();
         if (data.success && data.has_memory_reward) {
-            showMemorySelectionPopup(data.enemy_rarity);
+            showMemorySelectionPopup(data.enemy_group);
             return true;
         }
         return false;
