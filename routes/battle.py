@@ -3130,6 +3130,23 @@ def restore_energy():
             logger.debug(f"Barreira de {old_barrier} resetada no início do turno.")
         # ===============================================
 
+        # ===== REGENERAÇÃO DE HP (Perseverantia) =====
+        from routes.battle_cache import get_run_buff_total
+        hp_regen = get_run_buff_total(player.id, 'hp_regen')
+        hp_healed = 0
+        if hp_regen > 0:
+            # Obter HP máximo do cache de defesa
+            from models import PlayerDefenseCache
+            defense_cache = PlayerDefenseCache.query.filter_by(player_id=player.id).first()
+            max_hp = defense_cache.max_hp if defense_cache else 100
+
+            old_hp = player.hp
+            player.hp = min(max_hp, player.hp + int(hp_regen))
+            hp_healed = player.hp - old_hp
+            if hp_healed > 0:
+                logger.debug(f"Perseverantia: +{hp_healed} HP ({old_hp} → {player.hp})")
+        # =============================================
+
         # ===== PRESERVAR ENERGIA ACIMA DO MÁXIMO =====
         # Se energia > max_energy, é bônus de primeiro turno (ex: Escritos de Agostinho)
         # Não resetar nesse caso!
@@ -3148,7 +3165,9 @@ def restore_energy():
             'barrier_reset': barrier_was_reset,
             'current_energy': player.energy,
             'max_energy': player.max_energy,
-            'restored_amount': player.max_energy - old_energy
+            'restored_amount': player.max_energy - old_energy,
+            'hp_regen': hp_healed,
+            'current_hp': player.hp
         })
         
     except Exception as e:

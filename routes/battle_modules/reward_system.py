@@ -72,29 +72,18 @@ REWARD_SYSTEM = {
 # Sistema de Lembranças
 # Chave 'values': {grupo: bônus} — Grupos 1-6 para lembranças padrão, Grupo 7 para especiais
 MEMORY_TYPES = {
+    # === GRUPOS 1-6 (todas) ===
     'maxhp': {
         'name': 'Arx',
         'description': 'Aumento do HP Máximo',
         'icon': 'maxhp.png',
-        'values': {1: 3, 2: 5, 3: 8, 4: 11, 5: 14, 6: 18}
-    },
-    'maxmp': {
-        'name': 'Empyreum',
-        'description': 'Aumento da Energia Máxima',
-        'icon': 'maxmp.png',
-        'values': {7: 3}
+        'values': {1: 5, 2: 8, 3: 12, 4: 15, 5: 18, 6: 20}
     },
     'heal': {
         'name': 'Recuperatio',
         'description': 'Cura Instantânea',
         'icon': 'heal.png',
-        'values': {1: 30, 2: 50, 3: 80, 4: 110, 5: 140, 6: 180}
-    },
-    'damage_global': {
-        'name': 'Ferocitas',
-        'description': 'Aumenta o dano de todos os ataques',
-        'icon': 'damage.png',
-        'values': {7: 5}
+        'values': {1: 20, 2: 35, 3: 55, 4: 70, 5: 90, 6: 120}
     },
     'damage_attack': {
         'name': 'Dominatio',
@@ -119,6 +108,50 @@ MEMORY_TYPES = {
         'description': 'Aumenta dano da Suprema',
         'icon': 'damageultimate.png',
         'values': {1: 3, 2: 5, 3: 7, 4: 9, 5: 11, 6: 14}
+    },
+    'dodge_chance': {
+        'name': 'Robur',
+        'description': 'Aumenta chance de esquiva',
+        'icon': 'robur.png',
+        'values': {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 7}
+    },
+    # === GRUPOS 4-6 (apenas) ===
+    'crit_chance': {
+        'name': 'Fervor',
+        'description': 'Aumenta chance de acerto crítico',
+        'icon': 'fervor.png',
+        'values': {4: 4, 5: 6, 6: 8}
+    },
+    'crit_damage': {
+        'name': 'Furia',
+        'description': 'Aumenta dano de acertos críticos',
+        'icon': 'furia.png',
+        'values': {4: 12, 5: 18, 6: 25}
+    },
+    'damage_flat': {
+        'name': 'Constantia',
+        'description': 'Aumenta dano fixo de todos os ataques',
+        'icon': 'constantia.png',
+        'values': {4: 2, 5: 3, 6: 4}
+    },
+    'hp_regen': {
+        'name': 'Perseverantia',
+        'description': 'Regenera HP a cada turno',
+        'icon': 'perseverantia.png',
+        'values': {4: 2, 5: 4, 6: 6}
+    },
+    # === GRUPO 7 (especiais) ===
+    'maxmp': {
+        'name': 'Empyreum',
+        'description': 'Aumento da Energia Máxima',
+        'icon': 'maxmp.png',
+        'values': {7: 2}
+    },
+    'damage_global': {
+        'name': 'Ferocitas',
+        'description': 'Aumenta o dano de todos os ataques',
+        'icon': 'damage.png',
+        'values': {7: 7}
     }
 }
 
