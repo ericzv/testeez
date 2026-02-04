@@ -303,7 +303,7 @@ def format_memory_value_display(memory_type, value):
     """Formata o valor da memória para exibição no pop-up"""
     if memory_type == 'maxhp':
         return f"+{int(value)} HP Máximo"
-    elif memory_type == 'maxenergy':
+    elif memory_type == 'maxmp':
         return f"+{int(value)} Energia Máxima"
     elif memory_type == 'heal':
         return f"Cura {int(value)} HP"
@@ -317,6 +317,16 @@ def format_memory_value_display(memory_type, value):
         return f"+{int(value)} de Dano com Poder"
     elif memory_type == 'damage_ultimate':
         return f"+{int(value)} de Dano com Suprema"
+    elif memory_type == 'damage_flat':
+        return f"+{int(value)} de Qualquer Dano"
+    elif memory_type == 'dodge_chance':
+        return f"+{int(value)}% Esquiva"
+    elif memory_type == 'crit_chance':
+        return f"+{int(value)}% Chance de Crítico"
+    elif memory_type == 'crit_damage':
+        return f"+{int(value)}% Dano Crítico"
+    elif memory_type == 'hp_regen':
+        return f"+{int(value)} HP/turno"
     else:
         return f"+{value}"
 
