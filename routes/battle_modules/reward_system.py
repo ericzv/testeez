@@ -137,20 +137,20 @@ MEMORY_TYPES = {
     'hp_regen': {
         'name': 'Perseverantia',
         'description': 'Regenera HP a cada turno',
-        'icon': 'perseverantia.png',
+        'icon': 'perserverantia.png',
         'values': {4: 2, 5: 4, 6: 6}
     },
     # === GRUPO 7 (especiais) ===
     'maxmp': {
         'name': 'Empyreum',
         'description': 'Aumento da Energia Máxima',
-        'icon': 'maxmp.png',
+        'icon': 'empyreum.png',
         'values': {7: 2}
     },
     'damage_global': {
         'name': 'Ferocitas',
         'description': 'Aumenta o dano de todos os ataques',
-        'icon': 'damage.png',
+        'icon': 'ferocitas.png',
         'values': {7: 7}
     }
 }
