@@ -28,20 +28,20 @@ def apply_victory_rewards(player_id, enemy_data):
             db.session.add(progress)
             db.session.commit()
 
-        # Obter número do inimigo dos dados ou do progress
+        # Obter número do inimigo e grupo dos dados ou do progress
         if isinstance(enemy_data, dict):
             enemy_number = enemy_data.get('number', progress.generic_enemies_defeated)
-            enemy_rarity = enemy_data.get('rarity', 1)
+            enemy_group = enemy_data.get('enemy_group', 1)
         else:
             enemy_number = getattr(enemy_data, 'number', progress.generic_enemies_defeated)
-            enemy_rarity = getattr(enemy_data, 'rarity', 1)
+            enemy_group = getattr(enemy_data, 'enemy_group', 1)
 
-        # Calcular recompensas baseadas no número e raridade do inimigo
+        # Calcular recompensas baseadas no número e grupo do inimigo
         rewards = {
-            'exp_reward': calculate_exp_reward(enemy_number, enemy_rarity),
-            'gold_gained': calculate_gold_reward(enemy_number, enemy_rarity),
-            'crystals_gained': calculate_crystal_reward(enemy_rarity),
-            'hourglasses_gained': calculate_hourglass_reward(enemy_rarity)
+            'exp_reward': calculate_exp_reward(enemy_number, enemy_group),
+            'gold_gained': calculate_gold_reward(enemy_number, enemy_group),
+            'crystals_gained': calculate_crystal_reward(enemy_group),
+            'hourglasses_gained': calculate_hourglass_reward(enemy_group)
         }
 
         # Aplicar experiência
@@ -93,28 +93,28 @@ def apply_victory_rewards(player_id, enemy_data):
         raise e
 
 
-def calculate_exp_reward(enemy_number, rarity):
-    """Calcula recompensa de experiência"""
+def calculate_exp_reward(enemy_number, enemy_group):
+    """Calcula recompensa de experiência baseado no grupo do inimigo"""
     base_exp = 10 + (enemy_number // 5) * 2
-    rarity_multiplier = {1: 1.0, 2: 1.5, 3: 2.0, 4: 3.0}.get(rarity, 1.0)
-    return int(base_exp * rarity_multiplier)
+    group_multiplier = {1: 1.0, 2: 1.2, 3: 1.5, 4: 1.8, 5: 2.2, 6: 2.6, 7: 3.0}.get(enemy_group, 1.0)
+    return int(base_exp * group_multiplier)
 
 
-def calculate_gold_reward(enemy_number, rarity):
-    """Calcula recompensa de ouro"""
+def calculate_gold_reward(enemy_number, enemy_group):
+    """Calcula recompensa de ouro baseado no grupo do inimigo"""
     import random
     base_gold = random.randint(3 + enemy_number // 5, 6 + enemy_number // 5)
-    rarity_multiplier = {1: 1.0, 2: 1.2, 3: 1.5, 4: 2.0}.get(rarity, 1.0)
-    return int(base_gold * rarity_multiplier)
+    group_multiplier = {1: 1.0, 2: 1.1, 3: 1.2, 4: 1.4, 5: 1.6, 6: 1.8, 7: 2.0}.get(enemy_group, 1.0)
+    return int(base_gold * group_multiplier)
 
 
-def calculate_crystal_reward(rarity):
-    """Calcula recompensa de cristais"""
-    crystal_by_rarity = {1: 1, 2: 2, 3: 3, 4: 5}
-    return crystal_by_rarity.get(rarity, 1)
+def calculate_crystal_reward(enemy_group):
+    """Calcula recompensa de cristais baseado no grupo do inimigo"""
+    crystal_by_group = {1: 1, 2: 1, 3: 2, 4: 2, 5: 3, 6: 4, 7: 5}
+    return crystal_by_group.get(enemy_group, 1)
 
 
-def calculate_hourglass_reward(rarity):
-    """Calcula recompensa de ampulhetas"""
-    hourglass_by_rarity = {1: 1, 2: 2, 3: 3, 4: 4}
-    return hourglass_by_rarity.get(rarity, 1)
+def calculate_hourglass_reward(enemy_group):
+    """Calcula recompensa de ampulhetas baseado no grupo do inimigo"""
+    hourglass_by_group = {1: 1, 2: 1, 3: 2, 4: 2, 5: 3, 6: 3, 7: 4}
+    return hourglass_by_group.get(enemy_group, 1)

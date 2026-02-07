@@ -173,7 +173,23 @@ def calculate_attack_cache(player_id):
         if relic_crit_bonus > 0:
             base_crit_chance += relic_crit_bonus
             logger.debug(f"RELÍQUIAS: +{relic_crit_bonus*100:.1f}% crit ({relic_count} relíquias)")
-        
+
+        # 3g. Lembranças de crítico (Fervor = crit_chance, Furia = crit_damage)
+        memory_crit_chance = get_run_buff_total(player_id, 'crit_chance')
+        if memory_crit_chance > 0:
+            base_crit_chance += memory_crit_chance / 100  # Converter % para decimal
+            logger.debug(f"LEMBRANÇA 'crit_chance' (Fervor): +{memory_crit_chance:.0f}%")
+
+        memory_crit_damage = get_run_buff_total(player_id, 'crit_damage')
+        if memory_crit_damage > 0:
+            base_crit_multiplier += memory_crit_damage / 100  # Ex: 12% → 0.12 → 1.5 + 0.12 = 1.62x
+            logger.debug(f"LEMBRANÇA 'crit_damage' (Furia): +{memory_crit_damage:.0f}% → {base_crit_multiplier:.2f}x multiplicador")
+
+        # 3h. Lembrança de dano fixo global (Constantia)
+        memory_flat_damage = get_run_buff_total(player_id, 'damage_flat')
+        if memory_flat_damage > 0:
+            logger.debug(f"LEMBRANÇA 'damage_flat' (Constantia): +{int(memory_flat_damage)} dano fixo em todos os ataques")
+
         # 4. PROCESSAR CADA SKILL
         logger.debug("-" * 60)
         logger.debug("PROCESSANDO SKILLS:")
@@ -261,6 +277,12 @@ def calculate_attack_cache(player_id):
                 current_damage += int(memory_specific)  # <-- CORRIGIDO para adição flat
                 bonus_applied = current_damage - damage_before
                 logger.debug(f"Lembrança '{memory_specific_key}' (+{int(memory_specific)} dano): {damage_before} + {bonus_applied} = {current_damage}")
+
+            # Aplicar lembrança de dano fixo global (Constantia)
+            if memory_flat_damage > 0:
+                damage_before = current_damage
+                current_damage += int(memory_flat_damage)
+                logger.debug(f"Lembrança 'damage_flat' (Constantia): {damage_before} + {int(memory_flat_damage)} = {current_damage}")
 
             if skill_type == 'attack' and player.accumulated_attack_bonus > 0:
                 damage_before = current_damage
@@ -469,6 +491,12 @@ def calculate_attack_cache(player_id):
                 dodge_bonus = relic_count * dodge_per_relic
                 base_dodge += dodge_bonus
                 logger.debug(f"🛡️ Estandarte de Constantino: +{dodge_bonus*100:.1f}% esquiva ({relic_count} relíquias)")
+
+        # Lembrança de esquiva (Robur)
+        dodge_memory = get_run_buff_total(player_id, 'dodge_chance')
+        if dodge_memory > 0:
+            base_dodge += dodge_memory / 100  # Converter % para decimal
+            logger.debug(f"LEMBRANÇA 'dodge_chance' (Robur): +{dodge_memory:.0f}% esquiva")
 
         # Bloqueio removido do jogo - manter valor 0 para compatibilidade
         base_block = 0.0
