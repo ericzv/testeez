@@ -121,52 +121,19 @@ _enemy_figure_cache = {'mtime': 0, 'mapping': {}}
 
 def _get_enemy_figure_mapping():
     """
-    Retorna um dict {nome_inimigo: 'bN.png'} replicando a ordem visual
-    do template generator: sort por totalTier, depois agrupamento em 7 grupos
-    (com manual_group override), e numeração sequencial grupo a grupo.
+    Retorna um dict {nome_inimigo: 'bN.png'} a partir do arquivo de
+    mapeamento fixo em enemyfigures/mapping.json.
     """
-    templates_path = os.path.join(
+    mapping_path = os.path.join(
         os.path.dirname(os.path.dirname(__file__)),
-        'static', 'game.data', 'enemy_templates.json'
+        'static', 'game.data', 'enemyfigures', 'mapping.json'
     )
     try:
-        mtime = os.path.getmtime(templates_path)
+        mtime = os.path.getmtime(mapping_path)
         if mtime != _enemy_figure_cache['mtime']:
-            with open(templates_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            templates = data.get('templates', [])
-
-            # 1. Ordenar por totalTier (body + head + weapon)
-            sorted_templates = sorted(
-                templates,
-                key=lambda t: (
-                    (t.get('equipment_tiers', {}).get('body', 0) or 0) +
-                    (t.get('equipment_tiers', {}).get('head', 0) or 0) +
-                    (t.get('equipment_tiers', {}).get('weapon', 0) or 0)
-                )
-            )
-
-            # 2. Distribuir em 7 grupos (mesma lógica do JS do template generator)
-            total = len(sorted_templates)
-            groups = [[] for _ in range(7)]
-            for index, t in enumerate(sorted_templates):
-                mg = t.get('manual_group')
-                if mg is not None and 0 <= mg <= 6:
-                    groups[mg].append(t)
-                else:
-                    group_index = min(6, int((index / total) * 7))
-                    groups[group_index].append(t)
-
-            # 3. Achatar grupos em ordem (grupo 0 primeiro, depois 1, etc.)
-            mapping = {}
-            position = 1
-            for group in groups:
-                for t in group:
-                    mapping[t['name']] = f'b{position}.png'
-                    position += 1
-
+            with open(mapping_path, 'r', encoding='utf-8') as f:
+                _enemy_figure_cache['mapping'] = json.load(f)
             _enemy_figure_cache['mtime'] = mtime
-            _enemy_figure_cache['mapping'] = mapping
         return _enemy_figure_cache['mapping']
     except Exception as e:
         logger.warning(f"Erro ao carregar mapeamento de figuras de inimigos: {e}")
