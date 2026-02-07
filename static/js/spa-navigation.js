@@ -315,6 +315,11 @@ window.SPANavigation = (function() {
                 description: enemy.quote || ''
             };
         }
+
+        // Atualizar ícone do inimigo (boneco de resina) no HUD
+        if (enemy.enemy_figure && typeof window.updateEnemyHudIcon === 'function') {
+            window.updateEnemyHudIcon(enemy.enemy_figure);
+        }
     }
 
     /**

@@ -796,6 +796,11 @@ function loadBattleData() {
                             console.log("✅ boss-quote atualizado para:", bossQuote.textContent);
                         }
                         if (bossInfoHp) bossInfoHp.textContent = `${data.boss.hp}/${data.boss.max_hp}`;
+
+                        // Atualizar ícone do inimigo (boneco de resina) no HUD
+                        if (data.boss.enemy_figure && typeof window.updateEnemyHudIcon === 'function') {
+                            window.updateEnemyHudIcon(data.boss.enemy_figure);
+                        }
                     }
                                         
                     // Armazenar as SKILLS ativas no gameState

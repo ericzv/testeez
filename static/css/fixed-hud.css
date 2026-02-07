@@ -1567,6 +1567,140 @@ body.has-fixed-hud .battle-arena {
 }
 
 /* ============================================== */
+/* ÍCONE DO INIMIGO (BONECO DE RESINA) - NA SEÇÃO 5 */
+/* ============================================== */
+.hud-enemy-icon {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 85%;
+  height: 85%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center center;
+  animation: enemyIdleFloat 5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes enemyIdleFloat {
+  0%, 100% {
+    transform: translate(-50%, -50%) translateY(0);
+  }
+  25% {
+    transform: translate(-50%, -50%) translateY(-2px);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-3px);
+  }
+  75% {
+    transform: translate(-50%, -50%) translateY(-2px);
+  }
+}
+
+.hud-enemy-icon img {
+  max-width: 100%;
+  max-height: 100%;
+  min-width: 40%;
+  min-height: 40%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 0 0 #000)
+    drop-shadow(1px 0 0 #000)
+    drop-shadow(-1px 0 0 #000)
+    drop-shadow(0 1px 0 #000)
+    drop-shadow(0 -1px 0 #000)
+    drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
+  animation: enemyFlicker 3s ease-in-out infinite;
+}
+
+@keyframes enemyFlicker {
+  0%, 100% {
+    opacity: 1;
+    filter:
+      drop-shadow(0 0 0 #000)
+      drop-shadow(1px 0 0 #000)
+      drop-shadow(-1px 0 0 #000)
+      drop-shadow(0 1px 0 #000)
+      drop-shadow(0 -1px 0 #000)
+      drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8))
+      brightness(1);
+  }
+  20% {
+    opacity: 0.8;
+    filter:
+      drop-shadow(0 0 0 #000)
+      drop-shadow(1px 0 0 #000)
+      drop-shadow(-1px 0 0 #000)
+      drop-shadow(0 1px 0 #000)
+      drop-shadow(0 -1px 0 #000)
+      drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8))
+      brightness(1.1);
+  }
+  50% {
+    opacity: 1;
+    filter:
+      drop-shadow(0 0 0 #000)
+      drop-shadow(1px 0 0 #000)
+      drop-shadow(-1px 0 0 #000)
+      drop-shadow(0 1px 0 #000)
+      drop-shadow(0 -1px 0 #000)
+      drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8))
+      brightness(1);
+  }
+  70% {
+    opacity: 0.85;
+    filter:
+      drop-shadow(0 0 0 #000)
+      drop-shadow(1px 0 0 #000)
+      drop-shadow(-1px 0 0 #000)
+      drop-shadow(0 1px 0 #000)
+      drop-shadow(0 -1px 0 #000)
+      drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8))
+      brightness(1.15);
+  }
+}
+
+/* Animação de entrada do inimigo */
+@keyframes enemyAppear {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.hud-enemy-icon.entering {
+  animation: enemyAppear 0.5s ease-out forwards;
+}
+
+/* Animação de saída do inimigo */
+@keyframes enemyDisappear {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3);
+  }
+}
+
+.hud-enemy-icon.leaving {
+  animation: enemyDisappear 0.4s ease-in forwards;
+}
+
+/* ============================================== */
 /* INDICADOR DE ENERGIA - CANTO SUPERIOR DIREITO DA SEÇÃO 1 */
 /* ============================================== */
 .hud-energy-indicator {

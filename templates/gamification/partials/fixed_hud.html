@@ -295,9 +295,14 @@
         <!-- Reservado para futuras funcionalidades -->
       </div>
 
-      <!-- SEÇÃO 5: hud3a.png - Reservado -->
+      <!-- SEÇÃO 5: hud3a.png - Ícone do inimigo (boneco de resina) -->
       <div class="hud-bottom-section hud-section-5">
-        <!-- Reservado para futuras funcionalidades -->
+        <div class="hud-enemy-icon" id="hud-enemy-icon" {% if not enemy_figure %}style="display:none"{% endif %}>
+          <img id="hud-enemy-icon-img"
+               {% if enemy_figure %}src="{{ url_for('static', filename='game.data/enemyfigures/' ~ enemy_figure) }}"{% endif %}
+               alt="Inimigo"
+               onerror="this.parentElement.style.display='none'">
+        </div>
       </div>
     </div>
 
@@ -636,6 +641,41 @@
         energyIndicator.setAttribute('data-energy-percent', 'low');
       }
     }
+  };
+
+  // ========================================
+  // ÍCONE DO INIMIGO NO HUD (BONECO DE RESINA)
+  // ========================================
+
+  // Mostrar/atualizar ícone do inimigo no hud-section-5
+  window.updateEnemyHudIcon = function(figureFilename) {
+    const container = document.getElementById('hud-enemy-icon');
+    const img = document.getElementById('hud-enemy-icon-img');
+    if (!container || !img || !figureFilename) return;
+
+    img.src = '/static/game.data/enemyfigures/' + figureFilename;
+    container.style.display = '';
+    // Animação de entrada
+    container.classList.remove('leaving');
+    container.classList.add('entering');
+    setTimeout(function() {
+      container.classList.remove('entering');
+    }, 500);
+  };
+
+  // Remover ícone do inimigo (ao ser derrotado)
+  window.clearEnemyHudIcon = function() {
+    const container = document.getElementById('hud-enemy-icon');
+    if (!container || container.style.display === 'none') return;
+
+    container.classList.remove('entering');
+    container.classList.add('leaving');
+    setTimeout(function() {
+      container.style.display = 'none';
+      container.classList.remove('leaving');
+      var img = document.getElementById('hud-enemy-icon-img');
+      if (img) img.removeAttribute('src');
+    }, 400);
   };
 
   // Atualizar Buffs do jogador na batalha
