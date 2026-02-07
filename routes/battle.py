@@ -121,8 +121,9 @@ _enemy_figure_cache = {'mtime': 0, 'mapping': {}}
 
 def _get_enemy_figure_mapping():
     """
-    Retorna um dict {nome_inimigo: 'bN.png'} baseado na ordem dos templates
-    ordenados por totalTier (mesma ordem exibida no template generator).
+    Retorna um dict {nome_inimigo: 'bN.png'} replicando a ordem visual
+    do template generator: sort por totalTier, depois agrupamento em 7 grupos
+    (com manual_group override), e numeração sequencial grupo a grupo.
     """
     templates_path = os.path.join(
         os.path.dirname(os.path.dirname(__file__)),
@@ -134,7 +135,8 @@ def _get_enemy_figure_mapping():
             with open(templates_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             templates = data.get('templates', [])
-            # Ordenar por totalTier (body + head + weapon), mesma lógica do template generator UI
+
+            # 1. Ordenar por totalTier (body + head + weapon)
             sorted_templates = sorted(
                 templates,
                 key=lambda t: (
@@ -143,9 +145,26 @@ def _get_enemy_figure_mapping():
                     (t.get('equipment_tiers', {}).get('weapon', 0) or 0)
                 )
             )
+
+            # 2. Distribuir em 7 grupos (mesma lógica do JS do template generator)
+            total = len(sorted_templates)
+            groups = [[] for _ in range(7)]
+            for index, t in enumerate(sorted_templates):
+                mg = t.get('manual_group')
+                if mg is not None and 0 <= mg <= 6:
+                    groups[mg].append(t)
+                else:
+                    group_index = min(6, int((index / total) * 7))
+                    groups[group_index].append(t)
+
+            # 3. Achatar grupos em ordem (grupo 0 primeiro, depois 1, etc.)
             mapping = {}
-            for i, t in enumerate(sorted_templates):
-                mapping[t['name']] = f'b{i + 1}.png'
+            position = 1
+            for group in groups:
+                for t in group:
+                    mapping[t['name']] = f'b{position}.png'
+                    position += 1
+
             _enemy_figure_cache['mtime'] = mtime
             _enemy_figure_cache['mapping'] = mapping
         return _enemy_figure_cache['mapping']
