@@ -4703,6 +4703,11 @@ function handleBossDeathAnimation(hasMemoryReward, enemyGroup) {
     // Bloquear todas as ações
     gameState.inAction = true;
 
+    // Remover ícone do inimigo (boneco de resina) do HUD
+    if (typeof window.clearEnemyHudIcon === 'function') {
+        window.clearEnemyHudIcon();
+    }
+
     // Obter nome do inimigo
     const enemyName = gameState.boss?.name || 'Inimigo Desconhecido';
 

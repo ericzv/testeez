@@ -2,6 +2,7 @@
 
 # ===== IMPORTS PADRÃO =====
 import math
+import os
 import random
 import json
 from datetime import datetime, timedelta, timezone
@@ -113,6 +114,54 @@ def get_current_battle_enemy(player_id):
             db.session.commit()
     
     return None
+
+
+# Cache para mapeamento de nomes de inimigos → arquivo de figura
+_enemy_figure_cache = {'mtime': 0, 'mapping': {}}
+
+def _get_enemy_figure_mapping():
+    """
+    Retorna um dict {nome_inimigo: 'bN.png'} a partir do arquivo de
+    mapeamento fixo em enemyfigures/mapping.json.
+    """
+    mapping_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)),
+        'static', 'game.data', 'enemyfigures', 'mapping.json'
+    )
+    try:
+        mtime = os.path.getmtime(mapping_path)
+        if mtime != _enemy_figure_cache['mtime']:
+            with open(mapping_path, 'r', encoding='utf-8') as f:
+                _enemy_figure_cache['mapping'] = json.load(f)
+            _enemy_figure_cache['mtime'] = mtime
+        return _enemy_figure_cache['mapping']
+    except Exception as e:
+        logger.warning(f"Erro ao carregar mapeamento de figuras de inimigos: {e}")
+        return {}
+
+
+# Mapeamento de Last Bosses → arquivo de figura
+_LAST_BOSS_FIGURES = {
+    'Alma Negra': 'boneco-almanegra.png',
+    'Formofagus': 'boneco-formofagus.png',
+    'Heresiarca': 'boneco-heresiarca.png',
+    'Nefastus': 'boneco-nefastus.png',
+    'Purassombra': 'boneco-purassombra.png',
+}
+
+
+def get_enemy_figure_filename(enemy):
+    """
+    Retorna o nome do arquivo de figura (boneco de resina) para o inimigo.
+    - LastBoss: usa mapeamento fixo por nome.
+    - GenericEnemy: usa posição no template generator (ordenado por totalTier).
+    """
+    if isinstance(enemy, LastBoss):
+        return _LAST_BOSS_FIGURES.get(enemy.name)
+    else:
+        mapping = _get_enemy_figure_mapping()
+        return mapping.get(enemy.name)
+
 
 def _get_gamification_data():
     """Helper function to get all gamification data for templates."""
@@ -235,6 +284,7 @@ def _get_battle_data_for_template(player):
             'boss_name': 'Inimigo',
             'boss_damage': 15,
             'boss_quote': '',
+            'enemy_figure': None,
             'player_strength': player.strength,
             'player_damage_bonus': player.damage_bonus,
             'player_luck': player.luck,
@@ -279,6 +329,9 @@ def _get_battle_data_for_template(player):
     except Exception as e:
         logger.debug(f"Erro ao processar intenções do inimigo: {e}")
 
+    # Determinar figura do boneco de resina para o HUD
+    enemy_figure = get_enemy_figure_filename(current_enemy)
+
     return {
         'player_hp': player.hp,
         'player_max_hp': player.max_hp,
@@ -288,6 +341,7 @@ def _get_battle_data_for_template(player):
         'boss_name': boss_name,
         'boss_damage': boss_damage,
         'boss_quote': boss_quote,
+        'enemy_figure': enemy_figure,
         'player_strength': player.strength,
         'player_damage_bonus': player.damage_bonus,
         'player_luck': player.luck,
@@ -440,7 +494,8 @@ def get_battle_data():
                     'sprite_size': current_boss.sprite_size,
                     'is_boss': True,
                     'boss_type': 'last_boss',
-                    'blood_stacks': getattr(current_boss, 'blood_stacks', 0)
+                    'blood_stacks': getattr(current_boss, 'blood_stacks', 0),
+                    'enemy_figure': get_enemy_figure_filename(current_boss)
                 }
                 logger.debug(f"Carregando boss: {current_boss.name}")
             else:
@@ -490,7 +545,8 @@ def get_battle_data():
                     'is_boss': False,
                     'boss_type': 'generic',
                     'blood_stacks': getattr(current_enemy, 'blood_stacks', 0),
-                    'quote': typical_phrase  # Fala típica do template (vazio se não tiver)
+                    'quote': typical_phrase,  # Fala típica do template (vazio se não tiver)
+                    'enemy_figure': get_enemy_figure_filename(current_enemy)
                 }
                 logger.debug(f"Carregando inimigo genérico: {current_enemy.name}")
             else:
