@@ -152,14 +152,14 @@ async function executeEnemyTurnAutomatically() {
         }
 
         // 3. Aguardar um momento após smokeout
-        await new Promise(resolve => setTimeout(resolve, 600));
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         // 4. Transição para enemy-attack-view
         if (typeof toggleEnemyAttackView === 'function') {
             console.log('🎬 Transição para enemy-attack-view...');
             toggleEnemyAttackView();
             // Aguardar a transição completar
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 600));
         }
 
         // 5. Executar skills de buff/debuff (se houver)
@@ -167,7 +167,7 @@ async function executeEnemyTurnAutomatically() {
             console.log('🔮 Executando buff/debuff skills...');
             await executeBuffDebuffSkillsSequence();
             // Aguardar um momento após os buffs/debuffs
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise(resolve => setTimeout(resolve, 300));
         }
 
         // 6. Verificar se há ataques pendentes
@@ -257,7 +257,7 @@ async function executeEnemyAttacksLoop() {
                 await removeFirstActionIcon();
 
                 // Aguardar entre ataques
-                await new Promise(resolve => setTimeout(resolve, 800));
+                await new Promise(resolve => setTimeout(resolve, 500));
             } else {
                 hasMoreAttacks = false;
             }

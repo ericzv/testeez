@@ -486,7 +486,7 @@ function showAttackResultMessage(skill, damage, isCritical) {
         battleMessage.textContent = `Você causou ${damage} pontos de dano com ${skill.name}!`;
     }
     battleMessage.classList.add('visible');
-    setTimeout(() => { battleMessage.classList.remove('visible'); }, 1500); // OTIMIZADO: 3000ms → 1500ms (-50%)
+    setTimeout(() => { battleMessage.classList.remove('visible'); }, 1000); // OTIMIZADO: 1500ms → 1000ms
 }
 
 // Efeitos de acerto crítico
@@ -527,16 +527,16 @@ function showExtraEffectsMessages(messages) {
         font-weight: bold;
         z-index: 9999;
         box-shadow: 0 0 15px rgba(120,60,255,0.5);
-        animation: effectsMessageFade 3s forwards;
+        animation: effectsMessageFade 2s forwards;
     `;
-    
+
     // Adicionar ao DOM
     document.body.appendChild(effectsEl);
-    
-    // Remover após 3 segundos
+
+    // Remover após 2 segundos
     setTimeout(() => {
         effectsEl.remove();
-    }, 3000);
+    }, 2000);
 }
 
 function logAttackDetails(skill, damage, isCritical) {

@@ -505,16 +505,16 @@ function toggleZoomView() {
                             executeBuffDebuffSkillsSequence().then(() => {
                                 console.log("🔮 Skills executadas, liberando menu");
                                 
-                                // DEPOIS de executar skills, mostrar o menu com delay de 1000ms
+                                // DEPOIS de executar skills, mostrar o menu com delay de 500ms
                                 setTimeout(() => {
                                     actionMenu.classList.add('visible');
-                                    
+
                                     // Limpar quaisquer estilos inline nos botões
                                     document.querySelectorAll('.skill-button').forEach(button => {
                                         button.style.removeProperty('opacity');
                                         button.style.removeProperty('visibility');
                                     });
-                                }, 1000);
+                                }, 500);
                             });
                         } else {
                             console.log("🔮 Sem skills de buff/debuff, mostrando menu normalmente");
@@ -576,10 +576,10 @@ function toggleZoomView() {
                     }
                 })
                 .catch(error => console.error("Erro ao verificar cargas:", error));
-        }, 1000);
+        }, 500);
         
         // Atualizar posicionamento dos HUDs após a transição
-        setTimeout(alignHUDs, 500);
+        setTimeout(alignHUDs, 300);
 
         // Garantir reset completo dos menus na transição
         if (gameState.zoomedView) {
@@ -610,7 +610,7 @@ function toggleZoomView() {
                                     setTimeout(() => {
                                         actionMenu.classList.add('visible');
                                         console.log("Reset completo dos botões após skills executadas");
-                                    }, 1000);
+                                    }, 500);
                                 });
                             } else {
                                 actionMenu.classList.add('visible');
@@ -789,7 +789,7 @@ function toggleCharacterView() {
         }, 1000);
 
         // Atualizar posicionamento dos HUDs após a transição
-        setTimeout(alignHUDs, 500);
+        setTimeout(alignHUDs, 300);
     }
 }
 
@@ -886,7 +886,7 @@ function toggleBossView() {
         }
         
         // Atualizar posicionamento dos HUDs após a transição
-        setTimeout(alignHUDs, 500);
+        setTimeout(alignHUDs, 300);
     }
 }
 
@@ -1033,7 +1033,7 @@ function toggleEnemyAttackView() {
         }
         
         // Atualizar posicionamento dos HUDs após a transição
-        setTimeout(alignHUDs, 500);
+        setTimeout(alignHUDs, 300);
     }
 }
 
@@ -2893,7 +2893,7 @@ function performAttack(skill) {
                 particle.style.transform = 'scale(0.2)';
             }, 30);
 
-            setTimeout(() => particle.remove(), 900);
+            setTimeout(() => particle.remove(), 600);
         }
 
         // ===== FUNÇÃO PARA CRIAR BEAM VISUAL OTIMIZADO =====
@@ -4743,7 +4743,7 @@ function handleBossDeathAnimation(hasMemoryReward, enemyGroup) {
             console.error("❌ Erro ao marcar nó como completo:", error);
         });
 
-    // Auto-redirect após 5 segundos (após banner de vitória de 4.5s terminar)
+    // Auto-redirect após 3.5 segundos (banner de vitória reduzido)
     setTimeout(() => {
         // RESETAR HUD: Restaurar energia para máximo e remover barreira
         // Isso garante que o hub não mostre valores da batalha anterior
@@ -4798,7 +4798,7 @@ function handleBossDeathAnimation(hasMemoryReward, enemyGroup) {
         } else {
             window.location.href = '/gamification';
         }
-    }, 5000);
+    }, 3500);
 }
 
 // Criar animação de impacto de morte
@@ -4870,7 +4870,7 @@ function createVictoryBanner(enemyName) {
         transform: translateX(-50%);
         z-index: 9000;
         pointer-events: none;
-        animation: victory-banner-scale 4.5s ease-out forwards;
+        animation: victory-banner-scale 3s ease-out forwards;
     `;
     
     // Criar elemento do banner
@@ -5472,8 +5472,8 @@ async function executeAttackLoop() {
         
         console.log(`Executando ataque. Cargas restantes: ${statusData.status.charges_count}`);
         
-        // Intervalo antes do ataque (OTIMIZADO: 2000ms → 1000ms, -50%)
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Intervalo antes do ataque (OTIMIZADO: 1000ms → 600ms)
+        await new Promise(resolve => setTimeout(resolve, 600));
         
         // Executar um ataque
         const attackResult = await executeSingleEnemyAttack();
@@ -5814,8 +5814,8 @@ function showBarrierAbsorbedMarker(damageAbsorbed) {
 async function handlePlayerDeath() {
     console.log("Processando morte do jogador");
 
-    // Aguardar animação de morte terminar (deathdamage = 4200ms, +200ms margem)
-    await new Promise(resolve => setTimeout(resolve, 4400));
+    // Aguardar animação de morte terminar (reduzido para fluidez)
+    await new Promise(resolve => setTimeout(resolve, 3200));
 
     // Personagem desaparece
     const character = document.getElementById('character');
@@ -5900,7 +5900,7 @@ async function handleSequenceEnd() {
     console.log("Finalizando sequência de ataques");
 
     // Aguardar um momento
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     // CORREÇÃO: Não usar toggleEnemyAttackView() - fazer restauração manual
     console.log("Restaurando para tela inicial...");
@@ -5962,7 +5962,7 @@ async function executeBuffDebuffSkillsSequence() {
                 
                 // Aguardar intervalo entre skills (exceto na última)
                 if (i < data.executed_skills.length - 1) {
-                    await new Promise(resolve => setTimeout(resolve, 700));
+                    await new Promise(resolve => setTimeout(resolve, 400));
                 }
             }
             
@@ -5976,18 +5976,18 @@ async function executeBuffDebuffSkillsSequence() {
         // Reabilitar input após delay
         setTimeout(() => {
             disableUserInput(false);
-        }, 1000);
+        }, 500);
 
         // Atualizar HUD de cargas após executar buff/debuff
         if (typeof updateChargesHUD === 'function') {
             setTimeout(() => {
                 updateChargesHUD();
-            }, 800);
+            }, 400);
         }
-        
+
         // ===== VERIFICAR SE TURNO DO INIMIGO ACABOU =====
         console.log('🔍 Verificando se há mais ações do inimigo neste turno...');
-        
+
         // Aguardar um pouco para garantir que HUD atualizou
         setTimeout(async () => {
             if (typeof checkAndEndEnemyTurnIfComplete === 'function') {
@@ -5998,7 +5998,7 @@ async function executeBuffDebuffSkillsSequence() {
                     console.log('⚔️ Inimigo ainda tem ataques neste turno');
                 }
             }
-        }, 1500);
+        }, 800);
         
         return data.success;
         
@@ -6162,7 +6162,7 @@ async function executeSkillAnimation(skill) {
                 if (skill.execution_sound) {
                     playSound(skill.execution_sound, 0.7);
                 }
-            }, 800);
+            }, 400);
         }
         
         setTimeout(() => {
