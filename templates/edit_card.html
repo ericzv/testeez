@@ -85,7 +85,7 @@
   border-radius: 4px;
 }
 .editor-area .esquema::before {
-  content: '\25BC  Se\00E7\00E3o colaps\00E1vel';
+  content: '\25BC  Extra';
   display: block;
   font-size: 0.75em;
   color: #17a2b8;
@@ -97,9 +97,13 @@
   text-decoration: none;
   cursor: text;
 }
+.editor-area .esquema .extra-toggle {
+  pointer-events: none;
+  opacity: 0.7;
+}
 .editor-area img { max-width: 100%; height: auto; }
 .cloze-btn { font-weight: bold; color: #856404; }
-.spoiler-btn { font-weight: bold; color: #17a2b8; }
+.spoiler-btn { font-weight: bold; color: #17a2b8; font-size: 0.85em; }
 </style>
 {% endblock %}
 {% block content %}
@@ -126,7 +130,7 @@
           <div class="sep"></div>
           <button type="button" data-cloze="true" class="cloze-btn" title="Cloze (Ctrl+Shift+C)">[...]</button>
           <div class="sep"></div>
-          <button type="button" data-spoiler="true" class="spoiler-btn" title="Inserir seção colapsável (Saiba mais)">+ Saiba mais</button>
+          <button type="button" data-spoiler="true" class="spoiler-btn" title="Inserir seção Extra colapsável">Extra</button>
         </div>
         <div class="editor-area" contenteditable="true" id="front-editor">{{ card.front | safe }}</div>
         <input type="hidden" name="front" id="front-input">
@@ -149,7 +153,7 @@
           <div class="sep"></div>
           <button type="button" data-cloze="true" class="cloze-btn" title="Cloze (Ctrl+Shift+C)">[...]</button>
           <div class="sep"></div>
-          <button type="button" data-spoiler="true" class="spoiler-btn" title="Inserir seção colapsável (Saiba mais)">+ Saiba mais</button>
+          <button type="button" data-spoiler="true" class="spoiler-btn" title="Inserir seção Extra colapsável">Extra</button>
         </div>
         <div class="editor-area" contenteditable="true" id="back-editor">{{ card.back | safe }}</div>
         <input type="hidden" name="back" id="back-input">
@@ -233,13 +237,27 @@ function highlightClozes() {
   });
 }
 
-// === Prepare collapsible "Saiba mais" sections for editing ===
+// === Ensure user can exit cloze spans by adding escape text nodes ===
+function ensureClozeExit() {
+  ['front-editor', 'back-editor'].forEach(function(id) {
+    var editor = document.getElementById(id);
+    editor.querySelectorAll('.cloze-highlight, .cloze, .cloze-inactive').forEach(function(span) {
+      var next = span.nextSibling;
+      if (!next || (next.nodeType !== Node.TEXT_NODE) || next.textContent === '') {
+        var esc = document.createTextNode('\u200B');
+        span.parentNode.insertBefore(esc, span.nextSibling);
+      }
+    });
+  });
+}
+
+// === Prepare collapsible sections for editing ===
 function prepareCollapsibles() {
   document.querySelectorAll('.editor-area .esquema').forEach(function(esquema) {
-    // Remove onclick from trigger links so they don't fire while editing
-    esquema.querySelectorAll('a').forEach(function(a) {
-      a.removeAttribute('onclick');
-      a.setAttribute('href', 'javascript:void(0)');
+    // Remove onclick from trigger elements (both <a> and <button>)
+    esquema.querySelectorAll('a, button').forEach(function(el) {
+      el.removeAttribute('onclick');
+      if (el.tagName === 'A') el.setAttribute('href', 'javascript:void(0)');
     });
     // Show hidden content divs so user can edit them
     esquema.querySelectorAll('[style*="display: none"], [style*="display:none"]').forEach(function(el) {
@@ -250,6 +268,7 @@ function prepareCollapsibles() {
 
 // Run on page load
 highlightClozes();
+ensureClozeExit();
 prepareCollapsibles();
 
 // === Cloze insertion ===
@@ -286,7 +305,11 @@ function insertCloze() {
   span.className = 'cloze-highlight ' + clozeClass(num);
   span.textContent = '{{c' + num + '::' + text + '}}';
   range.insertNode(span);
-  sel.collapseToEnd();
+
+  // Add escape node after span so user can continue typing outside
+  var esc = document.createTextNode('\u200B');
+  span.parentNode.insertBefore(esc, span.nextSibling);
+  sel.collapse(esc, 1);
 }
 
 document.querySelectorAll('[data-cloze]').forEach(function(btn) {
@@ -301,7 +324,34 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-// === Insert collapsible "Saiba mais" section ===
+// ArrowRight to escape cloze spans
+document.querySelectorAll('.editor-area').forEach(function(editor) {
+  editor.addEventListener('keydown', function(e) {
+    if (e.key !== 'ArrowRight') return;
+    var sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    var node = sel.anchorNode;
+    var offset = sel.anchorOffset;
+
+    // Cursor at end of text inside a cloze span
+    if (node.nodeType === Node.TEXT_NODE && offset === node.textContent.length) {
+      var parent = node.parentElement;
+      if (parent && (parent.classList.contains('cloze-highlight') ||
+                     parent.classList.contains('cloze') ||
+                     parent.classList.contains('cloze-inactive'))) {
+        e.preventDefault();
+        var next = parent.nextSibling;
+        if (!next || next.nodeType !== Node.TEXT_NODE) {
+          next = document.createTextNode('\u200B');
+          parent.parentNode.insertBefore(next, parent.nextSibling);
+        }
+        sel.collapse(next, next.textContent === '\u200B' ? 1 : 0);
+      }
+    }
+  });
+});
+
+// === Insert collapsible "Extra" section ===
 function insertSpoiler() {
   var sel = window.getSelection();
   var node = sel.anchorNode;
@@ -312,9 +362,9 @@ function insertSpoiler() {
   var uid = 'hint' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
   var div = document.createElement('div');
   div.className = 'esquema';
-  div.innerHTML = '<a class="hint" href="javascript:void(0)">\u271A Saiba mais</a>'
+  div.innerHTML = '<button class="extra-toggle" style="background:#007bff;color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:1.2em;cursor:pointer;text-align:center;line-height:28px;padding:0;" contenteditable="false">+</button>'
     + '<div id="' + uid + '" class="hint" style="display: block;">'
-    + '<div>Texto adicional aqui...</div></div>';
+    + '<div><br></div></div>';
 
   if (sel.rangeCount && editor.contains(sel.anchorNode)) {
     var range = sel.getRangeAt(0);
@@ -322,6 +372,12 @@ function insertSpoiler() {
     range.insertNode(div);
   } else {
     editor.appendChild(div);
+  }
+
+  // Place cursor inside the content area
+  var contentArea = div.querySelector('.hint > div');
+  if (contentArea) {
+    sel.collapse(contentArea, 0);
   }
 }
 
@@ -336,22 +392,34 @@ document.getElementById('edit-form').addEventListener('submit', function() {
 
     // 1) Restore collapsible sections for proper rendering
     editor.querySelectorAll('.esquema').forEach(function(esquema) {
-      var link = esquema.querySelector(':scope > a');
+      var trigger = esquema.querySelector(':scope > a') || esquema.querySelector(':scope > button');
       var contentDiv = esquema.querySelector(':scope > div');
-      if (link && contentDiv) {
+
+      if (contentDiv) {
         if (!contentDiv.id) {
           contentDiv.id = 'hint' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
         }
-        link.setAttribute('onclick',
+
+        // If trigger was deleted by user, recreate the blue + button
+        if (!trigger) {
+          trigger = document.createElement('button');
+          trigger.textContent = '+';
+          trigger.style.cssText = 'background:#007bff;color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:1.2em;cursor:pointer;text-align:center;line-height:28px;padding:0;';
+          trigger.className = 'extra-toggle';
+          esquema.insertBefore(trigger, contentDiv);
+        }
+
+        // Set onclick to toggle visibility
+        trigger.setAttribute('onclick',
           "this.style.display='none';document.getElementById('" + contentDiv.id + "').style.display='block';return false;");
-        link.setAttribute('href', '#');
-        if (!link.classList.contains('hint')) link.classList.add('hint');
+        if (trigger.tagName === 'A') trigger.setAttribute('href', '#');
+        trigger.removeAttribute('contenteditable');
         if (!contentDiv.classList.contains('hint')) contentDiv.classList.add('hint');
         contentDiv.style.display = 'none';
       }
     });
 
-    // 2) Unwrap cloze highlight spans → keep plain {{cN::text}} text
+    // 2) Unwrap cloze highlight spans -> keep plain {{cN::text}} text
     editor.querySelectorAll('.cloze-highlight').forEach(function(span) {
       var txt = document.createTextNode(span.textContent);
       span.parentNode.replaceChild(txt, span);
@@ -363,8 +431,9 @@ document.getElementById('edit-form').addEventListener('submit', function() {
     });
   });
 
-  document.getElementById('front-input').value = document.getElementById('front-editor').innerHTML;
-  document.getElementById('back-input').value = document.getElementById('back-editor').innerHTML;
+  // Copy cleaned HTML to hidden inputs, stripping zero-width spaces
+  document.getElementById('front-input').value = document.getElementById('front-editor').innerHTML.replace(/\u200B/g, '');
+  document.getElementById('back-input').value = document.getElementById('back-editor').innerHTML.replace(/\u200B/g, '');
 });
 </script>
 {% endraw %}
