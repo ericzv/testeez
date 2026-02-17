@@ -14,7 +14,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text, or_, func
 from database import db
-from routes.cards import flash_gamification, get_exp_for_next_level
+from routes.cards import flash_gamification
 from routes.talents import talents_bp, initialize_player_talents_simple
 from routes.talents import talents_data
 from routes.cards import cards_bp
@@ -53,7 +53,7 @@ from filters import register_filters
 from filters import get_cards_recursive, count_cards_recursive
 
 # IMPORTANTE: Importe TODOS os modelos
-from models import Deck, Card, Tag, Player, Talent, PlayerRunBuff
+from models import Deck, Card, Tag, Player, Talent, PlayerRunBuff, ReviewLog
 from models import Boss, DailyStats, PlayerTalent, AppliedTalentEffect
 from models import Item, PlayerItem, Equipment, ShopQuote, BestiaryEntry, PlayerAchievement
 
@@ -93,6 +93,15 @@ app.config['SECRET_KEY'] = 'sua_chave_secreta_aqui'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///flashcards.db'
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.permanent_session_lifetime = timedelta(days=7)
+
+# Flask-Session: sessão server-side (filesystem) — resolve limite de 4KB do cookie
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_FILE_DIR'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'flask_session')
+app.config['SESSION_PERMANENT'] = True
+app.config['SESSION_USE_SIGNER'] = True
+
+from flask_session import Session
+Session(app)
 
 # DESABILITAR CACHE DE TEMPLATES E ARQUIVOS ESTÁTICOS (para debug)
 app.config['TEMPLATES_AUTO_RELOAD'] = True

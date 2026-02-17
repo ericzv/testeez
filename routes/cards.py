@@ -1,6 +1,10 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session, current_app, send_file
-from filters import get_cards_recursive, count_cards_recursive
-from models import Deck, Card, Tag, db, DailyStats, Player
+from models import Deck, Card, Tag, db, DailyStats, Player, ReviewLog
+from srs_engine import (
+    sm2_review, compute_sm2_preview, format_interval, log_review,
+    update_daily_stats, normalize_response,
+    get_subdeck_ids, get_cards_in_decks, count_cards_for_deck,
+)
 from datetime import datetime, timezone, timedelta
 from sqlalchemy import func, text, or_
 import math
@@ -21,16 +25,9 @@ def timezone_module():
     return timezone
 
 ##############################################
-#         ALGORITMO DE REVISÃO
+#         FUNÇÕES AUXILIARES
 ##############################################
-def get_exp_for_next_level(level):
-    """Calcula a experiência necessária para o próximo nível"""
-    return int(100 * (level ** 1.5))
 
-@cards_bp.app_template_global()
-def datetime_module():
-    return datetime
-    
 def get_or_create_deck(hierarchy_str):
     """
     Recebe uma string com os nomes dos baralhos separados por "__" e cria (ou recupera)
@@ -50,221 +47,36 @@ def get_or_create_deck(hierarchy_str):
         if not deck:
             deck = Deck(name=deck_name, parent=parent)
             db.session.add(deck)
-            db.session.commit()  # você pode acumular e commitar no final, se preferir
-        parent = deck  # para o próximo nível, o atual será o pai
+            db.session.flush()  # Garante ID sem commit separado
+        parent = deck
     return parent
 
-# This function will be called from the existing study_session route
 def process_gamification(card, response, time_spent, was_new):
-    """Process gamification logic for studying cards."""
-    print(f"=== PROCESSANDO GAMIFICAÇÃO PARA CARTÃO #{card.id} ===")
-    print(f"Estado do cartão: review_count={card.review_count}, era novo? {was_new}")
-    
+    """Process gamification logic for studying cards. NÃO faz commit."""
     player = Player.query.first()
     if not player:
-        print("ERRO: Jogador não encontrado!")
         return
-    
-    print(f"Jogador antes: level={player.level}, XP={player.experience}/{get_exp_for_next_level(player.level)}")
-    
-    # Update last active time
+
     player.last_active = datetime.now(timezone.utc)
-    
-    # Add study time to player's total
+
+    # Rastreamento de tempo de estudo + marcos de cristais
     if time_spent < 60:
         player.study_time_total += time_spent
-        print(f"Tempo de estudo atualizado: {player.study_time_total}s")
-        
-        # Check for 30-minute milestone
+
         if player.study_time_total >= 1800 and (player.study_time_total - time_spent) < 1800:
-            crystals_earned = 1
-            player.crystals += crystals_earned
-            print(f"MARCO: 30 minutos de estudo atingidos! +{crystals_earned} cristal")
-            flash_gamification(f"Você estudou por 30 minutos e ganhou {crystals_earned} Cristal de Memória!")
-    
-    # Check for hour milestones
+            player.crystals += 1
+            flash_gamification("Você estudou por 30 minutos e ganhou 1 Cristal de Memória!")
+
     hours_studied = player.study_time_total // 3600
     hours_before = (player.study_time_total - time_spent) // 3600
-    
+
     if hours_studied != hours_before:
-        if hours_studied == 20 or hours_studied == 50 or hours_studied == 100 or (hours_studied > 100 and hours_studied % 100 == 0):
-            crystals_earned = 5
-            player.crystals += crystals_earned
-            print(f"MARCO: {hours_studied} horas de estudo atingidas! +{crystals_earned} cristais")
-            flash_gamification(f"Parabéns! Você atingiu {hours_studied} horas de estudo e ganhou {crystals_earned} Cristais de Memória!")
-    
-    # IMPORTANTE: Usamos o parâmetro was_new em vez de verificar card.review_count
-    print(f"O cartão era novo? {was_new}")
-    
-    # Para cartões novos: ganhe XP e suba de nível
-    if was_new:
-        base_xp = 2  # XP base por cartão novo
-        
-        # Aplicar bônus de XP de talentos (se existir)
-        xp_bonus_multiplier = 1.0
-        if hasattr(player, 'exp_boost') and player.exp_boost > 0:
-            xp_bonus_multiplier = 1.0 + player.exp_boost
-            print(f"Bônus de XP aplicado: multiplicador {xp_bonus_multiplier}")
-        
-        xp_gained = base_xp * xp_bonus_multiplier  # remover int() para permitir decimais
-        print(f"CARTÃO NOVO! Concedendo {xp_gained:.1f} XP (base: {base_xp}, multiplicador: {xp_bonus_multiplier})")
-        
-        # Adicionar XP
-        player.experience += xp_gained
-        print(f"Experiência após ganho: {player.experience}/{get_exp_for_next_level(player.level)}")
-        
-        # Check for level up
-        level_before = player.level
-        while player.experience >= get_exp_for_next_level(player.level):
-            xp_needed = get_exp_for_next_level(player.level)
-            player.experience -= xp_needed
-            player.level += 1
-
-            # Award attribute point on level up
-            player.attribute_points += 1
-            # Award HP on level up
-            player.max_hp += 1
-            player.hp = min(player.hp + 1, player.max_hp)
-            
-            print(f"LEVEL UP! Subiu para nível {player.level}. XP restante: {player.experience}")
-        
-        if player.level > level_before:
-            flash_gamification(f"Parabéns! Você subiu para o nível {player.level} e ganhou 1 ponto de atributo!")
-    else:
-        print("Este não é um cartão novo, nenhum XP concedido.")
-    
-    print(f"Jogador depois: level={player.level}, XP={player.experience}/{get_exp_for_next_level(player.level)}")
-    
-    try:
-        db.session.commit()
-        print("Gamificação processada e salva com sucesso")
-    except Exception as e:
-        db.session.rollback()
-        print(f"ERRO ao salvar mudanças no banco de dados: {e}")
-    
-    print("=== FIM DO PROCESSAMENTO DE GAMIFICAÇÃO ===")
+        if hours_studied in (20, 50, 100) or (hours_studied > 100 and hours_studied % 100 == 0):
+            player.crystals += 5
+            flash_gamification(f"Parabéns! Você atingiu {hours_studied} horas de estudo e ganhou 5 Cristais de Memória!")
 
 
-def get_next_base_interval(current_interval):
-    sequence = [10/1440.0, 1, 3, 7, 21, 45, 90, 180, 360]
-    for base in sequence:
-        if current_interval < base:
-            return base
-    return sequence[-1]
-
-def get_current_step(interval):
-    sequence = [10/1440.0, 1, 3, 7, 21, 45, 90, 180, 360]
-    for i, base in enumerate(sequence):
-        if abs(interval - base) < 1e-6:
-            return i
-        if interval < base:
-            return i
-    return len(sequence) - 1
-
-def update_daily_stats(response, was_new):
-    today = datetime.now(timezone.utc).date()
-    stats = DailyStats.query.filter_by(date=today).first()
-    if not stats:
-        stats = DailyStats(date=today, cards_studied=0, correct_count=0, new_cards=0, revision_cards=0)
-        db.session.add(stats)
-    stats.cards_studied += 1
-    if was_new:
-        stats.new_cards += 1
-    else:
-        stats.revision_cards += 1
-    if response in ['facil', 'difícil', 'muito_facil']:
-        stats.correct_count += 1
-
-def update_card_review(card, response):
-    now = datetime.now(timezone.utc)
-    was_new = (card.review_count == 0)
-    card.review_count += 1
-    sequence = [10/1440.0, 1, 3, 7, 21, 45, 90, 180, 360]
-    current_step = get_current_step(card.interval)
-    if response == 'errei':
-        card.interval = sequence[0]
-        card.difficulty = 10
-    elif current_step == 0:
-        if response in ['difícil', 'facil']:
-            if was_new and response == 'difícil':
-                card.interval = 2
-            else:
-                card.interval = sequence[1]
-            if response == 'difícil':
-                card.difficulty = min(card.difficulty + 0.1, 10)
-            else:
-                card.difficulty = max(card.difficulty - 0.1, 1)
-        elif response == 'muito_facil':
-            card.interval = sequence[2]
-            card.difficulty = max(card.difficulty - 0.3, 1)
-        else:
-            card.interval = sequence[1]
-            card.difficulty = min(card.difficulty + 0.1, 10)
-    else:
-        new_step = min(current_step + 1, len(sequence) - 1)
-        if response == 'difícil':
-            card.difficulty = min(card.difficulty + 0.1, 10)
-        elif response == 'facil':
-            card.difficulty = max(card.difficulty - 0.1, 1)
-        elif response == 'muito_facil':
-            new_step = min(current_step + 2, len(sequence) - 1)
-            card.difficulty = max(card.difficulty - 0.3, 1)
-        else:
-            card.difficulty = min(card.difficulty + 0.1, 10)
-        card.interval = sequence[new_step]
-    modifier = 2 - ((card.difficulty - 1) * 1.5 / 9)
-    card.next_review = now + timedelta(days=card.interval * modifier)
-    update_daily_stats(response, was_new)
-    db.session.commit()
-
-def compute_next_interval(card, response):
-    sequence = [10/1440.0, 1, 3, 7, 21, 45, 90, 180, 360]
-    current_step = get_current_step(card.interval)
-    new_interval = card.interval
-    new_difficulty = card.difficulty
-    if response == 'errei':
-        new_step = 0
-        new_difficulty = 10
-    elif current_step == 0:
-        if response in ['difícil', 'facil']:
-            new_step = 1
-            if response == 'difícil':
-                new_difficulty = min(new_difficulty + 0.1, 10)
-            else:
-                new_difficulty = max(new_difficulty - 0.1, 1)
-        elif response == 'muito_facil':
-            new_step = 2
-            new_difficulty = max(new_difficulty - 0.3, 1)
-        else:
-            new_step = 1
-            new_difficulty = min(new_difficulty + 0.1, 10)
-    else:
-        new_step = min(current_step + 1, len(sequence) - 1)
-        if response == 'difícil':
-            new_difficulty = min(new_difficulty + 0.1, 10)
-        elif response == 'facil':
-            new_difficulty = max(new_difficulty - 0.1, 1)
-        elif response == 'muito_facil':
-            new_step = min(current_step + 2, len(sequence) - 1)
-            new_difficulty = max(new_difficulty - 0.3, 1)
-        else:
-            new_difficulty = min(new_difficulty + 0.1, 10)
-    new_interval = sequence[new_step]
-    modifier = 2 - ((new_difficulty - 1) * 1.5 / 9)
-    next_interval = new_interval * modifier
-    return next_interval, new_difficulty
-
-def format_interval(interval):
-    if interval < 1:
-        total_minutes = interval * 1440
-        if total_minutes < 60:
-            return f"{int(total_minutes)} min"
-        else:
-            hours = int(total_minutes // 60)
-            minutes = int(total_minutes % 60)
-            return f"{hours}h {minutes}min"
-    else:
-        return f"{interval:.1f} dias"
+## Algoritmo antigo removido — agora centralizado em srs_engine.py
 
 # Substitua as chamadas de flash() para mensagens de gamificação com esta função
 
@@ -368,16 +180,15 @@ def study_lobby():
     active_deck = session.get('active_deck', 0)
     
     if session_exists:
-        now = datetime.now(timezone.utc)
         total_session = len(session_cards)
         reviewed_session = session.get('cards_reviewed', 0)
-        for card_id in session_cards:
-            card = Card.query.get(card_id)
-            if card:
-                if card.review_count == 0:
-                    new_count += 1
-                else:
-                    revision_count += 1
+        # Batch query em vez de N queries individuais
+        cards = Card.query.filter(Card.id.in_(session_cards)).all()
+        for card in cards:
+            if card.review_count == 0:
+                new_count += 1
+            else:
+                revision_count += 1
     
     global_new = Card.query.filter(Card.review_count == 0, Card.suspended == False).count()
     global_in_date = Card.query.filter(Card.review_count > 0, Card.next_review > datetime.now(timezone.utc), Card.suspended == False).count()
@@ -415,19 +226,34 @@ def import_cards():
             # Cria ou recupera a hierarquia de baralhos com base no nome do arquivo
             final_deck = get_or_create_deck(deck_name_str)
             
-            # Lê o arquivo CSV (supondo que o delimitador seja tabulação)
+            # Detectar duplicatas pelo texto frontal no mesmo baralho
+            existing_fronts = set(
+                row[0] for row in db.session.query(Card.front)
+                .filter(Card.deck_id == final_deck.id).all()
+            )
+
+            new_cards = []
+            duplicates = 0
             with open(filepath, newline='', encoding='utf-8-sig') as txtfile:
                 csv_reader = csv.reader(txtfile, delimiter='\t')
-                cards_added = 0
                 for row in csv_reader:
                     if len(row) >= 2:
                         front = row[0].strip()
                         back = row[1].strip()
-                        # Cria o cartão associado ao baralho final da hierarquia
-                        db.session.add(Card(front=front, back=back, deck_id=final_deck.id))
-                        cards_added += 1    
-                db.session.commit()
-            flash(f'Importação concluída! {cards_added} cartões adicionados ao baralho "{final_deck.name}"', 'success')
+                        if front in existing_fronts:
+                            duplicates += 1
+                            continue
+                        existing_fronts.add(front)
+                        new_cards.append(Card(front=front, back=back, deck_id=final_deck.id))
+
+            if new_cards:
+                db.session.add_all(new_cards)
+            db.session.commit()
+
+            msg = f'Importação concluída! {len(new_cards)} cartões adicionados ao baralho "{final_deck.name}"'
+            if duplicates:
+                msg += f' ({duplicates} duplicados ignorados)'
+            flash(msg, 'success')
             return redirect(url_for('cards.decks'))
         else:
             flash('Por favor, selecione um arquivo.', 'danger')
@@ -536,42 +362,36 @@ def study_session():
             session["review_history"] = []
         
         card = Card.query.get(session_cards[current_index])
-        
-        # IMPORTANTE: Verificar se o cartão é novo ANTES de qualquer atualização
-        was_new = (card.review_count == 0)
-        print(f"CARTÃO #{card.id} - Review count antes: {card.review_count}, é novo? {was_new}")
-        
+
+        # Salvar estado pré-revisão para undo
         prev_state = {
             "card_id": card.id,
             "interval": card.interval,
             "difficulty": card.difficulty,
+            "easiness_factor": card.easiness_factor,
+            "repetition": card.repetition,
             "next_review": card.next_review.isoformat() if card.next_review else None,
             "review_count": card.review_count,
             "correct_count": card.correct_count
         }
-        
+
         history = session["review_history"]
         history.append(prev_state)
         session["review_history"] = history
-        
-        # Atualizar o cartão com o algoritmo de espaçamento
-        update_card_review(card, response)
-        
-        # Process gamification - agora passamos was_new como parâmetro
+
+        # SM-2: atualizar cartão + registrar log + estatísticas (nenhum faz commit)
+        was_new, quality, interval_before, ef_before = sm2_review(card, response)
+        log_review(card, response, was_new, quality, time_spent, interval_before, ef_before)
+        update_daily_stats(response, was_new)
         process_gamification(card, response, time_spent, was_new)
-        
-        # Verificar novamente para depuração
-        print(f"CARTÃO #{card.id} - Review count depois: {card.review_count}")
-        
-        # Contar revisões para dano ao boss apenas para cartões que JÁ ERAM de revisão
-        if not was_new:  # Se era um cartão de revisão ANTES da atualização
-            # Incrementar contador de revisões para dano ao boss (1 ponto por revisão)
-            # Independente da resposta, todos os cartões de revisão valem 1 ponto
+
+        # Único commit por requisição
+        db.session.commit()
+
+        # Contar revisões para dano ao boss (cartões que já eram de revisão)
+        if not was_new:
             revision_count = session.get('session_revision_count', 0)
             session['session_revision_count'] = revision_count + 1
-            print(f"REVISÃO CONTABILIZADA: Total para dano ao boss: {session['session_revision_count']}")
-        else:
-            print("CARTÃO NOVO - Não contabilizado para dano, apenas para XP")
         
         session['current_index'] = current_index + 1
         session['cards_reviewed'] = session.get('cards_reviewed', 0) + 1
@@ -580,10 +400,10 @@ def study_session():
     # Se chegou aqui, é uma requisição GET
     card = Card.query.get(session_cards[current_index])
     progress_percent = int((session.get('cards_reviewed', 0) / total_cards) * 100) if total_cards else 0
-    next_errei, _ = compute_next_interval(card, 'errei')
-    next_dificil, _ = compute_next_interval(card, 'difícil')
-    next_facil, _ = compute_next_interval(card, 'facil')
-    next_muitofacil, _ = compute_next_interval(card, 'muito_facil')
+    next_errei, _ = compute_sm2_preview(card, 'errei')
+    next_dificil, _ = compute_sm2_preview(card, 'difícil')
+    next_facil, _ = compute_sm2_preview(card, 'facil')
+    next_muitofacil, _ = compute_sm2_preview(card, 'muito_facil')
     
     return render_template('study_session.html',
                            card=card,
@@ -614,30 +434,25 @@ def undo_review():
         # Verificar se o cartão era novo quando foi estudado (before_review_count == 0)
         was_new = (last_state["review_count"] == 0)
         
-        # 1. Reverter os dados do cartão
+        # 1. Reverter os dados do cartão (incluindo campos SM-2)
         card.interval = last_state["interval"]
         card.difficulty = last_state["difficulty"]
+        card.easiness_factor = last_state.get("easiness_factor", 2.5)
+        card.repetition = last_state.get("repetition", 0)
         card.next_review = datetime.fromisoformat(last_state["next_review"]) if last_state["next_review"] else None
         card.review_count = last_state["review_count"]
         card.correct_count = last_state["correct_count"]
-        
-        # 2. Reverter a gamificação
-        player = Player.query.first()
-        if player:
-            # Reverter XP se o cartão era novo
-            if was_new:
-                print(f"Revertendo 2 XP porque o cartão #{card.id} era novo")
-                player.experience = max(0, player.experience - 2)  # 2 XP por cartão novo
-                flash_gamification("2 pontos de XP foram revertidos.")
-            
-            # Reverter pontos de dano se não era novo (cartão de revisão)
-            else:
-                # Reverter contador de revisões para dano
-                revision_count = session.get('session_revision_count', 0)
-                if revision_count > 0:
-                    session['session_revision_count'] = revision_count - 1
-                    print(f"Revertendo 1 ponto de dano. Novo total: {session['session_revision_count']}")
-                    flash_gamification("1 ponto de dano foi revertido.")
+
+        # 2. Remover o último ReviewLog deste cartão
+        last_log = ReviewLog.query.filter_by(card_id=card.id).order_by(ReviewLog.id.desc()).first()
+        if last_log:
+            db.session.delete(last_log)
+
+        # 3. Reverter dano ao boss se era cartão de revisão
+        if not was_new:
+            revision_count = session.get('session_revision_count', 0)
+            if revision_count > 0:
+                session['session_revision_count'] = revision_count - 1
         
         # Decrementar o contador de cartões revisados
         session["current_index"] = max(session.get("current_index", 1) - 1, 0)
@@ -749,11 +564,11 @@ def panel():
                 )
             ).all()
     
-    # Se um deck_id foi fornecido, filtre os cartões por esse deck
+    # Se um deck_id foi fornecido, filtre os cartões por esse deck (CTE)
     elif deck_id:
-        deck = Deck.query.get(deck_id)
-        if deck:
-            cards = get_cards_recursive(deck)
+        all_ids = get_subdeck_ids(deck_id)
+        if all_ids:
+            cards = Card.query.filter(Card.deck_id.in_(all_ids)).all()
     
     # Se nenhum dos filtros acima foi aplicado, não carregue nenhum cartão
     
@@ -878,16 +693,8 @@ def select_deck():
 
 @cards_bp.route('/start_deck_session/<int:deck_id>')
 def start_deck_session(deck_id):
-    deck = Deck.query.get(deck_id)
-    if deck:
-        # Coleta recursivamente todos os cartões do deck e de seus sub-decks,
-        # filtrando apenas os cartões novos e não suspensos
-        cards = [card for card in get_cards_recursive(deck) if card.review_count == 0 and not card.suspended]
-    else:
-        cards = []
-    # Limita a sessão para os primeiros 50 cartões, se houver muitos
-    if cards:
-        cards = cards[:50]
+    deck_ids = get_subdeck_ids(deck_id)
+    cards = get_cards_in_decks(deck_ids, new_only=True).order_by(Card.id.asc()).limit(50).all()
     if not cards:
         flash("Nenhum cartão novo disponível para esse baralho.", "warning")
         return redirect(url_for('cards.study_lobby'))
@@ -902,13 +709,8 @@ def start_deck_session(deck_id):
 
 @cards_bp.route('/start_deck_session_revisions/<int:deck_id>')
 def start_deck_session_revisions(deck_id):
-    now = datetime.now(timezone.utc)
-    deck = Deck.query.get(deck_id)
-    if deck:
-        # Seleciona apenas os cartões de revisão que estejam prontos (next_review <= agora) e não suspensos
-        cards = [card for card in get_cards_recursive(deck) if card.review_count > 0 and card.next_review <= now and not card.suspended]
-    else:
-        cards = []
+    deck_ids = get_subdeck_ids(deck_id)
+    cards = get_cards_in_decks(deck_ids, due_only=True).order_by(Card.next_review.asc()).all()
     if not cards:
         flash("Nenhum cartão de revisão disponível para esse baralho.", "warning")
         return redirect(url_for('cards.study_lobby'))
@@ -951,19 +753,19 @@ def batch_reset_cards():
         flash("Nenhum cartão selecionado para resetar.", "warning")
         return redirect(url_for('cards.panel'))
     
-    for card_id in selected_cards:
-        card = Card.query.get(card_id)
-        if card:
-            # Exemplo de reset: zerar o número de revisões, definir o intervalo inicial e resetar a dificuldade
-            card.review_count = 0
-            card.interval = 1.0
-            card.difficulty = 3  # ou outro valor padrão
-            # Atualiza a próxima revisão para o instante atual
-            card.next_review = datetime.now(timezone.utc)
-            # Também reativa o cartão se estiver suspenso
-            if card.suspended:
-                card.suspended = False
-    
+    cards = Card.query.filter(Card.id.in_(selected_cards)).all()
+    now = datetime.now(timezone.utc)
+    for card in cards:
+        card.review_count = 0
+        card.interval = 0.0
+        card.difficulty = 5
+        card.easiness_factor = 2.5
+        card.repetition = 0
+        card.next_review = now
+        card.correct_count = 0
+        if card.suspended:
+            card.suspended = False
+
     db.session.commit()
     flash("Cartões resetados com sucesso.", "success")
     return redirect(url_for('cards.panel'))
@@ -1092,9 +894,10 @@ def statistics_heatmap():
     from datetime import datetime, timedelta
     from matplotlib.colors import LinearSegmentedColormap, BoundaryNorm
 
-    # Período fixo para 2025
-    start_date = datetime(2025, 1, 1).date()
-    end_date = datetime(2025, 12, 31).date()
+    # Período dinâmico baseado no ano atual
+    current_year = datetime.now(timezone.utc).year
+    start_date = datetime(current_year, 1, 1).date()
+    end_date = datetime(current_year, 12, 31).date()
 
     # Obter os registros do DailyStats para 2025
     daily_stats = DailyStats.query.filter(
@@ -1174,7 +977,7 @@ def statistics_heatmap():
     month_labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
     ax.set_yticklabels([month_labels[i-1] for i in grid.index], rotation=0)
     ax.set_ylabel("Mês")
-    ax.set_title("Estudo diário em 2025", fontsize=12)
+    ax.set_title(f"Estudo diário em {current_year}", fontsize=12)
 
     # Adicionar as informações de recorde e streak abaixo do heatmap (nova ordem)
     # Esquerda: Recorde de cartões estudados
@@ -1572,20 +1375,15 @@ def custom_study():
         # Construir a consulta base
         query = Card.query.filter(Card.suspended == False)
         
-        # Filtrar por baralhos, se especificados
+        # Filtrar por baralhos, se especificados (CTE recursivo)
         if deck_ids:
             deck_ids = [int(d_id) for d_id in deck_ids if d_id.isdigit()]
             if deck_ids:
-                deck_condition = False
-                for deck_id in deck_ids:
-                    deck = Deck.query.get(deck_id)
-                    if deck:
-                        # Obter todos os cartões deste deck e seus subdecks
-                        deck_cards = get_cards_recursive(deck)
-                        deck_card_ids = [c.id for c in deck_cards]
-                        deck_condition = or_(deck_condition, Card.id.in_(deck_card_ids))
-                if deck_condition:
-                    query = query.filter(deck_condition)
+                all_deck_ids = []
+                for d_id in deck_ids:
+                    all_deck_ids.extend(get_subdeck_ids(d_id))
+                all_deck_ids = list(set(all_deck_ids))
+                query = query.filter(Card.deck_id.in_(all_deck_ids))
         
         # Filtrar por tags, se especificadas
         if tag_ids:

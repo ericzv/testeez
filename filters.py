@@ -113,11 +113,10 @@ def extract_images(text, max_images=3):
     return result
 
 def get_cards_recursive(deck):
-    """Retorna uma lista de todos os cartões pertencentes ao deck e a todos os seus sub-decks recursivamente."""
-    cards = list(deck.cards)
-    for child in deck.children:
-        cards.extend(get_cards_recursive(child))
-    return cards
+    """Retorna cartões do deck e sub-decks. Usa CTE SQL otimizado."""
+    from srs_engine import get_subdeck_ids, get_cards_in_decks
+    deck_ids = get_subdeck_ids(deck.id)
+    return get_cards_in_decks(deck_ids, not_suspended=False).all()
 
 import unicodedata
 
@@ -126,38 +125,9 @@ def normalize_text(text):
     return unicodedata.normalize('NFD', text).encode('ascii', 'ignore').decode('utf-8').lower()
 
 def count_cards_recursive(deck):
-    new = 0
-    interval = 0
-    revision = 0
-    # Use timezone.utc para garantir que now é offset-aware
-    now = datetime.now(timezone.utc)
-    
-    for card in deck.cards:
-        if card.suspended:
-            continue  # ignora cartões suspensos
-        
-        if card.review_count == 0:
-            new += 1
-        else:
-            # Garantir que next_review seja offset-aware antes da comparação
-            card_next_review = card.next_review
-            
-            # Se next_review não tiver timezone, adicione UTC
-            if card_next_review.tzinfo is None:
-                card_next_review = card_next_review.replace(tzinfo=timezone.utc)
-                
-            if card_next_review > now:
-                interval += 1
-            else:
-                revision += 1
-    
-    for child in deck.children:
-        c_new, c_interval, c_revision = count_cards_recursive(child)
-        new += c_new
-        interval += c_interval
-        revision += c_revision
-    
-    return new, interval, revision
+    """Conta cartões (new, interval, due) para deck + subdecks. Usa CTE SQL otimizado."""
+    from srs_engine import count_cards_for_deck
+    return count_cards_for_deck(deck.id)
 
 import unicodedata
 
@@ -165,70 +135,7 @@ def remove_accents(input_str):
     nfkd_form = unicodedata.normalize('NFKD', input_str)
     return "".join([c for c in nfkd_form if not unicodedata.combining(c)])
 
-def update_card_review(card, response):
-    # Salvar se o cartão era novo ANTES de atualizar o review_count
-    was_new = (card.review_count == 0)
-    
-    now = datetime.now(timezone.utc)
-    card.review_count += 1
-    
-    # Normaliza a resposta: remove acentos, converte para minúsculas e substitui espaços por underline
-    normalized_response = remove_accents(response.strip().lower()).replace(" ", "_")
-    print("DEBUG: normalized_response =", normalized_response)  # Para debug
-    
-    # Incrementa o contador de acertos se a resposta for considerada correta
-    if normalized_response in ['dificil', 'facil', 'muito_facil']:
-        card.correct_count += 1
-
-    sequence = [10/1440.0, 1, 3, 7, 21, 45, 90, 180, 360]
-    current_step = get_current_step(card.interval)
-    if normalized_response == 'errei':
-        card.interval = sequence[0]
-        card.difficulty = 10
-    elif current_step == 0:
-        if normalized_response in ['dificil', 'facil']:
-            if was_new and normalized_response == 'dificil':
-                card.interval = 2
-            else:
-                card.interval = sequence[1]
-            if normalized_response == 'dificil':
-                card.difficulty = min(card.difficulty + 0.1, 10)
-            else:
-                card.difficulty = max(card.difficulty - 0.1, 1)
-        elif normalized_response == 'muito_facil':
-            card.interval = sequence[2]
-            card.difficulty = max(card.difficulty - 0.3, 1)
-        else:
-            card.interval = sequence[1]
-            card.difficulty = min(card.difficulty + 0.1, 10)
-    else:
-        new_step = min(current_step + 1, len(sequence) - 1)
-        if normalized_response == 'dificil':
-            card.difficulty = min(card.difficulty + 0.1, 10)
-        elif normalized_response == 'facil':
-            card.difficulty = max(card.difficulty - 0.1, 1)
-        elif normalized_response == 'muito_facil':
-            new_step = min(current_step + 2, len(sequence) - 1)
-            card.difficulty = max(card.difficulty - 0.3, 1)
-        else:
-            card.difficulty = min(card.difficulty + 0.1, 10)
-        card.interval = sequence[new_step]
-    modifier = 2 - ((card.difficulty - 1) * 1.5 / 9)
-    card.next_review = now + timedelta(days=card.interval * modifier)
-    
-    update_daily_stats(response, was_new)
-    db.session.commit()
-    
-    # Retorna was_new para o caller saber se era um cartão novo
-    return was_new
-
-
-def get_exp_for_next_level(current_level):
-    """Calculate experience needed for the next level.
-    Formula ajustada para uma progressão mais suave.
-    Começando em 50 XP para o nível 1 e aumentando linearmente 5 XP por nível.
-    """
-    return 50 + (current_level - 1) * 5
+## Algoritmo antigo e get_exp_for_next_level removidos — agora em srs_engine.py
 
 
 def days_until_review(next_review):

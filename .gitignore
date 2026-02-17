@@ -20,3 +20,6 @@ __pycache__/
 logs/*.log
 logs/*.log.*
 !logs/.gitkeep
+
+# Flask-Session (server-side session files)
+flask_session/

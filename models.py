@@ -43,11 +43,14 @@ class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     front = db.Column(db.Text, nullable=False)
     back = db.Column(db.Text, nullable=True)
-    difficulty = db.Column(db.Float, default=3)
-    interval = db.Column(db.Float, default=1.0)
+    difficulty = db.Column(db.Float, default=5)           # Legado: sincronizado a partir de EF para UI
+    interval = db.Column(db.Float, default=0.0)           # Intervalo atual em dias
     next_review = db.Column(db.DateTime, default=datetime.utcnow)
     review_count = db.Column(db.Integer, default=0)
     correct_count = db.Column(db.Integer, default=0)
+    # SM-2 fields
+    easiness_factor = db.Column(db.Float, default=2.5)    # EF do SM-2 (1.3 - 5.0)
+    repetition = db.Column(db.Integer, default=0)         # Contador de repetições consecutivas corretas
     deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'), nullable=False, default=1)
     deck = db.relationship('Deck', backref='cards')
     suspended = db.Column(db.Boolean, default=False)
@@ -57,9 +60,29 @@ class Card(db.Model):
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
-    
+
     def __repr__(self):
         return f"<Tag {self.name}>"
+
+class ReviewLog(db.Model):
+    """Histórico detalhado de cada revisão de cartão."""
+    __tablename__ = 'review_log'
+    id = db.Column(db.Integer, primary_key=True)
+    card_id = db.Column(db.Integer, db.ForeignKey('card.id'), nullable=False, index=True)
+    response = db.Column(db.String(20), nullable=False)   # 'errei', 'dificil', 'facil', 'muito_facil'
+    quality = db.Column(db.Integer, nullable=False)        # Qualidade SM-2 (0-5)
+    was_new = db.Column(db.Boolean, default=False)
+    interval_before = db.Column(db.Float)
+    interval_after = db.Column(db.Float)
+    ef_before = db.Column(db.Float)
+    ef_after = db.Column(db.Float)
+    time_spent = db.Column(db.Integer, default=0)          # Segundos
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+
+    card = db.relationship('Card', backref=db.backref('review_logs', lazy='dynamic'))
+
+    def __repr__(self):
+        return f"<ReviewLog card={self.card_id} q={self.quality} @{self.timestamp}>"
 
 # Modificar o modelo Player para suportar classe e sub-classe
 class Player(db.Model):
