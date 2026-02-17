@@ -135,7 +135,9 @@ def remove_accents(input_str):
     nfkd_form = unicodedata.normalize('NFKD', input_str)
     return "".join([c for c in nfkd_form if not unicodedata.combining(c)])
 
-## Algoritmo antigo e get_exp_for_next_level removidos — agora em srs_engine.py
+def raw_edit(text):
+    """Return text as-is for editing in textarea (no cloze/image processing)."""
+    return text if text else ''
 
 
 def days_until_review(next_review):
@@ -202,6 +204,7 @@ def register_filters(app):
     app.jinja_env.filters['next_review_status']  = next_review_status
     app.jinja_env.filters['make_aware']          = make_aware
     app.jinja_env.filters['normalize_str']       = normalize_str
+    app.jinja_env.filters['raw_edit']            = raw_edit
     app.jinja_env.globals.update(
         get_cards_recursive=get_cards_recursive,
         count_cards_recursive=count_cards_recursive
