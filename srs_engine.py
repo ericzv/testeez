@@ -62,13 +62,15 @@ def sm2_review(card, response: str):
         card.repetition = 0
         card.interval = 10.0 / 1440  # ~10 min em dias
     else:
-        # Acertou: progressão SM-2
+        # Acertou: progressão SM-2 com intervalos diferenciados por qualidade
         if card.repetition == 0:
-            card.interval = 1.0
+            card.interval = {3: 1.0, 4: 2.0, 5: 4.0}[quality]
         elif card.repetition == 1:
-            card.interval = 6.0
+            card.interval = {3: 3.0, 4: 6.0, 5: 8.0}[quality]
         else:
             card.interval = card.interval * card.easiness_factor
+            if quality == 5:
+                card.interval *= 1.3  # bônus "muito fácil"
         card.repetition += 1
 
     # Atualizar Easiness Factor (EF)
@@ -99,11 +101,13 @@ def compute_sm2_preview(card, response: str):
         interval = 10.0 / 1440  # ~10 min
     else:
         if rep == 0:
-            interval = 1.0
+            interval = {3: 1.0, 4: 2.0, 5: 4.0}[quality]
         elif rep == 1:
-            interval = 6.0
+            interval = {3: 3.0, 4: 6.0, 5: 8.0}[quality]
         else:
             interval = interval * ef
+            if quality == 5:
+                interval *= 1.3  # bônus "muito fácil"
 
     ef += (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
     ef = max(1.3, ef)

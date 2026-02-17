@@ -620,27 +620,25 @@ def rename_deck(deck_id):
 @cards_bp.route('/card/<int:card_id>')
 def card_detail(card_id):
     card = Card.query.get_or_404(card_id)
-    diff_expl = {
-        1: "Muito fácil", 2: "Muito fácil",
-        3: "Fácil", 4: "Fácil",
-        5: "Médio", 6: "Médio",
-        7: "Difícil", 8: "Difícil",
-        9: "Muito difícil", 10: "Muito difícil"
-    }
     if card.review_count > 0:
         accuracy = (card.correct_count / card.review_count * 100)
         details_info = {
             'review_count': card.review_count,
             'interval': format_interval(card.interval),
-            'accuracy': f"{accuracy:.1f}%"
+            'accuracy': f"{accuracy:.1f}%",
+            'easiness_factor': f"{card.easiness_factor:.2f}",
+            'repetition': card.repetition,
         }
     else:
         details_info = {
             'review_count': 0,
             'interval': format_interval(card.interval),
-            'accuracy': "N/A"
+            'accuracy': "N/A",
+            'easiness_factor': f"{card.easiness_factor:.2f}",
+            'repetition': card.repetition,
         }
-    return render_template('card_detail.html', card=card, details=details_info, diff_expl=diff_expl)
+    review_logs = ReviewLog.query.filter_by(card_id=card.id).order_by(ReviewLog.timestamp.desc()).limit(50).all()
+    return render_template('card_detail.html', card=card, details=details_info, review_logs=review_logs)
 
 @cards_bp.route('/card/<int:card_id>/edit', methods=['GET', 'POST'])
 def edit_card(card_id):

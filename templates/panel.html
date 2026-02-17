@@ -174,7 +174,7 @@
           <th style="width: 7%;">ID</th>
           <th style="width: 38%;">Resposta (preview)</th>
           <th style="width: 15%;">Baralho</th>
-          <th style="width: 15%;">Dificuldade</th>
+          <th style="width: 15%;">Facilidade (EF)</th>
           <th style="width: 12%;">Próxima Revisão</th>
           <th style="width: 10%;">Imagens</th>
           <th style="width: 8%;">Fase</th>
@@ -188,14 +188,12 @@
           <td class="truncate-text">{{ card.back | process_answer | panel_preview | safe }}</td>
           <td class="truncate-text">{{ card.deck.name }}</td>
           <td>
-            {{ card.difficulty }} -
-            {% if card.difficulty < 2 %}
-              Muito fácil
-            {% elif card.difficulty < 4 %}
+            {{ "%.2f"|format(card.easiness_factor) }} -
+            {% if card.easiness_factor >= 2.5 %}
               Fácil
-            {% elif card.difficulty < 6 %}
+            {% elif card.easiness_factor >= 2.0 %}
               Médio
-            {% elif card.difficulty < 8 %}
+            {% elif card.easiness_factor >= 1.5 %}
               Difícil
             {% else %}
               Muito difícil
