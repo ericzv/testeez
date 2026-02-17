@@ -54,11 +54,19 @@
           {% if card.review_count == 1 %}vez{% else %}vezes{% endif %}
         </p>
         {% if card.review_count > 0 %}
-        <table class="table table-sm" style="max-width: 400px; margin: 10px auto; font-size: 0.85em;">
-          <tr><td style="text-align: right; color: #888;">Acurácia:</td><td><strong>{{ details.accuracy }}</strong></td></tr>
-          <tr><td style="text-align: right; color: #888;">Intervalo atual:</td><td><strong>{{ details.interval }}</strong></td></tr>
-          <tr><td style="text-align: right; color: #888;">Facilidade (EF):</td><td><strong>{{ details.easiness_factor }}</strong></td></tr>
-          <tr><td style="text-align: right; color: #888;">Repetições corretas:</td><td><strong>{{ details.repetition }}</strong></td></tr>
+        <table class="table table-sm table-bordered" style="max-width: 400px; margin: 10px auto; font-size: 0.85em; text-align: center;">
+          <thead>
+            <tr>
+              <th style="text-align: center;">Informação</th>
+              <th style="text-align: center;">Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Acurácia</td><td><strong>{{ details.accuracy }}</strong></td></tr>
+            <tr><td>Intervalo atual</td><td><strong>{{ details.interval }}</strong></td></tr>
+            <tr><td>Dificuldade (EF)</td><td><strong>{{ details.easiness_factor }}</strong></td></tr>
+            <tr><td>Repetições corretas</td><td><strong>{{ details.repetition }}</strong></td></tr>
+          </tbody>
         </table>
         {% endif %}
       </div>
