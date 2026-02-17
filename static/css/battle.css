@@ -4441,6 +4441,12 @@
   }
 
   /* Animação do marcador de dano do personagem */
+  /* Indicador de ataque enfileirado */
+  @keyframes queuedPulse {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+  }
+
   @keyframes player-damage-float {
       0% {
           opacity: 1;

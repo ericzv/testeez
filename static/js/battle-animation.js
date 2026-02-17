@@ -377,14 +377,13 @@ function updatePlayerStatusCard() {
     /**
      * triggerAttack(idOuNome)
      * Ex.: triggerAttack(13)  ou  triggerAttack('Martelo Divino')
+     * Suporta fila de 1 ataque: se clicar durante um ataque, o próximo será enfileirado.
      */
-    window.triggerAttack = function (idOrName) {
 
-        // Evitar interromper ações em andamento
-        if (window.gameState && window.gameState.inAction) {
-            console.log("⚠️ Ação em andamento, não é possível atacar agora");
-            return;
-        }
+    // Fila de ataques (máximo 1 na fila)
+    window.attackQueue = null;
+
+    window.triggerAttack = function (idOrName) {
 
         // Evitar interromper especiais sendo processados
         if (window.processingSkill) {
@@ -414,8 +413,75 @@ function updatePlayerStatusCard() {
             animation_fx_b: raw.animation_fx_b ?? raw.fxB
         };
 
+        // Se já está em ação, enfileirar (máx 1)
+        if (window.gameState && window.gameState.inAction) {
+            window.attackQueue = skill;
+            console.log(`⏳ Ataque enfileirado: ${skill.name} (será executado quando o atual terminar)`);
+            showQueuedAttackFeedback(skill.name);
+            return;
+        }
+
         // Dispara o ataque
         performAttack(skill);
+    };
+
+    // Feedback visual de ataque enfileirado
+    function showQueuedAttackFeedback(skillName) {
+        // Remover feedback anterior se houver
+        const existing = document.querySelector('.queued-attack-indicator');
+        if (existing) existing.remove();
+
+        const indicator = document.createElement('div');
+        indicator.className = 'queued-attack-indicator';
+        indicator.textContent = `Próximo: ${skillName}`;
+        indicator.style.cssText = `
+            position: fixed;
+            bottom: 12%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 215, 0, 0.15);
+            color: #ffd700;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-family: 'Cinzel', serif;
+            font-size: 13px;
+            font-weight: bold;
+            z-index: 200;
+            pointer-events: none;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            text-shadow: 0 0 6px rgba(255, 215, 0, 0.4);
+            animation: queuedPulse 1.5s ease-in-out infinite;
+        `;
+        document.body.appendChild(indicator);
+    }
+
+    // Processar fila de ataques (chamado por finishAttackSequence)
+    window.processAttackQueue = function() {
+        const indicator = document.querySelector('.queued-attack-indicator');
+        if (indicator) indicator.remove();
+
+        if (!window.attackQueue) return;
+
+        const queuedSkill = window.attackQueue;
+        window.attackQueue = null;
+
+        // Validar energia antes de executar
+        const energyCost = queuedSkill.pointsCost || queuedSkill.points_cost || 1;
+        const currentEnergy = window.gameState?.player?.energy || 0;
+
+        if (currentEnergy < energyCost) {
+            console.log(`❌ Ataque enfileirado cancelado: energia insuficiente (${currentEnergy}/${energyCost})`);
+            return;
+        }
+
+        // Verificar se boss morreu
+        if (window.gameState?.boss?.hp <= 0) {
+            console.log("❌ Ataque enfileirado cancelado: boss derrotado");
+            return;
+        }
+
+        console.log(`▶️ Executando ataque enfileirado: ${queuedSkill.name}`);
+        performAttack(queuedSkill);
     };
 
     console.log(
