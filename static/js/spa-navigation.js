@@ -333,7 +333,7 @@ window.SPANavigation = (function() {
             // Flash de transição
             if (transitionFlash) {
                 transitionFlash.classList.add('active');
-                setTimeout(() => transitionFlash.classList.remove('active'), 500);
+                setTimeout(() => transitionFlash.classList.remove('active'), 300);
             }
 
             // Animar saída
@@ -351,8 +351,8 @@ window.SPANavigation = (function() {
                     toView.classList.remove('entering-from-hub', 'entering-from-battle');
                     hideLoading();
                     resolve();
-                }, 500);
-            }, 400);
+                }, 300);
+            }, 250);
         });
     }
 

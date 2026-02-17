@@ -896,16 +896,11 @@ class FastBattleMode {
         await this.loadItems();
         this.createInventoryMenu();
 
-        // Atualizar HUD novamente após delays curtos (garantir sincronização)
+        // Atualizar HUD uma vez após delay curto (garantir sincronização)
         setTimeout(() => {
           this.updateHUDFromServer();
           if (window.updatePlayerHUD) window.updatePlayerHUD();
-        }, 200);
-
-        setTimeout(() => {
-          this.updateHUDFromServer();
-          if (window.updatePlayerHUD) window.updatePlayerHUD();
-        }, 500);
+        }, 300);
 
       } else {
         showFloatingText(data.error || 'Erro ao usar item', 'error');
@@ -917,7 +912,7 @@ class FastBattleMode {
       // Desbloquear após um curto delay
       setTimeout(() => {
         this.isExecuting = false;
-      }, 500);
+      }, 300);
     }
   }
 
@@ -1473,7 +1468,7 @@ class FastBattleMode {
         // Sincronizar energia após ataque (com delay para servidor processar)
         setTimeout(async () => {
           await this.updateHUDFromServer();
-        }, 800);
+        }, 400);
       } else {
         console.error('❌ triggerAttack não disponível');
         this.isExecuting = false;
@@ -1495,13 +1490,13 @@ class FastBattleMode {
         setTimeout(() => {
           this.isExecuting = false;
           console.log('✅ Ação de especial finalizada, desbloqueado');
-        }, 3000); // 3 segundos para animação completa
+        }, 1500); // Reduzido: 3000ms → 1500ms
       } else {
         console.warn('⚠️ useSpecialSkill não disponível, usando método direto');
         await this.executeSpecialDirect(item.id);
         setTimeout(() => {
           this.isExecuting = false;
-        }, 1200);
+        }, 600);
       }
     } else if (type === 'inventory') {
       // Usar poção diretamente
@@ -1511,7 +1506,7 @@ class FastBattleMode {
       setTimeout(() => {
         this.isExecuting = false;
         console.log('✅ Ação de poção finalizada, desbloqueado');
-      }, 1200);
+      }, 600); // Reduzido: 1200ms → 600ms
     }
   }
 

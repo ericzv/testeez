@@ -701,15 +701,15 @@ function populateSpecialOptions() {
                         skillItem.addEventListener('touchend', function(e) {
                             e.preventDefault(); // Prevenir comportamento padrão
                             this.classList.remove('active');
-                            
+
                             // Simular o evento de clique
                             if (!this.classList.contains('disabled')) {
                                 this.classList.add('skill-using');
-                                
+
                                 setTimeout(() => {
                                     this.classList.remove('skill-using');
-                                }, 800);
-                                
+                                }, 400);
+
                                 useSpecialSkill(skill.id, skill.name);
                             }
                         });
@@ -718,11 +718,11 @@ function populateSpecialOptions() {
                         skillItem.addEventListener('click', function() {
                             // Adicionar classe de animação
                             this.classList.add('skill-using');
-                            
+
                             // Remover a classe após a animação terminar
                             setTimeout(() => {
                                 this.classList.remove('skill-using');
-                            }, 800); // 800ms = duração da animação
+                            }, 400); // Reduzido: 800ms → 400ms
                             
                             // Chamar a função de uso da skill
                             useSpecialSkill(skill.id, skill.name);
