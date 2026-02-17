@@ -251,9 +251,7 @@ def calculate_luck_bonus(luck, rarity):
 def calculate_max_hp(vitality):
     return 80
 
-def get_exp_for_next_level(level):
-    """Calcula a experiência necessária para o próximo nível"""
-    return int(100 * (level ** 1.5))
+from game_formulas import get_exp_for_next_level
 
 # ----- MODELOS DE BANCO DE DADOS -----
 
