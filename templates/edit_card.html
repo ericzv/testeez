@@ -121,6 +121,7 @@
 </div>
 {% endblock %}
 {% block scripts %}
+{% raw %}
 <script>
 // Prevent toolbar buttons from stealing editor focus
 document.querySelectorAll('.editor-toolbar button').forEach(function(btn) {
@@ -193,4 +194,5 @@ document.getElementById('edit-form').addEventListener('submit', function() {
   document.getElementById('back-input').value = document.getElementById('back-editor').innerHTML;
 });
 </script>
+{% endraw %}
 {% endblock %}
