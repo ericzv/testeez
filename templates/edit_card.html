@@ -1,29 +1,196 @@
 {% extends 'base.html' %}
 {% block title %}Editar Cartão{% endblock %}
+{% block head %}
+<style>
+.editor-toolbar {
+  border: 1px solid #ccc;
+  border-bottom: none;
+  padding: 5px 6px;
+  background: #f5f5f5;
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  align-items: center;
+  border-radius: 4px 4px 0 0;
+}
+.editor-toolbar button {
+  padding: 4px 10px;
+  border: 1px solid #bbb;
+  background: #fff;
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+.editor-toolbar button:hover { background: #e0e0e0; }
+.editor-toolbar .color-btn {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 3px;
+  border: 2px solid #bbb;
+  cursor: pointer;
+}
+.editor-toolbar .color-btn:hover { border-color: #333; }
+.editor-toolbar .sep {
+  width: 1px;
+  height: 22px;
+  background: #ccc;
+  margin: 0 4px;
+}
+.editor-area {
+  border: 1px solid #ccc;
+  min-height: 120px;
+  max-height: 400px;
+  padding: 10px;
+  background: #fff;
+  outline: none;
+  overflow-y: auto;
+  border-radius: 0 0 4px 4px;
+}
+.editor-area:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+.editor-area .cloze,
+.editor-area .cloze-inactive {
+  background: #fff3cd;
+  padding: 1px 4px;
+  border-radius: 2px;
+  border: 1px dashed #d4a017;
+}
+.editor-area img { max-width: 100%; height: auto; }
+.cloze-btn { font-weight: bold; color: #856404; }
+</style>
+{% endblock %}
 {% block content %}
 <div class="card">
   <div class="card-body">
     <h3>Editar Cartão #{{ card.id }}</h3>
-    <p style="font-size: 0.8em; color: #888;">Editar cartões prontos pode desconfigurá-los</p>
+    <p style="font-size: 0.8em; color: #888;">Editor visual — use a barra de ferramentas para formatar. Cloze: Ctrl+Shift+C</p>
     <hr>
-    <form method="POST">
+    <form method="POST" id="edit-form">
       <div class="form-group">
-        <label for="front">Pergunta (Front):</label>
-        <textarea class="form-control" id="front" name="front" rows="3">{{ card.front | raw_edit }}</textarea>
+        <label><strong>Pergunta (Front):</strong></label>
+        <div class="editor-toolbar">
+          <button type="button" data-cmd="bold" title="Negrito (Ctrl+B)"><b>B</b></button>
+          <button type="button" data-cmd="italic" title="Itálico (Ctrl+I)"><i>I</i></button>
+          <button type="button" data-cmd="underline" title="Sublinhado (Ctrl+U)"><u>U</u></button>
+          <div class="sep"></div>
+          <button type="button" class="color-btn" style="background:#000;" data-color="#000000" title="Preto"></button>
+          <button type="button" class="color-btn" style="background:#cc0000;" data-color="#cc0000" title="Vermelho"></button>
+          <button type="button" class="color-btn" style="background:#0000cc;" data-color="#0000cc" title="Azul"></button>
+          <button type="button" class="color-btn" style="background:#008800;" data-color="#008800" title="Verde"></button>
+          <button type="button" class="color-btn" style="background:#ff9900;" data-color="#ff9900" title="Laranja"></button>
+          <div class="sep"></div>
+          <button type="button" data-cmd="removeFormat" title="Limpar formatação">✕</button>
+          <div class="sep"></div>
+          <button type="button" data-cloze="true" class="cloze-btn" title="Cloze (Ctrl+Shift+C)">[...]</button>
+        </div>
+        <div class="editor-area" contenteditable="true" id="front-editor">{{ card.front | safe }}</div>
+        <input type="hidden" name="front" id="front-input">
       </div>
-      <div class="form-group">
-        <label for="back">Resposta (Back):</label>
-        <textarea class="form-control" id="back" name="back" rows="3">
-{% if "<img" in card.back %}
-{{ card.back | raw_edit }} (Imagem)
-{% else %}
-{{ card.back | raw_edit }}
-{% endif %}
-        </textarea>
+
+      <div class="form-group" style="margin-top: 15px;">
+        <label><strong>Resposta (Back):</strong></label>
+        <div class="editor-toolbar">
+          <button type="button" data-cmd="bold" title="Negrito (Ctrl+B)"><b>B</b></button>
+          <button type="button" data-cmd="italic" title="Itálico (Ctrl+I)"><i>I</i></button>
+          <button type="button" data-cmd="underline" title="Sublinhado (Ctrl+U)"><u>U</u></button>
+          <div class="sep"></div>
+          <button type="button" class="color-btn" style="background:#000;" data-color="#000000" title="Preto"></button>
+          <button type="button" class="color-btn" style="background:#cc0000;" data-color="#cc0000" title="Vermelho"></button>
+          <button type="button" class="color-btn" style="background:#0000cc;" data-color="#0000cc" title="Azul"></button>
+          <button type="button" class="color-btn" style="background:#008800;" data-color="#008800" title="Verde"></button>
+          <button type="button" class="color-btn" style="background:#ff9900;" data-color="#ff9900" title="Laranja"></button>
+          <div class="sep"></div>
+          <button type="button" data-cmd="removeFormat" title="Limpar formatação">✕</button>
+          <div class="sep"></div>
+          <button type="button" data-cloze="true" class="cloze-btn" title="Cloze (Ctrl+Shift+C)">[...]</button>
+        </div>
+        <div class="editor-area" contenteditable="true" id="back-editor">{{ card.back | safe }}</div>
+        <input type="hidden" name="back" id="back-input">
       </div>
-      <button type="submit" class="btn btn-primary">Salvar</button>
-      <a href="{{ url_for('cards.card_detail', card_id=card.id) }}" class="btn btn-secondary">Cancelar</a>
+
+      <div style="margin-top: 15px;">
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <a href="{{ url_for('cards.card_detail', card_id=card.id) }}" class="btn btn-secondary">Cancelar</a>
+      </div>
     </form>
   </div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+// Prevent toolbar buttons from stealing editor focus
+document.querySelectorAll('.editor-toolbar button').forEach(function(btn) {
+  btn.addEventListener('mousedown', function(e) { e.preventDefault(); });
+});
+
+// Format commands (bold, italic, underline, removeFormat)
+document.querySelectorAll('[data-cmd]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.execCommand(btn.dataset.cmd, false, null);
+  });
+});
+
+// Color commands
+document.querySelectorAll('[data-color]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.execCommand('foreColor', false, btn.dataset.color);
+  });
+});
+
+// Cloze insertion
+function insertCloze() {
+  var sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  var text = sel.toString();
+  if (!text) return;
+
+  // Check that selection is inside an editor
+  var node = sel.anchorNode;
+  if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+  if (!node || !node.closest('.editor-area')) return;
+
+  // Find highest existing cloze number across both editors
+  var allContent = document.getElementById('front-editor').innerHTML
+                 + document.getElementById('back-editor').innerHTML;
+  var maxNum = 0;
+  var ankiMatches = allContent.match(/\{\{c(\d+)::/g) || [];
+  ankiMatches.forEach(function(m) {
+    var n = parseInt(m.match(/\d+/)[0]);
+    if (n > maxNum) maxNum = n;
+  });
+  var ordMatches = allContent.match(/data-ordinal="(\d+)"/g) || [];
+  ordMatches.forEach(function(m) {
+    var n = parseInt(m.match(/\d+/)[0]);
+    if (n > maxNum) maxNum = n;
+  });
+
+  var range = sel.getRangeAt(0);
+  range.deleteContents();
+  var clozeText = document.createTextNode('{{c' + (maxNum + 1) + '::' + text + '}}');
+  range.insertNode(clozeText);
+  sel.collapseToEnd();
+}
+
+document.querySelectorAll('[data-cloze]').forEach(function(btn) {
+  btn.addEventListener('click', insertCloze);
+});
+
+// Ctrl+Shift+C shortcut
+document.addEventListener('keydown', function(e) {
+  if (e.ctrlKey && e.shiftKey && e.code === 'KeyC') {
+    e.preventDefault();
+    insertCloze();
+  }
+});
+
+// On submit, copy editor content to hidden inputs
+document.getElementById('edit-form').addEventListener('submit', function() {
+  document.getElementById('front-input').value = document.getElementById('front-editor').innerHTML;
+  document.getElementById('back-input').value = document.getElementById('back-editor').innerHTML;
+});
+</script>
 {% endblock %}
