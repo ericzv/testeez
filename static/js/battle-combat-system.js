@@ -1319,7 +1319,7 @@ function performAttack(skill) {
             console.log("Sequência de ataque finalizada");
 
             // Restaurar estado do jogo
-            if (!(gameState.boss.hp <= 0)) {
+            if (!gameState.boss.hp <= 0) {
                 gameState.inAction = false;
             }
 
@@ -1343,14 +1343,6 @@ function performAttack(skill) {
                     }
                 }
             }, 450);
-
-            // Processar fila de ataques (executa próximo ataque se houver)
-            if (typeof window.processAttackQueue === 'function' && !gameState.inAction) {
-                // Pequeno delay para garantir que o estado visual foi restaurado
-                setTimeout(() => {
-                    window.processAttackQueue();
-                }, 100);
-            }
         }
 
         // ===== FASES INDIVIDUAIS =====
@@ -4708,11 +4700,6 @@ function handleBossDeathAnimation(hasMemoryReward, enemyGroup) {
     console.log("🎭 Iniciando animação de morte do boss");
     console.log("🧠 Has memory reward:", hasMemoryReward, "Enemy group:", enemyGroup);
 
-    // Limpar fila de ataques (boss morreu, não executar mais nada)
-    window.attackQueue = null;
-    const queueIndicator = document.querySelector('.queued-attack-indicator');
-    if (queueIndicator) queueIndicator.remove();
-
     // Bloquear todas as ações
     gameState.inAction = true;
 
@@ -5826,11 +5813,6 @@ function showBarrierAbsorbedMarker(damageAbsorbed) {
 
 async function handlePlayerDeath() {
     console.log("Processando morte do jogador");
-
-    // Limpar fila de ataques (jogador morreu)
-    window.attackQueue = null;
-    const queueIndicator = document.querySelector('.queued-attack-indicator');
-    if (queueIndicator) queueIndicator.remove();
 
     // Aguardar animação de morte terminar (reduzido para fluidez)
     await new Promise(resolve => setTimeout(resolve, 3200));
