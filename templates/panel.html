@@ -185,7 +185,7 @@
         <tr id="card-{{ card.id }}" onclick="rowClicked(event, '{{ card.id }}')" style="cursor: pointer;" data-suspended="{{ card.suspended|lower }}">
           <td><input type="checkbox" name="selected_cards" value="{{ card.id }}" class="cardCheckbox" disabled></td>
           <td>{{ card.id }}</td>
-          <td class="truncate-text">{{ card.back | process_answer | panel_preview | safe }}</td>
+          <td class="truncate-text">{{ card.render_back() | panel_preview | safe }}</td>
           <td class="truncate-text">{{ card.deck.name }}</td>
           <td>
             {{ "%.2f"|format(card.easiness_factor) }} -
@@ -200,7 +200,7 @@
             {% endif %}
           </td>
           <td>{{ card | next_review_status }}</td>
-          <td>{{ card.back | extract_images | safe }}</td>
+          <td>{{ card.render_back() | extract_images | safe }}</td>
           <td>
             {% if card.suspended %}
               <span style="color: orange;">Suspenso</span>

@@ -73,7 +73,7 @@
                   <h5 class="mb-1">Cartão #{{ card.id }}</h5>
                   <small>{{ card.deck.name }}</small>
                 </div>
-                <p class="mb-1"><strong>Pergunta:</strong> {{ card.front | process_front | panel_preview | safe }}</p>
+                <p class="mb-1"><strong>Pergunta:</strong> {{ card.render_front() | panel_preview | safe }}</p>
                 <div class="d-flex justify-content-end">
                   <a href="{{ url_for('cards.card_detail', card_id=card.id) }}" class="btn btn-sm btn-info">Ver Detalhes</a>
                 </div>
@@ -100,7 +100,7 @@
                   <h5 class="mb-1">Cartão #{{ card.id }}</h5>
                   <small>{{ card.deck.name }}</small>
                 </div>
-                <p class="mb-1"><strong>Pergunta:</strong> {{ card.front | process_front | panel_preview | safe }}</p>
+                <p class="mb-1"><strong>Pergunta:</strong> {{ card.render_front() | panel_preview | safe }}</p>
                 <div class="d-flex justify-content-end">
                   <a href="{{ url_for('cards.card_detail', card_id=card.id) }}" class="btn btn-sm btn-info">Ver Detalhes</a>
                 </div>
@@ -127,7 +127,7 @@
                   <h5 class="mb-1">Cartão #{{ card.id }}</h5>
                   <small>{{ card.deck.name }}</small>
                 </div>
-                <p class="mb-1"><strong>Pergunta:</strong> {{ card.front | process_front | panel_preview | safe }}</p>
+                <p class="mb-1"><strong>Pergunta:</strong> {{ card.render_front() | panel_preview | safe }}</p>
                 <div class="d-flex justify-content-end">
                   <a href="{{ url_for('cards.card_detail', card_id=card.id) }}" class="btn btn-sm btn-info">Ver Detalhes</a>
                 </div>
@@ -154,9 +154,9 @@
                   <h5 class="mb-1">Cartão #{{ card.id }}</h5>
                   <small>{{ card.deck.name }}</small>
                 </div>
-                <p class="mb-1"><strong>Pergunta:</strong> {{ card.front | process_front | panel_preview | safe }}</p>
+                <p class="mb-1"><strong>Pergunta:</strong> {{ card.render_front() | panel_preview | safe }}</p>
                 <div class="d-flex justify-content-end">
-                  <a href="{{ url_for('cards.cards.card_detail', card_id=card.id) }}" class="btn btn-sm btn-info">Ver Detalhes</a>
+                  <a href="{{ url_for('cards.card_detail', card_id=card.id) }}" class="btn btn-sm btn-info">Ver Detalhes</a>
                 </div>
               </div>
             {% endfor %}

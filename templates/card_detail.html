@@ -17,13 +17,31 @@
     </p>
     <hr>
     <h5>Pergunta:</h5>
-    <p>{{ card.front | process_front | safe }}</p>
+    <p>{{ card.render_front() | safe }}</p>
     <hr>
     <h5>Resposta:</h5>
-    <p>{{ card.back | process_answer | safe }}</p>
-   
-    <!-- Botão para editar o cartão, logo abaixo do "esquema" (parte da resposta) -->
-    <a href="{{ url_for('cards.edit_card', card_id=card.id) }}" class="btn btn-sm btn-warning d-block mx-auto" style="margin-top: 10px; width: 120px;">Editar Cartão</a>
+    <p>{{ card.render_back() | safe }}</p>
+
+    {% if card.note %}
+    <!-- Info da Nota -->
+    <p style="font-size: 0.8em; color: #999; margin-top: 5px;">
+      Nota #{{ card.note.id }} ({{ 'Omissao' if card.note.note_type == 'cloze' else 'Basico' }})
+      {% if card.note.note_type == 'cloze' %} | Cartao c{{ card.ordinal }}{% endif %}
+      {% if sibling_cards|length > 1 %}
+        | {{ sibling_cards|length }} cartoes:
+        {% for sc in sibling_cards %}
+          {% if sc.id == card.id %}<strong>c{{ sc.ordinal }}</strong>{% else %}<a href="{{ url_for('cards.card_detail', card_id=sc.id) }}">c{{ sc.ordinal }}</a>{% endif %}{% if not loop.last %}, {% endif %}
+        {% endfor %}
+      {% endif %}
+    </p>
+    {% endif %}
+
+    <!-- Botao para editar -->
+    {% if card.note %}
+    <a href="{{ url_for('cards.edit_note', note_id=card.note.id) }}" class="btn btn-sm btn-warning d-block mx-auto" style="margin-top: 10px; width: 120px;">Editar Nota</a>
+    {% else %}
+    <a href="{{ url_for('cards.edit_card', card_id=card.id) }}" class="btn btn-sm btn-warning d-block mx-auto" style="margin-top: 10px; width: 120px;">Editar Cartao</a>
+    {% endif %}
     <hr>
     <div style="text-align: center;">
       <p style="font-size: 1.2em; color: #888; margin-bottom: 5px;">

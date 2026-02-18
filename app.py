@@ -53,7 +53,7 @@ from filters import register_filters
 from filters import get_cards_recursive, count_cards_recursive
 
 # IMPORTANTE: Importe TODOS os modelos
-from models import Deck, Card, Tag, Player, Talent, PlayerRunBuff, ReviewLog
+from models import Deck, Card, Tag, Player, Talent, PlayerRunBuff, ReviewLog, Note, note_tags
 from models import Boss, DailyStats, PlayerTalent, AppliedTalentEffect
 from models import Item, PlayerItem, Equipment, ShopQuote, BestiaryEntry, PlayerAchievement
 
@@ -139,7 +139,14 @@ app.jinja_env.globals.update(timezone=timezone)
 with app.app_context():
     db.create_all()
     print("Tabelas criadas com sucesso")
-    
+
+    # Migração Note/Card
+    try:
+        from routes.cards import migrate_cards_to_notes
+        migrate_cards_to_notes()
+    except Exception as e:
+        print(f"⚠️ Migração Note/Card: {e}")
+
     # Inicializar skills do Vlad
     from characters import init_vlad_skills
     # ✅ CORREÇÃO: Inicializar skills do Vlad de forma segura

@@ -98,15 +98,15 @@
       <div id="question-section" class="centered-text">
         <h5>Pergunta:</h5>
         <div class="card-text-container">
-          <p class="card-text">{{ card.front | process_front | safe }}</p>
+          <p class="card-text">{{ card.render_front() | safe }}</p>
         </div>
       </div>
-      
+
       <!-- Seção da resposta, inicialmente oculta -->
       <div id="answer-section" class="centered-text" style="display: none;">
         <h5>Resposta:</h5>
         <div class="card-text-container">
-          <p class="card-text">{{ card.back | process_answer | safe }}</p>
+          <p class="card-text">{{ card.render_back() | safe }}</p>
         </div>
       </div>
       

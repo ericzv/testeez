@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session, current_app, send_file
-from models import Deck, Card, Tag, db, DailyStats, Player, ReviewLog
+from models import Deck, Card, Tag, db, DailyStats, Player, ReviewLog, Note, note_tags
 from srs_engine import (
     sm2_review, compute_sm2_preview, format_interval, log_review,
     update_daily_stats, normalize_response,
@@ -12,6 +12,7 @@ import os
 import csv
 import random
 import json
+import re
 
 # Criar o objeto Blueprint
 cards_bp = Blueprint('cards', __name__)
@@ -98,6 +99,84 @@ def flash_gamification(message, notification_only=False):
     else:
         # Mensagens normais de gamificação mostradas como de costume
         flash(message, "gamification")
+
+
+##############################################
+#         MIGRAÇÃO Note/Card
+##############################################
+
+def migrate_cards_to_notes():
+    """Migra cartões existentes para o sistema Note/Card.
+    Adiciona colunas note_id e ordinal se necessário, cria notas para cada cartão."""
+    # 1) Adicionar colunas se não existem
+    for sql in [
+        "ALTER TABLE card ADD COLUMN note_id INTEGER REFERENCES note(id)",
+        "ALTER TABLE card ADD COLUMN ordinal INTEGER DEFAULT 1",
+    ]:
+        try:
+            db.session.execute(text(sql))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+    # 2) Verificar se já foi migrado
+    orphan_count = Card.query.filter(Card.note_id == None).count()
+    if orphan_count == 0:
+        return
+
+    print(f"Migrando {orphan_count} cartões para o sistema Note/Card...")
+
+    cards = Card.query.filter(Card.note_id == None).all()
+    for card in cards:
+        has_cloze = bool(re.search(r'\{\{c\d+::', card.front or ''))
+
+        if has_cloze:
+            note = Note(
+                note_type='cloze',
+                content=card.front,
+                back=None,
+                extra=None,
+                deck_id=card.deck_id
+            )
+        else:
+            note = Note(
+                note_type='basic',
+                content=card.front,
+                back=card.back,
+                extra=None,
+                deck_id=card.deck_id
+            )
+
+        db.session.add(note)
+        db.session.flush()
+
+        # Copiar tags do cartão para a nota
+        for tag in card.tags:
+            note.tags.append(tag)
+
+        # Vincular cartão existente à nota
+        card.note_id = note.id
+        card.ordinal = 1
+
+        # Para cloze com múltiplos ordinais, criar cartões extras
+        if has_cloze:
+            ordinals = note.get_cloze_ordinals()
+            for ordinal in ordinals:
+                if ordinal != 1:
+                    new_card = Card(
+                        note_id=note.id,
+                        ordinal=ordinal,
+                        deck_id=card.deck_id,
+                        front=card.front,
+                        back=card.back or ''
+                    )
+                    # Copiar tags
+                    for tag in card.tags:
+                        new_card.tags.append(tag)
+                    db.session.add(new_card)
+
+    db.session.commit()
+    print(f"Migração concluída: {orphan_count} cartões migrados para notas.")
 
 
 ##############################################
@@ -226,13 +305,19 @@ def import_cards():
             # Cria ou recupera a hierarquia de baralhos com base no nome do arquivo
             final_deck = get_or_create_deck(deck_name_str)
             
-            # Detectar duplicatas pelo texto frontal no mesmo baralho
+            # Detectar duplicatas pelo conteúdo da nota no mesmo baralho
+            existing_contents = set(
+                row[0] for row in db.session.query(Note.content)
+                .filter(Note.deck_id == final_deck.id).all()
+            )
+            # Fallback: também verificar Card.front para cartões legados sem nota
             existing_fronts = set(
                 row[0] for row in db.session.query(Card.front)
-                .filter(Card.deck_id == final_deck.id).all()
+                .filter(Card.deck_id == final_deck.id, Card.note_id == None).all()
             )
+            existing_contents.update(existing_fronts)
 
-            new_cards = []
+            new_cards_count = 0
             duplicates = 0
             with open(filepath, newline='', encoding='utf-8-sig') as txtfile:
                 csv_reader = csv.reader(txtfile, delimiter='\t')
@@ -240,17 +325,38 @@ def import_cards():
                     if len(row) >= 2:
                         front = row[0].strip()
                         back = row[1].strip()
-                        if front in existing_fronts:
+                        if front in existing_contents:
                             duplicates += 1
                             continue
-                        existing_fronts.add(front)
-                        new_cards.append(Card(front=front, back=back, deck_id=final_deck.id))
+                        existing_contents.add(front)
 
-            if new_cards:
-                db.session.add_all(new_cards)
+                        # Auto-detectar tipo
+                        has_cloze = bool(re.search(r'\{\{c\d+::', front))
+                        note = Note(
+                            note_type='cloze' if has_cloze else 'basic',
+                            content=front,
+                            back=back if not has_cloze else None,
+                            deck_id=final_deck.id
+                        )
+                        db.session.add(note)
+                        db.session.flush()
+
+                        if has_cloze:
+                            ordinals = note.get_cloze_ordinals()
+                            for ordinal in ordinals:
+                                card = Card(note_id=note.id, ordinal=ordinal,
+                                            deck_id=final_deck.id, front=front, back=back)
+                                db.session.add(card)
+                                new_cards_count += 1
+                        else:
+                            card = Card(note_id=note.id, ordinal=1,
+                                        deck_id=final_deck.id, front=front, back=back)
+                            db.session.add(card)
+                            new_cards_count += 1
+
             db.session.commit()
 
-            msg = f'Importação concluída! {len(new_cards)} cartões adicionados ao baralho "{final_deck.name}"'
+            msg = f'Importação concluída! {new_cards_count} cartões adicionados ao baralho "{final_deck.name}"'
             if duplicates:
                 msg += f' ({duplicates} duplicados ignorados)'
             flash(msg, 'success')
@@ -638,11 +744,20 @@ def card_detail(card_id):
             'repetition': card.repetition,
         }
     review_logs = ReviewLog.query.filter_by(card_id=card.id).order_by(ReviewLog.timestamp.desc()).limit(50).all()
-    return render_template('card_detail.html', card=card, details=details_info, review_logs=review_logs)
+    # Info sobre nota e cartões-irmãos
+    sibling_cards = []
+    if card.note:
+        sibling_cards = Card.query.filter_by(note_id=card.note.id).order_by(Card.ordinal).all()
+    return render_template('card_detail.html', card=card, details=details_info,
+                           review_logs=review_logs, sibling_cards=sibling_cards)
 
 @cards_bp.route('/card/<int:card_id>/edit', methods=['GET', 'POST'])
 def edit_card(card_id):
     card = Card.query.get_or_404(card_id)
+    # Se o cartão tem nota, redirecionar para edit_note
+    if card.note:
+        return redirect(url_for('cards.edit_note', note_id=card.note.id))
+    # Fallback legado para cartões sem nota
     if request.method == 'POST':
         new_front = request.form.get('front', '')
         new_back = request.form.get('back', '')
@@ -652,6 +767,36 @@ def edit_card(card_id):
         flash("Cartão atualizado com sucesso!", "success")
         return redirect(url_for('cards.card_detail', card_id=card_id))
     return render_template('edit_card.html', card=card)
+
+
+@cards_bp.route('/note/<int:note_id>/edit', methods=['GET', 'POST'])
+def edit_note(note_id):
+    note = Note.query.get_or_404(note_id)
+    if request.method == 'POST':
+        new_type = request.form.get('note_type', note.note_type)
+        note.note_type = new_type
+
+        if new_type == 'cloze':
+            note.content = request.form.get('content', '')
+            note.back = None
+            note.extra = request.form.get('extra', '') or None
+        else:
+            note.content = request.form.get('front', '')
+            note.back = request.form.get('back', '')
+            note.extra = request.form.get('extra', '') or None
+
+        # Sincronizar cartões-filho
+        note.sync_cards()
+        db.session.commit()
+
+        flash("Nota atualizada com sucesso!", "success")
+        # Redirecionar para o primeiro cartão da nota
+        first_card = Card.query.filter_by(note_id=note.id).order_by(Card.ordinal).first()
+        if first_card:
+            return redirect(url_for('cards.card_detail', card_id=first_card.id))
+        return redirect(url_for('cards.panel'))
+
+    return render_template('edit_note.html', note=note)
 
 @cards_bp.route('/decks', methods=['GET', 'POST'])
 def decks():
@@ -1447,8 +1592,8 @@ def custom_study_session():
         # Registrar a resposta no histórico
         history_entry = {
             "card_id": card_id,
-            "front": card.front,
-            "back": card.back,
+            "front": card.render_front() if card.note else card.front,
+            "back": card.render_back() if card.note else card.back,
             "response": response
         }
         

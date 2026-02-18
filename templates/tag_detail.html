@@ -21,8 +21,8 @@
           {% for card in cards %}
             <tr>
               <td>{{ card.id }}</td>
-              <td>{{ card.front | process_front | panel_preview | safe }}</td>
-              <td>{{ card.back | process_answer | panel_preview | safe }}</td>
+              <td>{{ card.render_front() | panel_preview | safe }}</td>
+              <td>{{ card.render_back() | panel_preview | safe }}</td>
               <td>{{ card.deck.name }}</td>
               <td>
                 <a href="{{ url_for('cards.card_detail', card_id=card.id) }}" class="btn btn-sm btn-info">Ver</a>

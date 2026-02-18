@@ -72,8 +72,38 @@ def process_answer(text):
     
     return text
 
-# Outros filtros e funções...
+##############################################
+#   FILTROS CLOZE DINÂMICOS (Note/Card)
+##############################################
 
+def process_cloze_front(text, ordinal):
+    """Processa texto cloze para o lado da PERGUNTA.
+    O ordinal alvo {{cN::texto}} vira [...], os demais mostram o texto sem marcadores."""
+    text = update_image_paths(text)
+    # Substituir o ordinal alvo por [...]
+    text = re.sub(
+        r'\{\{c' + str(ordinal) + r'::(.*?)\}\}',
+        r'<span style="font-weight: bold; color: #003366; padding: 2px 4px;">[...]</span>',
+        text
+    )
+    # Mostrar texto de todos os outros ordinais sem marcadores
+    text = re.sub(r'\{\{c\d+::(.*?)\}\}', r'\1', text)
+    return text
+
+
+def process_cloze_answer(text, ordinal):
+    """Processa texto cloze para o lado da RESPOSTA.
+    O ordinal alvo {{cN::texto}} é revelado em negrito, os demais mostram texto normal."""
+    text = update_image_paths(text)
+    # Revelar o ordinal alvo em negrito
+    text = re.sub(
+        r'\{\{c' + str(ordinal) + r'::(.*?)\}\}',
+        r'<span style="font-weight: bold; color: #003366;">\1</span>',
+        text
+    )
+    # Mostrar texto de todos os outros ordinais sem marcadores
+    text = re.sub(r'\{\{c\d+::(.*?)\}\}', r'\1', text)
+    return text
 
 
 ##############################################
