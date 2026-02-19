@@ -128,12 +128,16 @@ def migrate_cards_to_notes():
 
     cards = Card.query.filter(Card.note_id == None).all()
     for card in cards:
-        has_cloze = bool(re.search(r'\{\{c\d+::', card.front or ''))
+        front_has_cloze = bool(re.search(r'\{\{c\d+::', card.front or ''))
+        back_has_cloze = bool(re.search(r'\{\{c\d+::', card.back or ''))
+        has_cloze = front_has_cloze or back_has_cloze
 
         if has_cloze:
+            # Usar o campo que contém os marcadores cloze como conteúdo
+            cloze_content = card.front if front_has_cloze else card.back
             note = Note(
                 note_type='cloze',
-                content=card.front,
+                content=cloze_content,
                 back=None,
                 extra=None,
                 deck_id=card.deck_id
@@ -177,6 +181,24 @@ def migrate_cards_to_notes():
 
     db.session.commit()
     print(f"Migração concluída: {orphan_count} cartões migrados para notas.")
+
+    # 4) Corrigir notas que foram criadas como 'basic' mas contêm cloze
+    mistyped = Note.query.filter(Note.note_type == 'basic').all()
+    fixed = 0
+    for note in mistyped:
+        content_has = bool(re.search(r'\{\{c\d+::', note.content or ''))
+        back_has = bool(re.search(r'\{\{c\d+::', note.back or ''))
+        if content_has or back_has:
+            if back_has and not content_has:
+                # Cloze está no campo back; mover para content
+                note.content = note.back
+            note.note_type = 'cloze'
+            note.back = None
+            note.sync_cards()
+            fixed += 1
+    if fixed:
+        db.session.commit()
+        print(f"Corrigidas {fixed} notas de 'basic' para 'cloze'.")
 
 
 ##############################################
@@ -330,14 +352,28 @@ def import_cards():
                             continue
                         existing_contents.add(front)
 
-                        # Auto-detectar tipo
-                        has_cloze = bool(re.search(r'\{\{c\d+::', front))
-                        note = Note(
-                            note_type='cloze' if has_cloze else 'basic',
-                            content=front,
-                            back=back if not has_cloze else None,
-                            deck_id=final_deck.id
-                        )
+                        # Auto-detectar tipo: verificar cloze em AMBOS os campos
+                        front_has_cloze = bool(re.search(r'\{\{c\d+::', front))
+                        back_has_cloze = bool(re.search(r'\{\{c\d+::', back))
+                        has_cloze = front_has_cloze or back_has_cloze
+
+                        # Para cloze, o conteúdo é o campo que contém os marcadores
+                        # Se ambos têm, preferir o front; se só back tem, usar back
+                        if has_cloze:
+                            cloze_content = front if front_has_cloze else back
+                            note = Note(
+                                note_type='cloze',
+                                content=cloze_content,
+                                back=None,
+                                deck_id=final_deck.id
+                            )
+                        else:
+                            note = Note(
+                                note_type='basic',
+                                content=front,
+                                back=back,
+                                deck_id=final_deck.id
+                            )
                         db.session.add(note)
                         db.session.flush()
 
