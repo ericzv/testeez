@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
 {% block title %}Importar Coleção - Flashcards{% endblock %}
 {% block content %}
-<h2>Importar Coleção</h2>
-<p>Selecione o arquivo CSV (tabulado). O arquivo deve conter ao menos duas colunas: pergunta e resposta.</p>
+<h2>Importar Coleção do Anki</h2>
+<p>Exporte sua coleção ou baralho no Anki como <strong>.apkg</strong> e importe aqui.</p>
+<p style="color: #888; font-size: 0.9em;">No Anki: Arquivo &rarr; Exportar &rarr; Formato: "Pacote Anki (.apkg)"</p>
 <form method="POST" enctype="multipart/form-data">
     <div class="form-group">
-        <label for="file">Arquivo:</label>
-        <input type="file" class="form-control-file" name="file" id="file" required>
+        <label for="file">Arquivo .apkg:</label>
+        <input type="file" class="form-control-file" name="file" id="file" accept=".apkg" required>
     </div>
     <button type="submit" class="btn btn-primary">Importar</button>
 </form>

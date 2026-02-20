@@ -9,10 +9,13 @@ from datetime import datetime, timezone, timedelta
 from sqlalchemy import func, text, or_
 import math
 import os
-import csv
 import random
 import json
 import re
+import zipfile
+import sqlite3
+import tempfile
+import shutil
 from html import unescape
 
 # Criar o objeto Blueprint
@@ -112,6 +115,297 @@ def get_or_create_deck(hierarchy_str):
             db.session.flush()  # Garante ID sem commit separado
         parent = deck
     return parent
+
+
+def import_apkg(filepath):
+    """Importa um arquivo .apkg (pacote Anki) completo.
+
+    O .apkg é um ZIP contendo:
+    - collection.anki2 (ou .anki21): banco SQLite com notas, cartões, revisões
+    - media: JSON mapeando números para nomes de arquivos de mídia
+    - Arquivos de mídia nomeados como números (0, 1, 2...)
+
+    Retorna dict com estatísticas ou {'error': mensagem}.
+    """
+    tmpdir = tempfile.mkdtemp()
+    try:
+        # 1. Extrair ZIP
+        try:
+            with zipfile.ZipFile(filepath, 'r') as z:
+                z.extractall(tmpdir)
+        except zipfile.BadZipFile:
+            return {'error': 'Arquivo inválido. Não é um .apkg válido.'}
+
+        # 2. Encontrar o banco SQLite
+        db_path = None
+        for name in ['collection.anki2', 'collection.anki21']:
+            candidate = os.path.join(tmpdir, name)
+            if os.path.exists(candidate):
+                db_path = candidate
+                break
+
+        if not db_path:
+            return {'error': 'Formato .apkg não suportado. Verifique se o arquivo foi exportado corretamente pelo Anki.'}
+
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+
+        # 3. Ler metadados da coleção
+        col_row = conn.execute('SELECT * FROM col').fetchone()
+        col_crt = col_row['crt']  # timestamp de criação da coleção
+        models = json.loads(col_row['models'])
+        decks_meta = json.loads(col_row['decks'])
+
+        # 4. Mapear tipos de modelo: model_id → 'basic' ou 'cloze'
+        model_type_map = {}
+        for mid_str, model in models.items():
+            model_type_map[int(mid_str)] = 'cloze' if model.get('type') == 1 else 'basic'
+
+        # 5. Criar hierarquia de baralhos: anki_deck_id → nosso Deck
+        deck_map = {}
+        for anki_deck_id_str, deck_info in decks_meta.items():
+            deck_name = deck_info['name']
+            # Anki usa "::" como separador de hierarquia
+            parts = deck_name.split('::')
+            parent = None
+            for part in parts:
+                part = part.strip()
+                existing = Deck.query.filter_by(
+                    name=part, parent_id=(parent.id if parent else None)
+                ).first()
+                if existing:
+                    parent = existing
+                else:
+                    new_deck = Deck(name=part, parent_id=(parent.id if parent else None))
+                    db.session.add(new_deck)
+                    db.session.flush()
+                    parent = new_deck
+            deck_map[int(anki_deck_id_str)] = parent
+
+        # 6. Ler todas as notas do Anki
+        anki_notes = {}
+        for row in conn.execute('SELECT * FROM notes'):
+            anki_notes[row['id']] = row
+
+        # 7. Ler todos os cartões e agrupar por nota
+        note_cards = {}
+        for row in conn.execute('SELECT * FROM cards'):
+            nid = row['nid']
+            if nid not in note_cards:
+                note_cards[nid] = []
+            note_cards[nid].append(row)
+
+        # 8. Pré-carregar todo o histórico de revisões agrupado por cartão Anki
+        revlog_by_card = {}
+        for row in conn.execute('SELECT * FROM revlog ORDER BY id'):
+            cid = row['cid']
+            if cid not in revlog_by_card:
+                revlog_by_card[cid] = []
+            revlog_by_card[cid].append(row)
+
+        # 9. Processar notas e criar objetos
+        notes_created = 0
+        cards_created = 0
+        revlogs_created = 0
+        duplicates = 0
+
+        for anki_note_id, anki_note in anki_notes.items():
+            fields = anki_note['flds'].split('\x1f')
+            mid = anki_note['mid']
+            note_type = model_type_map.get(mid, 'basic')
+            tags_str = anki_note['tags'].strip()
+
+            # Conteúdo dos campos
+            front = fields[0] if len(fields) > 0 else ''
+            back = fields[1] if len(fields) > 1 else ''
+            extra = fields[2] if len(fields) > 2 else None
+
+            if note_type == 'cloze':
+                content = front  # Texto cloze com {{c1::}} direto do Anki
+                note_back = None
+            else:
+                content = front
+                note_back = back
+
+            # Determinar baralho pela primeiro cartão da nota
+            cards_for_note = note_cards.get(anki_note_id, [])
+            if not cards_for_note:
+                continue
+
+            first_card = cards_for_note[0]
+            deck = deck_map.get(first_card['did'])
+            if not deck:
+                deck = Deck.query.first() or Deck(name='Importado')
+                if not deck.id:
+                    db.session.add(deck)
+                    db.session.flush()
+
+            # Verificar duplicata pelo conteúdo
+            existing = Note.query.filter_by(content=content, deck_id=deck.id).first()
+            if existing:
+                duplicates += 1
+                continue
+
+            # Criar Nota
+            note = Note(
+                note_type=note_type,
+                content=content,
+                back=note_back,
+                extra=extra if extra else None,
+                deck_id=deck.id
+            )
+            db.session.add(note)
+            db.session.flush()
+            notes_created += 1
+
+            # Tags
+            if tags_str:
+                for tag_name in tags_str.split():
+                    tag_name = tag_name.strip()
+                    if not tag_name:
+                        continue
+                    tag = Tag.query.filter_by(name=tag_name).first()
+                    if not tag:
+                        tag = Tag(name=tag_name)
+                        db.session.add(tag)
+                        db.session.flush()
+                    if tag not in note.tags:
+                        note.tags.append(tag)
+
+            # Criar Cartões com dados de agendamento do Anki
+            for anki_card in cards_for_note:
+                ordinal = anki_card['ord'] + 1  # Anki é 0-indexed, nós somos 1-indexed
+                card_deck = deck_map.get(anki_card['did'], deck)
+
+                # Dados SM-2 do Anki
+                anki_ivl = anki_card['ivl']
+                anki_factor = anki_card['factor']
+                anki_reps = anki_card['reps']
+                anki_lapses = anki_card['lapses']
+                anki_type = anki_card['type']    # 0=new, 1=learning, 2=review
+                anki_queue = anki_card['queue']  # -1=suspended
+                anki_due = anki_card['due']
+
+                # Converter intervalo (positivo=dias, negativo=segundos)
+                if anki_ivl < 0:
+                    interval = abs(anki_ivl) / 86400.0
+                else:
+                    interval = float(anki_ivl)
+
+                # Converter fator de facilidade (Anki armazena * 1000)
+                if anki_factor > 0:
+                    easiness_factor = anki_factor / 1000.0
+                else:
+                    easiness_factor = 2.5
+                easiness_factor = max(1.3, easiness_factor)
+
+                # Converter data de revisão
+                if anki_type == 2:  # Review: due = dias desde criação da coleção
+                    next_review = datetime.utcfromtimestamp(col_crt + anki_due * 86400)
+                elif anki_type == 1:  # Learning: due = timestamp Unix
+                    next_review = datetime.utcfromtimestamp(anki_due)
+                else:  # Novo: revisar agora
+                    next_review = datetime.utcnow()
+
+                # Repetição consecutiva (para SM-2)
+                if anki_type == 2 and anki_reps > 0:
+                    repetition = max(2, anki_reps - anki_lapses)
+                else:
+                    repetition = 0
+
+                # Dificuldade derivada do EF (mesma fórmula do srs_engine)
+                difficulty = max(1, min(10, round(10 - (easiness_factor - 1.3) * 9 / 2.2)))
+
+                card = Card(
+                    note_id=note.id,
+                    ordinal=ordinal,
+                    deck_id=card_deck.id,
+                    front=content,
+                    back=note_back or '',
+                    interval=interval,
+                    easiness_factor=easiness_factor,
+                    repetition=repetition,
+                    review_count=anki_reps,
+                    correct_count=max(0, anki_reps - anki_lapses),
+                    difficulty=difficulty,
+                    next_review=next_review,
+                    suspended=(anki_queue == -1),
+                )
+                db.session.add(card)
+                db.session.flush()
+                cards_created += 1
+
+                # Importar histórico de revisões deste cartão
+                anki_card_id = anki_card['id']
+                for rev in revlog_by_card.get(anki_card_id, []):
+                    ease = rev['ease']
+                    if ease == 1:
+                        quality, response = 0, 'errei'
+                    elif ease == 2:
+                        quality, response = 3, 'dificil'
+                    elif ease == 3:
+                        quality, response = 4, 'facil'
+                    else:
+                        quality, response = 5, 'muito_facil'
+
+                    rev_ivl = rev['ivl']
+                    rev_last = rev['lastIvl']
+                    interval_after = abs(rev_ivl) / 86400.0 if rev_ivl < 0 else float(rev_ivl)
+                    interval_before = abs(rev_last) / 86400.0 if rev_last < 0 else float(rev_last)
+
+                    rev_factor = rev['factor']
+                    ef_val = rev_factor / 1000.0 if rev_factor > 0 else easiness_factor
+
+                    review_log = ReviewLog(
+                        card_id=card.id,
+                        response=response,
+                        quality=quality,
+                        was_new=(rev['type'] == 0),
+                        interval_before=interval_before,
+                        interval_after=interval_after,
+                        ef_before=ef_val,
+                        ef_after=ef_val,
+                        time_spent=rev['time'] // 1000,
+                        timestamp=datetime.utcfromtimestamp(rev['id'] / 1000.0),
+                    )
+                    db.session.add(review_log)
+                    revlogs_created += 1
+
+        # 10. Extrair mídia para static/collection.media/
+        media_count = 0
+        media_json_path = os.path.join(tmpdir, 'media')
+        if os.path.exists(media_json_path):
+            with open(media_json_path, 'r', encoding='utf-8') as f:
+                media_map = json.loads(f.read())
+
+            media_dest = os.path.join(current_app.root_path, 'static', 'collection.media')
+            os.makedirs(media_dest, exist_ok=True)
+
+            for num_str, original_name in media_map.items():
+                src = os.path.join(tmpdir, num_str)
+                if os.path.exists(src):
+                    dst = os.path.join(media_dest, original_name)
+                    if not os.path.exists(dst):
+                        shutil.copy2(src, dst)
+                        media_count += 1
+
+        db.session.commit()
+        conn.close()
+
+        return {
+            'notes': notes_created,
+            'cards': cards_created,
+            'revlogs': revlogs_created,
+            'media': media_count,
+            'duplicates': duplicates,
+        }
+
+    except Exception as e:
+        db.session.rollback()
+        return {'error': f'Erro ao importar: {str(e)}'}
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
 
 def process_gamification(card, response, time_spent, was_new):
     """Process gamification logic for studying cards. NÃO faz commit."""
@@ -384,97 +678,47 @@ def study_lobby():
 def import_cards():
     if request.method == 'POST':
         file = request.files.get('file')
-        if file:
-            # Cria a pasta de uploads, se não existir
-            if not os.path.exists(current_app.config['UPLOAD_FOLDER']):
-                os.makedirs(current_app.config['UPLOAD_FOLDER'])
-            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], file.filename)
-            file.save(filepath)
-            
-            # Extrai o nome do arquivo sem a extensão para definir a hierarquia dos baralhos
-            deck_name_str = os.path.splitext(file.filename)[0]
-            
-            # Cria ou recupera a hierarquia de baralhos com base no nome do arquivo
-            final_deck = get_or_create_deck(deck_name_str)
-            
-            # Detectar duplicatas pelo conteúdo da nota no mesmo baralho
-            existing_contents = set(
-                row[0] for row in db.session.query(Note.content)
-                .filter(Note.deck_id == final_deck.id).all()
-            )
-            # Fallback: também verificar Card.front para cartões legados sem nota
-            existing_fronts = set(
-                row[0] for row in db.session.query(Card.front)
-                .filter(Card.deck_id == final_deck.id, Card.note_id == None).all()
-            )
-            existing_contents.update(existing_fronts)
-
-            new_cards_count = 0
-            duplicates = 0
-            with open(filepath, newline='', encoding='utf-8-sig') as txtfile:
-                csv_reader = csv.reader(txtfile, delimiter='\t')
-                for row in csv_reader:
-                    if len(row) >= 2:
-                        front = row[0].strip()
-                        back = row[1].strip()
-                        if front in existing_contents:
-                            duplicates += 1
-                            continue
-                        existing_contents.add(front)
-
-                        # Auto-detectar tipo cloze:
-                        # 1) Formato raw {{c1::text}} (raro em exports Anki)
-                        # 2) HTML do Anki: <span class="cloze" data-cloze="..." data-ordinal="N">[...]</span>
-                        raw_cloze = bool(re.search(r'\{\{c\d+::', front)) or bool(re.search(r'\{\{c\d+::', back))
-                        anki_html_cloze = detect_anki_cloze_html(front) or detect_anki_cloze_html(back)
-                        has_cloze = raw_cloze or anki_html_cloze
-
-                        if has_cloze:
-                            if anki_html_cloze:
-                                # Converter HTML do Anki para {{cN::text}}
-                                cloze_content = convert_anki_cloze_html(front, back)
-                            elif bool(re.search(r'\{\{c\d+::', front)):
-                                cloze_content = front
-                            else:
-                                cloze_content = back
-                            note = Note(
-                                note_type='cloze',
-                                content=cloze_content,
-                                back=None,
-                                deck_id=final_deck.id
-                            )
-                        else:
-                            note = Note(
-                                note_type='basic',
-                                content=front,
-                                back=back,
-                                deck_id=final_deck.id
-                            )
-                        db.session.add(note)
-                        db.session.flush()
-
-                        if has_cloze:
-                            ordinals = note.get_cloze_ordinals()
-                            for ordinal in ordinals:
-                                card = Card(note_id=note.id, ordinal=ordinal,
-                                            deck_id=final_deck.id, front=front, back=back)
-                                db.session.add(card)
-                                new_cards_count += 1
-                        else:
-                            card = Card(note_id=note.id, ordinal=1,
-                                        deck_id=final_deck.id, front=front, back=back)
-                            db.session.add(card)
-                            new_cards_count += 1
-
-            db.session.commit()
-
-            msg = f'Importação concluída! {new_cards_count} cartões adicionados ao baralho "{final_deck.name}"'
-            if duplicates:
-                msg += f' ({duplicates} duplicados ignorados)'
-            flash(msg, 'success')
-            return redirect(url_for('cards.decks'))
-        else:
+        if not file:
             flash('Por favor, selecione um arquivo.', 'danger')
+            return render_template('import.html')
+
+        ext = os.path.splitext(file.filename)[1].lower()
+        if ext != '.apkg':
+            flash('Formato não suportado. Exporte sua coleção do Anki como .apkg.', 'danger')
+            return render_template('import.html')
+
+        # Salvar arquivo temporariamente
+        if not os.path.exists(current_app.config['UPLOAD_FOLDER']):
+            os.makedirs(current_app.config['UPLOAD_FOLDER'])
+        filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(filepath)
+
+        result = import_apkg(filepath)
+
+        # Limpar arquivo temporário
+        try:
+            os.remove(filepath)
+        except OSError:
+            pass
+
+        if 'error' in result:
+            flash(result['error'], 'danger')
+            return render_template('import.html')
+
+        parts = []
+        parts.append(f'{result["notes"]} notas')
+        parts.append(f'{result["cards"]} cartões')
+        if result.get('revlogs', 0) > 0:
+            parts.append(f'{result["revlogs"]} revisões no histórico')
+        if result.get('media', 0) > 0:
+            parts.append(f'{result["media"]} arquivos de mídia')
+
+        msg = f'Importação concluída! {", ".join(parts)}.'
+        if result.get('duplicates', 0) > 0:
+            msg += f' ({result["duplicates"]} duplicados ignorados)'
+        flash(msg, 'success')
+        return redirect(url_for('cards.decks'))
+
     return render_template('import.html')
 
 @cards_bp.route('/start_session_new')
