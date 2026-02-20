@@ -13,9 +13,70 @@ import csv
 import random
 import json
 import re
+from html import unescape
 
 # Criar o objeto Blueprint
 cards_bp = Blueprint('cards', __name__)
+
+
+def detect_anki_cloze_html(text):
+    """Detecta se o texto contém HTML de cloze exportado pelo Anki."""
+    if not text:
+        return False
+    return bool(re.search(r'<span[^>]*class=["\']?cloze["\']?[^>]*data-ordinal=', text))
+
+
+def convert_anki_cloze_html(front_html, back_html=''):
+    """Converte HTML de cloze exportado pelo Anki para o formato {{cN::text}}.
+
+    O Anki exporta cloze assim:
+    - Front: <span class="cloze" data-cloze="resposta" data-ordinal="1">[...]</span>
+    - Back:  <span class="cloze" data-ordinal="1">resposta</span>
+
+    Reconstrói o texto limpo com marcadores {{cN::resposta}}.
+    """
+    # Estratégia 1: usar o front que tem data-cloze com a resposta embutida
+    def replace_front_cloze(match):
+        span = match.group(0)
+        cloze_m = re.search(r'data-cloze="([^"]*)"', span)
+        ord_m = re.search(r'data-ordinal="(\d+)"', span)
+        if cloze_m and ord_m:
+            answer = unescape(cloze_m.group(1))
+            ordinal = ord_m.group(1)
+            return '{{' + f'c{ordinal}::{answer}' + '}}'
+        return match.group(0)
+
+    result = front_html
+    # Tentar reconstruir do front (tem data-cloze="resposta" e [...]  no conteúdo)
+    front_pattern = r'<span[^>]*class=["\']?cloze["\']?[^>]*>\[(?:\.{3}|…)\]</span>'
+    converted = re.sub(front_pattern, replace_front_cloze, result)
+
+    # Se não encontrou no front, tentar do back (tem a resposta como texto do span)
+    if converted == result and back_html:
+        def replace_back_cloze(match):
+            span = match.group(0)
+            ord_m = re.search(r'data-ordinal="(\d+)"', span)
+            # Extrair o texto entre > e </span>
+            text_m = re.search(r'>([^<]+)</span>', span)
+            if ord_m and text_m:
+                answer = unescape(text_m.group(1))
+                ordinal = ord_m.group(1)
+                return '{{' + f'c{ordinal}::{answer}' + '}}'
+            return match.group(0)
+
+        back_pattern = r'<span[^>]*class=["\']?cloze["\']?[^>]*>[^<]+</span>'
+        converted = re.sub(back_pattern, replace_back_cloze, back_html)
+
+    # Remover comentários HTML
+    converted = re.sub(r'<!--.*?-->', '', converted, flags=re.DOTALL)
+    # Remover tags HTML
+    converted = re.sub(r'<[^>]+>', '', converted)
+    # Decodificar entidades HTML
+    converted = unescape(converted)
+    # Limpar espaços extras
+    converted = re.sub(r'\s+', ' ', converted).strip()
+
+    return converted
 
 @cards_bp.app_template_global()
 def datetime_module():
@@ -128,13 +189,18 @@ def migrate_cards_to_notes():
 
     cards = Card.query.filter(Card.note_id == None).all()
     for card in cards:
-        front_has_cloze = bool(re.search(r'\{\{c\d+::', card.front or ''))
-        back_has_cloze = bool(re.search(r'\{\{c\d+::', card.back or ''))
-        has_cloze = front_has_cloze or back_has_cloze
+        raw_cloze = bool(re.search(r'\{\{c\d+::', card.front or '')) or \
+                    bool(re.search(r'\{\{c\d+::', card.back or ''))
+        anki_html = detect_anki_cloze_html(card.front) or detect_anki_cloze_html(card.back)
+        has_cloze = raw_cloze or anki_html
 
         if has_cloze:
-            # Usar o campo que contém os marcadores cloze como conteúdo
-            cloze_content = card.front if front_has_cloze else card.back
+            if anki_html:
+                cloze_content = convert_anki_cloze_html(card.front or '', card.back or '')
+            elif bool(re.search(r'\{\{c\d+::', card.front or '')):
+                cloze_content = card.front
+            else:
+                cloze_content = card.back
             note = Note(
                 note_type='cloze',
                 content=cloze_content,
@@ -186,11 +252,15 @@ def migrate_cards_to_notes():
     mistyped = Note.query.filter(Note.note_type == 'basic').all()
     fixed = 0
     for note in mistyped:
-        content_has = bool(re.search(r'\{\{c\d+::', note.content or ''))
-        back_has = bool(re.search(r'\{\{c\d+::', note.back or ''))
-        if content_has or back_has:
-            if back_has and not content_has:
-                # Cloze está no campo back; mover para content
+        raw_content = bool(re.search(r'\{\{c\d+::', note.content or ''))
+        raw_back = bool(re.search(r'\{\{c\d+::', note.back or ''))
+        anki_content = detect_anki_cloze_html(note.content)
+        anki_back = detect_anki_cloze_html(note.back)
+
+        if raw_content or raw_back or anki_content or anki_back:
+            if anki_content or anki_back:
+                note.content = convert_anki_cloze_html(note.content or '', note.back or '')
+            elif raw_back and not raw_content:
                 note.content = note.back
             note.note_type = 'cloze'
             note.back = None
@@ -352,15 +422,21 @@ def import_cards():
                             continue
                         existing_contents.add(front)
 
-                        # Auto-detectar tipo: verificar cloze em AMBOS os campos
-                        front_has_cloze = bool(re.search(r'\{\{c\d+::', front))
-                        back_has_cloze = bool(re.search(r'\{\{c\d+::', back))
-                        has_cloze = front_has_cloze or back_has_cloze
+                        # Auto-detectar tipo cloze:
+                        # 1) Formato raw {{c1::text}} (raro em exports Anki)
+                        # 2) HTML do Anki: <span class="cloze" data-cloze="..." data-ordinal="N">[...]</span>
+                        raw_cloze = bool(re.search(r'\{\{c\d+::', front)) or bool(re.search(r'\{\{c\d+::', back))
+                        anki_html_cloze = detect_anki_cloze_html(front) or detect_anki_cloze_html(back)
+                        has_cloze = raw_cloze or anki_html_cloze
 
-                        # Para cloze, o conteúdo é o campo que contém os marcadores
-                        # Se ambos têm, preferir o front; se só back tem, usar back
                         if has_cloze:
-                            cloze_content = front if front_has_cloze else back
+                            if anki_html_cloze:
+                                # Converter HTML do Anki para {{cN::text}}
+                                cloze_content = convert_anki_cloze_html(front, back)
+                            elif bool(re.search(r'\{\{c\d+::', front)):
+                                cloze_content = front
+                            else:
+                                cloze_content = back
                             note = Note(
                                 note_type='cloze',
                                 content=cloze_content,
