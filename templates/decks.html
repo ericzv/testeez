@@ -76,6 +76,7 @@
   .count-new { color: #2196F3; font-weight: 600; }
   .count-learn { color: #e67e22; font-weight: 600; }
   .count-due { color: #27ae60; font-weight: 600; }
+  .count-zero { color: #ccc; font-weight: 400; }
   .deck-actions {
     opacity: 0;
     display: flex;
@@ -89,11 +90,32 @@
     font-size: 0.78em;
     padding: 2px 8px;
   }
-  .add-deck-form {
-    margin-bottom: 20px;
+  .create-deck-bar {
+    margin-top: 24px;
+    text-align: center;
   }
-  .add-deck-form .input-group {
-    max-width: 450px;
+  .create-deck-bar .btn-create {
+    color: #888;
+    border: 1px dashed #ccc;
+    background: none;
+    padding: 6px 20px;
+    font-size: 0.88em;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .create-deck-bar .btn-create:hover {
+    color: #555;
+    border-color: #999;
+    background-color: #f9f9f9;
+  }
+  .create-deck-inline {
+    display: none;
+    margin-top: 12px;
+    justify-content: center;
+  }
+  .create-deck-inline .input-group {
+    max-width: 400px;
+    width: 100%;
   }
 </style>
 {% endblock %}
@@ -101,17 +123,6 @@
 {% block content %}
 <div class="container">
   <h2 style="margin-bottom: 16px;">Baralhos</h2>
-
-  <div class="add-deck-form">
-    <form method="POST" action="{{ url_for('cards.decks') }}">
-      <div class="input-group">
-        <input type="text" name="deck_name" class="form-control form-control-sm" placeholder="Novo baralho...">
-        <div class="input-group-append">
-          <button type="submit" class="btn btn-sm btn-primary">Criar</button>
-        </div>
-      </div>
-    </form>
-  </div>
 
   <table class="deck-table">
     <thead>
@@ -143,9 +154,9 @@
               <span class="deck-name">{{ deck.name }}</span>
             </div>
           </td>
-          <td><span class="count-new">{{ counts[0] }}</span></td>
-          <td><span class="count-learn">{{ counts[1] }}</span></td>
-          <td><span class="count-due">{{ counts[2] }}</span></td>
+          <td><span class="{{ 'count-zero' if counts[0] == 0 else 'count-new' }}">{{ counts[0] }}</span></td>
+          <td><span class="{{ 'count-zero' if counts[1] == 0 else 'count-learn' }}">{{ counts[1] }}</span></td>
+          <td><span class="{{ 'count-zero' if counts[2] == 0 else 'count-due' }}">{{ counts[2] }}</span></td>
           <td>
             <div class="deck-actions" onclick="event.stopPropagation();">
               <a href="{{ url_for('cards.rename_deck', deck_id=deck.id) }}" class="btn btn-sm btn-outline-secondary" title="Renomear">
@@ -172,16 +183,31 @@
       {% endfor %}
     </tbody>
   </table>
+
+  <div class="create-deck-bar">
+    <button class="btn-create" onclick="showCreateForm()" id="btn-show-create">
+      <i class="fas fa-plus" style="font-size: 0.8em;"></i> Criar Baralho
+    </button>
+    <div class="create-deck-inline" id="create-form">
+      <form method="POST" action="{{ url_for('cards.decks') }}">
+        <div class="input-group input-group-sm">
+          <input type="text" name="deck_name" class="form-control" placeholder="Nome do baralho..." required id="deck-name-input">
+          <div class="input-group-append">
+            <button type="submit" class="btn btn-primary">Criar</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="hideCreateForm()">Cancelar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-// Rastrear estado de expansão
 var expanded = {};
 
 document.addEventListener('DOMContentLoaded', function() {
-  // Iniciar com sub-baralhos escondidos
   document.querySelectorAll('.deck-row.subdeck').forEach(function(row) {
     row.style.display = 'none';
   });
@@ -194,14 +220,12 @@ function toggleDeck(deckId, btn) {
   if (expanded[deckId]) {
     icon.classList.remove('fa-caret-right');
     icon.classList.add('fa-caret-down');
-    // Mostrar filhos diretos
     document.querySelectorAll('[data-parent="deck-' + deckId + '"]').forEach(function(row) {
       row.style.display = '';
     });
   } else {
     icon.classList.remove('fa-caret-down');
     icon.classList.add('fa-caret-right');
-    // Esconder filhos e netos recursivamente
     hideChildren(deckId);
   }
 }
@@ -210,7 +234,6 @@ function hideChildren(parentId) {
   document.querySelectorAll('[data-parent="deck-' + parentId + '"]').forEach(function(row) {
     row.style.display = 'none';
     var childId = row.getAttribute('data-deck-id');
-    // Colapsar ícone do filho se estava expandido
     if (expanded[childId]) {
       expanded[childId] = false;
       var childIcon = document.getElementById('icon-' + childId);
@@ -219,9 +242,19 @@ function hideChildren(parentId) {
         childIcon.classList.add('fa-caret-right');
       }
     }
-    // Recursivamente esconder netos
     hideChildren(childId);
   });
+}
+
+function showCreateForm() {
+  document.getElementById('btn-show-create').style.display = 'none';
+  document.getElementById('create-form').style.display = 'flex';
+  document.getElementById('deck-name-input').focus();
+}
+
+function hideCreateForm() {
+  document.getElementById('create-form').style.display = 'none';
+  document.getElementById('btn-show-create').style.display = '';
 }
 
 function confirmDeletion(deckId) {

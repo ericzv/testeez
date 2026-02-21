@@ -174,8 +174,10 @@ def get_cards_in_decks(deck_ids, new_only=False, due_only=False, not_suspended=T
 
 def count_cards_for_deck(deck_id):
     """
-    Conta cartões (new, in_interval, due) para um deck e todos os subdecks.
-    Uma única query SQL otimizada em vez de recursão Python.
+    Conta cartões (new, learning, due) para um deck e todos os subdecks.
+    - new: nunca estudados (review_count = 0)
+    - learning: erraram na última resposta, precisam reaprender (repetition = 0, review_count > 0)
+    - due: graduados e prontos para revisão (repetition > 0, next_review <= now)
     """
     from database import db
     from sqlalchemy import text
@@ -190,8 +192,8 @@ def count_cards_for_deck(deck_id):
         )
         SELECT
             COALESCE(SUM(CASE WHEN c.review_count = 0 AND c.suspended = 0 THEN 1 ELSE 0 END), 0),
-            COALESCE(SUM(CASE WHEN c.review_count > 0 AND c.next_review > :now AND c.suspended = 0 THEN 1 ELSE 0 END), 0),
-            COALESCE(SUM(CASE WHEN c.review_count > 0 AND c.next_review <= :now AND c.suspended = 0 THEN 1 ELSE 0 END), 0)
+            COALESCE(SUM(CASE WHEN c.review_count > 0 AND c.repetition = 0 AND c.suspended = 0 THEN 1 ELSE 0 END), 0),
+            COALESCE(SUM(CASE WHEN c.review_count > 0 AND c.repetition > 0 AND c.next_review <= :now AND c.suspended = 0 THEN 1 ELSE 0 END), 0)
         FROM card c
         WHERE c.deck_id IN (SELECT id FROM subdeck)
     """), {'deck_id': deck_id, 'now': now}).fetchone()
