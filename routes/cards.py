@@ -456,8 +456,18 @@ def import_apkg(filepath):
 
         # 10. Extrair mídia para static/collection.media/
         media_count = 0
+        media_dest = os.path.join(current_app.root_path, 'static', 'collection.media')
+        os.makedirs(media_dest, exist_ok=True)
+
         media_json_path = os.path.join(tmpdir, 'media')
-        if os.path.exists(media_json_path):
+        # Nomes de arquivos internos do .apkg que NÃO são mídia
+        known_non_media = {
+            'media', 'meta', 'collection.anki2',
+            'collection.anki21', 'collection.anki21b',
+        }
+
+        if os.path.isfile(media_json_path):
+            # Formato antigo: arquivo JSON mapeia números → nomes originais
             with open(media_json_path, 'rb') as f:
                 raw = f.read()
             media_map = {}
@@ -470,13 +480,33 @@ def import_apkg(filepath):
                     except json.JSONDecodeError:
                         media_map = {}
 
-            media_dest = os.path.join(current_app.root_path, 'static', 'collection.media')
-            os.makedirs(media_dest, exist_ok=True)
-
             for num_str, original_name in media_map.items():
                 src = os.path.join(tmpdir, num_str)
                 if os.path.exists(src):
                     dst = os.path.join(media_dest, original_name)
+                    if not os.path.exists(dst):
+                        shutil.copy2(src, dst)
+                        media_count += 1
+
+        elif os.path.isdir(media_json_path):
+            # Formato intermediário: mídia dentro de subpasta media/
+            for entry in os.listdir(media_json_path):
+                src = os.path.join(media_json_path, entry)
+                if os.path.isfile(src):
+                    dst = os.path.join(media_dest, entry)
+                    if not os.path.exists(dst):
+                        shutil.copy2(src, dst)
+                        media_count += 1
+
+        else:
+            # Formato novo (Anki 23.10+): mídia com nomes originais direto no ZIP
+            for entry in os.listdir(tmpdir):
+                if entry in known_non_media:
+                    continue
+                # Ignorar arquivos puramente numéricos sem mapeamento JSON
+                src = os.path.join(tmpdir, entry)
+                if os.path.isfile(src):
+                    dst = os.path.join(media_dest, entry)
                     if not os.path.exists(dst):
                         shutil.copy2(src, dst)
                         media_count += 1
