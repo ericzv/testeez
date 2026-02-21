@@ -130,47 +130,54 @@ def _copy_media_file(src, dst):
 
 @cards_bp.route('/media-diagnostic')
 def media_diagnostic():
-    """Diagnóstico temporário: examina os primeiros bytes dos arquivos em collection.media."""
+    """Diagnóstico temporário: examina mídia e referências nos cards."""
+    from html import escape
     media_dir = os.path.join(current_app.root_path, 'static', 'collection.media')
-    if not os.path.isdir(media_dir):
-        return '<pre>collection.media não existe</pre>'
+    lines = []
 
-    files = sorted(os.listdir(media_dir))
-    lines = [f'Total arquivos: {len(files)}\n']
+    # 1. Arquivos em disco
+    disk_files = set()
+    if os.path.isdir(media_dir):
+        disk_files = set(os.listdir(media_dir))
+    lines.append(f'=== ARQUIVOS EM DISCO: {len(disk_files)} ===\n')
 
-    magic_sigs = {
-        b'\x89PNG': 'PNG',
-        b'\xff\xd8\xff': 'JPEG',
-        b'GIF8': 'GIF',
-        b'RIFF': 'WEBP/AVI',
-        b'\x28\xb5\x2f\xfd': 'ZSTD-COMPRESSED',
-        b'PK\x03\x04': 'ZIP',
-        b'OggS': 'OGG',
-        b'ID3': 'MP3-ID3',
-        b'\xff\xfb': 'MP3',
-        b'\xff\xf3': 'MP3',
-        b'fLaC': 'FLAC',
-    }
+    # 2. Buscar cards que contêm <img no conteúdo
+    cards_with_img = db.session.execute(
+        text("SELECT n.id, n.content, n.back, n.extra FROM note n WHERE n.content LIKE '%<img%' OR n.back LIKE '%<img%' OR n.extra LIKE '%<img%' LIMIT 5")
+    ).fetchall()
 
-    for fname in files[:20]:
-        fpath = os.path.join(media_dir, fname)
-        try:
-            with open(fpath, 'rb') as f:
-                header = f.read(32)
-            size = os.path.getsize(fpath)
+    lines.append(f'=== NOTAS COM <img> (primeiras 5): {len(cards_with_img)} ===\n')
 
-            detected = 'UNKNOWN'
-            for sig, fmt in magic_sigs.items():
-                if header[:len(sig)] == sig:
-                    detected = fmt
-                    break
+    img_pattern = re.compile(r'<img\s+[^>]*src=["\']([^"\']+)["\']', re.IGNORECASE)
 
-            hex_str = header[:16].hex(' ')
-            lines.append(f'{fname} | {size} bytes | {detected} | {hex_str}')
-        except Exception as e:
-            lines.append(f'{fname} | ERROR: {e}')
+    for note in cards_with_img:
+        note_id = note[0]
+        lines.append(f'--- Note {note_id} ---')
+        for field_name, field_val in [('content', note[1]), ('back', note[2]), ('extra', note[3])]:
+            if not field_val:
+                continue
+            imgs = img_pattern.findall(field_val)
+            if not imgs:
+                continue
+            lines.append(f'  {field_name}:')
+            for img_src in imgs[:3]:
+                on_disk = img_src in disk_files
+                lines.append(f'    src="{escape(img_src)}" | on_disk={on_disk}')
+            # Mostrar trecho bruto do HTML com a tag img
+            raw_snippet = field_val[:300]
+            lines.append(f'    raw html (first 300): {escape(raw_snippet)}')
+        lines.append('')
 
-    return '<pre>' + '\n'.join(lines) + '</pre>'
+    # 3. Verificar se update_image_paths funciona com um exemplo
+    if cards_with_img:
+        from filters import update_image_paths
+        sample = cards_with_img[0][1] or ''
+        transformed = update_image_paths(sample)
+        lines.append('=== TRANSFORMAÇÃO update_image_paths (note 1 content) ===')
+        lines.append(f'  ANTES (300): {escape(sample[:300])}')
+        lines.append(f'  DEPOIS (300): {escape(transformed[:300])}')
+
+    return '<pre style="white-space:pre-wrap;word-break:break-all;">' + '\n'.join(lines) + '</pre>'
 
 
 def detect_anki_cloze_html(text):
