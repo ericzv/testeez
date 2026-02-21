@@ -26,9 +26,10 @@ cards_bp = Blueprint('cards', __name__)
 
 # ---------------------------------------------------------------------------
 # Protobuf parser para MediaEntries do Anki (formato .apkg v3 / 23.12+)
-# Schema:
+# Schema (field numbers variam por versão):
 #   MediaEntries { repeated ZipMediaEntry entries = 1; }
-#   ZipMediaEntry { string name = 6; bytes sha1 = 7; optional string legacy_zip_name = 8; }
+#   ZipMediaEntry { string name = 1 ou 6; bytes sha1 = 2 ou 7;
+#                   optional string legacy_zip_name = 8 ou 12; }
 # ---------------------------------------------------------------------------
 
 def _pb_read_varint(data, pos):
@@ -85,15 +86,19 @@ def _parse_media_protobuf(data):
                 continue
             entry = _pb_parse_fields(entry_bytes)
 
-            # field 6 = name (nome original do arquivo)
+            # name: field 1 no formato atual, field 6 em versões anteriores
             name = None
-            if 6 in entry:
-                name = entry[6][0][1].decode('utf-8', errors='replace')
+            for fnum in (1, 6):
+                if fnum in entry:
+                    name = entry[fnum][0][1].decode('utf-8', errors='replace')
+                    break
 
-            # field 8 = legacy_zip_name (nome numérico dentro do zip)
+            # legacy_zip_name: field 8 ou field 12; senão usa índice
             zip_name = str(idx)
-            if 8 in entry:
-                zip_name = entry[8][0][1].decode('utf-8', errors='replace')
+            for fnum in (8, 12):
+                if fnum in entry:
+                    zip_name = entry[fnum][0][1].decode('utf-8', errors='replace')
+                    break
 
             if name:
                 media_map[zip_name] = name
