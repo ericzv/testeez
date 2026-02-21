@@ -128,6 +128,51 @@ def _copy_media_file(src, dst):
         f.write(data)
 
 
+@cards_bp.route('/media-diagnostic')
+def media_diagnostic():
+    """Diagnóstico temporário: examina os primeiros bytes dos arquivos em collection.media."""
+    media_dir = os.path.join(current_app.root_path, 'static', 'collection.media')
+    if not os.path.isdir(media_dir):
+        return '<pre>collection.media não existe</pre>'
+
+    files = sorted(os.listdir(media_dir))
+    lines = [f'Total arquivos: {len(files)}\n']
+
+    magic_sigs = {
+        b'\x89PNG': 'PNG',
+        b'\xff\xd8\xff': 'JPEG',
+        b'GIF8': 'GIF',
+        b'RIFF': 'WEBP/AVI',
+        b'\x28\xb5\x2f\xfd': 'ZSTD-COMPRESSED',
+        b'PK\x03\x04': 'ZIP',
+        b'OggS': 'OGG',
+        b'ID3': 'MP3-ID3',
+        b'\xff\xfb': 'MP3',
+        b'\xff\xf3': 'MP3',
+        b'fLaC': 'FLAC',
+    }
+
+    for fname in files[:20]:
+        fpath = os.path.join(media_dir, fname)
+        try:
+            with open(fpath, 'rb') as f:
+                header = f.read(32)
+            size = os.path.getsize(fpath)
+
+            detected = 'UNKNOWN'
+            for sig, fmt in magic_sigs.items():
+                if header[:len(sig)] == sig:
+                    detected = fmt
+                    break
+
+            hex_str = header[:16].hex(' ')
+            lines.append(f'{fname} | {size} bytes | {detected} | {hex_str}')
+        except Exception as e:
+            lines.append(f'{fname} | ERROR: {e}')
+
+    return '<pre>' + '\n'.join(lines) + '</pre>'
+
+
 def detect_anki_cloze_html(text):
     """Detecta se o texto contém HTML de cloze exportado pelo Anki."""
     if not text:
