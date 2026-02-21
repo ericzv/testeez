@@ -178,37 +178,83 @@ def import_apkg(filepath):
         conn.row_factory = sqlite3.Row
         conn.text_factory = lambda b: b.decode('utf-8', errors='replace')
 
-        # 3. Ler metadados da coleção
+        # 3. Detectar versão do schema (Anki 2.1.28+ usa tabelas separadas)
+        tables = [r[0] for r in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        ).fetchall()]
+        is_new_schema = 'notetypes' in tables
+
+        # Timestamp de criação da coleção (existe em ambos os schemas)
         col_row = conn.execute('SELECT * FROM col').fetchone()
-        col_crt = col_row['crt']  # timestamp de criação da coleção
-        models = json.loads(col_row['models'])
-        decks_meta = json.loads(col_row['decks'])
+        col_crt = col_row['crt']
 
         # 4. Mapear tipos de modelo: model_id → 'basic' ou 'cloze'
         model_type_map = {}
-        for mid_str, model in models.items():
-            model_type_map[int(mid_str)] = 'cloze' if model.get('type') == 1 else 'basic'
+        if is_new_schema:
+            # Schema novo: tabela 'notetypes' com config protobuf
+            for row in conn.execute('SELECT id, config FROM notetypes'):
+                config = bytes(row['config']) if row['config'] else b''
+                # Protobuf: campo kind (field 1, varint) = 0x08, valor 1 = cloze
+                is_cloze = b'\x08\x01' in config
+                model_type_map[row['id']] = 'cloze' if is_cloze else 'basic'
+        else:
+            # Schema antigo: JSON na tabela 'col'
+            models_str = col_row['models']
+            if models_str and models_str.strip():
+                models = json.loads(models_str)
+                for mid_str, model in models.items():
+                    model_type_map[int(mid_str)] = 'cloze' if model.get('type') == 1 else 'basic'
 
         # 5. Criar hierarquia de baralhos: anki_deck_id → nosso Deck
         deck_map = {}
-        for anki_deck_id_str, deck_info in decks_meta.items():
-            deck_name = deck_info['name']
-            # Anki usa "::" como separador de hierarquia
-            parts = deck_name.split('::')
-            parent = None
-            for part in parts:
-                part = part.strip()
-                existing = Deck.query.filter_by(
-                    name=part, parent_id=(parent.id if parent else None)
-                ).first()
-                if existing:
-                    parent = existing
+        if is_new_schema:
+            # Schema novo: tabela 'decks' com nome direto
+            for row in conn.execute('SELECT id, name FROM decks'):
+                deck_name = row['name']
+                # Anki novo pode usar \x1f como separador ao invés de ::
+                if '\x1f' in deck_name:
+                    parts = deck_name.split('\x1f')
                 else:
-                    new_deck = Deck(name=part, parent_id=(parent.id if parent else None))
-                    db.session.add(new_deck)
-                    db.session.flush()
-                    parent = new_deck
-            deck_map[int(anki_deck_id_str)] = parent
+                    parts = deck_name.split('::')
+                parent = None
+                for part in parts:
+                    part = part.strip()
+                    if not part:
+                        continue
+                    existing = Deck.query.filter_by(
+                        name=part, parent_id=(parent.id if parent else None)
+                    ).first()
+                    if existing:
+                        parent = existing
+                    else:
+                        new_deck = Deck(name=part, parent_id=(parent.id if parent else None))
+                        db.session.add(new_deck)
+                        db.session.flush()
+                        parent = new_deck
+                if parent:
+                    deck_map[row['id']] = parent
+        else:
+            # Schema antigo: JSON na tabela 'col'
+            decks_str = col_row['decks']
+            if decks_str and decks_str.strip():
+                decks_meta = json.loads(decks_str)
+                for anki_deck_id_str, deck_info in decks_meta.items():
+                    deck_name = deck_info['name']
+                    parts = deck_name.split('::')
+                    parent = None
+                    for part in parts:
+                        part = part.strip()
+                        existing = Deck.query.filter_by(
+                            name=part, parent_id=(parent.id if parent else None)
+                        ).first()
+                        if existing:
+                            parent = existing
+                        else:
+                            new_deck = Deck(name=part, parent_id=(parent.id if parent else None))
+                            db.session.add(new_deck)
+                            db.session.flush()
+                            parent = new_deck
+                    deck_map[int(anki_deck_id_str)] = parent
 
         # 6. Ler todas as notas do Anki
         anki_notes = {}
@@ -247,6 +293,10 @@ def import_apkg(filepath):
             front = fields[0] if len(fields) > 0 else ''
             back = fields[1] if len(fields) > 1 else ''
             extra = fields[2] if len(fields) > 2 else None
+
+            # Fallback: detectar cloze pelo conteúdo (útil quando protobuf não é 100% confiável)
+            if note_type == 'basic' and re.search(r'\{\{c\d+::', front):
+                note_type = 'cloze'
 
             if note_type == 'cloze':
                 content = front  # Texto cloze com {{c1::}} direto do Anki
@@ -410,10 +460,15 @@ def import_apkg(filepath):
         if os.path.exists(media_json_path):
             with open(media_json_path, 'rb') as f:
                 raw = f.read()
-            try:
-                media_map = json.loads(raw.decode('utf-8'))
-            except UnicodeDecodeError:
-                media_map = json.loads(raw.decode('latin-1'))
+            media_map = {}
+            if raw.strip():
+                try:
+                    media_map = json.loads(raw.decode('utf-8'))
+                except (UnicodeDecodeError, json.JSONDecodeError):
+                    try:
+                        media_map = json.loads(raw.decode('latin-1'))
+                    except json.JSONDecodeError:
+                        media_map = {}
 
             media_dest = os.path.join(current_app.root_path, 'static', 'collection.media')
             os.makedirs(media_dest, exist_ok=True)
