@@ -941,9 +941,10 @@ def panel():
         9: "Muito difícil", 10: "Muito difícil"
     }
     
+    root_decks = Deck.query.filter(Deck.parent_id == None).all()
     return render_template('panel.html', cards=cards, query=query, diff_expl=diff_expl,
-                          decks=Deck.query.all(), deck_id=deck_id, all_tags=all_tags, 
-                          selected_tag_ids=tag_ids)
+                          decks=Deck.query.all(), deck_id=deck_id, all_tags=all_tags,
+                          selected_tag_ids=tag_ids, root_decks=root_decks)
 
 
 
@@ -960,9 +961,10 @@ def show_all():
     decks = Deck.query.all()
     # Obter todas as tags
     all_tags = Tag.query.order_by(Tag.name).all()
+    root_decks = Deck.query.filter(Deck.parent_id == None).all()
     # Passar show_all=True para o template saber que estamos mostrando todos os cartões
-    return render_template('panel.html', cards=cards, query="", diff_expl=diff_expl, 
-                           decks=decks, all_tags=all_tags, show_all=True)
+    return render_template('panel.html', cards=cards, query="", diff_expl=diff_expl,
+                           decks=decks, all_tags=all_tags, show_all=True, root_decks=root_decks)
 
 @cards_bp.route('/rename_deck/<int:deck_id>', methods=['GET', 'POST'])
 def rename_deck(deck_id):

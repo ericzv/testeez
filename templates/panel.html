@@ -16,14 +16,87 @@
     gap: 0;
     height: calc(100vh - 56px);
   }
+  .panel-sidebar {
+    flex: 0 0 15%;
+    max-width: 15%;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+    border-right: 1px solid #e0e0e0;
+    background: #f8f9fa;
+    font-size: 0.82em;
+  }
+  .panel-sidebar-header {
+    padding: 10px 12px;
+    font-weight: 600;
+    font-size: 1.05em;
+    color: #444;
+    border-bottom: 1px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    background: #f8f9fa;
+    z-index: 5;
+  }
+  .sidebar-deck-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .sidebar-deck-item {
+    display: flex;
+    align-items: center;
+  }
+  .sidebar-deck-toggle {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 18px;
+    flex-shrink: 0;
+    text-align: center;
+    font-size: 0.85em;
+  }
+  .sidebar-deck-toggle:hover {
+    color: #333;
+  }
+  .sidebar-deck-spacer {
+    width: 18px;
+    flex-shrink: 0;
+  }
+  .sidebar-deck-link {
+    flex: 1;
+    padding: 5px 4px;
+    color: #333;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .sidebar-deck-link:hover {
+    background: #e9ecef;
+    text-decoration: none;
+    color: #333;
+  }
+  .sidebar-deck-link.active {
+    background: #d0e7ff;
+    font-weight: 600;
+    color: #1565c0;
+  }
+  .sidebar-children {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: none;
+  }
+  .sidebar-children.expanded {
+    display: block;
+  }
   .panel-list {
     flex: 1;
     overflow-y: auto;
     height: calc(100vh - 56px);
-  }
-  .panel-list.shrunk {
-    flex: 0 0 70%;
-    max-width: 70%;
   }
   .panel-detail {
     flex: 0 0 30%;
@@ -189,7 +262,46 @@
 
 {% block content %}
 <div class="panel-wrapper">
-  <!-- Coluna esquerda: lista de cartoes -->
+  <!-- Barra lateral: baralhos -->
+  <div class="panel-sidebar">
+    <div class="panel-sidebar-header">Baralhos</div>
+    <ul class="sidebar-deck-list">
+      <li>
+        <div class="sidebar-deck-item" style="padding: 2px 8px;">
+          <span class="sidebar-deck-spacer"></span>
+          <a href="{{ url_for('cards.show_all') }}" class="sidebar-deck-link{% if show_all is defined and show_all %} active{% endif %}">
+            <i class="fas fa-layer-group" style="margin-right: 4px; font-size: 0.9em;"></i>Colecao
+          </a>
+        </div>
+      </li>
+      {% macro render_sidebar_deck(deck, level=0) %}
+      <li>
+        <div class="sidebar-deck-item" style="padding: 2px 8px 2px {{ 8 + level * 16 }}px;">
+          {% if deck.children.count() > 0 %}
+            <button class="sidebar-deck-toggle" onclick="event.stopPropagation(); toggleSidebarDeck({{ deck.id }})">
+              <i class="fas fa-caret-right" id="sidebar-icon-{{ deck.id }}"></i>
+            </button>
+          {% else %}
+            <span class="sidebar-deck-spacer"></span>
+          {% endif %}
+          <a href="{{ url_for('cards.panel', deck_id=deck.id) }}" class="sidebar-deck-link{% if deck_id == deck.id %} active{% endif %}">{{ deck.name }}</a>
+        </div>
+        {% if deck.children.count() > 0 %}
+          <ul class="sidebar-children" id="sidebar-children-{{ deck.id }}">
+            {% for child in deck.children %}
+              {{ render_sidebar_deck(child, level + 1) }}
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </li>
+      {% endmacro %}
+      {% for deck in root_decks %}
+        {{ render_sidebar_deck(deck) }}
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- Coluna central: lista de cartoes -->
   <div class="panel-list" id="panelList">
     <div class="panel-container" style="padding: 16px;">
       <h5 style="margin-bottom: 12px;">Painel de Cartoes</h5>
@@ -392,7 +504,6 @@
 
     // Open panel
     panel.classList.add('open');
-    list.classList.add('shrunk');
     currentCardId = cardId;
 
     // Loading
@@ -413,7 +524,6 @@
 
   window.closeDetail = function() {
     document.getElementById('panelDetail').classList.remove('open');
-    document.getElementById('panelList').classList.remove('shrunk');
     document.querySelectorAll('.panel-container tr.active-row').forEach(function(r){ r.classList.remove('active-row'); });
     currentCardId = null;
   };
@@ -539,6 +649,56 @@
       closeDetail();
     }
   });
+
+  // === Sidebar deck tree ===
+  var sidebarExpanded = {};
+
+  window.toggleSidebarDeck = function(deckId) {
+    sidebarExpanded[deckId] = !sidebarExpanded[deckId];
+    var icon = document.getElementById('sidebar-icon-' + deckId);
+    var children = document.getElementById('sidebar-children-' + deckId);
+    if (!icon || !children) return;
+    if (sidebarExpanded[deckId]) {
+      icon.classList.remove('fa-caret-right');
+      icon.classList.add('fa-caret-down');
+      children.classList.add('expanded');
+    } else {
+      icon.classList.remove('fa-caret-down');
+      icon.classList.add('fa-caret-right');
+      children.classList.remove('expanded');
+      // Collapse all nested children
+      children.querySelectorAll('.sidebar-children').forEach(function(ul) {
+        ul.classList.remove('expanded');
+      });
+      children.querySelectorAll('.sidebar-deck-toggle i').forEach(function(i) {
+        i.classList.remove('fa-caret-down');
+        i.classList.add('fa-caret-right');
+      });
+      children.querySelectorAll('[id^="sidebar-children-"]').forEach(function(ul) {
+        var childId = ul.id.replace('sidebar-children-', '');
+        sidebarExpanded[childId] = false;
+      });
+    }
+  };
+
+  // Auto-expand to show active deck
+  (function() {
+    var active = document.querySelector('.sidebar-deck-link.active');
+    if (active) {
+      var parent = active.closest('.sidebar-children');
+      while (parent) {
+        parent.classList.add('expanded');
+        var parentId = parent.id.replace('sidebar-children-', '');
+        sidebarExpanded[parentId] = true;
+        var icon = document.getElementById('sidebar-icon-' + parentId);
+        if (icon) {
+          icon.classList.remove('fa-caret-right');
+          icon.classList.add('fa-caret-down');
+        }
+        parent = parent.parentElement.closest('.sidebar-children');
+      }
+    }
+  })();
 })();
 
 // jQuery tag filters
