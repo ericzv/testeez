@@ -1,89 +1,231 @@
 {% extends 'base.html' %}
 {% block title %}Baralhos - Retina Cards{% endblock %}
+{% block head %}
+<style>
+  .deck-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95em;
+  }
+  .deck-table thead th {
+    border-bottom: 2px solid #ddd;
+    padding: 8px 12px;
+    font-weight: 600;
+    color: #555;
+    font-size: 0.85em;
+    text-transform: uppercase;
+  }
+  .deck-table thead th:first-child {
+    text-align: left;
+  }
+  .deck-table thead th:not(:first-child) {
+    text-align: center;
+    width: 80px;
+  }
+  .deck-row {
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+  }
+  .deck-row:hover {
+    background-color: #f5f8ff;
+  }
+  .deck-row td {
+    padding: 10px 12px;
+    vertical-align: middle;
+  }
+  .deck-row td:not(:first-child) {
+    text-align: center;
+    width: 80px;
+  }
+  .deck-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .deck-toggle {
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    color: #888;
+    font-size: 1.1em;
+    cursor: pointer;
+    padding: 0;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .deck-toggle:hover {
+    background-color: #e0e0e0;
+    color: #333;
+  }
+  .deck-toggle-spacer {
+    width: 22px;
+    flex-shrink: 0;
+  }
+  .deck-name {
+    font-weight: 500;
+    color: #333;
+  }
+  .deck-row.subdeck .deck-name {
+    font-weight: 400;
+    color: #555;
+  }
+  .count-new { color: #2196F3; font-weight: 600; }
+  .count-learn { color: #e67e22; font-weight: 600; }
+  .count-due { color: #27ae60; font-weight: 600; }
+  .deck-actions {
+    opacity: 0;
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end;
+  }
+  .deck-row:hover .deck-actions {
+    opacity: 1;
+  }
+  .deck-actions a, .deck-actions button {
+    font-size: 0.78em;
+    padding: 2px 8px;
+  }
+  .add-deck-form {
+    margin-bottom: 20px;
+  }
+  .add-deck-form .input-group {
+    max-width: 450px;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container">
-  <h2>Meus Baralhos</h2>
-  
-  <!-- Formulário para adicionar um novo baralho -->
-  <div class="mb-3">
-    <form method="POST" action="{{ url_for('cards.decks') }}" style="display: inline-block;">
+  <h2 style="margin-bottom: 16px;">Baralhos</h2>
+
+  <div class="add-deck-form">
+    <form method="POST" action="{{ url_for('cards.decks') }}">
       <div class="input-group">
-        <input type="text" name="deck_name" class="form-control" placeholder="Nome do novo baralho">
+        <input type="text" name="deck_name" class="form-control form-control-sm" placeholder="Novo baralho...">
         <div class="input-group-append">
-          <button type="submit" class="btn btn-primary">Adicionar baralho</button>
+          <button type="submit" class="btn btn-sm btn-primary">Criar</button>
         </div>
       </div>
     </form>
   </div>
-  
-  <ul class="list-group">
-    {% macro render_deck(deck, level=1) %}
-      {# Define a cor de fundo com base no nível (1: branco, 2: #f2f2f2, 3: #e6e6e6, 4: #d9d9d9, 5 ou mais: #cccccc) #}
-      {% if level == 1 %}
-         {% set bg_color = "#ffffff" %}
-      {% elif level == 2 %}
-         {% set bg_color = "#f2f2f2" %}
-      {% elif level == 3 %}
-         {% set bg_color = "#e6e6e6" %}
-      {% elif level == 4 %}
-         {% set bg_color = "#d9d9d9" %}
-      {% else %}
-         {% set bg_color = "#cccccc" %}
-      {% endif %}
-      <li class="list-group-item" style="background-color: {{ bg_color }}; cursor: pointer; padding: 10px;" onclick="event.stopPropagation(); window.location='{{ url_for('cards.panel', deck_id=deck.id) }}';">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div style="display: flex; align-items: center;">
-            {% if deck.children.count() > 0 %}
-              <button type="button" class="btn btn-sm btn-outline-info mr-2 toggleBtn" id="toggleBtn-{{ deck.id }}" onclick="toggleSubdecks({{ deck.id }}, this); event.stopPropagation();">+</button>
-            {% else %}
-              <span style="display:inline-block; width: 34px;"></span>
-            {% endif %}
-            <span>{{ deck.name }}</span>
-            <span>
-              (
-              <span style="color: blue;">{{ count_cards_recursive(deck)[0] }}</span> +
-              <span style="color: gray;">{{ count_cards_recursive(deck)[1] }}</span> +
-              <span style="color: green;">{{ count_cards_recursive(deck)[2] }}</span>
-              )
-            </span>
-          </div>
-          <div>
-            <!-- Novo botão "Renomear" -->
-            <a href="{{ url_for('cards.rename_deck', deck_id=deck.id) }}" class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation();">Renomear</a>
-            <a href="{{ url_for('cards.change_deck_parent', deck_id=deck.id) }}" class="btn btn-sm btn-outline-secondary ml-2" onclick="event.stopPropagation();">Mover</a>
-            <button type="button" class="btn btn-danger btn-sm ml-2" onclick="event.stopPropagation(); confirmDeletion({{ deck.id }});">Excluir</button>
-          </div>
-        </div>
-        {% if deck.children.count() > 0 %}
-          <ul id="subdeck-{{ deck.id }}" style="display: none; margin-top: 10px; list-style-type: none; padding-left: 20px;">
-            {% for child in deck.children %}
-              {{ render_deck(child, level+1) }}
-            {% endfor %}
-          </ul>
+
+  <table class="deck-table">
+    <thead>
+      <tr>
+        <th>Baralho</th>
+        <th>Novo</th>
+        <th>Aprend.</th>
+        <th>Rever</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% macro render_deck(deck, level=0) %}
+        {% set counts = count_cards_recursive(deck) %}
+        {% set has_children = deck.children.count() > 0 %}
+        <tr class="deck-row {% if level > 0 %}subdeck{% endif %}"
+            {% if level > 0 %}data-parent="deck-{{ deck.parent_id }}"{% endif %}
+            data-deck-id="{{ deck.id }}"
+            onclick="window.location='{{ url_for('cards.panel', deck_id=deck.id) }}'">
+          <td>
+            <div class="deck-name-cell" style="padding-left: {{ level * 24 }}px;">
+              {% if has_children %}
+                <button class="deck-toggle" onclick="event.stopPropagation(); toggleDeck({{ deck.id }}, this);" title="Expandir/recolher">
+                  <i class="fas fa-caret-right" id="icon-{{ deck.id }}"></i>
+                </button>
+              {% else %}
+                <span class="deck-toggle-spacer"></span>
+              {% endif %}
+              <span class="deck-name">{{ deck.name }}</span>
+            </div>
+          </td>
+          <td><span class="count-new">{{ counts[0] }}</span></td>
+          <td><span class="count-learn">{{ counts[1] }}</span></td>
+          <td><span class="count-due">{{ counts[2] }}</span></td>
+          <td>
+            <div class="deck-actions" onclick="event.stopPropagation();">
+              <a href="{{ url_for('cards.rename_deck', deck_id=deck.id) }}" class="btn btn-sm btn-outline-secondary" title="Renomear">
+                <i class="fas fa-pen"></i>
+              </a>
+              <a href="{{ url_for('cards.change_deck_parent', deck_id=deck.id) }}" class="btn btn-sm btn-outline-secondary" title="Mover">
+                <i class="fas fa-arrows-alt"></i>
+              </a>
+              <button class="btn btn-sm btn-outline-danger" onclick="confirmDeletion({{ deck.id }})" title="Excluir">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% if has_children %}
+          {% for child in deck.children %}
+            {{ render_deck(child, level + 1) }}
+          {% endfor %}
         {% endif %}
-      </li>
-    {% endmacro %}
-    
-    {% for deck in decks %}
-      {{ render_deck(deck, 1) }}
-    {% endfor %}
-  </ul>
+      {% endmacro %}
+
+      {% for deck in decks %}
+        {{ render_deck(deck, 0) }}
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endblock %}
+
 {% block scripts %}
 <script>
-function toggleSubdecks(deckId, btn) {
-  var el = document.getElementById('subdeck-' + deckId);
-  if (el.style.display === 'none' || el.style.display === '') {
-    el.style.display = 'block';
-    btn.innerText = '-';
+// Rastrear estado de expansão
+var expanded = {};
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Iniciar com sub-baralhos escondidos
+  document.querySelectorAll('.deck-row.subdeck').forEach(function(row) {
+    row.style.display = 'none';
+  });
+});
+
+function toggleDeck(deckId, btn) {
+  expanded[deckId] = !expanded[deckId];
+  var icon = document.getElementById('icon-' + deckId);
+
+  if (expanded[deckId]) {
+    icon.classList.remove('fa-caret-right');
+    icon.classList.add('fa-caret-down');
+    // Mostrar filhos diretos
+    document.querySelectorAll('[data-parent="deck-' + deckId + '"]').forEach(function(row) {
+      row.style.display = '';
+    });
   } else {
-    el.style.display = 'none';
-    btn.innerText = '+';
+    icon.classList.remove('fa-caret-down');
+    icon.classList.add('fa-caret-right');
+    // Esconder filhos e netos recursivamente
+    hideChildren(deckId);
   }
 }
+
+function hideChildren(parentId) {
+  document.querySelectorAll('[data-parent="deck-' + parentId + '"]').forEach(function(row) {
+    row.style.display = 'none';
+    var childId = row.getAttribute('data-deck-id');
+    // Colapsar ícone do filho se estava expandido
+    if (expanded[childId]) {
+      expanded[childId] = false;
+      var childIcon = document.getElementById('icon-' + childId);
+      if (childIcon) {
+        childIcon.classList.remove('fa-caret-down');
+        childIcon.classList.add('fa-caret-right');
+      }
+    }
+    // Recursivamente esconder netos
+    hideChildren(childId);
+  });
+}
+
 function confirmDeletion(deckId) {
-  if (confirm("Todos os cartões deste baralho serão perdidos. Você tem certeza que deseja excluir o baralho?")) {
+  if (confirm("Todos os cartões deste baralho serão perdidos. Deseja excluir?")) {
     var form = document.createElement('form');
     form.method = 'POST';
     form.action = "/delete_deck/" + deckId;

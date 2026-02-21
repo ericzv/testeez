@@ -335,6 +335,11 @@ def import_apkg(filepath):
                 db.session.flush()
                 cards_created += 1
 
+                # Copiar tags da nota para o cartão (UI usa card.tags)
+                for tag in note.tags:
+                    if tag not in card.tags:
+                        card.tags.append(tag)
+
                 # Importar histórico de revisões deste cartão
                 anki_card_id = anki_card['id']
                 for rev in revlog_by_card.get(anki_card_id, []):
