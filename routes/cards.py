@@ -122,6 +122,7 @@ def import_apkg(filepath):
 
     O .apkg é um ZIP contendo:
     - collection.anki2 (ou .anki21): banco SQLite com notas, cartões, revisões
+    - collection.anki21b: formato mais novo, SQLite comprimido com zstd
     - media: JSON mapeando números para nomes de arquivos de mídia
     - Arquivos de mídia nomeados como números (0, 1, 2...)
 
@@ -136,12 +137,28 @@ def import_apkg(filepath):
         except zipfile.BadZipFile:
             return {'error': 'Arquivo inválido. Não é um .apkg válido.'}
 
-        # 2. Encontrar o banco SQLite
+        # 2. Encontrar o banco SQLite (suporta formatos antigo e novo)
         db_path = None
-        for name in ['collection.anki2', 'collection.anki21']:
+        for name in ['collection.anki21b', 'collection.anki2', 'collection.anki21']:
             candidate = os.path.join(tmpdir, name)
             if os.path.exists(candidate):
-                db_path = candidate
+                # collection.anki21b é comprimido com zstd
+                if name == 'collection.anki21b':
+                    try:
+                        import zstandard as zstd
+                        with open(candidate, 'rb') as f_in:
+                            dctx = zstd.ZstdDecompressor()
+                            decompressed = dctx.decompress(f_in.read())
+                        decompressed_path = os.path.join(tmpdir, 'collection_decompressed.anki21')
+                        with open(decompressed_path, 'wb') as f_out:
+                            f_out.write(decompressed)
+                        db_path = decompressed_path
+                    except ImportError:
+                        return {'error': 'Este .apkg usa formato comprimido (Anki 2.1.28+). Instale o pacote zstandard: pip install zstandard'}
+                    except Exception as e:
+                        return {'error': f'Erro ao descomprimir banco de dados: {str(e)}'}
+                else:
+                    db_path = candidate
                 break
 
         if not db_path:
@@ -381,8 +398,12 @@ def import_apkg(filepath):
         media_count = 0
         media_json_path = os.path.join(tmpdir, 'media')
         if os.path.exists(media_json_path):
-            with open(media_json_path, 'r', encoding='utf-8') as f:
-                media_map = json.loads(f.read())
+            with open(media_json_path, 'rb') as f:
+                raw = f.read()
+            try:
+                media_map = json.loads(raw.decode('utf-8'))
+            except UnicodeDecodeError:
+                media_map = json.loads(raw.decode('latin-1'))
 
             media_dest = os.path.join(current_app.root_path, 'static', 'collection.media')
             os.makedirs(media_dest, exist_ok=True)
