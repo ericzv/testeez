@@ -460,65 +460,110 @@ def import_apkg(filepath):
         os.makedirs(media_dest, exist_ok=True)
 
         media_json_path = os.path.join(tmpdir, 'media')
-        # Nomes de arquivos internos do .apkg que NÃO são mídia
         known_non_media = {
             'media', 'meta', 'collection.anki2',
             'collection.anki21', 'collection.anki21b',
             'collection_decompressed.anki21',
         }
 
-        if os.path.isfile(media_json_path):
-            with open(media_json_path, 'rb') as f:
-                raw = f.read()
+        # LOG de debug para arquivo (temporário)
+        debug_log_path = os.path.join(current_app.root_path, 'media_debug.log')
+        with open(debug_log_path, 'w', encoding='utf-8') as dbg:
+            all_files = os.listdir(tmpdir)
+            dbg.write(f'tmpdir: {tmpdir}\n')
+            dbg.write(f'total files in tmpdir: {len(all_files)}\n')
+            dbg.write(f'first 30 files: {sorted(all_files)[:30]}\n')
+            dbg.write(f'media path: {media_json_path}\n')
+            dbg.write(f'media exists: {os.path.exists(media_json_path)}\n')
+            dbg.write(f'media is file: {os.path.isfile(media_json_path)}\n')
+            dbg.write(f'media is dir: {os.path.isdir(media_json_path)}\n')
+            dbg.write(f'media_dest: {media_dest}\n')
+            dbg.write(f'media_dest exists: {os.path.exists(media_dest)}\n')
 
-            # Anki 2.1.28+ comprime o arquivo media com zstd (magic: 28 B5 2F FD)
-            if raw[:4] == b'\x28\xb5\x2f\xfd':
-                try:
-                    import zstandard as zstd
-                    dctx = zstd.ZstdDecompressor()
-                    raw = dctx.decompress(raw)
-                except Exception:
-                    raw = b'{}'
+            if os.path.isfile(media_json_path):
+                with open(media_json_path, 'rb') as f:
+                    raw = f.read()
 
-            media_map = {}
-            if raw.strip():
-                try:
-                    media_map = json.loads(raw.decode('utf-8'))
-                except (UnicodeDecodeError, json.JSONDecodeError):
+                dbg.write(f'raw media file size: {len(raw)}\n')
+                dbg.write(f'raw first 20 bytes hex: {raw[:20].hex()}\n')
+                is_zstd = raw[:4] == b'\x28\xb5\x2f\xfd'
+                dbg.write(f'is zstd compressed: {is_zstd}\n')
+
+                if is_zstd:
                     try:
-                        media_map = json.loads(raw.decode('latin-1'))
-                    except json.JSONDecodeError:
-                        media_map = {}
+                        import zstandard as zstd
+                        dctx = zstd.ZstdDecompressor()
+                        raw = dctx.decompress(raw)
+                        dbg.write(f'zstd decompress OK, size after: {len(raw)}\n')
+                        dbg.write(f'decompressed first 500 chars: {raw[:500].decode("utf-8", errors="replace")}\n')
+                    except Exception as e:
+                        dbg.write(f'zstd decompress FAILED: {e}\n')
+                        raw = b'{}'
 
-            for num_str, original_name in media_map.items():
-                src = os.path.join(tmpdir, num_str)
-                if os.path.exists(src):
-                    dst = os.path.join(media_dest, original_name)
-                    if not os.path.exists(dst):
-                        shutil.copy2(src, dst)
-                        media_count += 1
+                media_map = {}
+                if raw.strip():
+                    try:
+                        media_map = json.loads(raw.decode('utf-8'))
+                        dbg.write(f'json parse OK, {len(media_map)} entries\n')
+                    except (UnicodeDecodeError, json.JSONDecodeError) as e:
+                        dbg.write(f'json parse utf-8 failed: {e}\n')
+                        try:
+                            media_map = json.loads(raw.decode('latin-1'))
+                            dbg.write(f'json parse latin-1 OK, {len(media_map)} entries\n')
+                        except json.JSONDecodeError as e2:
+                            dbg.write(f'json parse latin-1 also failed: {e2}\n')
+                            media_map = {}
+                else:
+                    dbg.write('raw is empty after decompress\n')
 
-        elif os.path.isdir(media_json_path):
-            # Formato intermediário: mídia dentro de subpasta media/
-            for entry in os.listdir(media_json_path):
-                src = os.path.join(media_json_path, entry)
-                if os.path.isfile(src):
-                    dst = os.path.join(media_dest, entry)
-                    if not os.path.exists(dst):
-                        shutil.copy2(src, dst)
-                        media_count += 1
+                dbg.write(f'media_map first 5: {dict(list(media_map.items())[:5])}\n')
 
-        else:
-            # Formato novo (Anki 23.10+): mídia com nomes originais direto no ZIP
-            for entry in os.listdir(tmpdir):
-                if entry in known_non_media:
-                    continue
-                src = os.path.join(tmpdir, entry)
-                if os.path.isfile(src):
-                    dst = os.path.join(media_dest, entry)
-                    if not os.path.exists(dst):
-                        shutil.copy2(src, dst)
-                        media_count += 1
+                copied = 0
+                missing_files = []
+                for num_str, original_name in media_map.items():
+                    src = os.path.join(tmpdir, num_str)
+                    if os.path.exists(src):
+                        dst = os.path.join(media_dest, original_name)
+                        if not os.path.exists(dst):
+                            shutil.copy2(src, dst)
+                            media_count += 1
+                        copied += 1
+                    else:
+                        if len(missing_files) < 10:
+                            missing_files.append(num_str)
+                dbg.write(f'copied: {copied}, media_count: {media_count}\n')
+                dbg.write(f'missing numbered files (first 10): {missing_files}\n')
+
+            elif os.path.isdir(media_json_path):
+                dbg.write('FORMAT: media directory\n')
+                dir_contents = os.listdir(media_json_path)
+                dbg.write(f'dir has {len(dir_contents)} files\n')
+                for entry in dir_contents:
+                    src = os.path.join(media_json_path, entry)
+                    if os.path.isfile(src):
+                        dst = os.path.join(media_dest, entry)
+                        if not os.path.exists(dst):
+                            shutil.copy2(src, dst)
+                            media_count += 1
+
+            else:
+                dbg.write('FORMAT: new named files (no media file found)\n')
+                media_files = [e for e in all_files if e not in known_non_media]
+                dbg.write(f'potential media files: {len(media_files)}\n')
+                dbg.write(f'first 10: {sorted(media_files)[:10]}\n')
+                for entry in media_files:
+                    src = os.path.join(tmpdir, entry)
+                    if os.path.isfile(src):
+                        dst = os.path.join(media_dest, entry)
+                        if not os.path.exists(dst):
+                            shutil.copy2(src, dst)
+                            media_count += 1
+
+            dbg.write(f'\nFINAL media_count: {media_count}\n')
+            # Verificar se algo foi copiado para media_dest
+            dest_files = os.listdir(media_dest) if os.path.exists(media_dest) else []
+            dbg.write(f'files in media_dest after copy: {len(dest_files)}\n')
+            dbg.write(f'first 10 in dest: {sorted(dest_files)[:10]}\n')
 
         db.session.commit()
         conn.close()
