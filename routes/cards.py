@@ -493,7 +493,10 @@ def import_apkg(filepath):
                     try:
                         import zstandard as zstd
                         dctx = zstd.ZstdDecompressor()
-                        raw = dctx.decompress(raw)
+                        # Use streaming API — handles frames without content size
+                        reader = dctx.stream_reader(raw)
+                        raw = reader.read()
+                        reader.close()
                         dbg.write(f'zstd decompress OK, size after: {len(raw)}\n')
                         dbg.write(f'decompressed first 500 chars: {raw[:500].decode("utf-8", errors="replace")}\n')
                     except Exception as e:
