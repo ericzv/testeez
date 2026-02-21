@@ -155,12 +155,15 @@ def import_apkg(filepath):
                         except Exception:
                             return {'error': 'Este .apkg usa formato comprimido (Anki 2.1.28+). Não foi possível instalar zstandard automaticamente. Execute: pip install zstandard'}
                     try:
-                        with open(candidate, 'rb') as f_in:
-                            dctx = zstd.ZstdDecompressor()
-                            decompressed = dctx.decompress(f_in.read())
+                        dctx = zstd.ZstdDecompressor()
                         decompressed_path = os.path.join(tmpdir, 'collection_decompressed.anki21')
-                        with open(decompressed_path, 'wb') as f_out:
-                            f_out.write(decompressed)
+                        with open(candidate, 'rb') as f_in, open(decompressed_path, 'wb') as f_out:
+                            reader = dctx.stream_reader(f_in)
+                            while True:
+                                chunk = reader.read(65536)
+                                if not chunk:
+                                    break
+                                f_out.write(chunk)
                         db_path = decompressed_path
                     except Exception as e:
                         return {'error': f'Erro ao descomprimir banco de dados: {str(e)}'}
