@@ -107,6 +107,27 @@ def _parse_media_protobuf(data):
     return media_map
 
 
+_ZSTD_MAGIC = b'\x28\xb5\x2f\xfd'
+
+def _copy_media_file(src, dst):
+    """Copia arquivo de mídia, descomprimindo zstd se necessário (Anki v3)."""
+    with open(src, 'rb') as f:
+        data = f.read()
+
+    if data[:4] == _ZSTD_MAGIC:
+        try:
+            import zstandard as zstd
+            dctx = zstd.ZstdDecompressor()
+            reader = dctx.stream_reader(data)
+            data = reader.read()
+            reader.close()
+        except Exception:
+            pass  # se falhar, salva como está
+
+    with open(dst, 'wb') as f:
+        f.write(data)
+
+
 def detect_anki_cloze_html(text):
     """Detecta se o texto contém HTML de cloze exportado pelo Anki."""
     if not text:
@@ -586,7 +607,7 @@ def import_apkg(filepath):
                 if os.path.exists(src):
                     dst = os.path.join(media_dest, original_name)
                     if not os.path.exists(dst):
-                        shutil.copy2(src, dst)
+                        _copy_media_file(src, dst)
                         media_count += 1
 
         elif os.path.isdir(media_json_path):
