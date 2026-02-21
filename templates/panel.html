@@ -14,11 +14,12 @@
   .panel-wrapper {
     display: flex;
     gap: 0;
-    min-height: calc(100vh - 80px);
+    height: calc(100vh - 56px);
   }
   .panel-list {
     flex: 1;
     overflow-y: auto;
+    height: calc(100vh - 56px);
     transition: flex 0.25s ease;
   }
   .panel-list.shrunk {
@@ -31,8 +32,8 @@
     border-left: 1px solid #e0e0e0;
     overflow-y: auto;
     display: none;
-    background: #f4f5f7;
-    max-height: calc(100vh - 80px);
+    background: #ebedf0;
+    height: calc(100vh - 56px);
     position: sticky;
     top: 0;
   }
