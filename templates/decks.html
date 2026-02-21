@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
     row.addEventListener('click', function(e) {
       if (e.target.closest('.deck-actions') || e.target.closest('.deck-toggle')) return;
       var deckId = row.getAttribute('data-deck-id');
-      window.location = '/panel?deck_id=' + deckId;
+      window.location = '/study/' + deckId;
     });
   });
 

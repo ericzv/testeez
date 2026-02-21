@@ -942,6 +942,257 @@ def end_session():
     flash("Sessão de estudo encerrada.", "success")
     return redirect(url_for('cards.study_lobby'))
 
+##############################################
+#         ESTUDO DINÂMICO (Anki-style)
+##############################################
+
+def get_next_study_card(deck_ids):
+    """Busca o próximo cartão para estudo por prioridade.
+    Prioridade: 1) Aprendendo (errados) → 2) Revisão (vencidos) → 3) Novos
+    Retorna (card, card_type) ou (None, None).
+    """
+    now = datetime.now(timezone.utc)
+
+    # 1. Aprendendo: repetition=0, review_count>0 (erraram, precisam reaprender)
+    card = Card.query.filter(
+        Card.deck_id.in_(deck_ids),
+        Card.suspended == False,
+        Card.review_count > 0,
+        Card.repetition == 0,
+        Card.next_review <= now,
+    ).order_by(Card.next_review.asc()).first()
+    if card:
+        return card, 'learning'
+
+    # 2. Revisão: repetition>0, next_review<=now (graduados e vencidos)
+    card = Card.query.filter(
+        Card.deck_id.in_(deck_ids),
+        Card.suspended == False,
+        Card.review_count > 0,
+        Card.repetition > 0,
+        Card.next_review <= now,
+    ).order_by(Card.next_review.asc()).first()
+    if card:
+        return card, 'review'
+
+    # 3. Novos: review_count=0
+    card = Card.query.filter(
+        Card.deck_id.in_(deck_ids),
+        Card.suspended == False,
+        Card.review_count == 0,
+    ).order_by(Card.id.asc()).first()
+    if card:
+        return card, 'new'
+
+    return None, None
+
+
+def get_waiting_learning_card(deck_ids):
+    """Verifica se há cartões de aprendizado pendentes (com next_review no futuro)."""
+    now = datetime.now(timezone.utc)
+    card = Card.query.filter(
+        Card.deck_id.in_(deck_ids),
+        Card.suspended == False,
+        Card.review_count > 0,
+        Card.repetition == 0,
+        Card.next_review > now,
+    ).order_by(Card.next_review.asc()).first()
+    return card
+
+
+def count_study_queue(deck_ids):
+    """Conta cartões em cada fila de estudo para o counter bar."""
+    now = datetime.now(timezone.utc)
+    new_count = Card.query.filter(
+        Card.deck_id.in_(deck_ids), Card.suspended == False,
+        Card.review_count == 0,
+    ).count()
+    learning_count = Card.query.filter(
+        Card.deck_id.in_(deck_ids), Card.suspended == False,
+        Card.review_count > 0, Card.repetition == 0,
+    ).count()
+    review_count = Card.query.filter(
+        Card.deck_id.in_(deck_ids), Card.suspended == False,
+        Card.review_count > 0, Card.repetition > 0,
+        Card.next_review <= now,
+    ).count()
+    return new_count, learning_count, review_count
+
+
+@cards_bp.route('/study/<int:deck_id>', methods=['GET', 'POST'])
+def study(deck_id):
+    """Sessão de estudo dinâmico estilo Anki."""
+    deck = Deck.query.get_or_404(deck_id)
+    deck_ids = get_subdeck_ids(deck_id)
+
+    # Inicializar histórico de undo na sessão
+    if 'study_undo_history' not in session:
+        session['study_undo_history'] = []
+    if 'study_time_total' not in session:
+        session['study_time_total'] = 0
+
+    if request.method == 'POST':
+        card_id = request.form.get('card_id', type=int)
+        response = request.form.get('response')
+        time_spent = request.form.get('time_spent', '0')
+
+        try:
+            time_spent = int(time_spent)
+        except ValueError:
+            time_spent = 0
+
+        # Acumular tempo de estudo (apenas se < 60s)
+        if time_spent < 60:
+            session['study_time_total'] = session.get('study_time_total', 0) + time_spent
+
+        card = Card.query.get(card_id)
+        if not card:
+            flash('Cartão não encontrado.', 'warning')
+            return redirect(url_for('cards.study', deck_id=deck_id))
+
+        # Salvar estado pré-revisão para undo
+        prev_state = {
+            'card_id': card.id,
+            'interval': card.interval,
+            'difficulty': card.difficulty,
+            'easiness_factor': card.easiness_factor,
+            'repetition': card.repetition,
+            'next_review': card.next_review.isoformat() if card.next_review else None,
+            'review_count': card.review_count,
+            'correct_count': card.correct_count,
+        }
+        history = session.get('study_undo_history', [])
+        history.append(prev_state)
+        # Manter apenas últimos 50 undos
+        if len(history) > 50:
+            history = history[-50:]
+        session['study_undo_history'] = history
+
+        # SM-2: atualizar cartão + registrar log + estatísticas
+        was_new, quality, interval_before, ef_before = sm2_review(card, response)
+        log_review(card, response, was_new, quality, time_spent, interval_before, ef_before)
+        update_daily_stats(response, was_new)
+        process_gamification(card, response, time_spent, was_new)
+
+        # Contagem de revisões para gamificação
+        if not was_new:
+            session['session_revision_count'] = session.get('session_revision_count', 0) + 1
+
+        db.session.commit()
+        return redirect(url_for('cards.study', deck_id=deck_id))
+
+    # GET: buscar próximo cartão
+    card, card_type = get_next_study_card(deck_ids)
+    new_count, learning_count, review_count = count_study_queue(deck_ids)
+
+    if not card:
+        # Verificar se há cartões de aprendizado esperando
+        waiting_card = get_waiting_learning_card(deck_ids)
+        if waiting_card:
+            wait_seconds = (waiting_card.next_review - datetime.now(timezone.utc)).total_seconds()
+            wait_seconds = max(0, int(wait_seconds))
+            return render_template('study.html',
+                                   deck=deck,
+                                   card=None,
+                                   waiting=True,
+                                   wait_seconds=wait_seconds,
+                                   new_count=new_count,
+                                   learning_count=learning_count,
+                                   review_count=review_count,
+                                   card_type=None,
+                                   active_type='learning')
+
+        # Salvar tempo de estudo acumulado nas estatísticas
+        if session.get('study_time_total', 0) > 0:
+            today = datetime.now(timezone.utc).date()
+            today_stats = DailyStats.query.filter_by(date=today).first()
+            if not today_stats:
+                today_stats = DailyStats(date=today, cards_studied=0, correct_count=0, new_cards=0, revision_cards=0)
+                db.session.add(today_stats)
+            current_time = getattr(today_stats, 'study_time', 0) or 0
+            today_stats.study_time = current_time + session.get('study_time_total', 0)
+            db.session.commit()
+            session['study_time_total'] = 0
+
+        # Nenhum cartão disponível
+        return render_template('study.html',
+                               deck=deck,
+                               card=None,
+                               waiting=False,
+                               new_count=new_count,
+                               learning_count=learning_count,
+                               review_count=review_count,
+                               card_type=None,
+                               active_type=None)
+
+    # Determinar qual fila está ativa (para o counter bar)
+    active_type = card_type
+
+    # Calcular previews SM-2
+    next_errei, _ = compute_sm2_preview(card, 'errei')
+    next_dificil, _ = compute_sm2_preview(card, 'difícil')
+    next_facil, _ = compute_sm2_preview(card, 'facil')
+    next_muitofacil, _ = compute_sm2_preview(card, 'muito_facil')
+
+    return render_template('study.html',
+                           deck=deck,
+                           card=card,
+                           waiting=False,
+                           card_type=card_type,
+                           active_type=active_type,
+                           new_count=new_count,
+                           learning_count=learning_count,
+                           review_count=review_count,
+                           next_errei=format_interval(next_errei),
+                           next_dificil=format_interval(next_dificil),
+                           next_facil=format_interval(next_facil),
+                           next_muitofacil=format_interval(next_muitofacil),
+                           datetime=datetime)
+
+
+@cards_bp.route('/study/<int:deck_id>/undo')
+def study_undo(deck_id):
+    """Desfaz a última revisão na sessão de estudo dinâmico."""
+    history = session.get('study_undo_history', [])
+    if not history:
+        flash('Nenhuma ação para desfazer.', 'warning')
+        return redirect(url_for('cards.study', deck_id=deck_id))
+
+    last_state = history.pop()
+    session['study_undo_history'] = history
+
+    card = Card.query.get(last_state['card_id'])
+    if not card:
+        flash('Cartão não encontrado.', 'warning')
+        return redirect(url_for('cards.study', deck_id=deck_id))
+
+    was_new = (last_state['review_count'] == 0)
+
+    # Reverter estado do cartão
+    card.interval = last_state['interval']
+    card.difficulty = last_state['difficulty']
+    card.easiness_factor = last_state.get('easiness_factor', 2.5)
+    card.repetition = last_state.get('repetition', 0)
+    card.next_review = datetime.fromisoformat(last_state['next_review']) if last_state['next_review'] else None
+    card.review_count = last_state['review_count']
+    card.correct_count = last_state['correct_count']
+
+    # Remover último ReviewLog
+    last_log = ReviewLog.query.filter_by(card_id=card.id).order_by(ReviewLog.id.desc()).first()
+    if last_log:
+        db.session.delete(last_log)
+
+    # Reverter contagem de revisão para gamificação
+    if not was_new:
+        revision_count = session.get('session_revision_count', 0)
+        if revision_count > 0:
+            session['session_revision_count'] = revision_count - 1
+
+    db.session.commit()
+    flash('Cartão anterior restaurado.', 'info')
+    return redirect(url_for('cards.study', deck_id=deck_id))
+
+
 @cards_bp.route('/panel')
 def panel():
     query = request.args.get('q', '').strip()
