@@ -248,8 +248,12 @@
 
       <!-- Resposta (oculta inicialmente) -->
       <div id="answer-section" style="display: none;">
-        <hr class="answer-divider">
-        {{ card.render_back() | safe }}
+        {% if is_cloze %}
+          {{ card.render_back() | safe }}
+        {% else %}
+          <hr class="answer-divider">
+          {{ card.render_back() | safe }}
+        {% endif %}
       </div>
     </div>
 
@@ -363,12 +367,17 @@ var timerInterval = setInterval(function() {
   document.getElementById('study-timer').textContent = m + ':' + (s < 10 ? '0' : '') + s;
 }, 1000);
 
+var isCloze = {{ 'true' if is_cloze else 'false' }};
+
 function showAnswer() {
   document.getElementById('answer-section').style.display = 'block';
   document.getElementById('action-buttons').style.display = 'none';
   document.getElementById('response-buttons').style.display = 'block';
   if (timerSeconds < 60) {
     document.getElementById('time-spent-input').value = timerSeconds;
+  }
+  if (isCloze) {
+    document.getElementById('question-section').style.display = 'none';
   }
   document.getElementById('answer-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }

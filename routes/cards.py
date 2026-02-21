@@ -816,6 +816,8 @@ def study(deck_id):
     next_facil, _ = compute_sm2_preview(card, 'facil')
     next_muitofacil, _ = compute_sm2_preview(card, 'muito_facil')
 
+    is_cloze = card.note and card.note.note_type == 'cloze'
+
     return render_template('study.html',
                            deck=deck,
                            card=card,
@@ -829,6 +831,7 @@ def study(deck_id):
                            next_dificil=format_interval(next_dificil),
                            next_facil=format_interval(next_facil),
                            next_muitofacil=format_interval(next_muitofacil),
+                           is_cloze=is_cloze,
                            datetime=datetime)
 
 
@@ -1188,10 +1191,13 @@ def api_card_detail(card_id):
             'time_spent': log.time_spent,
         })
 
+    is_cloze = card.note is not None and card.note.note_type == 'cloze'
+
     return jsonify({
         'id': card.id,
         'front': front_html,
         'back': back_html,
+        'is_cloze': is_cloze,
         'deck_name': card.deck.name,
         'deck_id': card.deck_id,
         'phase': phase,

@@ -428,18 +428,24 @@
     html += '<span style="color:' + data.phase_color + '; font-size: 0.85em; font-weight: 600;">' + data.phase + '</span>';
     html += '</div>';
 
-    // Front
-    html += '<div class="detail-section">';
-    html += '<h6>Pergunta</h6>';
-    html += '<div class="detail-content">' + data.front + '</div>';
-    html += '</div>';
+    if (data.is_cloze) {
+      // Cloze: mostrar so o verso (ja contem o texto completo com a resposta revelada)
+      html += '<div class="detail-section">';
+      html += '<div class="detail-content">' + data.back + '</div>';
+      html += '</div>';
+    } else {
+      // Basico: mostrar pergunta e resposta
+      html += '<div class="detail-section">';
+      html += '<h6>Pergunta</h6>';
+      html += '<div class="detail-content">' + data.front + '</div>';
+      html += '</div>';
 
-    // Back
-    html += '<hr class="detail-divider">';
-    html += '<div class="detail-section">';
-    html += '<h6>Resposta</h6>';
-    html += '<div class="detail-content">' + data.back + '</div>';
-    html += '</div>';
+      html += '<hr class="detail-divider">';
+      html += '<div class="detail-section">';
+      html += '<h6>Resposta</h6>';
+      html += '<div class="detail-content">' + data.back + '</div>';
+      html += '</div>';
+    }
 
     // Note info & siblings
     if (data.note_info) {
