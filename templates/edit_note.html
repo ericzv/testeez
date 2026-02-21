@@ -68,7 +68,7 @@
 .editor-area .cloze-c4 { background: #ffedd5; border-color: #f97316; }
 /* c5 - Rosa */
 .editor-area .cloze-c5 { background: #fce7f3; border-color: #ec4899; }
-.editor-area img { max-width: 100%; height: auto; }
+.editor-area img { max-width: 200px; height: auto; border-radius: 4px; vertical-align: middle; }
 .cloze-btn { font-weight: bold; color: #856404; }
 /* Type selector */
 .type-selector {
@@ -208,6 +208,26 @@
 {% block scripts %}
 {% raw %}
 <script>
+// === Fix image paths in editor areas (relative -> full path) ===
+var MEDIA_PREFIX = '/static/collection.media/';
+function fixEditorImages() {
+  document.querySelectorAll('.editor-area img').forEach(function(img) {
+    var src = img.getAttribute('src');
+    if (src && src.indexOf('/') === -1 && src.indexOf('://') === -1) {
+      img.setAttribute('src', MEDIA_PREFIX + src);
+    }
+  });
+}
+function revertEditorImages() {
+  document.querySelectorAll('.editor-area img').forEach(function(img) {
+    var src = img.getAttribute('src');
+    if (src && src.indexOf(MEDIA_PREFIX) === 0) {
+      img.setAttribute('src', src.replace(MEDIA_PREFIX, ''));
+    }
+  });
+}
+fixEditorImages();
+
 // === Color map for cloze numbers ===
 var CLOZE_COLORS = {1:'cloze-c1', 2:'cloze-c2', 3:'cloze-c3', 4:'cloze-c4', 5:'cloze-c5'};
 function clozeClass(n) { return CLOZE_COLORS[n] || CLOZE_COLORS[((n - 1) % 5) + 1]; }
@@ -379,6 +399,9 @@ document.querySelectorAll('.editor-area').forEach(function(editor) {
 // === On submit: clean up and copy to hidden inputs ===
 document.getElementById('edit-form').addEventListener('submit', function() {
   var noteType = document.querySelector('input[name="note_type"]:checked').value;
+
+  // Revert image paths to relative before saving
+  revertEditorImages();
 
   // Clean cloze highlights in all editors
   ['content-editor', 'front-editor', 'back-editor'].forEach(function(id) {
