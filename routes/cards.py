@@ -464,28 +464,23 @@ def import_apkg(filepath):
         known_non_media = {
             'media', 'meta', 'collection.anki2',
             'collection.anki21', 'collection.anki21b',
+            'collection_decompressed.anki21',
         }
 
-        # DEBUG: listar tudo que foi extraído do ZIP
-        all_extracted = os.listdir(tmpdir)
-        media_is_file = os.path.isfile(media_json_path)
-        media_is_dir = os.path.isdir(media_json_path)
-        media_debug = {
-            'tmpdir_contents_count': len(all_extracted),
-            'tmpdir_first_20': sorted(all_extracted)[:20],
-            'media_is_file': media_is_file,
-            'media_is_dir': media_is_dir,
-            'media_exists': os.path.exists(media_json_path),
-        }
-
-        if media_is_file:
-            # Formato antigo: arquivo JSON mapeia números → nomes originais
+        if os.path.isfile(media_json_path):
             with open(media_json_path, 'rb') as f:
                 raw = f.read()
-            media_map = {}
-            media_debug['media_file_size'] = len(raw)
-            media_debug['media_file_preview'] = raw[:200].decode('utf-8', errors='replace')
 
+            # Anki 2.1.28+ comprime o arquivo media com zstd (magic: 28 B5 2F FD)
+            if raw[:4] == b'\x28\xb5\x2f\xfd':
+                try:
+                    import zstandard as zstd
+                    dctx = zstd.ZstdDecompressor()
+                    raw = dctx.decompress(raw)
+                except Exception:
+                    raw = b'{}'
+
+            media_map = {}
             if raw.strip():
                 try:
                     media_map = json.loads(raw.decode('utf-8'))
@@ -495,12 +490,6 @@ def import_apkg(filepath):
                     except json.JSONDecodeError:
                         media_map = {}
 
-            media_debug['media_map_count'] = len(media_map)
-            media_debug['media_map_first_5'] = dict(list(media_map.items())[:5])
-            media_debug['format'] = 'legacy_json'
-
-            copied = 0
-            missing = 0
             for num_str, original_name in media_map.items():
                 src = os.path.join(tmpdir, num_str)
                 if os.path.exists(src):
@@ -508,18 +497,10 @@ def import_apkg(filepath):
                     if not os.path.exists(dst):
                         shutil.copy2(src, dst)
                         media_count += 1
-                    copied += 1
-                else:
-                    missing += 1
-            media_debug['files_found_in_tmpdir'] = copied
-            media_debug['files_missing_from_tmpdir'] = missing
 
-        elif media_is_dir:
-            media_debug['format'] = 'media_directory'
-            dir_contents = os.listdir(media_json_path)
-            media_debug['media_dir_count'] = len(dir_contents)
-            media_debug['media_dir_first_10'] = sorted(dir_contents)[:10]
-            for entry in dir_contents:
+        elif os.path.isdir(media_json_path):
+            # Formato intermediário: mídia dentro de subpasta media/
+            for entry in os.listdir(media_json_path):
                 src = os.path.join(media_json_path, entry)
                 if os.path.isfile(src):
                     dst = os.path.join(media_dest, entry)
@@ -528,13 +509,10 @@ def import_apkg(filepath):
                         media_count += 1
 
         else:
-            media_debug['format'] = 'new_named_files'
-            non_media = [e for e in all_extracted if e in known_non_media]
-            media_files = [e for e in all_extracted if e not in known_non_media]
-            media_debug['non_media_files'] = non_media
-            media_debug['potential_media_count'] = len(media_files)
-            media_debug['potential_media_first_10'] = sorted(media_files)[:10]
-            for entry in media_files:
+            # Formato novo (Anki 23.10+): mídia com nomes originais direto no ZIP
+            for entry in os.listdir(tmpdir):
+                if entry in known_non_media:
+                    continue
                 src = os.path.join(tmpdir, entry)
                 if os.path.isfile(src):
                     dst = os.path.join(media_dest, entry)
@@ -551,7 +529,6 @@ def import_apkg(filepath):
             'revlogs': revlogs_created,
             'media': media_count,
             'duplicates': duplicates,
-            'media_debug': media_debug,
         }
 
     except Exception as e:
@@ -769,12 +746,6 @@ def import_cards():
         if result.get('duplicates', 0) > 0:
             msg += f' ({result["duplicates"]} duplicados ignorados)'
         flash(msg, 'success')
-
-        # DEBUG temporário: mostrar info sobre mídia
-        if 'media_debug' in result:
-            debug = result['media_debug']
-            flash(f'DEBUG MÍDIA: {debug}', 'info')
-
         return redirect(url_for('cards.decks'))
 
     return render_template('import.html')
