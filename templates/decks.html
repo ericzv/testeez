@@ -173,6 +173,9 @@
   <button class="btn-create" onclick="showCreateForm()" id="btn-show-create">
     <i class="fas fa-plus" style="font-size: 0.8em;"></i> Criar Baralho
   </button>
+  <a href="{{ url_for('cards.import_cards') }}" class="btn-create" style="text-decoration: none; margin-left: 12px;">
+    <i class="fas fa-file-import" style="font-size: 0.8em;"></i> Importar Coleção
+  </a>
   <div class="create-deck-inline" id="create-form">
     <form method="POST" action="{{ url_for('cards.decks') }}">
       <div class="input-group input-group-sm">
