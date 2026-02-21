@@ -17,10 +17,8 @@ import sqlite3
 import tempfile
 import shutil
 from html import unescape
-try:
-    import zstandard as zstd
-except ImportError:
-    zstd = None
+import subprocess
+import sys
 
 # Criar o objeto Blueprint
 cards_bp = Blueprint('cards', __name__)
@@ -148,8 +146,14 @@ def import_apkg(filepath):
             if os.path.exists(candidate):
                 # collection.anki21b é comprimido com zstd
                 if name == 'collection.anki21b':
-                    if zstd is None:
-                        return {'error': 'Este .apkg usa formato comprimido (Anki 2.1.28+). Instale o pacote zstandard: pip install zstandard'}
+                    try:
+                        import zstandard as zstd
+                    except ImportError:
+                        try:
+                            subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'zstandard'])
+                            import zstandard as zstd
+                        except Exception:
+                            return {'error': 'Este .apkg usa formato comprimido (Anki 2.1.28+). Não foi possível instalar zstandard automaticamente. Execute: pip install zstandard'}
                     try:
                         with open(candidate, 'rb') as f_in:
                             dctx = zstd.ZstdDecompressor()
