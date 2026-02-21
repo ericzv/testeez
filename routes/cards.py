@@ -1118,6 +1118,96 @@ def api_move_deck():
     db.session.commit()
     return jsonify({'success': True})
 
+
+@cards_bp.route('/api/card/<int:card_id>')
+def api_card_detail(card_id):
+    """API que retorna detalhes do cartao em JSON para o split panel."""
+    card = Card.query.get(card_id)
+    if not card:
+        return jsonify({'error': 'Cartao nao encontrado'}), 404
+
+    # Dados SM-2
+    if card.review_count > 0:
+        accuracy = f"{(card.correct_count / card.review_count * 100):.1f}%"
+    else:
+        accuracy = "N/A"
+
+    # Fase
+    now = datetime.now(timezone.utc)
+    if card.suspended:
+        phase = 'Suspenso'
+        phase_color = 'orange'
+    elif card.review_count == 0:
+        phase = 'Novo'
+        phase_color = '#2196F3'
+    else:
+        nr = card.next_review
+        if nr and nr.tzinfo is None:
+            nr = nr.replace(tzinfo=timezone.utc)
+        if nr and nr <= now:
+            phase = 'A revisar'
+            phase_color = '#27ae60'
+        else:
+            phase = 'Intervalo'
+            phase_color = '#888'
+
+    # Renderizar conteudo
+    front_html = card.render_front()
+    back_html = card.render_back()
+
+    # Tags
+    tags = [{'id': t.id, 'name': t.name} for t in card.tags]
+
+    # Info da nota e irmaos
+    note_info = None
+    siblings = []
+    if card.note:
+        note_info = {
+            'id': card.note.id,
+            'type': 'Omissao' if card.note.note_type == 'cloze' else 'Basico',
+            'ordinal': card.ordinal,
+            'edit_url': url_for('cards.edit_note', note_id=card.note.id),
+        }
+        for sc in Card.query.filter_by(note_id=card.note.id).order_by(Card.ordinal).all():
+            siblings.append({'id': sc.id, 'ordinal': sc.ordinal, 'current': sc.id == card.id})
+    else:
+        note_info = {
+            'edit_url': url_for('cards.edit_card', card_id=card.id),
+        }
+
+    # Historico de revisoes (ultimas 20)
+    logs = []
+    for log in ReviewLog.query.filter_by(card_id=card.id).order_by(ReviewLog.timestamp.desc()).limit(20).all():
+        logs.append({
+            'date': log.timestamp.strftime('%d/%m/%Y %H:%M'),
+            'response': log.response,
+            'interval_before': f"{log.interval_before:.2f}" if log.interval_before is not None else '-',
+            'interval_after': f"{log.interval_after:.2f}" if log.interval_after is not None else '-',
+            'ef_before': f"{log.ef_before:.2f}" if log.ef_before is not None else '-',
+            'ef_after': f"{log.ef_after:.2f}" if log.ef_after is not None else '-',
+            'time_spent': log.time_spent,
+        })
+
+    return jsonify({
+        'id': card.id,
+        'front': front_html,
+        'back': back_html,
+        'deck_name': card.deck.name,
+        'deck_id': card.deck_id,
+        'phase': phase,
+        'phase_color': phase_color,
+        'review_count': card.review_count,
+        'accuracy': accuracy,
+        'interval': format_interval(card.interval),
+        'easiness_factor': f"{card.easiness_factor:.2f}",
+        'repetition': card.repetition,
+        'suspended': card.suspended,
+        'tags': tags,
+        'note_info': note_info,
+        'siblings': siblings,
+        'review_logs': logs,
+    })
+
 @cards_bp.route('/delete_deck/<int:deck_id>', methods=['POST'])
 def delete_deck(deck_id):
     deck = Deck.query.get_or_404(deck_id)
