@@ -2,6 +2,15 @@
 {% block title %}Baralhos - Retina Cards{% endblock %}
 {% block head %}
 <style>
+  .study-summary {
+    text-align: center;
+    padding: 12px 0 16px;
+    color: #666;
+    font-size: 0.92em;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 16px;
+  }
+  .study-summary strong { color: #333; }
   .deck-table {
     width: 100%;
     border-collapse: collapse;
@@ -15,116 +24,84 @@
     font-size: 0.85em;
     text-transform: uppercase;
   }
-  .deck-table thead th:first-child {
-    text-align: left;
-  }
-  .deck-table thead th:not(:first-child) {
-    text-align: center;
-    width: 80px;
-  }
+  .deck-table thead th:first-child { text-align: left; }
+  .deck-table thead th:not(:first-child) { text-align: center; width: 80px; }
   .deck-row {
     border-bottom: 1px solid #eee;
     cursor: pointer;
   }
-  .deck-row:hover {
-    background-color: #f5f8ff;
-  }
-  .deck-row td {
-    padding: 10px 12px;
-    vertical-align: middle;
-  }
-  .deck-row td:not(:first-child) {
-    text-align: center;
-    width: 80px;
-  }
+  .deck-row:hover { background-color: #f5f8ff; }
+  .deck-row td { padding: 10px 12px; vertical-align: middle; }
+  .deck-row td:not(:first-child) { text-align: center; width: 80px; }
   .deck-name-cell {
     display: flex;
     align-items: center;
     gap: 4px;
   }
   .deck-toggle {
-    width: 22px;
-    height: 22px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background: none;
-    color: #888;
-    font-size: 1.1em;
-    cursor: pointer;
-    padding: 0;
-    border-radius: 3px;
-    flex-shrink: 0;
+    width: 22px; height: 22px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: none; background: none; color: #888;
+    font-size: 1.1em; cursor: pointer; padding: 0;
+    border-radius: 3px; flex-shrink: 0;
   }
-  .deck-toggle:hover {
-    background-color: #e0e0e0;
-    color: #333;
+  .deck-toggle:hover { background-color: #e0e0e0; color: #333; }
+  .deck-toggle-spacer { width: 22px; flex-shrink: 0; }
+  .drag-handle {
+    width: 20px; flex-shrink: 0;
+    color: #ccc; cursor: grab; font-size: 0.85em;
+    display: flex; align-items: center; justify-content: center;
   }
-  .deck-toggle-spacer {
-    width: 22px;
-    flex-shrink: 0;
-  }
-  .deck-name {
-    font-weight: 500;
-    color: #333;
-  }
-  .deck-row.subdeck .deck-name {
-    font-weight: 400;
-    color: #555;
-  }
+  .drag-handle:hover { color: #888; }
+  .deck-name { font-weight: 500; color: #333; }
+  .deck-row.subdeck .deck-name { font-weight: 400; color: #555; }
   .count-new { color: #2196F3; font-weight: 600; }
   .count-learn { color: #e67e22; font-weight: 600; }
   .count-due { color: #27ae60; font-weight: 600; }
   .count-zero { color: #ccc; font-weight: 400; }
   .deck-actions {
-    opacity: 0;
-    display: flex;
-    gap: 4px;
-    justify-content: flex-end;
+    opacity: 0; display: flex; gap: 4px; justify-content: flex-end;
   }
-  .deck-row:hover .deck-actions {
-    opacity: 1;
-  }
-  .deck-actions a, .deck-actions button {
-    font-size: 0.78em;
-    padding: 2px 8px;
-  }
-  .create-deck-bar {
-    margin-top: 24px;
-    text-align: center;
-  }
+  .deck-row:hover .deck-actions { opacity: 1; }
+  .deck-actions a, .deck-actions button { font-size: 0.78em; padding: 2px 8px; }
+  .create-deck-bar { margin-top: 24px; text-align: center; }
   .create-deck-bar .btn-create {
-    color: #888;
-    border: 1px dashed #ccc;
-    background: none;
-    padding: 6px 20px;
-    font-size: 0.88em;
-    cursor: pointer;
-    border-radius: 4px;
+    color: #888; border: 1px dashed #ccc; background: none;
+    padding: 6px 20px; font-size: 0.88em; cursor: pointer; border-radius: 4px;
   }
-  .create-deck-bar .btn-create:hover {
-    color: #555;
-    border-color: #999;
-    background-color: #f9f9f9;
+  .create-deck-bar .btn-create:hover { color: #555; border-color: #999; background-color: #f9f9f9; }
+  .create-deck-inline { display: none; margin-top: 12px; justify-content: center; }
+  .create-deck-inline .input-group { max-width: 400px; width: 100%; }
+  /* Drag-and-drop */
+  .deck-row.drag-over-child { background-color: #e3f2fd !important; }
+  .deck-row.dragging { opacity: 0.4; }
+  .drop-root-zone {
+    height: 6px; transition: height 0.15s;
+    border-bottom: 2px dashed transparent;
   }
-  .create-deck-inline {
-    display: none;
-    margin-top: 12px;
-    justify-content: center;
-  }
-  .create-deck-inline .input-group {
-    max-width: 400px;
-    width: 100%;
+  .drop-root-zone.drag-active {
+    height: 32px; border-bottom-color: #2196F3;
+    display: flex; align-items: center; justify-content: center;
+    color: #999; font-size: 0.8em;
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container">
-  <h2 style="margin-bottom: 16px;">Baralhos</h2>
+  <h2 style="margin-bottom: 4px;">Baralhos</h2>
 
-  <table class="deck-table">
+  {% if cards_studied > 0 %}
+  <div class="study-summary">
+    Hoje: <strong>{{ cards_studied }} {{ 'cartão' if cards_studied == 1 else 'cartões' }}</strong>
+    {% if study_time_minutes > 0 %}
+      em <strong>{{ study_time_minutes }} min</strong>
+    {% endif %}
+    &middot; Acerto: <strong>{{ accuracy|round(0)|int }}%</strong>
+  </div>
+  {% endif %}
+
+  <table class="deck-table" id="deck-table">
     <thead>
       <tr>
         <th>Baralho</th>
@@ -134,16 +111,20 @@
         <th></th>
       </tr>
     </thead>
-    <tbody>
+    <tbody id="deck-tbody">
       {% macro render_deck(deck, level=0) %}
         {% set counts = count_cards_recursive(deck) %}
         {% set has_children = deck.children.count() > 0 %}
         <tr class="deck-row {% if level > 0 %}subdeck{% endif %}"
             {% if level > 0 %}data-parent="deck-{{ deck.parent_id }}"{% endif %}
             data-deck-id="{{ deck.id }}"
-            onclick="window.location='{{ url_for('cards.panel', deck_id=deck.id) }}'">
+            data-level="{{ level }}"
+            draggable="true">
           <td>
             <div class="deck-name-cell" style="padding-left: {{ level * 24 }}px;">
+              <span class="drag-handle" title="Arrastar" onmousedown="event.stopPropagation();">
+                <i class="fas fa-grip-vertical"></i>
+              </span>
               {% if has_children %}
                 <button class="deck-toggle" onclick="event.stopPropagation(); toggleDeck({{ deck.id }}, this);" title="Expandir/recolher">
                   <i class="fas fa-caret-right" id="icon-{{ deck.id }}"></i>
@@ -162,10 +143,7 @@
               <a href="{{ url_for('cards.rename_deck', deck_id=deck.id) }}" class="btn btn-sm btn-outline-secondary" title="Renomear">
                 <i class="fas fa-pen"></i>
               </a>
-              <a href="{{ url_for('cards.change_deck_parent', deck_id=deck.id) }}" class="btn btn-sm btn-outline-secondary" title="Mover">
-                <i class="fas fa-arrows-alt"></i>
-              </a>
-              <button class="btn btn-sm btn-outline-danger" onclick="confirmDeletion({{ deck.id }})" title="Excluir">
+              <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); confirmDeletion({{ deck.id }})" title="Excluir">
                 <i class="fas fa-trash"></i>
               </button>
             </div>
@@ -183,6 +161,8 @@
       {% endfor %}
     </tbody>
   </table>
+
+  <div class="drop-root-zone" id="drop-root-zone"></div>
 
   <div class="create-deck-bar">
     <button class="btn-create" onclick="showCreateForm()" id="btn-show-create">
@@ -206,17 +186,108 @@
 {% block scripts %}
 <script>
 var expanded = {};
+var draggedDeckId = null;
 
 document.addEventListener('DOMContentLoaded', function() {
+  // Iniciar com sub-baralhos escondidos
   document.querySelectorAll('.deck-row.subdeck').forEach(function(row) {
     row.style.display = 'none';
   });
+
+  // Navegação por clique (evitando drag handle e botões)
+  document.querySelectorAll('.deck-row').forEach(function(row) {
+    row.addEventListener('click', function(e) {
+      if (e.target.closest('.deck-actions') || e.target.closest('.deck-toggle') || e.target.closest('.drag-handle')) return;
+      var deckId = row.getAttribute('data-deck-id');
+      window.location = '/panel?deck_id=' + deckId;
+    });
+  });
+
+  // --- Drag-and-drop ---
+  var rows = document.querySelectorAll('.deck-row');
+  var rootZone = document.getElementById('drop-root-zone');
+
+  rows.forEach(function(row) {
+    row.addEventListener('dragstart', function(e) {
+      draggedDeckId = row.getAttribute('data-deck-id');
+      row.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', draggedDeckId);
+      rootZone.classList.add('drag-active');
+      rootZone.textContent = 'Soltar aqui para mover para o nível raiz';
+    });
+
+    row.addEventListener('dragend', function() {
+      row.classList.remove('dragging');
+      clearAllHighlights();
+      rootZone.classList.remove('drag-active');
+      rootZone.textContent = '';
+      draggedDeckId = null;
+    });
+
+    row.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      if (row.getAttribute('data-deck-id') === draggedDeckId) return;
+      e.dataTransfer.dropEffect = 'move';
+      clearAllHighlights();
+      row.classList.add('drag-over-child');
+    });
+
+    row.addEventListener('dragleave', function() {
+      row.classList.remove('drag-over-child');
+    });
+
+    row.addEventListener('drop', function(e) {
+      e.preventDefault();
+      var targetId = row.getAttribute('data-deck-id');
+      if (targetId === draggedDeckId) return;
+      moveDeck(draggedDeckId, parseInt(targetId));
+    });
+  });
+
+  // Drop no root zone
+  rootZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    rootZone.style.borderBottomColor = '#1976D2';
+  });
+  rootZone.addEventListener('dragleave', function() {
+    rootZone.style.borderBottomColor = '#2196F3';
+  });
+  rootZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    moveDeck(draggedDeckId, null);
+  });
 });
 
-function toggleDeck(deckId, btn) {
+function clearAllHighlights() {
+  document.querySelectorAll('.drag-over-child').forEach(function(el) {
+    el.classList.remove('drag-over-child');
+  });
+}
+
+function moveDeck(deckId, newParentId) {
+  fetch('/api/deck/move', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ deck_id: parseInt(deckId), parent_id: newParentId })
+  })
+  .then(function(resp) { return resp.json(); })
+  .then(function(data) {
+    if (data.success) {
+      window.location.reload();
+    } else {
+      alert(data.error || 'Erro ao mover baralho');
+    }
+  })
+  .catch(function() {
+    alert('Erro de conexão');
+  });
+}
+
+function toggleDeck(deckId) {
   expanded[deckId] = !expanded[deckId];
   var icon = document.getElementById('icon-' + deckId);
-
   if (expanded[deckId]) {
     icon.classList.remove('fa-caret-right');
     icon.classList.add('fa-caret-down');
@@ -251,7 +322,6 @@ function showCreateForm() {
   document.getElementById('create-form').style.display = 'flex';
   document.getElementById('deck-name-input').focus();
 }
-
 function hideCreateForm() {
   document.getElementById('create-form').style.display = 'none';
   document.getElementById('btn-show-create').style.display = '';

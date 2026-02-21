@@ -575,49 +575,7 @@ def migrate_cards_to_notes():
 ##############################################
 @cards_bp.route('/')
 def index():
-    today = datetime.now(timezone.utc).date()
-    stats = DailyStats.query.filter_by(date=today).first()
-    
-    # Inicializar o tempo de estudo
-    total_study_time = 0
-    
-    # Obter o tempo do banco de dados
-    if stats:
-        accuracy = (stats.correct_count / stats.cards_studied * 100) if stats.cards_studied > 0 else 0
-        # Obter o tempo salvo no banco de dados
-        db_study_time = getattr(stats, 'study_time', 0) or 0
-        total_study_time += db_study_time
-    else:
-        stats = {'cards_studied': 0, 'new_cards': 0, 'revision_cards': 0, 'study_time': 0}
-        accuracy = 0
-    
-    # Adicionar o tempo da sessão ativa (se existir)
-    if 'study_time_total' in session and session.get('study_time_total', 0) > 0:
-        session_time = session.get('study_time_total', 0)
-        total_study_time += session_time
-        print(f"Sessão ativa: {session_time}s adicionados temporariamente ao tempo total.")
-    
-    # Converter para minutos
-    study_time_minutes = total_study_time // 60
-    
-    due_count = Card.query.filter(Card.next_review <= datetime.now(timezone.utc)).count()
-    new_total = Card.query.filter(Card.review_count == 0).count()
-    in_date = Card.query.filter(Card.review_count > 0, Card.next_review > datetime.now(timezone.utc)).count()
-    due_total = Card.query.filter(Card.review_count > 0, Card.next_review <= datetime.now(timezone.utc)).count()
-    circumference = 2 * math.pi * 16
-    pie_dash = (accuracy / 100.0) * circumference
-    pie_gap = circumference - pie_dash
-    
-    return render_template('index.html',
-                           stats=stats,
-                           accuracy=accuracy,
-                           due_count=due_count,
-                           new_total=new_total,
-                           in_date=in_date,
-                           due_total=due_total,
-                           pie_dash=pie_dash,
-                           pie_gap=pie_gap,
-                           study_time_minutes=study_time_minutes)
+    return redirect(url_for('cards.decks'))
 
 @cards_bp.route('/study_lobby')
 def study_lobby():
@@ -1174,9 +1132,58 @@ def decks():
         db.session.commit()
         flash("Baralho criado com sucesso.", "success")
         return redirect(url_for('cards.decks'))
-    # Lista os decks de nível superior (você pode ajustar para mostrar todos, se desejar)
-    decks = Deck.query.filter(Deck.parent_id == None).all()
-    return render_template('decks.html', decks=decks)
+
+    # Resumo do estudo do dia
+    today = datetime.now(timezone.utc).date()
+    stats = DailyStats.query.filter_by(date=today).first()
+    total_study_time = 0
+    if stats:
+        accuracy = (stats.correct_count / stats.cards_studied * 100) if stats.cards_studied > 0 else 0
+        db_study_time = getattr(stats, 'study_time', 0) or 0
+        total_study_time += db_study_time
+        cards_studied = stats.cards_studied
+    else:
+        accuracy = 0
+        cards_studied = 0
+    if 'study_time_total' in session and session.get('study_time_total', 0) > 0:
+        total_study_time += session.get('study_time_total', 0)
+    study_time_minutes = total_study_time // 60
+
+    all_decks = Deck.query.filter(Deck.parent_id == None).all()
+    return render_template('decks.html', decks=all_decks,
+                           cards_studied=cards_studied,
+                           accuracy=accuracy,
+                           study_time_minutes=study_time_minutes)
+
+
+@cards_bp.route('/api/deck/move', methods=['POST'])
+def api_move_deck():
+    """API para mover baralho via drag-and-drop."""
+    data = request.get_json()
+    deck_id = data.get('deck_id')
+    new_parent_id = data.get('parent_id')  # None para mover para raiz
+
+    deck = Deck.query.get(deck_id)
+    if not deck:
+        return jsonify({'error': 'Baralho não encontrado'}), 404
+
+    # Prevenir referência circular: não pode ser filho de si mesmo ou de um descendente
+    if new_parent_id:
+        target = Deck.query.get(new_parent_id)
+        if not target:
+            return jsonify({'error': 'Baralho destino não encontrado'}), 404
+        if target.id == deck.id:
+            return jsonify({'error': 'Não pode ser pai de si mesmo'}), 400
+        # Verificar se target é descendente de deck
+        check = target
+        while check.parent_id:
+            if check.parent_id == deck.id:
+                return jsonify({'error': 'Referência circular'}), 400
+            check = Deck.query.get(check.parent_id)
+
+    deck.parent_id = new_parent_id
+    db.session.commit()
+    return jsonify({'success': True})
 
 @cards_bp.route('/delete_deck/<int:deck_id>', methods=['POST'])
 def delete_deck(deck_id):
