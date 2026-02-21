@@ -22,19 +22,18 @@
 </head>
 <body class="{% block body_class %}{% endblock %}">
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" href="{{ url_for('cards.decks') }}">Retina Cards</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav">
+      <ul class="navbar-nav mx-auto">
         <li class="nav-item"><a class="nav-link" href="{{ url_for('cards.decks') }}">Baralhos</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('cards.panel') }}">Pesquisar</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('cards.tags') }}">Tags</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('cards.statistics') }}">Estatísticas</a></li>
       </ul>
-      <ul class="navbar-nav ml-auto">
+      <ul class="navbar-nav" style="position: absolute; right: 16px;">
         <li class="nav-item">
           <a class="nav-link p-0 d-flex align-items-center" href="{{ url_for('battle.gamification') }}"
              style="height: 100%; padding: 4px 0 !important;">
