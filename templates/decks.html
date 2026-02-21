@@ -4,13 +4,11 @@
 <style>
   .study-summary {
     text-align: center;
-    padding: 12px 0 16px;
-    color: #666;
-    font-size: 0.92em;
-    border-bottom: 1px solid #eee;
-    margin-bottom: 16px;
+    padding: 10px 0;
+    color: #888;
+    font-size: 0.88em;
   }
-  .study-summary strong { color: #333; }
+  .study-summary strong { color: #555; }
   .deck-table {
     width: 100%;
     border-collapse: collapse;
@@ -47,12 +45,6 @@
   }
   .deck-toggle:hover { background-color: #e0e0e0; color: #333; }
   .deck-toggle-spacer { width: 22px; flex-shrink: 0; }
-  .drag-handle {
-    width: 20px; flex-shrink: 0;
-    color: #ccc; cursor: grab; font-size: 0.85em;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .drag-handle:hover { color: #888; }
   .deck-name { font-weight: 500; color: #333; }
   .deck-row.subdeck .deck-name { font-weight: 400; color: #555; }
   .count-new { color: #2196F3; font-weight: 600; }
@@ -64,14 +56,6 @@
   }
   .deck-row:hover .deck-actions { opacity: 1; }
   .deck-actions a, .deck-actions button { font-size: 0.78em; padding: 2px 8px; }
-  .create-deck-bar { margin-top: 24px; text-align: center; }
-  .create-deck-bar .btn-create {
-    color: #888; border: 1px dashed #ccc; background: none;
-    padding: 6px 20px; font-size: 0.88em; cursor: pointer; border-radius: 4px;
-  }
-  .create-deck-bar .btn-create:hover { color: #555; border-color: #999; background-color: #f9f9f9; }
-  .create-deck-inline { display: none; margin-top: 12px; justify-content: center; }
-  .create-deck-inline .input-group { max-width: 400px; width: 100%; }
   /* Drag-and-drop */
   .deck-row.drag-over-child { background-color: #e3f2fd !important; }
   .deck-row.dragging { opacity: 0.4; }
@@ -84,22 +68,33 @@
     display: flex; align-items: center; justify-content: center;
     color: #999; font-size: 0.8em;
   }
+  /* Botão criar fixo no fundo */
+  .create-deck-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    padding: 10px 0;
+    background: #fff;
+    border-top: 1px solid #eee;
+    z-index: 100;
+  }
+  .create-deck-footer .btn-create {
+    color: #888; border: 1px dashed #ccc; background: none;
+    padding: 6px 20px; font-size: 0.88em; cursor: pointer; border-radius: 4px;
+  }
+  .create-deck-footer .btn-create:hover { color: #555; border-color: #999; background-color: #f9f9f9; }
+  .create-deck-inline { display: none; margin-top: 8px; justify-content: center; }
+  .create-deck-inline .input-group { max-width: 400px; width: 100%; }
+  /* Espaço para não ficar atrás do footer fixo */
+  .deck-page-spacer { height: 70px; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container">
-  <h2 style="margin-bottom: 4px;">Baralhos</h2>
-
-  {% if cards_studied > 0 %}
-  <div class="study-summary">
-    Hoje: <strong>{{ cards_studied }} {{ 'cartão' if cards_studied == 1 else 'cartões' }}</strong>
-    {% if study_time_minutes > 0 %}
-      em <strong>{{ study_time_minutes }} min</strong>
-    {% endif %}
-    &middot; Acerto: <strong>{{ accuracy|round(0)|int }}%</strong>
-  </div>
-  {% endif %}
+  <h2 style="margin-bottom: 16px;">Baralhos</h2>
 
   <table class="deck-table" id="deck-table">
     <thead>
@@ -122,11 +117,8 @@
             draggable="true">
           <td>
             <div class="deck-name-cell" style="padding-left: {{ level * 24 }}px;">
-              <span class="drag-handle" title="Arrastar" onmousedown="event.stopPropagation();">
-                <i class="fas fa-grip-vertical"></i>
-              </span>
               {% if has_children %}
-                <button class="deck-toggle" onclick="event.stopPropagation(); toggleDeck({{ deck.id }}, this);" title="Expandir/recolher">
+                <button class="deck-toggle" onclick="event.stopPropagation(); toggleDeck({{ deck.id }});" title="Expandir/recolher">
                   <i class="fas fa-caret-right" id="icon-{{ deck.id }}"></i>
                 </button>
               {% else %}
@@ -164,21 +156,33 @@
 
   <div class="drop-root-zone" id="drop-root-zone"></div>
 
-  <div class="create-deck-bar">
-    <button class="btn-create" onclick="showCreateForm()" id="btn-show-create">
-      <i class="fas fa-plus" style="font-size: 0.8em;"></i> Criar Baralho
-    </button>
-    <div class="create-deck-inline" id="create-form">
-      <form method="POST" action="{{ url_for('cards.decks') }}">
-        <div class="input-group input-group-sm">
-          <input type="text" name="deck_name" class="form-control" placeholder="Nome do baralho..." required id="deck-name-input">
-          <div class="input-group-append">
-            <button type="submit" class="btn btn-primary">Criar</button>
-            <button type="button" class="btn btn-outline-secondary" onclick="hideCreateForm()">Cancelar</button>
-          </div>
+  {% if cards_studied > 0 %}
+  <div class="study-summary">
+    Hoje: <strong>{{ cards_studied }} {{ 'cartão' if cards_studied == 1 else 'cartões' }}</strong>
+    {% if study_time_minutes > 0 %}
+      em <strong>{{ study_time_minutes }} min</strong>
+    {% endif %}
+    &middot; Acerto: <strong>{{ accuracy|round(0)|int }}%</strong>
+  </div>
+  {% endif %}
+
+  <div class="deck-page-spacer"></div>
+</div>
+
+<div class="create-deck-footer">
+  <button class="btn-create" onclick="showCreateForm()" id="btn-show-create">
+    <i class="fas fa-plus" style="font-size: 0.8em;"></i> Criar Baralho
+  </button>
+  <div class="create-deck-inline" id="create-form">
+    <form method="POST" action="{{ url_for('cards.decks') }}">
+      <div class="input-group input-group-sm">
+        <input type="text" name="deck_name" class="form-control" placeholder="Nome do baralho..." required id="deck-name-input">
+        <div class="input-group-append">
+          <button type="submit" class="btn btn-primary">Criar</button>
+          <button type="button" class="btn btn-outline-secondary" onclick="hideCreateForm()">Cancelar</button>
         </div>
-      </form>
-    </div>
+      </div>
+    </form>
   </div>
 </div>
 {% endblock %}
@@ -189,15 +193,13 @@ var expanded = {};
 var draggedDeckId = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-  // Iniciar com sub-baralhos escondidos
   document.querySelectorAll('.deck-row.subdeck').forEach(function(row) {
     row.style.display = 'none';
   });
 
-  // Navegação por clique (evitando drag handle e botões)
   document.querySelectorAll('.deck-row').forEach(function(row) {
     row.addEventListener('click', function(e) {
-      if (e.target.closest('.deck-actions') || e.target.closest('.deck-toggle') || e.target.closest('.drag-handle')) return;
+      if (e.target.closest('.deck-actions') || e.target.closest('.deck-toggle')) return;
       var deckId = row.getAttribute('data-deck-id');
       window.location = '/panel?deck_id=' + deckId;
     });
@@ -245,7 +247,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Drop no root zone
   rootZone.addEventListener('dragover', function(e) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
