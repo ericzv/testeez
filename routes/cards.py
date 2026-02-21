@@ -149,6 +149,7 @@ def import_apkg(filepath):
 
         conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row
+        conn.text_factory = lambda b: b.decode('utf-8', errors='replace')
 
         # 3. Ler metadados da coleção
         col_row = conn.execute('SELECT * FROM col').fetchone()
