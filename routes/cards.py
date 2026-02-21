@@ -24,6 +24,84 @@ import sys
 cards_bp = Blueprint('cards', __name__)
 
 
+# ---------------------------------------------------------------------------
+# Protobuf parser para MediaEntries do Anki (formato .apkg v3 / 23.12+)
+# Schema:
+#   MediaEntries { repeated ZipMediaEntry entries = 1; }
+#   ZipMediaEntry { string name = 6; bytes sha1 = 7; optional string legacy_zip_name = 8; }
+# ---------------------------------------------------------------------------
+
+def _pb_read_varint(data, pos):
+    """Lê um varint protobuf e retorna (valor, nova_posição)."""
+    result = 0
+    shift = 0
+    while pos < len(data):
+        b = data[pos]
+        pos += 1
+        result |= (b & 0x7F) << shift
+        shift += 7
+        if not (b & 0x80):
+            break
+    return result, pos
+
+
+def _pb_parse_fields(data):
+    """Parseia bytes protobuf em {field_num: [(wire_type, value), ...]}."""
+    fields = {}
+    pos = 0
+    while pos < len(data):
+        if pos >= len(data):
+            break
+        tag, pos = _pb_read_varint(data, pos)
+        field_num = tag >> 3
+        wire_type = tag & 0x07
+
+        if wire_type == 0:          # varint
+            value, pos = _pb_read_varint(data, pos)
+        elif wire_type == 2:        # length-delimited (string, bytes, submessage)
+            length, pos = _pb_read_varint(data, pos)
+            value = data[pos:pos + length]
+            pos += length
+        elif wire_type == 1:        # 64-bit fixed
+            value = data[pos:pos + 8]
+            pos += 8
+        elif wire_type == 5:        # 32-bit fixed
+            value = data[pos:pos + 4]
+            pos += 4
+        else:
+            break  # tipo desconhecido → parar
+
+        fields.setdefault(field_num, []).append((wire_type, value))
+    return fields
+
+
+def _parse_media_protobuf(data):
+    """Converte protobuf MediaEntries em dict {zip_number_str: original_name}."""
+    media_map = {}
+    try:
+        outer = _pb_parse_fields(data)
+        for idx, (wt, entry_bytes) in enumerate(outer.get(1, [])):
+            if wt != 2:
+                continue
+            entry = _pb_parse_fields(entry_bytes)
+
+            # field 6 = name (nome original do arquivo)
+            name = None
+            if 6 in entry:
+                name = entry[6][0][1].decode('utf-8', errors='replace')
+
+            # field 8 = legacy_zip_name (nome numérico dentro do zip)
+            zip_name = str(idx)
+            if 8 in entry:
+                zip_name = entry[8][0][1].decode('utf-8', errors='replace')
+
+            if name:
+                media_map[zip_name] = name
+    except Exception:
+        pass
+    return media_map
+
+
 def detect_anki_cloze_html(text):
     """Detecta se o texto contém HTML de cloze exportado pelo Anki."""
     if not text:
@@ -466,107 +544,65 @@ def import_apkg(filepath):
             'collection_decompressed.anki21',
         }
 
-        # LOG de debug para arquivo (temporário)
-        debug_log_path = os.path.join(current_app.root_path, 'media_debug.log')
-        with open(debug_log_path, 'w', encoding='utf-8') as dbg:
-            all_files = os.listdir(tmpdir)
-            dbg.write(f'tmpdir: {tmpdir}\n')
-            dbg.write(f'total files in tmpdir: {len(all_files)}\n')
-            dbg.write(f'first 30 files: {sorted(all_files)[:30]}\n')
-            dbg.write(f'media path: {media_json_path}\n')
-            dbg.write(f'media exists: {os.path.exists(media_json_path)}\n')
-            dbg.write(f'media is file: {os.path.isfile(media_json_path)}\n')
-            dbg.write(f'media is dir: {os.path.isdir(media_json_path)}\n')
-            dbg.write(f'media_dest: {media_dest}\n')
-            dbg.write(f'media_dest exists: {os.path.exists(media_dest)}\n')
+        if os.path.isfile(media_json_path):
+            with open(media_json_path, 'rb') as f:
+                raw = f.read()
 
-            if os.path.isfile(media_json_path):
-                with open(media_json_path, 'rb') as f:
-                    raw = f.read()
+            # Anki 2.1.28+ comprime o arquivo media com zstd
+            if raw[:4] == b'\x28\xb5\x2f\xfd':
+                try:
+                    import zstandard as zstd
+                    dctx = zstd.ZstdDecompressor()
+                    reader = dctx.stream_reader(raw)
+                    raw = reader.read()
+                    reader.close()
+                except Exception:
+                    raw = b'{}'
 
-                dbg.write(f'raw media file size: {len(raw)}\n')
-                dbg.write(f'raw first 20 bytes hex: {raw[:20].hex()}\n')
-                is_zstd = raw[:4] == b'\x28\xb5\x2f\xfd'
-                dbg.write(f'is zstd compressed: {is_zstd}\n')
-
-                if is_zstd:
+            # Tentar parse como JSON (formato clássico: {"0": "file.png", ...})
+            media_map = {}
+            if raw.strip():
+                try:
+                    media_map = json.loads(raw.decode('utf-8'))
+                except (UnicodeDecodeError, json.JSONDecodeError):
                     try:
-                        import zstandard as zstd
-                        dctx = zstd.ZstdDecompressor()
-                        # Use streaming API — handles frames without content size
-                        reader = dctx.stream_reader(raw)
-                        raw = reader.read()
-                        reader.close()
-                        dbg.write(f'zstd decompress OK, size after: {len(raw)}\n')
-                        dbg.write(f'decompressed first 500 chars: {raw[:500].decode("utf-8", errors="replace")}\n')
-                    except Exception as e:
-                        dbg.write(f'zstd decompress FAILED: {e}\n')
-                        raw = b'{}'
+                        media_map = json.loads(raw.decode('latin-1'))
+                    except json.JSONDecodeError:
+                        pass
 
-                media_map = {}
-                if raw.strip():
-                    try:
-                        media_map = json.loads(raw.decode('utf-8'))
-                        dbg.write(f'json parse OK, {len(media_map)} entries\n')
-                    except (UnicodeDecodeError, json.JSONDecodeError) as e:
-                        dbg.write(f'json parse utf-8 failed: {e}\n')
-                        try:
-                            media_map = json.loads(raw.decode('latin-1'))
-                            dbg.write(f'json parse latin-1 OK, {len(media_map)} entries\n')
-                        except json.JSONDecodeError as e2:
-                            dbg.write(f'json parse latin-1 also failed: {e2}\n')
-                            media_map = {}
-                else:
-                    dbg.write('raw is empty after decompress\n')
+            # Se JSON falhou, tentar protobuf (Anki 23.12+)
+            # Schema: MediaEntries { repeated ZipMediaEntry entries=1; }
+            # ZipMediaEntry { string name=6; bytes sha1=7; optional string legacy_zip_name=8; }
+            if not media_map and raw and raw[0:1] == b'\x0a':
+                media_map = _parse_media_protobuf(raw)
 
-                dbg.write(f'media_map first 5: {dict(list(media_map.items())[:5])}\n')
+            for num_str, original_name in media_map.items():
+                src = os.path.join(tmpdir, num_str)
+                if os.path.exists(src):
+                    dst = os.path.join(media_dest, original_name)
+                    if not os.path.exists(dst):
+                        shutil.copy2(src, dst)
+                        media_count += 1
 
-                copied = 0
-                missing_files = []
-                for num_str, original_name in media_map.items():
-                    src = os.path.join(tmpdir, num_str)
-                    if os.path.exists(src):
-                        dst = os.path.join(media_dest, original_name)
-                        if not os.path.exists(dst):
-                            shutil.copy2(src, dst)
-                            media_count += 1
-                        copied += 1
-                    else:
-                        if len(missing_files) < 10:
-                            missing_files.append(num_str)
-                dbg.write(f'copied: {copied}, media_count: {media_count}\n')
-                dbg.write(f'missing numbered files (first 10): {missing_files}\n')
+        elif os.path.isdir(media_json_path):
+            for entry in os.listdir(media_json_path):
+                src = os.path.join(media_json_path, entry)
+                if os.path.isfile(src):
+                    dst = os.path.join(media_dest, entry)
+                    if not os.path.exists(dst):
+                        shutil.copy2(src, dst)
+                        media_count += 1
 
-            elif os.path.isdir(media_json_path):
-                dbg.write('FORMAT: media directory\n')
-                dir_contents = os.listdir(media_json_path)
-                dbg.write(f'dir has {len(dir_contents)} files\n')
-                for entry in dir_contents:
-                    src = os.path.join(media_json_path, entry)
-                    if os.path.isfile(src):
-                        dst = os.path.join(media_dest, entry)
-                        if not os.path.exists(dst):
-                            shutil.copy2(src, dst)
-                            media_count += 1
-
-            else:
-                dbg.write('FORMAT: new named files (no media file found)\n')
-                media_files = [e for e in all_files if e not in known_non_media]
-                dbg.write(f'potential media files: {len(media_files)}\n')
-                dbg.write(f'first 10: {sorted(media_files)[:10]}\n')
-                for entry in media_files:
-                    src = os.path.join(tmpdir, entry)
-                    if os.path.isfile(src):
-                        dst = os.path.join(media_dest, entry)
-                        if not os.path.exists(dst):
-                            shutil.copy2(src, dst)
-                            media_count += 1
-
-            dbg.write(f'\nFINAL media_count: {media_count}\n')
-            # Verificar se algo foi copiado para media_dest
-            dest_files = os.listdir(media_dest) if os.path.exists(media_dest) else []
-            dbg.write(f'files in media_dest after copy: {len(dest_files)}\n')
-            dbg.write(f'first 10 in dest: {sorted(dest_files)[:10]}\n')
+        else:
+            for entry in os.listdir(tmpdir):
+                if entry in known_non_media:
+                    continue
+                src = os.path.join(tmpdir, entry)
+                if os.path.isfile(src):
+                    dst = os.path.join(media_dest, entry)
+                    if not os.path.exists(dst):
+                        shutil.copy2(src, dst)
+                        media_count += 1
 
         db.session.commit()
         conn.close()
