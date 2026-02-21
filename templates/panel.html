@@ -287,7 +287,7 @@
               <th style="width: 48%;">Resposta</th>
               <th style="width: 22%;">Baralho</th>
               <th style="width: 10%;">Fase</th>
-              <th style="width: 10%;">EF</th>
+              <th style="width: 10%;">Dificuldade</th>
             </tr>
           </thead>
           <tbody>
@@ -299,13 +299,13 @@
               <td class="truncate-text">{{ card.deck.name }}</td>
               <td style="text-align: center;">
                 {% if card.suspended %}
-                  <span style="color: orange;">Susp</span>
+                  <span style="color: orange;">Suspenso</span>
                 {% elif card.review_count == 0 %}
                   <span style="color: #2196F3;">Novo</span>
                 {% elif card.next_review | make_aware <= datetime_module().now(timezone_module().utc) %}
-                  <span style="color: #27ae60;">Rev</span>
+                  <span style="color: #27ae60;">Revisar</span>
                 {% else %}
-                  <span style="color: #888;">Int</span>
+                  <span style="color: #888;">Intervalo</span>
                 {% endif %}
               </td>
               <td style="text-align: center;">{{ "%.1f"|format(card.easiness_factor) }}</td>
@@ -480,7 +480,7 @@
 
     // Meta grid
     html += '<div class="detail-section">';
-    html += '<h6>Informacoes</h6>';
+    html += '<h6>INFO</h6>';
     html += '<div class="detail-meta-grid">';
     html += '<div class="detail-meta-item"><span class="meta-label">Baralho</span><span class="meta-value">' + data.deck_name + '</span></div>';
     html += '<div class="detail-meta-item"><span class="meta-label">Estudado</span><span class="meta-value">' + data.review_count + 'x</span></div>';

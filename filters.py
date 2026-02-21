@@ -17,17 +17,17 @@ def process_front(text):
     
     # Processar formato Anki: {{c1::texto}}
     text = re.sub(r"\{\{c1::(.*?)\}\}",
-                  r'<span style="font-weight: bold; color: #003366; padding: 2px 4px;">[...]</span>',
+                  r'<span style="font-weight: bold; color: #003366;">[...]</span>',
                   text)
     
     # Processar formato HTML com data-cloze: <span class="cloze" data-cloze="texto" ...>
     text = re.sub(r'<span class="cloze" data-cloze="(.*?)".*?>.*?</span>',
-                  r'<span style="font-weight: bold; color: #003366; padding: 2px 4px;">[...]</span>',
+                  r'<span style="font-weight: bold; color: #003366;">[...]</span>',
                   text)
     
     # Processar formato HTML simples com class=cloze
     text = re.sub(r'<span class="cloze".*?>.*?</span>',
-                  r'<span style="font-weight: bold; color: #003366; padding: 2px 4px;">[...]</span>',
+                  r'<span style="font-weight: bold; color: #003366;">[...]</span>',
                   text)
     
     # Processar outros formatos de cloze (c2, etc)
@@ -36,10 +36,10 @@ def process_front(text):
                   text)
     
     text = re.sub(r"\{\{c1::(.*?)\}\}",
-              r'<span style="font-weight: bold; color: #003366; padding: 2px 4px;">[...]</span>',
+              r'<span style="font-weight: bold; color: #003366;">[...]</span>',
               text)
     text = re.sub(r'<span class="cloze" data-cloze="(.*?)".*?>.*?</span>',
-              r'<span style="font-weight: bold; color: #003366; padding: 2px 4px;">[...]</span>',
+              r'<span style="font-weight: bold; color: #003366;">[...]</span>',
               text)
     
     return text
@@ -83,7 +83,7 @@ def process_cloze_front(text, ordinal):
     # Substituir o ordinal alvo por [...]
     text = re.sub(
         r'\{\{c' + str(ordinal) + r'::(.*?)\}\}',
-        r'<span style="font-weight: bold; color: #003366; padding: 2px 4px;">[...]</span>',
+        r'<span style="font-weight: bold; color: #003366;">[...]</span>',
         text
     )
     # Mostrar texto de todos os outros ordinais sem marcadores
