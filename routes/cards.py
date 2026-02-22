@@ -1635,10 +1635,22 @@ def panel():
         9: "Muito difícil", 10: "Muito difícil"
     }
     
+    # Build filter info for the template header
+    filter_info = None
+    if tags_param and tag_ids:
+        tag_names = [t.name for t in Tag.query.filter(Tag.id.in_(tag_ids)).all()]
+        filter_info = {'type': 'tags', 'names': tag_names}
+    elif query:
+        filter_info = {'type': 'query', 'text': query}
+    elif deck_id:
+        deck_obj = Deck.query.get(deck_id)
+        filter_info = {'type': 'deck', 'name': deck_obj.name if deck_obj else ''}
+
     root_decks = Deck.query.filter(Deck.parent_id == None).all()
     return render_template('panel.html', cards=cards, query=query, diff_expl=diff_expl,
                           decks=Deck.query.all(), deck_id=deck_id, all_tags=all_tags,
-                          selected_tag_ids=tag_ids, root_decks=root_decks)
+                          selected_tag_ids=tag_ids, root_decks=root_decks,
+                          filter_info=filter_info)
 
 
 
@@ -1657,8 +1669,10 @@ def show_all():
     all_tags = Tag.query.order_by(Tag.name).all()
     root_decks = Deck.query.filter(Deck.parent_id == None).all()
     # Passar show_all=True para o template saber que estamos mostrando todos os cartões
+    filter_info = {'type': 'collection'}
     return render_template('panel.html', cards=cards, query="", diff_expl=diff_expl,
-                           decks=decks, all_tags=all_tags, show_all=True, root_decks=root_decks)
+                           decks=decks, all_tags=all_tags, show_all=True, root_decks=root_decks,
+                           filter_info=filter_info)
 
 @cards_bp.route('/rename_deck/<int:deck_id>', methods=['GET', 'POST'])
 def rename_deck(deck_id):

@@ -299,6 +299,21 @@
         {{ render_sidebar_deck(deck) }}
       {% endfor %}
     </ul>
+
+    <!-- Tags -->
+    <div class="panel-sidebar-header" style="border-top: 1px solid #e0e0e0;">Tags</div>
+    <ul class="sidebar-deck-list">
+      {% for tag in all_tags %}
+      <li>
+        <div class="sidebar-deck-item" style="padding: 2px 8px;">
+          <span class="sidebar-deck-spacer"></span>
+          <a href="{{ url_for('cards.panel', tags=tag.id) }}" class="sidebar-deck-link{% if selected_tag_ids and tag.id in selected_tag_ids %} active{% endif %}">
+            <i class="fas fa-tag" style="margin-right: 4px; font-size: 0.8em; color: #999;"></i>{{ tag.name }}
+          </a>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
   </div>
 
   <!-- Coluna central: lista de cartoes -->
@@ -314,36 +329,24 @@
         </div>
         <div class="d-flex align-items-center flex-wrap">
           <button type="submit" class="btn btn-primary btn-sm mr-2 mb-2">Buscar</button>
-          {% if deck_id %}
-            <a href="{{ url_for('cards.show_all', deck_id=deck_id) }}" class="btn btn-secondary btn-sm mr-2 mb-2">Todos os Cartoes</a>
-          {% else %}
-            <a href="{{ url_for('cards.show_all') }}" class="btn btn-secondary btn-sm mr-2 mb-2">Todos os Cartoes</a>
-          {% endif %}
           <button type="button" id="toggleSelectionMode" class="btn btn-outline-primary btn-sm mr-2 mb-2">Selecionar</button>
-          <button type="button" id="selectCardsBtn" class="btn btn-info btn-sm mb-2">Tags</button>
         </div>
       </form>
 
-      <!-- Tag filter dropdown -->
-      <div class="form-group mt-2" id="tags-selection-container" style="display: none;">
-        <div class="dropdown w-100">
-          <button class="btn btn-outline-secondary btn-sm dropdown-toggle w-100 text-left" type="button" id="tagsDropdown" data-toggle="dropdown">
-            Selecionar tags
-          </button>
-          <div class="dropdown-menu w-100" style="max-height: 250px; overflow-y: auto;">
-            {% for tag in all_tags %}
-              <div class="dropdown-item py-1">
-                <div class="form-check">
-                  <input class="form-check-input tag-checkbox" type="checkbox" id="tag-{{ tag.id }}" value="{{ tag.id }}"
-                         {% if selected_tag_ids and tag.id in selected_tag_ids %}checked{% endif %}>
-                  <label class="form-check-label" for="tag-{{ tag.id }}" style="font-size: 0.85em;">{{ tag.name }}</label>
-                </div>
-              </div>
-            {% endfor %}
-          </div>
-        </div>
-        <button class="btn btn-primary btn-sm mt-2" type="button" id="applyTagsBtn">Aplicar</button>
+      <!-- Filter description -->
+      {% if filter_info %}
+      <div style="font-size: 0.88em; color: #555; margin: 6px 0 2px 0;">
+        {% if filter_info.type == 'collection' %}
+          <strong>Colecao</strong> &mdash; {{ cards|length }} cartoes encontrados
+        {% elif filter_info.type == 'deck' %}
+          <strong>Baralho {{ filter_info.name }}</strong> &mdash; {{ cards|length }} cartoes encontrados
+        {% elif filter_info.type == 'tags' %}
+          <strong>Tag {{ filter_info.names|join(', ') }}</strong> &mdash; {{ cards|length }} cartoes encontrados
+        {% elif filter_info.type == 'query' %}
+          <strong>"{{ filter_info.text }}"</strong> &mdash; {{ cards|length }} cartoes encontrados
+        {% endif %}
       </div>
+      {% endif %}
 
       <!-- Batch operations -->
       <div id="batchOperations" style="display: none; margin-top: 8px;">
@@ -427,7 +430,7 @@
         </table>
       </form>
       {% else %}
-        <p class="text-muted" style="font-size: 0.9em;">Nenhum flashcard encontrado. Use a busca ou clique em "Todos os Cartoes".</p>
+        <p class="text-muted" style="font-size: 0.9em;">Nenhum flashcard encontrado. Use a busca ou selecione um baralho/tag na barra lateral.</p>
       {% endif %}
     </div>
   </div>
@@ -701,37 +704,12 @@
   })();
 })();
 
-// jQuery tag filters
+// jQuery batch tag dropdown
 $(document).ready(function() {
-  $("#tags-selection-container").hide();
-  $("#selectCardsBtn").click(function() { $("#tags-selection-container").toggle(); });
-
-  $("#applyTagsBtn").click(function() {
-    var sel = [];
-    $(".tag-checkbox:checked").each(function() { sel.push($(this).val()); });
-    if (sel.length > 0) {
-      window.location.href = "{{ url_for('cards.panel') }}?tags=" + sel.join(',');
-    } else {
-      alert("Selecione pelo menos uma tag.");
-    }
-  });
-
-  $(".tag-checkbox").change(function() {
-    var n = $(".tag-checkbox:checked").length;
-    $("#tagsDropdown").text(n > 0 ? n + ' tag(s)' : 'Selecionar tags');
-  });
-
   $(".batch-tag-checkbox").change(function() {
     var n = $(".batch-tag-checkbox:checked").length;
     $("#batchTagsDropdown").text(n > 0 ? n + ' tag(s)' : 'Tags');
   });
-
-  var urlParams = new URLSearchParams(window.location.search);
-  var tagsParam = urlParams.get('tags');
-  if (tagsParam) {
-    tagsParam.split(',').forEach(function(id) { $("#tag-" + id).prop('checked', true); });
-    $("#tagsDropdown").text(tagsParam.split(',').length + " tag(s)");
-  }
 });
 </script>
 {% endblock %}
