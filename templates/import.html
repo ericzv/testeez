@@ -4,11 +4,112 @@
 <h2>Importar Coleção do Anki</h2>
 <p>Exporte sua coleção ou baralho no Anki como <strong>.apkg</strong> e importe aqui.</p>
 <p style="color: #888; font-size: 0.9em;">No Anki: Arquivo &rarr; Exportar &rarr; Formato: "Pacote Anki (.apkg)"</p>
-<form method="POST" enctype="multipart/form-data">
+
+<form id="import-form" enctype="multipart/form-data">
     <div class="form-group">
         <label for="file">Arquivo .apkg:</label>
         <input type="file" class="form-control-file" name="file" id="file" accept=".apkg" required>
     </div>
-    <button type="submit" class="btn btn-primary">Importar</button>
+    <button type="submit" class="btn btn-primary" id="import-btn">Importar</button>
 </form>
+
+<div id="progress-area" style="display:none;" class="mt-4">
+    <div class="progress" style="height: 28px; border-radius: 8px;">
+        <div id="progress-bar"
+             class="progress-bar progress-bar-striped progress-bar-animated"
+             role="progressbar"
+             style="width: 0%; font-size: 14px; font-weight: 600; transition: width 0.3s ease;">
+            0%
+        </div>
+    </div>
+    <p id="progress-msg" class="mt-2" style="color: #888;">Enviando arquivo...</p>
+</div>
+
+<script>
+document.getElementById('import-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    var fileInput = document.getElementById('file');
+    if (!fileInput.files.length) return;
+
+    document.getElementById('import-form').style.display = 'none';
+    document.getElementById('progress-area').style.display = 'block';
+
+    var formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    try {
+        var response = await fetch('{{ url_for("cards.import_stream") }}', {
+            method: 'POST',
+            body: formData
+        });
+
+        var reader = response.body.getReader();
+        var decoder = new TextDecoder();
+        var buffer = '';
+
+        while (true) {
+            var result = await reader.read();
+            if (result.done) break;
+            buffer += decoder.decode(result.value, { stream: true });
+
+            var lines = buffer.split('\n');
+            buffer = lines.pop();
+
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+                if (!line) continue;
+                try {
+                    var event = JSON.parse(line);
+                    updateProgress(event);
+                } catch(e) {}
+            }
+        }
+
+        // Processar buffer restante
+        if (buffer.trim()) {
+            try {
+                updateProgress(JSON.parse(buffer.trim()));
+            } catch(e) {}
+        }
+    } catch (err) {
+        showError('Erro de conexão: ' + err.message);
+    }
+});
+
+function updateProgress(event) {
+    var bar = document.getElementById('progress-bar');
+    var msg = document.getElementById('progress-msg');
+
+    if (event.status === 'error') {
+        bar.className = 'progress-bar bg-danger';
+        bar.style.width = '100%';
+        bar.textContent = 'Erro';
+        msg.textContent = event.message;
+        msg.style.color = '#dc3545';
+        return;
+    }
+
+    if (event.progress >= 0) {
+        bar.style.width = event.progress + '%';
+        bar.textContent = event.progress + '%';
+    }
+    msg.textContent = event.message;
+
+    if (event.status === 'done') {
+        bar.className = 'progress-bar bg-success';
+        msg.style.color = '#28a745';
+        setTimeout(function() { window.location.href = '{{ url_for("cards.decks") }}'; }, 2000);
+    }
+}
+
+function showError(message) {
+    var bar = document.getElementById('progress-bar');
+    var msg = document.getElementById('progress-msg');
+    bar.className = 'progress-bar bg-danger';
+    bar.style.width = '100%';
+    bar.textContent = 'Erro';
+    msg.textContent = message;
+    msg.style.color = '#dc3545';
+}
+</script>
 {% endblock %}

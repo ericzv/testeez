@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session, current_app, send_file
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session, current_app, send_file, stream_with_context, Response
 from models import Deck, Card, Tag, db, DailyStats, Player, ReviewLog, Note, note_tags
 from srs_engine import (
     sm2_review, compute_sm2_preview, format_interval, log_review,
@@ -126,58 +126,6 @@ def _copy_media_file(src, dst):
 
     with open(dst, 'wb') as f:
         f.write(data)
-
-
-@cards_bp.route('/media-diagnostic')
-def media_diagnostic():
-    """Diagnóstico temporário: examina mídia e referências nos cards."""
-    from html import escape
-    media_dir = os.path.join(current_app.root_path, 'static', 'collection.media')
-    lines = []
-
-    # 1. Arquivos em disco
-    disk_files = set()
-    if os.path.isdir(media_dir):
-        disk_files = set(os.listdir(media_dir))
-    lines.append(f'=== ARQUIVOS EM DISCO: {len(disk_files)} ===\n')
-
-    # 2. Buscar cards que contêm <img no conteúdo
-    cards_with_img = db.session.execute(
-        text("SELECT n.id, n.content, n.back, n.extra FROM note n WHERE n.content LIKE '%<img%' OR n.back LIKE '%<img%' OR n.extra LIKE '%<img%' LIMIT 5")
-    ).fetchall()
-
-    lines.append(f'=== NOTAS COM <img> (primeiras 5): {len(cards_with_img)} ===\n')
-
-    img_pattern = re.compile(r'<img\s+[^>]*src=["\']([^"\']+)["\']', re.IGNORECASE)
-
-    for note in cards_with_img:
-        note_id = note[0]
-        lines.append(f'--- Note {note_id} ---')
-        for field_name, field_val in [('content', note[1]), ('back', note[2]), ('extra', note[3])]:
-            if not field_val:
-                continue
-            imgs = img_pattern.findall(field_val)
-            if not imgs:
-                continue
-            lines.append(f'  {field_name}:')
-            for img_src in imgs[:3]:
-                on_disk = img_src in disk_files
-                lines.append(f'    src="{escape(img_src)}" | on_disk={on_disk}')
-            # Mostrar trecho bruto do HTML com a tag img
-            raw_snippet = field_val[:300]
-            lines.append(f'    raw html (first 300): {escape(raw_snippet)}')
-        lines.append('')
-
-    # 3. Verificar se update_image_paths funciona com um exemplo
-    if cards_with_img:
-        from filters import update_image_paths
-        sample = cards_with_img[0][1] or ''
-        transformed = update_image_paths(sample)
-        lines.append('=== TRANSFORMAÇÃO update_image_paths (note 1 content) ===')
-        lines.append(f'  ANTES (300): {escape(sample[:300])}')
-        lines.append(f'  DEPOIS (300): {escape(transformed[:300])}')
-
-    return '<pre style="white-space:pre-wrap;word-break:break-all;">' + '\n'.join(lines) + '</pre>'
 
 
 def detect_anki_cloze_html(text):
@@ -700,6 +648,424 @@ def import_apkg(filepath):
         shutil.rmtree(tmpdir, ignore_errors=True)
 
 
+def import_apkg_stream(filepath):
+    """Generator que importa .apkg e yield dicts de progresso a cada etapa."""
+    tmpdir = tempfile.mkdtemp()
+    try:
+        # 1. Extrair ZIP
+        yield {'progress': 5, 'message': 'Extraindo arquivo...'}
+        try:
+            with zipfile.ZipFile(filepath, 'r') as z:
+                z.extractall(tmpdir)
+        except zipfile.BadZipFile:
+            yield {'progress': -1, 'status': 'error', 'message': 'Arquivo inválido. Não é um .apkg válido.'}
+            return
+
+        # 2. Encontrar e abrir banco SQLite
+        yield {'progress': 10, 'message': 'Lendo banco de dados...'}
+        db_path = None
+        for name in ['collection.anki21b', 'collection.anki2', 'collection.anki21']:
+            candidate = os.path.join(tmpdir, name)
+            if os.path.exists(candidate):
+                if name == 'collection.anki21b':
+                    try:
+                        import zstandard as zstd
+                    except ImportError:
+                        try:
+                            subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'zstandard'])
+                            import zstandard as zstd
+                        except Exception:
+                            yield {'progress': -1, 'status': 'error', 'message': 'Formato comprimido (Anki 2.1.28+). Execute: pip install zstandard'}
+                            return
+                    try:
+                        dctx = zstd.ZstdDecompressor()
+                        decompressed_path = os.path.join(tmpdir, 'collection_decompressed.anki21')
+                        with open(candidate, 'rb') as f_in, open(decompressed_path, 'wb') as f_out:
+                            reader = dctx.stream_reader(f_in)
+                            while True:
+                                chunk = reader.read(65536)
+                                if not chunk:
+                                    break
+                                f_out.write(chunk)
+                        db_path = decompressed_path
+                    except Exception as e:
+                        yield {'progress': -1, 'status': 'error', 'message': f'Erro ao descomprimir banco: {str(e)}'}
+                        return
+                else:
+                    db_path = candidate
+                break
+
+        if not db_path:
+            yield {'progress': -1, 'status': 'error', 'message': 'Formato .apkg não suportado.'}
+            return
+
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        conn.text_factory = lambda b: b.decode('utf-8', errors='replace')
+
+        # 3. Detectar schema e carregar dados
+        yield {'progress': 15, 'message': 'Analisando estrutura...'}
+        tables = [r[0] for r in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        ).fetchall()]
+        is_new_schema = 'notetypes' in tables
+
+        col_row = conn.execute('SELECT * FROM col').fetchone()
+        col_crt = col_row['crt']
+
+        model_type_map = {}
+        if is_new_schema:
+            for row in conn.execute('SELECT id, config FROM notetypes'):
+                config = bytes(row['config']) if row['config'] else b''
+                is_cloze = b'\x08\x01' in config
+                model_type_map[row['id']] = 'cloze' if is_cloze else 'basic'
+        else:
+            models_str = col_row['models']
+            if models_str and models_str.strip():
+                models = json.loads(models_str)
+                for mid_str, model in models.items():
+                    model_type_map[int(mid_str)] = 'cloze' if model.get('type') == 1 else 'basic'
+
+        anki_notes = {}
+        for row in conn.execute('SELECT * FROM notes'):
+            anki_notes[row['id']] = row
+
+        note_cards = {}
+        for row in conn.execute('SELECT * FROM cards'):
+            nid = row['nid']
+            if nid not in note_cards:
+                note_cards[nid] = []
+            note_cards[nid].append(row)
+
+        revlog_by_card = {}
+        for row in conn.execute('SELECT * FROM revlog ORDER BY id'):
+            cid = row['cid']
+            if cid not in revlog_by_card:
+                revlog_by_card[cid] = []
+            revlog_by_card[cid].append(row)
+
+        total_notes = len(anki_notes)
+        yield {'progress': 20, 'message': f'Criando baralhos ({total_notes} notas encontradas)...'}
+
+        # 4. Criar hierarquia de baralhos
+        deck_map = {}
+        if is_new_schema:
+            for row in conn.execute('SELECT id, name FROM decks'):
+                deck_name = row['name']
+                if '\x1f' in deck_name:
+                    parts = deck_name.split('\x1f')
+                else:
+                    parts = deck_name.split('::')
+                parent = None
+                for part in parts:
+                    part = part.strip()
+                    if not part:
+                        continue
+                    existing = Deck.query.filter_by(
+                        name=part, parent_id=(parent.id if parent else None)
+                    ).first()
+                    if existing:
+                        parent = existing
+                    else:
+                        new_deck = Deck(name=part, parent_id=(parent.id if parent else None))
+                        db.session.add(new_deck)
+                        db.session.flush()
+                        parent = new_deck
+                if parent:
+                    deck_map[row['id']] = parent
+        else:
+            decks_str = col_row['decks']
+            if decks_str and decks_str.strip():
+                decks_meta = json.loads(decks_str)
+                for anki_deck_id_str, deck_info in decks_meta.items():
+                    deck_name = deck_info['name']
+                    parts = deck_name.split('::')
+                    parent = None
+                    for part in parts:
+                        part = part.strip()
+                        existing = Deck.query.filter_by(
+                            name=part, parent_id=(parent.id if parent else None)
+                        ).first()
+                        if existing:
+                            parent = existing
+                        else:
+                            new_deck = Deck(name=part, parent_id=(parent.id if parent else None))
+                            db.session.add(new_deck)
+                            db.session.flush()
+                            parent = new_deck
+                    deck_map[int(anki_deck_id_str)] = parent
+
+        # 5. Processar notas e cartões (20% → 75%)
+        notes_created = 0
+        cards_created = 0
+        revlogs_created = 0
+        duplicates = 0
+
+        for i, (anki_note_id, anki_note) in enumerate(anki_notes.items()):
+            fields = anki_note['flds'].split('\x1f')
+            mid = anki_note['mid']
+            note_type = model_type_map.get(mid, 'basic')
+            tags_str = anki_note['tags'].strip()
+
+            front = fields[0] if len(fields) > 0 else ''
+            back = fields[1] if len(fields) > 1 else ''
+            extra = fields[2] if len(fields) > 2 else None
+
+            if note_type == 'basic' and re.search(r'\{\{c\d+::', front):
+                note_type = 'cloze'
+
+            if note_type == 'cloze':
+                content = front
+                note_back = None
+            else:
+                content = front
+                note_back = back
+
+            cards_for_note = note_cards.get(anki_note_id, [])
+            if not cards_for_note:
+                continue
+
+            first_card = cards_for_note[0]
+            deck = deck_map.get(first_card['did'])
+            if not deck:
+                deck = Deck.query.first() or Deck(name='Importado')
+                if not deck.id:
+                    db.session.add(deck)
+                    db.session.flush()
+
+            existing = Note.query.filter_by(content=content, deck_id=deck.id).first()
+            if existing:
+                duplicates += 1
+                continue
+
+            note = Note(
+                note_type=note_type,
+                content=content,
+                back=note_back,
+                extra=extra if extra else None,
+                deck_id=deck.id
+            )
+            db.session.add(note)
+            db.session.flush()
+            notes_created += 1
+
+            if tags_str:
+                for tag_name in tags_str.split():
+                    tag_name = tag_name.strip()
+                    if not tag_name:
+                        continue
+                    tag = Tag.query.filter_by(name=tag_name).first()
+                    if not tag:
+                        tag = Tag(name=tag_name)
+                        db.session.add(tag)
+                        db.session.flush()
+                    if tag not in note.tags:
+                        note.tags.append(tag)
+
+            for anki_card in cards_for_note:
+                ordinal = anki_card['ord'] + 1
+                card_deck = deck_map.get(anki_card['did'], deck)
+
+                anki_ivl = anki_card['ivl']
+                anki_factor = anki_card['factor']
+                anki_reps = anki_card['reps']
+                anki_lapses = anki_card['lapses']
+                anki_type = anki_card['type']
+                anki_queue = anki_card['queue']
+                anki_due = anki_card['due']
+
+                if anki_ivl < 0:
+                    interval = abs(anki_ivl) / 86400.0
+                else:
+                    interval = float(anki_ivl)
+
+                if anki_factor > 0:
+                    easiness_factor = anki_factor / 1000.0
+                else:
+                    easiness_factor = 2.5
+                easiness_factor = max(1.3, easiness_factor)
+
+                if anki_type == 2:
+                    next_review = datetime.utcfromtimestamp(col_crt + anki_due * 86400)
+                elif anki_type == 1:
+                    next_review = datetime.utcfromtimestamp(anki_due)
+                else:
+                    next_review = datetime.utcnow()
+
+                if anki_type == 2 and anki_reps > 0:
+                    repetition = max(2, anki_reps - anki_lapses)
+                else:
+                    repetition = 0
+
+                difficulty = max(1, min(10, round(10 - (easiness_factor - 1.3) * 9 / 2.2)))
+
+                card = Card(
+                    note_id=note.id,
+                    ordinal=ordinal,
+                    deck_id=card_deck.id,
+                    front=content,
+                    back=note_back or '',
+                    interval=interval,
+                    easiness_factor=easiness_factor,
+                    repetition=repetition,
+                    review_count=anki_reps,
+                    correct_count=max(0, anki_reps - anki_lapses),
+                    difficulty=difficulty,
+                    next_review=next_review,
+                    suspended=(anki_queue == -1),
+                )
+                db.session.add(card)
+                db.session.flush()
+                cards_created += 1
+
+                for tag in note.tags:
+                    if tag not in card.tags:
+                        card.tags.append(tag)
+
+                anki_card_id = anki_card['id']
+                for rev in revlog_by_card.get(anki_card_id, []):
+                    ease = rev['ease']
+                    if ease == 1:
+                        quality, response = 0, 'errei'
+                    elif ease == 2:
+                        quality, response = 3, 'dificil'
+                    elif ease == 3:
+                        quality, response = 4, 'facil'
+                    else:
+                        quality, response = 5, 'muito_facil'
+
+                    rev_ivl = rev['ivl']
+                    rev_last = rev['lastIvl']
+                    interval_after = abs(rev_ivl) / 86400.0 if rev_ivl < 0 else float(rev_ivl)
+                    interval_before = abs(rev_last) / 86400.0 if rev_last < 0 else float(rev_last)
+
+                    rev_factor = rev['factor']
+                    ef_val = rev_factor / 1000.0 if rev_factor > 0 else easiness_factor
+
+                    review_log = ReviewLog(
+                        card_id=card.id,
+                        response=response,
+                        quality=quality,
+                        was_new=(rev['type'] == 0),
+                        interval_before=interval_before,
+                        interval_after=interval_after,
+                        ef_before=ef_val,
+                        ef_after=ef_val,
+                        time_spent=rev['time'] // 1000,
+                        timestamp=datetime.utcfromtimestamp(rev['id'] / 1000.0),
+                    )
+                    db.session.add(review_log)
+                    revlogs_created += 1
+
+            # Progresso a cada 100 notas
+            if (i + 1) % 100 == 0 or i == total_notes - 1:
+                pct = 20 + int(55 * (i + 1) / total_notes)
+                yield {'progress': pct, 'message': f'Processando notas ({i+1}/{total_notes})...'}
+
+        # 6. Extrair mídia (75% → 95%)
+        yield {'progress': 75, 'message': 'Preparando arquivos de mídia...'}
+        media_count = 0
+        media_dest = os.path.join(current_app.root_path, 'static', 'collection.media')
+        os.makedirs(media_dest, exist_ok=True)
+
+        media_json_path = os.path.join(tmpdir, 'media')
+        known_non_media = {
+            'media', 'meta', 'collection.anki2',
+            'collection.anki21', 'collection.anki21b',
+            'collection_decompressed.anki21',
+        }
+
+        media_items = []  # lista de (src, dst) para copiar
+
+        if os.path.isfile(media_json_path):
+            with open(media_json_path, 'rb') as f:
+                raw = f.read()
+
+            if raw[:4] == b'\x28\xb5\x2f\xfd':
+                try:
+                    import zstandard as zstd
+                    dctx = zstd.ZstdDecompressor()
+                    reader = dctx.stream_reader(raw)
+                    raw = reader.read()
+                    reader.close()
+                except Exception:
+                    raw = b'{}'
+
+            media_map = {}
+            if raw.strip():
+                try:
+                    media_map = json.loads(raw.decode('utf-8'))
+                except (UnicodeDecodeError, json.JSONDecodeError):
+                    try:
+                        media_map = json.loads(raw.decode('latin-1'))
+                    except json.JSONDecodeError:
+                        pass
+
+            if not media_map and raw and raw[0:1] == b'\x0a':
+                media_map = _parse_media_protobuf(raw)
+
+            for num_str, original_name in media_map.items():
+                src = os.path.join(tmpdir, num_str)
+                if os.path.exists(src):
+                    dst = os.path.join(media_dest, original_name)
+                    if not os.path.exists(dst):
+                        media_items.append((src, dst, True))
+
+        elif os.path.isdir(media_json_path):
+            for entry in os.listdir(media_json_path):
+                src = os.path.join(media_json_path, entry)
+                if os.path.isfile(src):
+                    dst = os.path.join(media_dest, entry)
+                    if not os.path.exists(dst):
+                        media_items.append((src, dst, False))
+
+        else:
+            for entry in os.listdir(tmpdir):
+                if entry in known_non_media:
+                    continue
+                src = os.path.join(tmpdir, entry)
+                if os.path.isfile(src):
+                    dst = os.path.join(media_dest, entry)
+                    if not os.path.exists(dst):
+                        media_items.append((src, dst, False))
+
+        total_media = len(media_items)
+        for j, (src, dst, use_copy_media) in enumerate(media_items):
+            if use_copy_media:
+                _copy_media_file(src, dst)
+            else:
+                shutil.copy2(src, dst)
+            media_count += 1
+            if total_media > 0 and ((j + 1) % 200 == 0 or j == total_media - 1):
+                pct = 75 + int(20 * (j + 1) / total_media)
+                yield {'progress': pct, 'message': f'Copiando mídia ({j+1}/{total_media})...'}
+
+        # 7. Commit
+        yield {'progress': 97, 'message': 'Salvando no banco de dados...'}
+        db.session.commit()
+        conn.close()
+
+        # 8. Concluído
+        parts = []
+        parts.append(f'{notes_created} notas')
+        parts.append(f'{cards_created} cartões')
+        if revlogs_created > 0:
+            parts.append(f'{revlogs_created} revisões')
+        if media_count > 0:
+            parts.append(f'{media_count} arquivos de mídia')
+        msg = f'Importação concluída! {", ".join(parts)}.'
+        if duplicates > 0:
+            msg += f' ({duplicates} duplicados ignorados)'
+
+        yield {'progress': 100, 'status': 'done', 'message': msg}
+
+    except Exception as e:
+        db.session.rollback()
+        yield {'progress': -1, 'status': 'error', 'message': f'Erro ao importar: {str(e)}'}
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+
 def process_gamification(card, response, time_spent, was_new):
     """Process gamification logic for studying cards. NÃO faz commit."""
     player = Player.query.first()
@@ -911,6 +1277,46 @@ def import_cards():
         return redirect(url_for('cards.decks'))
 
     return render_template('import.html')
+
+
+@cards_bp.route('/import-stream', methods=['POST'])
+def import_stream():
+    """Importa .apkg com streaming de progresso (NDJSON)."""
+    file = request.files.get('file')
+    if not file:
+        return Response(
+            json.dumps({'progress': -1, 'status': 'error', 'message': 'Nenhum arquivo enviado.'}) + '\n',
+            mimetype='text/plain'
+        )
+
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext != '.apkg':
+        return Response(
+            json.dumps({'progress': -1, 'status': 'error', 'message': 'Formato não suportado. Use .apkg.'}) + '\n',
+            mimetype='text/plain'
+        )
+
+    if not os.path.exists(current_app.config['UPLOAD_FOLDER']):
+        os.makedirs(current_app.config['UPLOAD_FOLDER'])
+    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], file.filename)
+    file.save(filepath)
+
+    def generate():
+        try:
+            for event in import_apkg_stream(filepath):
+                yield json.dumps(event, ensure_ascii=False) + '\n'
+        finally:
+            try:
+                os.remove(filepath)
+            except OSError:
+                pass
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype='text/plain',
+        headers={'X-Accel-Buffering': 'no', 'Cache-Control': 'no-cache'}
+    )
+
 
 ##############################################
 #         ESTUDO DINÂMICO (Anki-style)
