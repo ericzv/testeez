@@ -76,33 +76,42 @@ def process_answer(text):
 #   FILTROS CLOZE DINÂMICOS (Note/Card)
 ##############################################
 
+def _cloze_strip_hint(match):
+    """Remove a dica do cloze, mostrando apenas a resposta."""
+    content = match.group(1)
+    return content.split('::', 1)[0]
+
+
 def process_cloze_front(text, ordinal):
     """Processa texto cloze para o lado da PERGUNTA.
-    O ordinal alvo {{cN::texto}} vira [...], os demais mostram o texto sem marcadores."""
+    O ordinal alvo {{cN::texto}} vira [...] ou [dica] se houver dica.
+    Os demais mostram o texto sem marcadores (sem dica)."""
     text = update_image_paths(text)
-    # Substituir o ordinal alvo por [...]
-    text = re.sub(
-        r'\{\{c' + str(ordinal) + r'::(.*?)\}\}',
-        r'<span style="font-weight: bold; color: #003366;">[...]</span>',
-        text
-    )
-    # Mostrar texto de todos os outros ordinais sem marcadores
-    text = re.sub(r'\{\{c\d+::(.*?)\}\}', r'\1', text)
+
+    def replace_target(match):
+        content = match.group(1)
+        parts = content.split('::', 1)
+        hint = parts[1] if len(parts) > 1 else '...'
+        return f'<span style="font-weight: bold; color: #003366;">[{hint}]</span>'
+
+    text = re.sub(r'\{\{c' + str(ordinal) + r'::(.*?)\}\}', replace_target, text)
+    text = re.sub(r'\{\{c\d+::(.*?)\}\}', _cloze_strip_hint, text)
     return text
 
 
 def process_cloze_answer(text, ordinal):
     """Processa texto cloze para o lado da RESPOSTA.
-    O ordinal alvo {{cN::texto}} é revelado em negrito, os demais mostram texto normal."""
+    O ordinal alvo {{cN::texto}} é revelado em negrito (sem dica).
+    Os demais mostram texto normal (sem dica)."""
     text = update_image_paths(text)
-    # Revelar o ordinal alvo em negrito
-    text = re.sub(
-        r'\{\{c' + str(ordinal) + r'::(.*?)\}\}',
-        r'<span style="font-weight: bold; color: #003366;">\1</span>',
-        text
-    )
-    # Mostrar texto de todos os outros ordinais sem marcadores
-    text = re.sub(r'\{\{c\d+::(.*?)\}\}', r'\1', text)
+
+    def replace_target(match):
+        content = match.group(1)
+        answer = content.split('::', 1)[0]
+        return f'<span style="font-weight: bold; color: #003366;">{answer}</span>'
+
+    text = re.sub(r'\{\{c' + str(ordinal) + r'::(.*?)\}\}', replace_target, text)
+    text = re.sub(r'\{\{c\d+::(.*?)\}\}', _cloze_strip_hint, text)
     return text
 
 
