@@ -261,24 +261,16 @@
     <div class="study-content-inner">
       <!-- Pergunta -->
       <div id="question-section">
-        {{ card.render_front() | safe }}
+        <div>{{ card.render_front() | safe }}</div>
       </div>
-
-      <!-- DEBUG TEMPORÁRIO: mostra HTML bruto (remover depois) -->
-      <details style="margin:10px;text-align:left;font-size:12px;color:#999;">
-        <summary>Debug HTML</summary>
-        <pre style="background:#f5f5f5;padding:10px;overflow-x:auto;white-space:pre-wrap;">FRONT: {{ card.render_front() | e }}
-
-BACK: {{ card.render_back() | e }}</pre>
-      </details>
 
       <!-- Resposta (oculta inicialmente) -->
       <div id="answer-section" style="display: none;">
         {% if is_cloze %}
-          {{ card.render_back() | safe }}
+          <div>{{ card.render_back() | safe }}</div>
         {% else %}
           <hr class="answer-divider">
-          {{ card.render_back() | safe }}
+          <div>{{ card.render_back() | safe }}</div>
         {% endif %}
       </div>
     </div>
