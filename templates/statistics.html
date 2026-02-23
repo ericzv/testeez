@@ -110,34 +110,6 @@
     </div>
   </div>
 
-  <!-- Coleção summary -->
-  <div class="row g-2 mb-3">
-    <div class="col-6 col-md-3">
-      <div class="stat-card">
-        <div class="stat-value">{{ total_cards }}</div>
-        <div class="stat-label">Total de cartões</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="stat-card">
-        <div class="stat-value" style="color:#007bff;">{{ new_cards }}</div>
-        <div class="stat-label">Novos</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="stat-card">
-        <div class="stat-value" style="color:#6c757d;">{{ in_date }}</div>
-        <div class="stat-label">Em intervalo</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="stat-card">
-        <div class="stat-value" style="color:#28a745;">{{ due_cards }}</div>
-        <div class="stat-label">Para revisar</div>
-      </div>
-    </div>
-  </div>
-
   <hr>
 
   <!-- ── HEATMAP ── -->
@@ -184,6 +156,39 @@
 
   <hr>
 
+  <!-- ── BARALHO ── -->
+  <div class="chart-section">
+    <h4>Baralho</h4>
+    <div class="row g-2">
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-value">{{ total_cards }}</div>
+          <div class="stat-label">Total de cartões</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-value" style="color:#007bff;">{{ new_cards }}</div>
+          <div class="stat-label">Novos</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-value" style="color:#6c757d;">{{ in_date }}</div>
+          <div class="stat-label">Em intervalo</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-value" style="color:#28a745;">{{ due_cards }}</div>
+          <div class="stat-label">Para revisar</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
   <!-- ── TIPOS DE CARTÃO + BOTÕES DE RESPOSTA ── -->
   <div class="row chart-section">
     <div class="col-md-6">
@@ -225,14 +230,21 @@
   <!-- ── LOG DE REVISÕES ── -->
   <div class="chart-section mb-4">
     <h4>Log de Revisões</h4>
-    <button id="toggleLogBtn" class="btn btn-sm btn-secondary mb-2">Mostrar Log</button>
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <select id="logYearSelect" class="form-select form-select-sm" style="width:auto;">
+        <option value="">Ano</option>
+      </select>
+      <select id="logMonthSelect" class="form-select form-select-sm" style="width:auto;" disabled>
+        <option value="">Mês</option>
+      </select>
+    </div>
     <div id="logContainer" style="display:none;">
       <table class="table table-sm table-striped" id="logTable">
         <thead><tr><th>Data</th><th>Total</th><th>Novos</th><th>Revisões</th><th>Precisão</th><th>Tempo (min)</th></tr></thead>
         <tbody>
           {% for ds in all_stats %}
           {% set accuracy = (ds.correct_count / ds.cards_studied * 100) if ds.cards_studied > 0 else 0 %}
-          <tr>
+          <tr data-ym="{{ ds.date.strftime('%Y-%m') }}">
             <td>{{ ds.date.strftime('%d/%m/%Y') }}</td>
             <td>{{ ds.cards_studied }}</td>
             <td>{{ ds.new_cards or 0 }}</td>
@@ -256,21 +268,29 @@ Chart.defaults.font.size = 11;
 
 // ─── Heatmap (GitHub-style, pure Canvas 2D) ───────────────────────────────────
 (function() {
-  const CELL = 12, GAP = 2, STEP = CELL + GAP;
+  const GAP = 2;
   const COLS = 53, ROWS = 7;
   const PAD_TOP = 20, PAD_LEFT = 28;
   const MONTH_LABELS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const DAY_LABELS = ['D','S','T','Q','Q','S','S']; // Sun-Sat
 
   const canvas = document.getElementById('heatmapCanvas');
+  const container = document.getElementById('heatmapContainer');
   const tooltip = document.getElementById('heatmapTooltip');
-  const W = PAD_LEFT + COLS * STEP;
-  const H = PAD_TOP + ROWS * STEP + 4;
-  canvas.width = W;
-  canvas.height = H;
   const ctx = canvas.getContext('2d');
 
-  let cells = []; // {col, row, date, count, x, y}
+  let cells = [];
+  let lastData = null;
+
+  function computeDimensions() {
+    const containerWidth = container.clientWidth || container.offsetWidth || 800;
+    const availableWidth = containerWidth - PAD_LEFT - GAP;
+    const STEP = Math.max(14, Math.floor(availableWidth / COLS));
+    const CELL = STEP - GAP;
+    const W = PAD_LEFT + COLS * STEP;
+    const H = PAD_TOP + ROWS * STEP + 4;
+    return { STEP, CELL, W, H };
+  }
 
   function countToColor(count, maxCount) {
     if (count === 0) return '#ebedf0';
@@ -283,7 +303,11 @@ Chart.defaults.font.size = 11;
   }
 
   function drawHeatmap(days, maxCount, year) {
-    ctx.clearRect(0, 0, W, H);
+    const { STEP, CELL, W, H } = computeDimensions();
+    canvas.width = W;
+    canvas.height = H;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
     cells = [];
 
     // Day labels
@@ -294,18 +318,10 @@ Chart.defaults.font.size = 11;
       ctx.fillText(DAY_LABELS[r], PAD_LEFT - 4, PAD_TOP + r * STEP + CELL - 2);
     }
 
-    // Build lookup
-    const lookup = {};
-    days.forEach(d => { lookup[d.date] = d.count; });
-
-    // Find Jan 1 of year and its weekday (0=Sun)
-    const jan1 = new Date(year, 0, 1);
-    const startCol = 0;
-
     // Month label positions
     const monthFirstCol = {};
 
-    days.forEach((d, i) => {
+    days.forEach((d) => {
       const date = new Date(d.date);
       const jan1Local = new Date(date.getFullYear(), 0, 1);
       const dayOfYear = Math.floor((date - jan1Local) / 86400000);
@@ -324,7 +340,7 @@ Chart.defaults.font.size = 11;
       ctx.roundRect(x, y, CELL, CELL, 2);
       ctx.fill();
 
-      cells.push({col, row, date: d.date, count: d.count, x, y});
+      cells.push({col, row, date: d.date, count: d.count, x, y, CELL});
     });
 
     // Month labels
@@ -339,11 +355,17 @@ Chart.defaults.font.size = 11;
   fetch('/statistics/data/heatmap')
     .then(r => r.json())
     .then(data => {
+      lastData = data;
       drawHeatmap(data.days, data.max_cards, data.year);
       document.getElementById('hmStreak').textContent = data.current_streak;
       document.getElementById('hmRecord').textContent = data.record_streak;
       document.getElementById('hmMax').textContent = data.max_cards;
     });
+
+  // Redraw on resize
+  window.addEventListener('resize', function() {
+    if (lastData) drawHeatmap(lastData.days, lastData.max_cards, lastData.year);
+  });
 
   // Tooltip on mousemove
   canvas.addEventListener('mousemove', function(e) {
@@ -352,7 +374,7 @@ Chart.defaults.font.size = 11;
     const my = e.clientY - rect.top;
     let found = null;
     for (const c of cells) {
-      if (mx >= c.x && mx < c.x + CELL && my >= c.y && my < c.y + CELL) {
+      if (mx >= c.x && mx < c.x + c.CELL && my >= c.y && my < c.y + c.CELL) {
         found = c; break;
       }
     }
@@ -609,16 +631,54 @@ fetch('/statistics/data/ease')
     });
   });
 
-// ─── Log toggle ───────────────────────────────────────────────────────────────
-document.getElementById('toggleLogBtn').addEventListener('click', function() {
-  const c = document.getElementById('logContainer');
-  if (c.style.display === 'none') {
-    c.style.display = 'block';
-    this.textContent = 'Ocultar Log';
-  } else {
-    c.style.display = 'none';
-    this.textContent = 'Mostrar Log';
-  }
-});
+// ─── Log de Revisões por ANO/MÊS ─────────────────────────────────────────────
+(function() {
+  const PT_MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const rows = Array.from(document.querySelectorAll('#logTable tbody tr'));
+  const logContainer = document.getElementById('logContainer');
+  const yearSel = document.getElementById('logYearSelect');
+  const monthSel = document.getElementById('logMonthSelect');
+
+  // Collect available year-month combos from rendered rows
+  const ymSet = new Set(rows.map(r => r.dataset.ym).filter(Boolean));
+  const years = [...new Set([...ymSet].map(ym => ym.split('-')[0]))].sort((a, b) => b - a);
+
+  years.forEach(y => {
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    yearSel.appendChild(opt);
+  });
+
+  yearSel.addEventListener('change', function() {
+    const y = this.value;
+    // Reset month select
+    monthSel.innerHTML = '<option value="">Mês</option>';
+    monthSel.disabled = !y;
+    logContainer.style.display = 'none';
+    if (!y) return;
+
+    const months = [...new Set(
+      [...ymSet].filter(ym => ym.startsWith(y + '-')).map(ym => ym.split('-')[1])
+    )].sort();
+    months.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = PT_MONTHS[parseInt(m, 10) - 1];
+      monthSel.appendChild(opt);
+    });
+  });
+
+  monthSel.addEventListener('change', function() {
+    const y = yearSel.value;
+    const m = this.value;
+    if (!y || !m) { logContainer.style.display = 'none'; return; }
+    const target = `${y}-${m}`;
+    rows.forEach(r => {
+      r.style.display = r.dataset.ym === target ? '' : 'none';
+    });
+    logContainer.style.display = 'block';
+  });
+})();
 </script>
 {% endblock %}
