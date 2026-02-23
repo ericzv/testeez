@@ -2084,6 +2084,8 @@ def statistics():
     # Obter todas as estatísticas para o log de revisões
     all_stats = DailyStats.query.order_by(DailyStats.date.desc()).all()
     
+    today_study_time = round(today_stats.study_time / 60) if today_stats else 0
+
     return render_template(
         'statistics.html',
         daily_cards=daily_cards,
@@ -2091,355 +2093,275 @@ def statistics():
         total_cards=total_cards,
         new_cards=new_cards,
         in_date=in_date,
-        due_cards=due_cards,  # Agora corrigido
+        due_cards=due_cards,
         suspended_cards=suspended_cards,
         all_stats=all_stats,
-        current_streak=current_streak
+        current_streak=current_streak,
+        today_study_time=today_study_time
     )
 
 
-@cards_bp.route('/statistics_heatmap')
-def statistics_heatmap():
-    import pandas as pd
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-    import io
-    from datetime import datetime, timedelta
-    from matplotlib.colors import LinearSegmentedColormap, BoundaryNorm
+@cards_bp.route('/statistics/data/heatmap')
+def statistics_data_heatmap():
+    from datetime import timedelta
+    now = datetime.now(timezone.utc)
+    current_year = now.year
+    today = now.date()
+    start_date = today.replace(month=1, day=1)
+    end_date = today.replace(month=12, day=31)
 
-    # Período dinâmico baseado no ano atual
-    current_year = datetime.now(timezone.utc).year
-    start_date = datetime(current_year, 1, 1).date()
-    end_date = datetime(current_year, 12, 31).date()
-
-    # Obter os registros do DailyStats para 2025
     daily_stats = DailyStats.query.filter(
         DailyStats.date >= start_date,
         DailyStats.date <= end_date
-    ).order_by(DailyStats.date).all()
-
-    # Dicionário: data -> cartões estudados
+    ).all()
     stats_dict = {ds.date: ds.cards_studied for ds in daily_stats}
 
-    # Calcular o recorde de dias consecutivos (streak máximo)
-    record_streak = 0
-    current_temp = 0
+    # Build full year array
+    days = []
     d = start_date
     while d <= end_date:
-        cards = stats_dict.get(d, 0)
-        if cards > 0:
-            current_temp += 1
-            record_streak = max(record_streak, current_temp)
-        else:
-            current_temp = 0
+        days.append({"date": d.isoformat(), "count": stats_dict.get(d, 0)})
         d += timedelta(days=1)
 
-    # Calcular o streak atual: contar a partir do dia de hoje (se estiver em 2025; senão, usar end_date)
-    today_actual = datetime.now(timezone.utc).date()
-    base_date = today_actual if start_date <= today_actual <= end_date else end_date
-    current_streak_value = 0
-    d = base_date
+    # Current streak
+    current_streak = 0
+    d = today
     while d >= start_date:
-        cards = stats_dict.get(d, 0)
-        if cards > 0:
-            current_streak_value += 1
+        if stats_dict.get(d, 0) > 0:
+            current_streak += 1
             d -= timedelta(days=1)
         else:
             break
 
-    # Calcular o recorde de cartões estudados em um dia
+    # Record streak (all time)
+    record_streak = 0
+    temp = 0
+    all_stats_streak = DailyStats.query.order_by(DailyStats.date).all()
+    prev_date = None
+    for ds in all_stats_streak:
+        if ds.cards_studied > 0:
+            if prev_date and (ds.date - prev_date).days == 1:
+                temp += 1
+            else:
+                temp = 1
+            record_streak = max(record_streak, temp)
+        prev_date = ds.date
+
     max_cards = max(stats_dict.values()) if stats_dict else 0
 
-    # Criar grid com 12 linhas (meses: 1 a 12) e 31 colunas (dias: 1 a 31)
-    grid = pd.DataFrame(0, index=range(1, 13), columns=range(1, 32))
-    current_date = start_date
-    while current_date <= end_date:
-        month = current_date.month
-        day = current_date.day
-        cards = stats_dict.get(current_date, 0)
-        grid.at[month, day] += cards
-        current_date += timedelta(days=1)
-
-    # Criar colormap customizado: de branco a darkgreen com intervalos de 10 até 800
-    custom_cmap = LinearSegmentedColormap.from_list('custom_green', ['white', 'darkgreen'])
-    bounds = np.arange(0, 810, 10)
-    norm = BoundaryNorm(bounds, custom_cmap.N, clip=True)
-
-    # Configurar a figura
-    fig, ax = plt.subplots(figsize=(12, 8))
-    sns.heatmap(
-        grid,
-        cmap=custom_cmap,
-        norm=norm,
-        linewidths=0.3,
-        linecolor='#e0e0e0',
-        square=True,
-        cbar=False,
-        ax=ax
-    )
-
-    # Anotar cada célula com o número de cartões, em fonte pequena, cor branca e 85% de transparência
-    for i, month in enumerate(grid.index):  # i de 0 a 11
-        for j, day in enumerate(grid.columns):  # j de 0 a 30
-            val = grid.at[month, day]
-            ax.text(j+0.5, i+0.5, f"{val}", ha="center", va="center", color="white", fontsize=6, alpha=0.85)
-
-    # Configurar os rótulos dos eixos
-    ax.set_xticklabels(grid.columns, rotation=0)
-    ax.set_xlabel("Dias do mês")
-    month_labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
-    ax.set_yticklabels([month_labels[i-1] for i in grid.index], rotation=0)
-    ax.set_ylabel("Mês")
-    ax.set_title(f"Estudo diário em {current_year}", fontsize=12)
-
-    # Adicionar as informações de recorde e streak abaixo do heatmap (nova ordem)
-    # Esquerda: Recorde de cartões estudados
-    ax.text(0.05, -0.15, f"Recorde de cartões estudados: {max_cards}", 
-            transform=ax.transAxes, ha="left", va="top", fontsize=10, fontweight="bold", color="olivedrab")
-    # Centro: Dias consecutivos
-    ax.text(0.5, -0.15, f"Dias consecutivos: {current_streak_value}", 
-            transform=ax.transAxes, ha="center", va="top", fontsize=10, fontweight="bold", color="darkgreen")
-    # Direita: Recorde de dias consecutivos
-    ax.text(0.95, -0.15, f"Recorde de dias consecutivos: {record_streak}", 
-            transform=ax.transAxes, ha="right", va="top", fontsize=10, fontweight="bold", color="forestgreen")
-
-    # Ajustar layout para reduzir margens
-    plt.tight_layout(pad=0.1)
-    fig.subplots_adjust(top=0.85, bottom=0.10)
-    buf = io.BytesIO()
-    fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0)
-    buf.seek(0)
-    plt.close(fig)
-    return send_file(buf, mimetype='image/png')
+    return jsonify({
+        "days": days,
+        "current_streak": current_streak,
+        "record_streak": record_streak,
+        "max_cards": max_cards,
+        "year": current_year
+    })
 
 
-@cards_bp.route('/forecast_chart')
-def forecast_chart():
-    import io
-    import matplotlib.pyplot as plt
-    import numpy as np
-    from datetime import datetime, timedelta
-    
-    # Obter o período solicitado (padrão: 30 dias)
-    period = request.args.get('period', '30days')
-    
-    today = datetime.now(timezone.utc).date()
-    
-    # Definir o número de dias com base no período selecionado
-    if period == '1year':
-        forecast_days = 365  # 1 ano
-        # Para períodos longos, agruparemos por mês
-        group_by = 'month'
-    else:  # padrão: 30 dias
-        forecast_days = 30
-        group_by = 'day'
-    
-    # Contar cartões por dia/mês de vencimento
-    forecast = {}
-    
-    if group_by == 'day':
-        # Contagem diária
-        for i in range(forecast_days):
-            target_date = today + timedelta(days=i)
-            start_datetime = datetime.combine(target_date, datetime.min.time())
-            end_datetime = datetime.combine(target_date, datetime.max.time())
-            
-            count = Card.query.filter(
-                Card.next_review >= start_datetime,
-                Card.next_review <= end_datetime,
-                Card.suspended == False
-            ).count()
-            
-            # Para visualização diária, usar formato dd/mm
-            forecast[target_date.strftime('%d/%m')] = count
-    
-    else:  # group_by == 'month'
-        # Agrupar por mês
-        current_month = today.month
-        current_year = today.year
-        
-        for i in range(12):  # 12 meses
-            month = ((current_month - 1 + i) % 12) + 1
-            year = current_year + ((current_month + i - 1) // 12)
-            
-            # Primeiro dia do mês
-            if i == 0:
-                # Para o mês atual, começar do dia atual
-                start_date = today
-            else:
-                start_date = datetime(year, month, 1).date()
-            
-            # Último dia do mês
-            if month == 12:
-                end_date = datetime(year, 12, 31).date()
-            else:
-                end_date = (datetime(year, month+1, 1) - timedelta(days=1)).date()
-            
-            start_datetime = datetime.combine(start_date, datetime.min.time())
-            end_datetime = datetime.combine(end_date, datetime.max.time())
-            
-            count = Card.query.filter(
-                Card.next_review >= start_datetime,
-                Card.next_review <= end_datetime,
-                Card.suspended == False
-            ).count()
-            
-            # Para visualização mensal, usar formato "Mmm/aa"
-            forecast[start_date.strftime('%b/%y')] = count
-    
-    # Criar gráfico
-    fig, ax = plt.subplots(figsize=(10, 4))
-    
-    x = list(forecast.keys())
-    y = list(forecast.values())
-    
-    # Usar cor azul para ambos os períodos
-    color = '#3f51b5'  # Azul
-    
-    ax.plot(x, y, marker='o', linestyle='-', color=color)
-    ax.fill_between(x, y, alpha=0.2, color=color)
-    
-    # Girar rótulos do eixo x para períodos longos
-    if group_by == 'month':
-        plt.xticks(rotation=45)
-    
-    # Para períodos longos, mostrar apenas alguns rótulos para evitar sobreposição
-    if len(x) > 10:
-        for i, label in enumerate(ax.get_xticklabels()):
-            if group_by == 'day' and i % 3 != 0:
-                label.set_visible(False)
-    
-    ax.set_ylabel('Cartões para Revisão')
-    
-    # Título baseado no período
-    if period == '1year':
-        title = 'Previsão de Carga de Revisão (12 meses)'
-    else:
-        title = 'Previsão de Carga de Revisão (30 dias)'
-    
-    ax.set_title(title)
-    ax.grid(True, linestyle='--', alpha=0.7)
-    
-    # Salvar a figura em um objeto BytesIO e retornar como arquivo PNG
-    buffer = io.BytesIO()
-    fig.tight_layout()
-    fig.savefig(buffer, format='png', dpi=100)
-    buffer.seek(0)
-    plt.close(fig)
-    
-    return send_file(buffer, mimetype='image/png')
-
-@cards_bp.route('/revision_history_chart')
-def revision_history_chart():
-    import io
-    import matplotlib.pyplot as plt
-    import matplotlib.dates as mdates
-    from datetime import datetime, timedelta
-    
-    # Obter o período solicitado (padrão: 1 mês)
+@cards_bp.route('/statistics/data/review_history')
+def statistics_data_review_history():
+    from datetime import timedelta
     period = request.args.get('period', '1month')
-    
     today = datetime.now(timezone.utc).date()
-    
-    # Definir o período com base na seleção
+
     if period == '12months':
         start_date = today - timedelta(days=365)
-        date_format = '%b'
-        # Tradução dos meses para português
-        month_translator = {
-            'Jan': 'Jan', 'Feb': 'Fev', 'Mar': 'Mar', 'Apr': 'Abr', 
-            'May': 'Mai', 'Jun': 'Jun', 'Jul': 'Jul', 'Aug': 'Ago', 
-            'Sep': 'Set', 'Oct': 'Out', 'Nov': 'Nov', 'Dec': 'Dez'
-        }
-    else:  # '1month'
+    else:
         start_date = today - timedelta(days=30)
-        date_format = '%d/%m'
-    
-    # Consultar os dados
+
     stats = DailyStats.query.filter(
         DailyStats.date >= start_date,
         DailyStats.date <= today
     ).order_by(DailyStats.date).all()
-    
-    # Preparar os dados para o gráfico
-    dates = []
-    cards_studied = []
-    
-    # Preencher todas as datas no intervalo (incluindo datas sem estudos)
-    current = start_date
-    while current <= today:
-        dates.append(current)
-        # Procurar se há estatísticas para esta data
-        stat = next((s for s in stats if s.date == current), None)
-        if stat:
-            cards_studied.append(stat.cards_studied)
+    stats_map = {ds.date: ds for ds in stats}
+
+    if period == '12months':
+        # Group by month
+        monthly = {}
+        d = start_date
+        while d <= today:
+            key = d.strftime('%Y-%m')
+            if key not in monthly:
+                monthly[key] = {"new": 0, "reviews": 0, "learning": 0}
+            ds = stats_map.get(d)
+            if ds:
+                new = ds.new_cards or 0
+                rev = ds.revision_cards or 0
+                learning = max(0, (ds.cards_studied or 0) - new - rev)
+                monthly[key]["new"] += new
+                monthly[key]["reviews"] += rev
+                monthly[key]["learning"] += learning
+            d += timedelta(days=1)
+
+        month_names = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+                       'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+        labels, new_list, reviews_list, learning_list = [], [], [], []
+        for key in sorted(monthly.keys()):
+            year, month = map(int, key.split('-'))
+            labels.append(month_names[month - 1])
+            new_list.append(monthly[key]["new"])
+            reviews_list.append(monthly[key]["reviews"])
+            learning_list.append(monthly[key]["learning"])
+    else:
+        labels, new_list, reviews_list, learning_list = [], [], [], []
+        d = start_date
+        while d <= today:
+            labels.append(d.strftime('%d/%m'))
+            ds = stats_map.get(d)
+            if ds:
+                new = ds.new_cards or 0
+                rev = ds.revision_cards or 0
+                learning = max(0, (ds.cards_studied or 0) - new - rev)
+            else:
+                new, rev, learning = 0, 0, 0
+            new_list.append(new)
+            reviews_list.append(rev)
+            learning_list.append(learning)
+            d += timedelta(days=1)
+
+    return jsonify({"labels": labels, "new": new_list, "reviews": reviews_list, "learning": learning_list})
+
+
+@cards_bp.route('/statistics/data/forecast')
+def statistics_data_forecast():
+    from datetime import timedelta
+    period = request.args.get('period', '30days')
+    today = datetime.now(timezone.utc).date()
+    now = datetime.now(timezone.utc)
+
+    if period == '1year':
+        forecast_days = 365
+        group_by = 'month'
+    else:
+        forecast_days = 30
+        group_by = 'day'
+
+    labels = []
+    counts = []
+
+    if group_by == 'day':
+        for i in range(forecast_days):
+            target = today + timedelta(days=i)
+            start_dt = datetime.combine(target, datetime.min.time()).replace(tzinfo=timezone.utc)
+            end_dt = datetime.combine(target, datetime.max.time()).replace(tzinfo=timezone.utc)
+            count = Card.query.filter(
+                Card.next_review >= start_dt,
+                Card.next_review <= end_dt,
+                Card.suspended == False
+            ).count()
+            labels.append(target.strftime('%d/%m'))
+            counts.append(count)
+    else:
+        current_month = today.month
+        current_year = today.year
+        month_names = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+                       'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+        for i in range(12):
+            month = ((current_month - 1 + i) % 12) + 1
+            year = current_year + ((current_month + i - 1) // 12)
+            start_d = today if i == 0 else datetime(year, month, 1).date()
+            if month == 12:
+                end_d = datetime(year, 12, 31).date()
+            else:
+                end_d = (datetime(year, month + 1, 1) - timedelta(days=1)).date()
+            start_dt = datetime.combine(start_d, datetime.min.time()).replace(tzinfo=timezone.utc)
+            end_dt = datetime.combine(end_d, datetime.max.time()).replace(tzinfo=timezone.utc)
+            count = Card.query.filter(
+                Card.next_review >= start_dt,
+                Card.next_review <= end_dt,
+                Card.suspended == False
+            ).count()
+            labels.append(month_names[month - 1])
+            counts.append(count)
+
+    return jsonify({"labels": labels, "counts": counts})
+
+
+@cards_bp.route('/statistics/data/intervals')
+def statistics_data_intervals():
+    cards = Card.query.filter(
+        Card.review_count > 0,
+        Card.suspended == False
+    ).with_entities(Card.interval).all()
+
+    buckets = ["1d", "2-3d", "4-7d", "1-2s", "2-4s", "1-3m", "3-6m", "6m+"]
+    counts = [0] * 8
+
+    for (interval,) in cards:
+        if interval <= 1:
+            counts[0] += 1
+        elif interval <= 3:
+            counts[1] += 1
+        elif interval <= 7:
+            counts[2] += 1
+        elif interval <= 14:
+            counts[3] += 1
+        elif interval <= 28:
+            counts[4] += 1
+        elif interval <= 90:
+            counts[5] += 1
+        elif interval <= 180:
+            counts[6] += 1
         else:
-            cards_studied.append(0)
-        current += timedelta(days=1)
-    
-    # Para o período de 12 meses, agrupar por mês
-    if period == '12months':
-        monthly_data = {}
-        for i, date in enumerate(dates):
-            month_key = date.strftime('%Y-%m')
-            if month_key not in monthly_data:
-                monthly_data[month_key] = 0
-            monthly_data[month_key] += cards_studied[i]
-        
-        # Converter dados mensais de volta para listas
-        dates = []
-        cards_studied = []
-        for month_key in sorted(monthly_data.keys()):
-            year, month = map(int, month_key.split('-'))
-            dates.append(datetime(year, month, 15).date())  # meio do mês
-            cards_studied.append(monthly_data[month_key])
-    
-    # Criar o gráfico
-    fig, ax = plt.subplots(figsize=(10, 4))
-    
-    # Plotar com cor verde
-    ax.plot(dates, cards_studied, marker='o', linestyle='-', color='#28a745', linewidth=2)
-    ax.fill_between(dates, cards_studied, alpha=0.2, color='#28a745')
-    
-    # Configurar o eixo X com formatação de data
-    if period == '12months':
-        # Configurar formatação para meses em português
-        ax.xaxis.set_major_formatter(mdates.DateFormatter(date_format))
-        plt.xticks(dates)
-        # Traduzir nomes dos meses
-        if hasattr(ax, 'get_xticklabels'):
-            labels = ax.get_xticklabels()
-            for label in labels:
-                for eng, pt in month_translator.items():
-                    if eng in label.get_text():
-                        label.set_text(pt)
-    else:
-        # Configurar formatação para todos os dias do mês
-        ax.xaxis.set_major_formatter(mdates.DateFormatter(date_format))
-        plt.xticks(dates, fontsize=8)
-        plt.xticks(rotation=45)
-    
-    # Configurar título e rótulos
-    if period == '12months':
-        ax.set_title('Histórico de Revisões (12 meses)')
-    else:
-        ax.set_title('Histórico de Revisões (1 mês)')
-    
-    ax.set_ylabel('Cartões Revisados')
-    ax.grid(True, linestyle='--', alpha=0.7)
-    
-    # Ajustar layout e limites
-    ax.set_ylim(bottom=0)  # Começa do zero
-    
-    # Salvar a figura
-    buffer = io.BytesIO()
-    fig.tight_layout()
-    fig.savefig(buffer, format='png', dpi=100)
-    buffer.seek(0)
-    plt.close(fig)
-    
-    return send_file(buffer, mimetype='image/png')
+            counts[7] += 1
+
+    return jsonify({"buckets": buckets, "counts": counts})
+
+
+@cards_bp.route('/statistics/data/ease')
+def statistics_data_ease():
+    cards = Card.query.filter(
+        Card.review_count > 0
+    ).with_entities(Card.easiness_factor).all()
+
+    # Buckets from 1.3 to 4.5+ in steps of 0.2
+    bucket_starts = [round(1.3 + i * 0.2, 1) for i in range(16)]
+    bucket_labels = [str(b) for b in bucket_starts[:-1]] + ["4.5+"]
+    counts = [0] * len(bucket_labels)
+
+    for (ef,) in cards:
+        if ef is None:
+            continue
+        idx = min(int((ef - 1.3) / 0.2), len(counts) - 1)
+        idx = max(0, idx)
+        counts[idx] += 1
+
+    return jsonify({"buckets": bucket_labels, "counts": counts})
+
+
+@cards_bp.route('/statistics/data/answer_buttons')
+def statistics_data_answer_buttons():
+    rows = db.session.query(
+        ReviewLog.response, func.count(ReviewLog.id)
+    ).group_by(ReviewLog.response).all()
+
+    result = {"errei": 0, "dificil": 0, "facil": 0, "muito_facil": 0}
+    for response, count in rows:
+        if response in result:
+            result[response] = count
+
+    return jsonify(result)
+
+
+@cards_bp.route('/statistics/data/card_types')
+def statistics_data_card_types():
+    now = datetime.now(timezone.utc)
+    new_count = Card.query.filter(Card.review_count == 0, Card.suspended == False).count()
+    learning_count = Card.query.filter(
+        Card.review_count > 0, Card.repetition == 0, Card.suspended == False
+    ).count()
+    review_count = Card.query.filter(
+        Card.review_count > 0, Card.repetition > 0, Card.suspended == False
+    ).count()
+    suspended_count = Card.query.filter_by(suspended=True).count()
+
+    return jsonify({
+        "new": new_count,
+        "learning": learning_count,
+        "review": review_count,
+        "suspended": suspended_count
+    })
+
 
 @cards_bp.route('/card/<int:card_id>/tags', methods=['GET', 'POST'])
 def manage_card_tags(card_id):

@@ -1,122 +1,684 @@
 {% extends 'base.html' %}
 {% block title %}Estatísticas - Retina Cards{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  .stat-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px 12px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+  }
+  .stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .stat-card .stat-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 4px;
+  }
+  .chart-section {
+    margin-top: 32px;
+  }
+  .chart-section h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 6px;
+    margin-bottom: 16px;
+  }
+  .chart-wrapper {
+    position: relative;
+    width: 100%;
+  }
+  .period-btn-group {
+    margin-bottom: 12px;
+  }
+  /* Heatmap */
+  #heatmapContainer {
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  #heatmapCanvas {
+    display: block;
+    cursor: crosshair;
+  }
+  #heatmapTooltip {
+    position: fixed;
+    background: rgba(0,0,0,0.75);
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+    display: none;
+    z-index: 9999;
+  }
+  .heatmap-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: #495057;
+    margin-top: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .heatmap-meta span strong {
+    color: #2d6a4f;
+  }
+  /* Log table */
+  #logTable {
+    font-size: 0.85rem;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container text-center">
-  <h2>Estatísticas</h2>
-  <hr>
-  
-  <!-- Seção: Estudo diário (indentado com bullet points) -->
-  <h3>Estudo diário</h3>
-  <ul class="list-unstyled">
-    <li>Cartões estudados hoje: <strong>{{ daily_cards }}</strong></li>
-    <li>Taxa de acerto hoje: <strong>{{ daily_accuracy }}%</strong></li>
-    <li>Dias consecutivos: <strong>{{ current_streak }}</strong></li>
-  </ul>
-  
-  <!-- Heatmap movido para cima -->
-  <div style="margin-top: 20px; margin-bottom: 20px;">
-    <img src="{{ url_for('cards.statistics_heatmap') }}" alt="Heatmap de estudos" style="max-width: 100%;">
+<div class="container">
+  <h2 class="mb-3">Estatísticas</h2>
+
+  <!-- ── VISÃO GERAL ── -->
+  <div class="row g-2 mb-2">
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-value text-success">{{ daily_cards }}</div>
+        <div class="stat-label">Cartões hoje</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-value text-primary">{{ daily_accuracy }}%</div>
+        <div class="stat-label">Precisão hoje</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-value text-warning">{{ current_streak }}</div>
+        <div class="stat-label">Dias consecutivos</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-value text-info">{{ today_study_time }}</div>
+        <div class="stat-label">Minutos hoje</div>
+      </div>
+    </div>
   </div>
-  
+
   <hr>
-  
-  <!-- Seção: Estatísticas da coleção -->
-  <h3>Estatísticas da coleção</h3>
-  <ul class="list-unstyled">
-    <li>Total de cartões: <strong>{{ total_cards }}</strong></li>
-    <li>Cartões novos: <strong style="color: blue;">{{ new_cards }}</strong></li>
-    <li>Cartões em intervalo: <strong style="color: gray;">{{ in_date }}</strong></li>
-    <li>Cartões a revisar: <strong style="color: green;">{{ due_cards }}</strong></li>
-    <li>Cartões suspensos: <strong style="color: orange;">{{ suspended_cards }}</strong></li>
-  </ul>
-  
+
+  <!-- ── HEATMAP ── -->
+  <div class="chart-section">
+    <h4>Atividade de Estudo</h4>
+    <div id="heatmapContainer">
+      <canvas id="heatmapCanvas"></canvas>
+    </div>
+    <div class="heatmap-meta" id="heatmapMeta">
+      <span>Dias consecutivos: <strong id="hmStreak">–</strong></span>
+      <span>Recorde consecutivo: <strong id="hmRecord">–</strong></span>
+      <span>Máximo em um dia: <strong id="hmMax">–</strong></span>
+    </div>
+    <div id="heatmapTooltip"></div>
+  </div>
+
   <hr>
-  
-  <!-- Seção: Previsão de revisões -->
-  <h3>Previsão de revisões</h3>
-  <div style="margin-bottom: 10px;">
-    <button id="forecastBtn30days" class="btn btn-sm btn-primary active">30 dias</button>
-    <button id="forecastBtn1year" class="btn btn-sm btn-outline-primary">1 ano</button>
+
+  <!-- ── HISTÓRICO DE REVISÕES ── -->
+  <div class="chart-section">
+    <h4>Histórico de Revisões</h4>
+    <div class="period-btn-group">
+      <button class="btn btn-sm btn-success" id="histBtn1m" onclick="loadHistory('1month')">1 mês</button>
+      <button class="btn btn-sm btn-outline-success" id="histBtn12m" onclick="loadHistory('12months')">12 meses</button>
+    </div>
+    <div class="chart-wrapper" style="height:220px;">
+      <canvas id="historyChart"></canvas>
+    </div>
   </div>
-  <div style="margin-top: 10px;">
-    <img id="forecastImage" src="{{ url_for('cards.forecast_chart', period='30days') }}" alt="Previsão de revisões" style="max-width: 100%;">
-  </div>
-  
+
   <hr>
-  
-  <!-- Seção: Histórico de revisões com gráfico de linhas -->
-  <h3>Histórico de revisões</h3>
-  <div style="margin-bottom: 10px;">
-    <button id="historyBtn1month" class="btn btn-sm btn-success active">1 mês</button>
-    <button id="historyBtn12months" class="btn btn-sm btn-outline-success">12 meses</button>
+
+  <!-- ── PREVISÃO DE REVISÕES ── -->
+  <div class="chart-section">
+    <h4>Previsão de Revisões</h4>
+    <div class="period-btn-group">
+      <button class="btn btn-sm btn-primary" id="fcBtn30d" onclick="loadForecast('30days')">30 dias</button>
+      <button class="btn btn-sm btn-outline-primary" id="fcBtn1y" onclick="loadForecast('1year')">1 ano</button>
+    </div>
+    <div class="chart-wrapper" style="height:220px;">
+      <canvas id="forecastChart"></canvas>
+    </div>
   </div>
-  <div style="margin-top: 10px;">
-    <img id="historyImage" src="{{ url_for('cards.revision_history_chart', period='1month') }}" alt="Histórico de revisões" style="max-width: 100%;">
-  </div>
-  
+
   <hr>
-  
-  <!-- Seção: Log de revisões (listagem diária) com botão para toggle -->
-  <h3>Log de revisões</h3>
-  <button id="toggleLogBtn" class="btn btn-secondary">Mostrar Log de Revisões</button>
-  <div id="logContainer" style="display: none; margin-top: 20px;">
-    <ul class="list-unstyled">
-      {% for ds in all_stats %}
-        {% set accuracy = (ds.correct_count / ds.cards_studied * 100) if ds.cards_studied > 0 else 0 %}
-        <li>
-          {{ ds.date.strftime('%d/%m/%Y') }} - {{ ds.cards_studied }} revisões (taxa de acerto: {{ accuracy|round(1) }}%)
-        </li>
-      {% endfor %}
-    </ul>
+
+  <!-- ── BARALHO ── -->
+  <div class="chart-section">
+    <h4>Baralho</h4>
+    <div class="row g-2">
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-value">{{ total_cards }}</div>
+          <div class="stat-label">Total de cartões</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-value" style="color:#007bff;">{{ new_cards }}</div>
+          <div class="stat-label">Novos</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-value" style="color:#6c757d;">{{ in_date }}</div>
+          <div class="stat-label">Em intervalo</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-value" style="color:#28a745;">{{ due_cards }}</div>
+          <div class="stat-label">Para revisar</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ── TIPOS DE CARTÃO + BOTÕES DE RESPOSTA ── -->
+  <div class="row chart-section">
+    <div class="col-md-6">
+      <h4>Distribuição dos Cartões</h4>
+      <div class="chart-wrapper" style="height:220px;">
+        <canvas id="cardTypesChart"></canvas>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <h4>Botões de Resposta</h4>
+      <div class="chart-wrapper" style="height:220px;">
+        <canvas id="answerButtonsChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ── MATURIDADE DOS CARTÕES ── -->
+  <div class="chart-section">
+    <h4>Maturidade dos Cartões (Distribuição de Intervalos)</h4>
+    <div class="chart-wrapper" style="height:220px;">
+      <canvas id="intervalsChart"></canvas>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ── DISTRIBUIÇÃO DE FACILIDADE ── -->
+  <div class="chart-section">
+    <h4>Distribuição de Facilidade (Fator EF)</h4>
+    <div class="chart-wrapper" style="height:220px;">
+      <canvas id="easeChart"></canvas>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ── LOG DE REVISÕES ── -->
+  <div class="chart-section mb-4">
+    <h4>Log de Revisões</h4>
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <select id="logYearSelect" class="form-select form-select-sm" style="width:auto;">
+        <option value="">Ano</option>
+      </select>
+      <select id="logMonthSelect" class="form-select form-select-sm" style="width:auto;" disabled>
+        <option value="">Mês</option>
+      </select>
+    </div>
+    <div id="logContainer" style="display:none;">
+      <table class="table table-sm table-striped" id="logTable">
+        <thead><tr><th>Data</th><th>Total</th><th>Novos</th><th>Revisões</th><th>Precisão</th><th>Tempo (min)</th></tr></thead>
+        <tbody>
+          {% for ds in all_stats %}
+          {% set accuracy = (ds.correct_count / ds.cards_studied * 100) if ds.cards_studied > 0 else 0 %}
+          <tr data-ym="{{ ds.date.strftime('%Y-%m') }}">
+            <td>{{ ds.date.strftime('%d/%m/%Y') }}</td>
+            <td>{{ ds.cards_studied }}</td>
+            <td>{{ ds.new_cards or 0 }}</td>
+            <td>{{ ds.revision_cards or 0 }}</td>
+            <td>{{ accuracy|round(1) }}%</td>
+            <td>{{ ((ds.study_time or 0) / 60)|round(1) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}
+
 {% block scripts %}
 <script>
-// Toggle para o log de revisões
-document.getElementById('toggleLogBtn').addEventListener('click', function() {
-    var logContainer = document.getElementById('logContainer');
-    if (logContainer.style.display === 'none') {
-        logContainer.style.display = 'block';
-        this.textContent = 'Ocultar Log de Revisões';
-    } else {
-        logContainer.style.display = 'none';
-        this.textContent = 'Mostrar Log de Revisões';
+// ─── Chart defaults ───────────────────────────────────────────────────────────
+Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+Chart.defaults.font.size = 11;
+
+// ─── Heatmap (GitHub-style, pure Canvas 2D) ───────────────────────────────────
+(function() {
+  const GAP = 2;
+  const COLS = 53, ROWS = 7;
+  const PAD_TOP = 20, PAD_LEFT = 28;
+  const MONTH_LABELS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const DAY_LABELS = ['D','S','T','Q','Q','S','S']; // Sun-Sat
+
+  const canvas = document.getElementById('heatmapCanvas');
+  const container = document.getElementById('heatmapContainer');
+  const tooltip = document.getElementById('heatmapTooltip');
+  const ctx = canvas.getContext('2d');
+
+  let cells = [];
+  let lastData = null;
+
+  function computeDimensions() {
+    const containerWidth = container.clientWidth || container.offsetWidth || 800;
+    const availableWidth = containerWidth - PAD_LEFT - GAP;
+    const STEP = Math.max(14, Math.floor(availableWidth / COLS));
+    const CELL = STEP - GAP;
+    const W = PAD_LEFT + COLS * STEP;
+    const H = PAD_TOP + ROWS * STEP + 4;
+    return { STEP, CELL, W, H };
+  }
+
+  function countToColor(count, maxCount) {
+    if (count === 0) return '#ebedf0';
+    const t = Math.min(count / Math.max(maxCount * 0.6, 1), 1);
+    // interpolate: #c6e48b → #216e39
+    const r = Math.round(198 - t * (198 - 33));
+    const g = Math.round(228 - t * (228 - 110));
+    const b = Math.round(139 - t * (139 - 57));
+    return `rgb(${r},${g},${b})`;
+  }
+
+  function drawHeatmap(days, maxCount, year) {
+    const { STEP, CELL, W, H } = computeDimensions();
+    canvas.width = W;
+    canvas.height = H;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    cells = [];
+
+    // Day labels
+    ctx.fillStyle = '#6c757d';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'right';
+    for (let r = 0; r < ROWS; r++) {
+      ctx.fillText(DAY_LABELS[r], PAD_LEFT - 4, PAD_TOP + r * STEP + CELL - 2);
     }
-});
 
-// Toggle para os botões de período de previsão
-document.getElementById('forecastBtn30days').addEventListener('click', function() {
-    document.getElementById('forecastBtn30days').classList.add('btn-primary');
-    document.getElementById('forecastBtn30days').classList.remove('btn-outline-primary');
-    document.getElementById('forecastBtn1year').classList.add('btn-outline-primary');
-    document.getElementById('forecastBtn1year').classList.remove('btn-primary');
-    document.getElementById('forecastImage').src = "{{ url_for('cards.forecast_chart', period='30days') }}";
-});
+    // Month label positions
+    const monthFirstCol = {};
 
-document.getElementById('forecastBtn1year').addEventListener('click', function() {
-    document.getElementById('forecastBtn1year').classList.add('btn-primary');
-    document.getElementById('forecastBtn1year').classList.remove('btn-outline-primary');
-    document.getElementById('forecastBtn30days').classList.add('btn-outline-primary');
-    document.getElementById('forecastBtn30days').classList.remove('btn-primary');
-    document.getElementById('forecastImage').src = "{{ url_for('cards.forecast_chart', period='1year') }}";
-});
+    days.forEach((d) => {
+      const date = new Date(d.date);
+      const jan1Local = new Date(date.getFullYear(), 0, 1);
+      const dayOfYear = Math.floor((date - jan1Local) / 86400000);
+      const col = Math.floor((dayOfYear + jan1Local.getDay()) / 7);
+      const row = date.getDay(); // 0=Sun
 
-// Toggle para os botões de período do histórico
-document.getElementById('historyBtn1month').addEventListener('click', function() {
-    document.getElementById('historyBtn1month').classList.add('btn-success');
-    document.getElementById('historyBtn1month').classList.remove('btn-outline-success');
-    document.getElementById('historyBtn12months').classList.add('btn-outline-success');
-    document.getElementById('historyBtn12months').classList.remove('btn-success');
-    document.getElementById('historyImage').src = "{{ url_for('cards.revision_history_chart', period='1month') }}";
-});
+      const x = PAD_LEFT + col * STEP;
+      const y = PAD_TOP + row * STEP;
 
-document.getElementById('historyBtn12months').addEventListener('click', function() {
-    document.getElementById('historyBtn12months').classList.add('btn-success');
-    document.getElementById('historyBtn12months').classList.remove('btn-outline-success');
-    document.getElementById('historyBtn1month').classList.add('btn-outline-success');
-    document.getElementById('historyBtn1month').classList.remove('btn-success');
-    document.getElementById('historyImage').src = "{{ url_for('cards.revision_history_chart', period='12months') }}";
-});
+      // Track first col per month
+      const m = date.getMonth();
+      if (!(m in monthFirstCol)) monthFirstCol[m] = col;
+
+      ctx.fillStyle = countToColor(d.count, maxCount);
+      ctx.beginPath();
+      ctx.roundRect(x, y, CELL, CELL, 2);
+      ctx.fill();
+
+      cells.push({col, row, date: d.date, count: d.count, x, y, CELL});
+    });
+
+    // Month labels
+    ctx.fillStyle = '#6c757d';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'left';
+    Object.entries(monthFirstCol).forEach(([m, col]) => {
+      ctx.fillText(MONTH_LABELS[+m], PAD_LEFT + col * STEP, PAD_TOP - 5);
+    });
+  }
+
+  fetch('/statistics/data/heatmap')
+    .then(r => r.json())
+    .then(data => {
+      lastData = data;
+      drawHeatmap(data.days, data.max_cards, data.year);
+      document.getElementById('hmStreak').textContent = data.current_streak;
+      document.getElementById('hmRecord').textContent = data.record_streak;
+      document.getElementById('hmMax').textContent = data.max_cards;
+    });
+
+  // Redraw on resize
+  window.addEventListener('resize', function() {
+    if (lastData) drawHeatmap(lastData.days, lastData.max_cards, lastData.year);
+  });
+
+  // Tooltip on mousemove
+  canvas.addEventListener('mousemove', function(e) {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    let found = null;
+    for (const c of cells) {
+      if (mx >= c.x && mx < c.x + c.CELL && my >= c.y && my < c.y + c.CELL) {
+        found = c; break;
+      }
+    }
+    if (found) {
+      const d = new Date(found.date + 'T12:00:00');
+      const label = d.toLocaleDateString('pt-BR', {day:'2-digit', month:'short', year:'numeric'});
+      tooltip.textContent = `${label}: ${found.count} cartões`;
+      tooltip.style.display = 'block';
+      tooltip.style.left = (e.clientX + 12) + 'px';
+      tooltip.style.top = (e.clientY - 28) + 'px';
+    } else {
+      tooltip.style.display = 'none';
+    }
+  });
+  canvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+})();
+
+// ─── History Chart (stacked bar) ─────────────────────────────────────────────
+let histChart = null;
+function loadHistory(period) {
+  document.getElementById('histBtn1m').className = period === '1month'
+    ? 'btn btn-sm btn-success' : 'btn btn-sm btn-outline-success';
+  document.getElementById('histBtn12m').className = period === '12months'
+    ? 'btn btn-sm btn-success' : 'btn btn-sm btn-outline-success';
+
+  fetch('/statistics/data/review_history?period=' + period)
+    .then(r => r.json())
+    .then(data => {
+      const ctx = document.getElementById('historyChart').getContext('2d');
+      if (histChart) histChart.destroy();
+      histChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.labels,
+          datasets: [
+            {
+              label: 'Novos',
+              data: data.new,
+              backgroundColor: 'rgba(0, 123, 255, 0.8)',
+              stack: 'stack'
+            },
+            {
+              label: 'Revisões',
+              data: data.reviews,
+              backgroundColor: 'rgba(40, 167, 69, 0.8)',
+              stack: 'stack'
+            },
+            {
+              label: 'Reaprendendo',
+              data: data.learning,
+              backgroundColor: 'rgba(220, 53, 69, 0.7)',
+              stack: 'stack'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12 } },
+            tooltip: { mode: 'index' }
+          },
+          scales: {
+            x: {
+              stacked: true,
+              ticks: {
+                maxTicksLimit: period === '1month' ? 15 : 12,
+                maxRotation: 45,
+                font: { size: 10 }
+              }
+            },
+            y: { stacked: true, beginAtZero: true, ticks: { font: { size: 10 } } }
+          }
+        }
+      });
+    });
+}
+loadHistory('1month');
+
+// ─── Forecast Chart ───────────────────────────────────────────────────────────
+let fcChart = null;
+function loadForecast(period) {
+  document.getElementById('fcBtn30d').className = period === '30days'
+    ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-outline-primary';
+  document.getElementById('fcBtn1y').className = period === '1year'
+    ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-outline-primary';
+
+  fetch('/statistics/data/forecast?period=' + period)
+    .then(r => r.json())
+    .then(data => {
+      const ctx = document.getElementById('forecastChart').getContext('2d');
+      if (fcChart) fcChart.destroy();
+      fcChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.labels,
+          datasets: [{
+            label: 'Cartões para revisar',
+            data: data.counts,
+            borderColor: '#3f51b5',
+            backgroundColor: 'rgba(63,81,181,0.15)',
+            borderWidth: 2,
+            pointRadius: period === '1year' ? 3 : 4,
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { mode: 'index', intersect: false }
+          },
+          scales: {
+            x: {
+              ticks: {
+                maxTicksLimit: 15,
+                maxRotation: 45,
+                font: { size: 10 }
+              }
+            },
+            y: { beginAtZero: true, ticks: { font: { size: 10 } } }
+          }
+        }
+      });
+    });
+}
+loadForecast('30days');
+
+// ─── Card Types (doughnut) ────────────────────────────────────────────────────
+fetch('/statistics/data/card_types')
+  .then(r => r.json())
+  .then(data => {
+    const ctx = document.getElementById('cardTypesChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Novos', 'Aprendendo', 'Revisão', 'Suspensos'],
+        datasets: [{
+          data: [data.new, data.learning, data.review, data.suspended],
+          backgroundColor: ['#007bff', '#fd7e14', '#28a745', '#6c757d']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+        }
+      }
+    });
+  });
+
+// ─── Answer Buttons (doughnut) ────────────────────────────────────────────────
+fetch('/statistics/data/answer_buttons')
+  .then(r => r.json())
+  .then(data => {
+    const ctx = document.getElementById('answerButtonsChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Errei', 'Difícil', 'Fácil', 'Muito Fácil'],
+        datasets: [{
+          data: [data.errei, data.dificil, data.facil, data.muito_facil],
+          backgroundColor: ['#dc3545', '#fd7e14', '#28a745', '#20c997']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                const total = ctx.dataset.data.reduce((a,b) => a+b, 0);
+                const pct = total > 0 ? Math.round(ctx.raw / total * 100) : 0;
+                return ` ${ctx.label}: ${ctx.raw} (${pct}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  });
+
+// ─── Intervals Histogram ──────────────────────────────────────────────────────
+fetch('/statistics/data/intervals')
+  .then(r => r.json())
+  .then(data => {
+    const ctx = document.getElementById('intervalsChart').getContext('2d');
+    // Color scale from blue (short) to green (long)
+    const colors = ['#adb5bd','#74c0fc','#4dabf7','#339af0','#228be6','#1c7ed6','#1971c2','#155fa0'];
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: data.buckets,
+        datasets: [{
+          label: 'Cartões',
+          data: data.counts,
+          backgroundColor: colors
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { title: ctxs => 'Intervalo: ' + ctxs[0].label } }
+        },
+        scales: {
+          x: { ticks: { font: { size: 10 } } },
+          y: { beginAtZero: true, ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+  });
+
+// ─── Ease Histogram ───────────────────────────────────────────────────────────
+fetch('/statistics/data/ease')
+  .then(r => r.json())
+  .then(data => {
+    const ctx = document.getElementById('easeChart').getContext('2d');
+    // Color: low EF = red, mid = yellow, high = green
+    const colors = data.buckets.map((_, i) => {
+      const t = i / (data.buckets.length - 1);
+      if (t < 0.4) return '#dc3545';
+      if (t < 0.65) return '#ffc107';
+      return '#28a745';
+    });
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: data.buckets,
+        datasets: [{
+          label: 'Cartões',
+          data: data.counts,
+          backgroundColor: colors
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { title: ctxs => 'EF: ' + ctxs[0].label } }
+        },
+        scales: {
+          x: { ticks: { font: { size: 10 }, maxRotation: 45 } },
+          y: { beginAtZero: true, ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+  });
+
+// ─── Log de Revisões por ANO/MÊS ─────────────────────────────────────────────
+(function() {
+  const PT_MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const rows = Array.from(document.querySelectorAll('#logTable tbody tr'));
+  const logContainer = document.getElementById('logContainer');
+  const yearSel = document.getElementById('logYearSelect');
+  const monthSel = document.getElementById('logMonthSelect');
+
+  // Collect available year-month combos from rendered rows
+  const ymSet = new Set(rows.map(r => r.dataset.ym).filter(Boolean));
+  const years = [...new Set([...ymSet].map(ym => ym.split('-')[0]))].sort((a, b) => b - a);
+
+  years.forEach(y => {
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    yearSel.appendChild(opt);
+  });
+
+  yearSel.addEventListener('change', function() {
+    const y = this.value;
+    // Reset month select
+    monthSel.innerHTML = '<option value="">Mês</option>';
+    monthSel.disabled = !y;
+    logContainer.style.display = 'none';
+    if (!y) return;
+
+    const months = [...new Set(
+      [...ymSet].filter(ym => ym.startsWith(y + '-')).map(ym => ym.split('-')[1])
+    )].sort();
+    months.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = PT_MONTHS[parseInt(m, 10) - 1];
+      monthSel.appendChild(opt);
+    });
+  });
+
+  monthSel.addEventListener('change', function() {
+    const y = yearSel.value;
+    const m = this.value;
+    if (!y || !m) { logContainer.style.display = 'none'; return; }
+    const target = `${y}-${m}`;
+    rows.forEach(r => {
+      r.style.display = r.dataset.ym === target ? '' : 'none';
+    });
+    logContainer.style.display = 'block';
+  });
+})();
 </script>
 {% endblock %}
