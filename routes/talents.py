@@ -7,7 +7,8 @@ from sqlalchemy import text
 
 from database import db
 from models import Player, Talent, PlayerTalent, AppliedTalentEffect
-from routes.cards import flash_gamification, get_exp_for_next_level
+from routes.cards import flash_gamification
+from game_formulas import get_exp_for_next_level
 
 # Criar o blueprint para as rotas de talentos
 talents_bp = Blueprint('talents', __name__)

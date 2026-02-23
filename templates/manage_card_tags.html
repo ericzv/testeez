@@ -8,10 +8,10 @@
     <div class="card mb-3">
       <div class="card-body">
         <h5>Pergunta:</h5>
-        <p>{{ card.front | process_front | safe }}</p>
+        <p>{{ card.render_front() | safe }}</p>
         <hr>
         <h5>Resposta:</h5>
-        <p>{{ card.back | process_answer | safe }}</p>
+        <p>{{ card.render_back() | safe }}</p>
       </div>
     </div>
     

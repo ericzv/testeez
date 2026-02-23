@@ -1,39 +1,459 @@
 {% extends 'base.html' %}
-{% block title %}Estudar - Flashcards{% endblock %}
+{% block title %}Estudar {{ deck.name }} - Retina Cards{% endblock %}
+{% block body_class %}study-page{% endblock %}
+{% block head %}
+<style>
+  /* Esconder navbar e container padrao durante o estudo */
+  .study-page .navbar { display: none; }
+  .study-page .container.mt-4 { margin: 0 !important; padding: 0 !important; max-width: 100%; }
+
+  .study-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: #fff;
+  }
+
+  /* Barra superior */
+  .study-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    font-size: 0.82em;
+    color: #999;
+    border-bottom: 1px solid #f0f0f0;
+    flex-shrink: 0;
+  }
+  .study-topbar a { color: #999; text-decoration: none; }
+  .study-topbar a:hover { color: #555; }
+  .card-type-label { margin-left: 8px; }
+  .card-type-label.new { color: #2196F3; }
+  .card-type-label.learning { color: #e67e22; }
+  .card-type-label.review { color: #27ae60; }
+
+  /* Area de conteudo */
+  .study-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 24px 16px 0 16px;
+    overflow-y: auto;
+    position: relative;
+  }
+  .study-content-inner {
+    width: 100%;
+    max-width: 900px;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    font-size: 20px;
+  }
+  .study-content-inner img {
+    max-width: 100%;
+    height: auto;
+  }
+  .study-content-inner table {
+    margin: 0 auto;
+  }
+
+  /* Separador resposta */
+  .answer-divider {
+    width: 60%;
+    max-width: 400px;
+    margin: 24px auto;
+    border: none;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  /* Botao Voltar no canto inferior esquerdo do study-content */
+  .btn-undo-floating {
+    position: absolute;
+    bottom: 12px;
+    left: 16px;
+    background: none;
+    border: 1px solid #ddd;
+    color: #aaa;
+    padding: 6px 14px;
+    font-size: 0.82em;
+    border-radius: 4px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .btn-undo-floating:hover { border-color: #999; color: #666; text-decoration: none; }
+
+  /* Timer no canto inferior direito do study-content */
+  .timer-floating {
+    position: absolute;
+    bottom: 14px;
+    right: 16px;
+    font-size: 0.7em;
+    color: rgba(128,128,128,0.25);
+  }
+
+  /* Area inferior fixa */
+  .study-bottom {
+    flex-shrink: 0;
+    border-top: 1px solid #eee;
+    background: #fafafa;
+    height: 130px;
+    display: flex;
+    flex-direction: column;
+  }
+  .study-bottom-buttons {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  @media (max-width: 576px) {
+    .study-bottom { height: 140px; }
+  }
+  @media (min-width: 577px) and (max-width: 991px) {
+    .study-bottom { height: 130px; }
+  }
+  @media (min-width: 992px) {
+    .study-bottom { height: 120px; }
+  }
+
+  /* Counter bar */
+  .study-counter-bar {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    padding: 6px 16px;
+    font-size: 0.85em;
+    font-weight: 600;
+  }
+  .counter-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding-bottom: 3px;
+  }
+  .counter-item.active {
+    border-bottom: 2px solid currentColor;
+  }
+  .counter-new { color: #2196F3; }
+  .counter-learning { color: #e67e22; }
+  .counter-review { color: #27ae60; }
+
+  /* Botao mostrar resposta centralizado */
+  .study-show-answer-row {
+    display: flex;
+    justify-content: center;
+  }
+  .btn-show-answer {
+    background: #2196F3;
+    color: #fff;
+    border: none;
+    padding: 10px 32px;
+    font-size: 1em;
+    border-radius: 4px;
+    cursor: pointer;
+    min-width: 200px;
+  }
+  .btn-show-answer:hover { background: #1976D2; }
+
+  /* Botoes de resposta */
+  .study-response-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+  }
+  .response-btn {
+    border: none;
+    padding: 10px 16px;
+    font-size: 0.95em;
+    border-radius: 4px;
+    cursor: pointer;
+    min-width: 100px;
+    color: #fff;
+  }
+  .response-btn small {
+    display: block;
+    font-size: 0.78em;
+    opacity: 0.85;
+    margin-top: 2px;
+  }
+  .response-btn.errei { background: #e74c3c; }
+  .response-btn.errei:hover { background: #c0392b; }
+  .response-btn.dificil { background: #e67e22; }
+  .response-btn.dificil:hover { background: #d35400; }
+  .response-btn.facil { background: #27ae60; }
+  .response-btn.facil:hover { background: #219a52; }
+  .response-btn.muito-facil { background: #2196F3; }
+  .response-btn.muito-facil:hover { background: #1976D2; }
+
+  /* Estado de espera */
+  .study-waiting {
+    text-align: center;
+    padding: 60px 20px;
+    color: #888;
+  }
+  .study-waiting h3 { color: #555; margin-bottom: 16px; }
+  .study-waiting .wait-timer {
+    font-size: 1.4em;
+    font-weight: 600;
+    color: #e67e22;
+    margin: 16px 0;
+  }
+
+  /* Estudo completo */
+  .study-done {
+    text-align: center;
+    padding: 60px 20px;
+    color: #888;
+  }
+  .study-done h3 { color: #27ae60; margin-bottom: 16px; }
+  .study-done a { margin-top: 20px; display: inline-block; }
+
+  .study-back-link { color: #999; font-size: 0.82em; text-decoration: none; }
+  .study-back-link:hover { color: #555; }
+
+  .btn-back-decks {
+    background: none;
+    border: 1px solid #ccc;
+    color: #888;
+    padding: 10px 20px;
+    font-size: 0.9em;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .btn-back-decks:hover { border-color: #999; color: #555; text-decoration: none; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="card">
-  <div class="card-body">
-    <!-- Seção da PERGUNTA -->
-    <div id="question-section">
-      <h5 class="card-title">Pergunta:</h5>
-      <p class="card-text">{{ card.front | process_front | safe }}</p>
-    </div>
-    
-    <!-- Seção da RESPOSTA (oculta inicialmente) -->
-    <div id="answer-section" style="display: none;">
-      <h5 class="card-title">Resposta:</h5>
-      <p class="card-text">{{ card.front | process_answer | safe }}</p>
-      {% if card.back %}
-      <hr>
-      <h6>Extra:</h6>
-      <p class="card-text">{{ card.back | safe }}</p>
+<div class="study-wrapper">
+  <!-- Barra superior -->
+  <div class="study-topbar">
+    <div>
+      {% if card %}
+        <a href="{{ url_for('cards.card_detail', card_id=card.id) }}">Cartao #{{ card.id }}</a>
+        <span class="card-type-label {{ card_type }}">
+          {% if card_type == 'new' %}Novo
+          {% elif card_type == 'learning' %}Aprendendo
+          {% elif card_type == 'review' %}Revisao
+          {% endif %}
+        </span>
+      {% else %}
+        <span>{{ deck.name }}</span>
       {% endif %}
     </div>
-
-    <hr>
-    <button class="btn btn-info" id="show-answer-btn">Mostrar Resposta</button>
-    <a href="{{ url_for('cards.study') }}" class="btn btn-success">Próximo</a>
+    <div>
+      <a href="{{ url_for('cards.decks') }}" class="study-back-link">
+        <i class="fas fa-times"></i> Fechar
+      </a>
+    </div>
   </div>
+
+  {% if card %}
+  <!-- Conteudo do cartao -->
+  <div class="study-content">
+    <div class="study-content-inner">
+      <!-- Pergunta -->
+      <div id="question-section">
+        <div>{{ card.render_front() | safe }}</div>
+      </div>
+
+      <!-- Resposta (oculta inicialmente) -->
+      <div id="answer-section" style="display: none;">
+        {% if is_cloze %}
+          <div>{{ card.render_back() | safe }}</div>
+        {% else %}
+          <hr class="answer-divider">
+          <div>{{ card.render_back() | safe }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Botao Voltar no canto inferior esquerdo -->
+    <a href="{{ url_for('cards.study_undo', deck_id=deck.id) }}" class="btn-undo-floating">
+      <i class="fas fa-undo" style="font-size: 0.8em;"></i> Voltar
+    </a>
+
+    <!-- Timer no canto inferior direito -->
+    <span class="timer-floating" id="study-timer">0:00</span>
+  </div>
+
+  <!-- Area inferior fixa -->
+  <div class="study-bottom">
+    <!-- Counter bar (acima dos botoes) -->
+    <div class="study-counter-bar">
+      <div class="counter-item counter-new {{ 'active' if active_type == 'new' else '' }}">
+        <span>{{ new_count }}</span>
+      </div>
+      <div class="counter-item counter-learning {{ 'active' if active_type == 'learning' else '' }}">
+        <span>{{ learning_count }}</span>
+      </div>
+      <div class="counter-item counter-review {{ 'active' if active_type == 'review' else '' }}">
+        <span>{{ review_count }}</span>
+      </div>
+    </div>
+
+    <div class="study-bottom-buttons">
+      <!-- Botao Mostrar Resposta centralizado (estado inicial) -->
+      <div id="action-buttons" class="study-show-answer-row">
+        <button class="btn-show-answer" id="btn-show-answer" onclick="showAnswer()">
+          Mostrar Resposta
+        </button>
+      </div>
+
+      <!-- Botoes de resposta (ocultos inicialmente) -->
+      <div id="response-buttons" style="display: none;">
+        <form method="POST" action="{{ url_for('cards.study', deck_id=deck.id) }}" id="response-form">
+          <input type="hidden" name="card_id" value="{{ card.id }}">
+          <input type="hidden" name="time_spent" id="time-spent-input" value="0">
+          <div class="study-response-buttons">
+            <button type="submit" name="response" value="errei" class="response-btn errei">
+              Errei<small>{{ next_errei }}</small>
+            </button>
+            <button type="submit" name="response" value="difícil" class="response-btn dificil">
+              Dificil<small>{{ next_dificil }}</small>
+            </button>
+            <button type="submit" name="response" value="facil" class="response-btn facil">
+              Facil<small>{{ next_facil }}</small>
+            </button>
+            <button type="submit" name="response" value="muito_facil" class="response-btn muito-facil">
+              Muito Facil<small>{{ next_muitofacil }}</small>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% elif waiting %}
+  <!-- Estado de espera -->
+  <div class="study-content">
+    <div class="study-waiting">
+      <h3><i class="fas fa-clock"></i> Aguardando</h3>
+      <p>O proximo cartao de aprendizado estara disponivel em:</p>
+      <div class="wait-timer" id="wait-timer">--:--</div>
+      <p style="font-size: 0.85em;">A pagina atualizara automaticamente.</p>
+    </div>
+  </div>
+  <div class="study-bottom">
+    <div class="study-counter-bar">
+      <div class="counter-item counter-new"><span>{{ new_count }}</span></div>
+      <div class="counter-item counter-learning active"><span>{{ learning_count }}</span></div>
+      <div class="counter-item counter-review"><span>{{ review_count }}</span></div>
+    </div>
+    <div class="study-bottom-buttons">
+      <a href="{{ url_for('cards.decks') }}" class="btn-back-decks">
+        <i class="fas fa-arrow-left" style="font-size: 0.8em;"></i> Voltar aos Baralhos
+      </a>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- Estudo completo -->
+  <div class="study-content">
+    <div class="study-done">
+      <h3><i class="fas fa-check-circle"></i> Parabens!</h3>
+      <p>Nao ha mais cartoes para estudar neste baralho agora.</p>
+      <a href="{{ url_for('cards.decks') }}" class="btn btn-primary">Voltar aos Baralhos</a>
+    </div>
+  </div>
+  <div class="study-bottom">
+    <div class="study-counter-bar">
+      <div class="counter-item counter-new"><span>{{ new_count }}</span></div>
+      <div class="counter-item counter-learning"><span>{{ learning_count }}</span></div>
+      <div class="counter-item counter-review"><span>{{ review_count }}</span></div>
+    </div>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
+
 {% block scripts %}
 <script>
-document.getElementById('show-answer-btn').addEventListener('click', function() {
-    var questionSection = document.getElementById('question-section');
-    var answerSection = document.getElementById('answer-section');
-    // Ao mostrar a resposta, some a pergunta e exibe a resposta
-    questionSection.style.display = 'none';
-    answerSection.style.display = 'block';
+{% if card %}
+// Timer
+var timerSeconds = 0;
+var timerInterval = setInterval(function() {
+  timerSeconds++;
+  if (timerSeconds >= 60) clearInterval(timerInterval);
+  var m = Math.floor(timerSeconds / 60);
+  var s = timerSeconds % 60;
+  document.getElementById('study-timer').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+}, 1000);
+
+var isCloze = {{ 'true' if is_cloze else 'false' }};
+
+function showAnswer() {
+  document.getElementById('answer-section').style.display = 'block';
+  document.getElementById('action-buttons').style.display = 'none';
+  document.getElementById('response-buttons').style.display = 'block';
+  if (timerSeconds < 60) {
+    document.getElementById('time-spent-input').value = timerSeconds;
+  }
+  if (isCloze) {
+    document.getElementById('question-section').style.display = 'none';
+  }
+  document.getElementById('answer-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// Atalhos de teclado
+document.addEventListener('keydown', function(e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+  var answerVisible = document.getElementById('answer-section').style.display !== 'none';
+
+  if (!answerVisible) {
+    if (e.code === 'Space' || e.key === 'Enter') {
+      e.preventDefault();
+      showAnswer();
+    }
+  } else {
+    if (e.key === '1') {
+      e.preventDefault();
+      document.querySelector('button[value="errei"]').click();
+    } else if (e.key === '2') {
+      e.preventDefault();
+      document.querySelector('button[value="difícil"]').click();
+    } else if (e.key === '3') {
+      e.preventDefault();
+      document.querySelector('button[value="facil"]').click();
+    } else if (e.key === '4') {
+      e.preventDefault();
+      document.querySelector('button[value="muito_facil"]').click();
+    }
+  }
+
+  if (e.ctrlKey && e.key === 'z') {
+    e.preventDefault();
+    window.location = '{{ url_for("cards.study_undo", deck_id=deck.id) }}';
+  }
+
+  if (e.key === 'd' && !answerVisible) {
+    window.location = '{{ url_for("cards.card_detail", card_id=card.id) }}';
+  }
 });
+{% endif %}
+
+{% if waiting %}
+var waitSeconds = {{ wait_seconds }};
+function updateWaitTimer() {
+  if (waitSeconds <= 0) {
+    window.location.reload();
+    return;
+  }
+  var m = Math.floor(waitSeconds / 60);
+  var s = waitSeconds % 60;
+  document.getElementById('wait-timer').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+  waitSeconds--;
+  setTimeout(updateWaitTimer, 1000);
+}
+updateWaitTimer();
+{% endif %}
 </script>
 {% endblock %}

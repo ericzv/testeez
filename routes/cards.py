@@ -1,16 +1,191 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session, current_app, send_file
-from filters import get_cards_recursive, count_cards_recursive
-from models import Deck, Card, Tag, db, DailyStats, Player
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session, current_app, send_file, stream_with_context, Response
+from models import Deck, Card, Tag, db, DailyStats, Player, ReviewLog, Note, note_tags
+from srs_engine import (
+    sm2_review, compute_sm2_preview, format_interval, log_review,
+    update_daily_stats, normalize_response,
+    get_subdeck_ids, get_cards_in_decks, count_cards_for_deck,
+)
 from datetime import datetime, timezone, timedelta
 from sqlalchemy import func, text, or_
 import math
 import os
-import csv
 import random
 import json
+import re
+import zipfile
+import sqlite3
+import tempfile
+import shutil
+from html import unescape
+import subprocess
+import sys
 
 # Criar o objeto Blueprint
 cards_bp = Blueprint('cards', __name__)
+
+
+# ---------------------------------------------------------------------------
+# Protobuf parser para MediaEntries do Anki (formato .apkg v3 / 23.12+)
+# Schema (field numbers variam por versão):
+#   MediaEntries { repeated ZipMediaEntry entries = 1; }
+#   ZipMediaEntry { string name = 1 ou 6; bytes sha1 = 2 ou 7;
+#                   optional string legacy_zip_name = 8 ou 12; }
+# ---------------------------------------------------------------------------
+
+def _pb_read_varint(data, pos):
+    """Lê um varint protobuf e retorna (valor, nova_posição)."""
+    result = 0
+    shift = 0
+    while pos < len(data):
+        b = data[pos]
+        pos += 1
+        result |= (b & 0x7F) << shift
+        shift += 7
+        if not (b & 0x80):
+            break
+    return result, pos
+
+
+def _pb_parse_fields(data):
+    """Parseia bytes protobuf em {field_num: [(wire_type, value), ...]}."""
+    fields = {}
+    pos = 0
+    while pos < len(data):
+        if pos >= len(data):
+            break
+        tag, pos = _pb_read_varint(data, pos)
+        field_num = tag >> 3
+        wire_type = tag & 0x07
+
+        if wire_type == 0:          # varint
+            value, pos = _pb_read_varint(data, pos)
+        elif wire_type == 2:        # length-delimited (string, bytes, submessage)
+            length, pos = _pb_read_varint(data, pos)
+            value = data[pos:pos + length]
+            pos += length
+        elif wire_type == 1:        # 64-bit fixed
+            value = data[pos:pos + 8]
+            pos += 8
+        elif wire_type == 5:        # 32-bit fixed
+            value = data[pos:pos + 4]
+            pos += 4
+        else:
+            break  # tipo desconhecido → parar
+
+        fields.setdefault(field_num, []).append((wire_type, value))
+    return fields
+
+
+def _parse_media_protobuf(data):
+    """Converte protobuf MediaEntries em dict {zip_number_str: original_name}."""
+    media_map = {}
+    try:
+        outer = _pb_parse_fields(data)
+        for idx, (wt, entry_bytes) in enumerate(outer.get(1, [])):
+            if wt != 2:
+                continue
+            entry = _pb_parse_fields(entry_bytes)
+
+            # name: field 1 no formato atual, field 6 em versões anteriores
+            name = None
+            for fnum in (1, 6):
+                if fnum in entry:
+                    name = entry[fnum][0][1].decode('utf-8', errors='replace')
+                    break
+
+            # legacy_zip_name: field 8 ou field 12; senão usa índice
+            zip_name = str(idx)
+            for fnum in (8, 12):
+                if fnum in entry:
+                    zip_name = entry[fnum][0][1].decode('utf-8', errors='replace')
+                    break
+
+            if name:
+                media_map[zip_name] = name
+    except Exception:
+        pass
+    return media_map
+
+
+_ZSTD_MAGIC = b'\x28\xb5\x2f\xfd'
+
+def _copy_media_file(src, dst):
+    """Copia arquivo de mídia, descomprimindo zstd se necessário (Anki v3)."""
+    with open(src, 'rb') as f:
+        data = f.read()
+
+    if data[:4] == _ZSTD_MAGIC:
+        try:
+            import zstandard as zstd
+            dctx = zstd.ZstdDecompressor()
+            reader = dctx.stream_reader(data)
+            data = reader.read()
+            reader.close()
+        except Exception:
+            pass  # se falhar, salva como está
+
+    with open(dst, 'wb') as f:
+        f.write(data)
+
+
+def detect_anki_cloze_html(text):
+    """Detecta se o texto contém HTML de cloze exportado pelo Anki."""
+    if not text:
+        return False
+    return bool(re.search(r'<span[^>]*class=["\']?cloze["\']?[^>]*data-ordinal=', text))
+
+
+def convert_anki_cloze_html(front_html, back_html=''):
+    """Converte HTML de cloze exportado pelo Anki para o formato {{cN::text}}.
+
+    O Anki exporta cloze assim:
+    - Front: <span class="cloze" data-cloze="resposta" data-ordinal="1">[...]</span>
+    - Back:  <span class="cloze" data-ordinal="1">resposta</span>
+
+    Reconstrói o texto limpo com marcadores {{cN::resposta}}.
+    """
+    # Estratégia 1: usar o front que tem data-cloze com a resposta embutida
+    def replace_front_cloze(match):
+        span = match.group(0)
+        cloze_m = re.search(r'data-cloze="([^"]*)"', span)
+        ord_m = re.search(r'data-ordinal="(\d+)"', span)
+        if cloze_m and ord_m:
+            answer = unescape(cloze_m.group(1))
+            ordinal = ord_m.group(1)
+            return '{{' + f'c{ordinal}::{answer}' + '}}'
+        return match.group(0)
+
+    result = front_html
+    # Tentar reconstruir do front (tem data-cloze="resposta" e [...]  no conteúdo)
+    front_pattern = r'<span[^>]*class=["\']?cloze["\']?[^>]*>\[(?:\.{3}|…)\]</span>'
+    converted = re.sub(front_pattern, replace_front_cloze, result)
+
+    # Se não encontrou no front, tentar do back (tem a resposta como texto do span)
+    if converted == result and back_html:
+        def replace_back_cloze(match):
+            span = match.group(0)
+            ord_m = re.search(r'data-ordinal="(\d+)"', span)
+            # Extrair o texto entre > e </span>
+            text_m = re.search(r'>([^<]+)</span>', span)
+            if ord_m and text_m:
+                answer = unescape(text_m.group(1))
+                ordinal = ord_m.group(1)
+                return '{{' + f'c{ordinal}::{answer}' + '}}'
+            return match.group(0)
+
+        back_pattern = r'<span[^>]*class=["\']?cloze["\']?[^>]*>[^<]+</span>'
+        converted = re.sub(back_pattern, replace_back_cloze, back_html)
+
+    # Remover comentários HTML
+    converted = re.sub(r'<!--.*?-->', '', converted, flags=re.DOTALL)
+    # Remover tags HTML
+    converted = re.sub(r'<[^>]+>', '', converted)
+    # Decodificar entidades HTML
+    converted = unescape(converted)
+    # Limpar espaços extras
+    converted = re.sub(r'\s+', ' ', converted).strip()
+
+    return converted
 
 @cards_bp.app_template_global()
 def datetime_module():
@@ -21,16 +196,9 @@ def timezone_module():
     return timezone
 
 ##############################################
-#         ALGORITMO DE REVISÃO
+#         FUNÇÕES AUXILIARES
 ##############################################
-def get_exp_for_next_level(level):
-    """Calcula a experiência necessária para o próximo nível"""
-    return int(100 * (level ** 1.5))
 
-@cards_bp.app_template_global()
-def datetime_module():
-    return datetime
-    
 def get_or_create_deck(hierarchy_str):
     """
     Recebe uma string com os nomes dos baralhos separados por "__" e cria (ou recupera)
@@ -50,221 +218,880 @@ def get_or_create_deck(hierarchy_str):
         if not deck:
             deck = Deck(name=deck_name, parent=parent)
             db.session.add(deck)
-            db.session.commit()  # você pode acumular e commitar no final, se preferir
-        parent = deck  # para o próximo nível, o atual será o pai
+            db.session.flush()  # Garante ID sem commit separado
+        parent = deck
     return parent
 
-# This function will be called from the existing study_session route
-def process_gamification(card, response, time_spent, was_new):
-    """Process gamification logic for studying cards."""
-    print(f"=== PROCESSANDO GAMIFICAÇÃO PARA CARTÃO #{card.id} ===")
-    print(f"Estado do cartão: review_count={card.review_count}, era novo? {was_new}")
-    
-    player = Player.query.first()
-    if not player:
-        print("ERRO: Jogador não encontrado!")
-        return
-    
-    print(f"Jogador antes: level={player.level}, XP={player.experience}/{get_exp_for_next_level(player.level)}")
-    
-    # Update last active time
-    player.last_active = datetime.now(timezone.utc)
-    
-    # Add study time to player's total
-    if time_spent < 60:
-        player.study_time_total += time_spent
-        print(f"Tempo de estudo atualizado: {player.study_time_total}s")
-        
-        # Check for 30-minute milestone
-        if player.study_time_total >= 1800 and (player.study_time_total - time_spent) < 1800:
-            crystals_earned = 1
-            player.crystals += crystals_earned
-            print(f"MARCO: 30 minutos de estudo atingidos! +{crystals_earned} cristal")
-            flash_gamification(f"Você estudou por 30 minutos e ganhou {crystals_earned} Cristal de Memória!")
-    
-    # Check for hour milestones
-    hours_studied = player.study_time_total // 3600
-    hours_before = (player.study_time_total - time_spent) // 3600
-    
-    if hours_studied != hours_before:
-        if hours_studied == 20 or hours_studied == 50 or hours_studied == 100 or (hours_studied > 100 and hours_studied % 100 == 0):
-            crystals_earned = 5
-            player.crystals += crystals_earned
-            print(f"MARCO: {hours_studied} horas de estudo atingidas! +{crystals_earned} cristais")
-            flash_gamification(f"Parabéns! Você atingiu {hours_studied} horas de estudo e ganhou {crystals_earned} Cristais de Memória!")
-    
-    # IMPORTANTE: Usamos o parâmetro was_new em vez de verificar card.review_count
-    print(f"O cartão era novo? {was_new}")
-    
-    # Para cartões novos: ganhe XP e suba de nível
-    if was_new:
-        base_xp = 2  # XP base por cartão novo
-        
-        # Aplicar bônus de XP de talentos (se existir)
-        xp_bonus_multiplier = 1.0
-        if hasattr(player, 'exp_boost') and player.exp_boost > 0:
-            xp_bonus_multiplier = 1.0 + player.exp_boost
-            print(f"Bônus de XP aplicado: multiplicador {xp_bonus_multiplier}")
-        
-        xp_gained = base_xp * xp_bonus_multiplier  # remover int() para permitir decimais
-        print(f"CARTÃO NOVO! Concedendo {xp_gained:.1f} XP (base: {base_xp}, multiplicador: {xp_bonus_multiplier})")
-        
-        # Adicionar XP
-        player.experience += xp_gained
-        print(f"Experiência após ganho: {player.experience}/{get_exp_for_next_level(player.level)}")
-        
-        # Check for level up
-        level_before = player.level
-        while player.experience >= get_exp_for_next_level(player.level):
-            xp_needed = get_exp_for_next_level(player.level)
-            player.experience -= xp_needed
-            player.level += 1
 
-            # Award attribute point on level up
-            player.attribute_points += 1
-            # Award HP on level up
-            player.max_hp += 1
-            player.hp = min(player.hp + 1, player.max_hp)
-            
-            print(f"LEVEL UP! Subiu para nível {player.level}. XP restante: {player.experience}")
-        
-        if player.level > level_before:
-            flash_gamification(f"Parabéns! Você subiu para o nível {player.level} e ganhou 1 ponto de atributo!")
-    else:
-        print("Este não é um cartão novo, nenhum XP concedido.")
-    
-    print(f"Jogador depois: level={player.level}, XP={player.experience}/{get_exp_for_next_level(player.level)}")
-    
+def import_apkg(filepath):
+    """Importa um arquivo .apkg (pacote Anki) completo.
+
+    O .apkg é um ZIP contendo:
+    - collection.anki2 (ou .anki21): banco SQLite com notas, cartões, revisões
+    - collection.anki21b: formato mais novo, SQLite comprimido com zstd
+    - media: JSON mapeando números para nomes de arquivos de mídia
+    - Arquivos de mídia nomeados como números (0, 1, 2...)
+
+    Retorna dict com estatísticas ou {'error': mensagem}.
+    """
+    tmpdir = tempfile.mkdtemp()
     try:
+        # 1. Extrair ZIP
+        try:
+            with zipfile.ZipFile(filepath, 'r') as z:
+                z.extractall(tmpdir)
+        except zipfile.BadZipFile:
+            return {'error': 'Arquivo inválido. Não é um .apkg válido.'}
+
+        # 2. Encontrar o banco SQLite (suporta formatos antigo e novo)
+        db_path = None
+        for name in ['collection.anki21b', 'collection.anki2', 'collection.anki21']:
+            candidate = os.path.join(tmpdir, name)
+            if os.path.exists(candidate):
+                # collection.anki21b é comprimido com zstd
+                if name == 'collection.anki21b':
+                    try:
+                        import zstandard as zstd
+                    except ImportError:
+                        try:
+                            subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'zstandard'])
+                            import zstandard as zstd
+                        except Exception:
+                            return {'error': 'Este .apkg usa formato comprimido (Anki 2.1.28+). Não foi possível instalar zstandard automaticamente. Execute: pip install zstandard'}
+                    try:
+                        dctx = zstd.ZstdDecompressor()
+                        decompressed_path = os.path.join(tmpdir, 'collection_decompressed.anki21')
+                        with open(candidate, 'rb') as f_in, open(decompressed_path, 'wb') as f_out:
+                            reader = dctx.stream_reader(f_in)
+                            while True:
+                                chunk = reader.read(65536)
+                                if not chunk:
+                                    break
+                                f_out.write(chunk)
+                        db_path = decompressed_path
+                    except Exception as e:
+                        return {'error': f'Erro ao descomprimir banco de dados: {str(e)}'}
+                else:
+                    db_path = candidate
+                break
+
+        if not db_path:
+            return {'error': 'Formato .apkg não suportado. Verifique se o arquivo foi exportado corretamente pelo Anki.'}
+
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        conn.text_factory = lambda b: b.decode('utf-8', errors='replace')
+
+        # 3. Detectar versão do schema (Anki 2.1.28+ usa tabelas separadas)
+        tables = [r[0] for r in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        ).fetchall()]
+        is_new_schema = 'notetypes' in tables
+
+        # Timestamp de criação da coleção (existe em ambos os schemas)
+        col_row = conn.execute('SELECT * FROM col').fetchone()
+        col_crt = col_row['crt']
+
+        # 4. Mapear tipos de modelo: model_id → 'basic' ou 'cloze'
+        model_type_map = {}
+        if is_new_schema:
+            # Schema novo: tabela 'notetypes' com config protobuf
+            for row in conn.execute('SELECT id, config FROM notetypes'):
+                config = bytes(row['config']) if row['config'] else b''
+                # Protobuf: campo kind (field 1, varint) = 0x08, valor 1 = cloze
+                is_cloze = b'\x08\x01' in config
+                model_type_map[row['id']] = 'cloze' if is_cloze else 'basic'
+        else:
+            # Schema antigo: JSON na tabela 'col'
+            models_str = col_row['models']
+            if models_str and models_str.strip():
+                models = json.loads(models_str)
+                for mid_str, model in models.items():
+                    model_type_map[int(mid_str)] = 'cloze' if model.get('type') == 1 else 'basic'
+
+        # 5. Criar hierarquia de baralhos: anki_deck_id → nosso Deck
+        deck_map = {}
+        if is_new_schema:
+            # Schema novo: tabela 'decks' com nome direto
+            for row in conn.execute('SELECT id, name FROM decks'):
+                deck_name = row['name']
+                # Anki novo pode usar \x1f como separador ao invés de ::
+                if '\x1f' in deck_name:
+                    parts = deck_name.split('\x1f')
+                else:
+                    parts = deck_name.split('::')
+                parent = None
+                for part in parts:
+                    part = part.strip()
+                    if not part:
+                        continue
+                    existing = Deck.query.filter_by(
+                        name=part, parent_id=(parent.id if parent else None)
+                    ).first()
+                    if existing:
+                        parent = existing
+                    else:
+                        new_deck = Deck(name=part, parent_id=(parent.id if parent else None))
+                        db.session.add(new_deck)
+                        db.session.flush()
+                        parent = new_deck
+                if parent:
+                    deck_map[row['id']] = parent
+        else:
+            # Schema antigo: JSON na tabela 'col'
+            decks_str = col_row['decks']
+            if decks_str and decks_str.strip():
+                decks_meta = json.loads(decks_str)
+                for anki_deck_id_str, deck_info in decks_meta.items():
+                    deck_name = deck_info['name']
+                    parts = deck_name.split('::')
+                    parent = None
+                    for part in parts:
+                        part = part.strip()
+                        existing = Deck.query.filter_by(
+                            name=part, parent_id=(parent.id if parent else None)
+                        ).first()
+                        if existing:
+                            parent = existing
+                        else:
+                            new_deck = Deck(name=part, parent_id=(parent.id if parent else None))
+                            db.session.add(new_deck)
+                            db.session.flush()
+                            parent = new_deck
+                    deck_map[int(anki_deck_id_str)] = parent
+
+        # 6. Ler todas as notas do Anki
+        anki_notes = {}
+        for row in conn.execute('SELECT * FROM notes'):
+            anki_notes[row['id']] = row
+
+        # 7. Ler todos os cartões e agrupar por nota
+        note_cards = {}
+        for row in conn.execute('SELECT * FROM cards'):
+            nid = row['nid']
+            if nid not in note_cards:
+                note_cards[nid] = []
+            note_cards[nid].append(row)
+
+        # 8. Pré-carregar todo o histórico de revisões agrupado por cartão Anki
+        revlog_by_card = {}
+        for row in conn.execute('SELECT * FROM revlog ORDER BY id'):
+            cid = row['cid']
+            if cid not in revlog_by_card:
+                revlog_by_card[cid] = []
+            revlog_by_card[cid].append(row)
+
+        # 9. Processar notas e criar objetos
+        notes_created = 0
+        cards_created = 0
+        revlogs_created = 0
+        duplicates = 0
+
+        for anki_note_id, anki_note in anki_notes.items():
+            fields = anki_note['flds'].split('\x1f')
+            mid = anki_note['mid']
+            note_type = model_type_map.get(mid, 'basic')
+            tags_str = anki_note['tags'].strip()
+
+            # Conteúdo dos campos
+            front = fields[0] if len(fields) > 0 else ''
+            back = fields[1] if len(fields) > 1 else ''
+            extra = fields[2] if len(fields) > 2 else None
+
+            # Fallback: detectar cloze pelo conteúdo (útil quando protobuf não é 100% confiável)
+            if note_type == 'basic' and re.search(r'\{\{c\d+::', front):
+                note_type = 'cloze'
+
+            if note_type == 'cloze':
+                content = front  # Texto cloze com {{c1::}} direto do Anki
+                note_back = None
+            else:
+                content = front
+                note_back = back
+
+            # Determinar baralho pela primeiro cartão da nota
+            cards_for_note = note_cards.get(anki_note_id, [])
+            if not cards_for_note:
+                continue
+
+            first_card = cards_for_note[0]
+            deck = deck_map.get(first_card['did'])
+            if not deck:
+                deck = Deck.query.first() or Deck(name='Importado')
+                if not deck.id:
+                    db.session.add(deck)
+                    db.session.flush()
+
+            # Verificar duplicata pelo conteúdo
+            existing = Note.query.filter_by(content=content, deck_id=deck.id).first()
+            if existing:
+                duplicates += 1
+                continue
+
+            # Criar Nota
+            note = Note(
+                note_type=note_type,
+                content=content,
+                back=note_back,
+                extra=extra if extra else None,
+                deck_id=deck.id
+            )
+            db.session.add(note)
+            db.session.flush()
+            notes_created += 1
+
+            # Tags
+            if tags_str:
+                for tag_name in tags_str.split():
+                    tag_name = tag_name.strip()
+                    if not tag_name:
+                        continue
+                    tag = Tag.query.filter_by(name=tag_name).first()
+                    if not tag:
+                        tag = Tag(name=tag_name)
+                        db.session.add(tag)
+                        db.session.flush()
+                    if tag not in note.tags:
+                        note.tags.append(tag)
+
+            # Criar Cartões com dados de agendamento do Anki
+            for anki_card in cards_for_note:
+                ordinal = anki_card['ord'] + 1  # Anki é 0-indexed, nós somos 1-indexed
+                card_deck = deck_map.get(anki_card['did'], deck)
+
+                # Dados SM-2 do Anki
+                anki_ivl = anki_card['ivl']
+                anki_factor = anki_card['factor']
+                anki_reps = anki_card['reps']
+                anki_lapses = anki_card['lapses']
+                anki_type = anki_card['type']    # 0=new, 1=learning, 2=review
+                anki_queue = anki_card['queue']  # -1=suspended
+                anki_due = anki_card['due']
+
+                # Converter intervalo (positivo=dias, negativo=segundos)
+                if anki_ivl < 0:
+                    interval = abs(anki_ivl) / 86400.0
+                else:
+                    interval = float(anki_ivl)
+
+                # Converter fator de facilidade (Anki armazena * 1000)
+                if anki_factor > 0:
+                    easiness_factor = anki_factor / 1000.0
+                else:
+                    easiness_factor = 2.5
+                easiness_factor = max(1.3, easiness_factor)
+
+                # Converter data de revisão
+                if anki_type == 2:  # Review: due = dias desde criação da coleção
+                    next_review = datetime.utcfromtimestamp(col_crt + anki_due * 86400)
+                elif anki_type == 1:  # Learning: due = timestamp Unix
+                    next_review = datetime.utcfromtimestamp(anki_due)
+                else:  # Novo: revisar agora
+                    next_review = datetime.utcnow()
+
+                # Repetição consecutiva (para SM-2)
+                if anki_type == 2 and anki_reps > 0:
+                    repetition = max(2, anki_reps - anki_lapses)
+                else:
+                    repetition = 0
+
+                # Dificuldade derivada do EF (mesma fórmula do srs_engine)
+                difficulty = max(1, min(10, round(10 - (easiness_factor - 1.3) * 9 / 2.2)))
+
+                card = Card(
+                    note_id=note.id,
+                    ordinal=ordinal,
+                    deck_id=card_deck.id,
+                    front=content,
+                    back=note_back or '',
+                    interval=interval,
+                    easiness_factor=easiness_factor,
+                    repetition=repetition,
+                    review_count=anki_reps,
+                    correct_count=max(0, anki_reps - anki_lapses),
+                    difficulty=difficulty,
+                    next_review=next_review,
+                    suspended=(anki_queue == -1),
+                )
+                db.session.add(card)
+                db.session.flush()
+                cards_created += 1
+
+                # Copiar tags da nota para o cartão (UI usa card.tags)
+                for tag in note.tags:
+                    if tag not in card.tags:
+                        card.tags.append(tag)
+
+                # Importar histórico de revisões deste cartão
+                anki_card_id = anki_card['id']
+                for rev in revlog_by_card.get(anki_card_id, []):
+                    ease = rev['ease']
+                    if ease == 1:
+                        quality, response = 0, 'errei'
+                    elif ease == 2:
+                        quality, response = 3, 'dificil'
+                    elif ease == 3:
+                        quality, response = 4, 'facil'
+                    else:
+                        quality, response = 5, 'muito_facil'
+
+                    rev_ivl = rev['ivl']
+                    rev_last = rev['lastIvl']
+                    interval_after = abs(rev_ivl) / 86400.0 if rev_ivl < 0 else float(rev_ivl)
+                    interval_before = abs(rev_last) / 86400.0 if rev_last < 0 else float(rev_last)
+
+                    rev_factor = rev['factor']
+                    ef_val = rev_factor / 1000.0 if rev_factor > 0 else easiness_factor
+
+                    review_log = ReviewLog(
+                        card_id=card.id,
+                        response=response,
+                        quality=quality,
+                        was_new=(rev['type'] == 0),
+                        interval_before=interval_before,
+                        interval_after=interval_after,
+                        ef_before=ef_val,
+                        ef_after=ef_val,
+                        time_spent=rev['time'] // 1000,
+                        timestamp=datetime.utcfromtimestamp(rev['id'] / 1000.0),
+                    )
+                    db.session.add(review_log)
+                    revlogs_created += 1
+
+        # 10. Extrair mídia para static/collection.media/
+        media_count = 0
+        media_dest = os.path.join(current_app.root_path, 'static', 'collection.media')
+        os.makedirs(media_dest, exist_ok=True)
+
+        media_json_path = os.path.join(tmpdir, 'media')
+        known_non_media = {
+            'media', 'meta', 'collection.anki2',
+            'collection.anki21', 'collection.anki21b',
+            'collection_decompressed.anki21',
+        }
+
+        if os.path.isfile(media_json_path):
+            with open(media_json_path, 'rb') as f:
+                raw = f.read()
+
+            # Anki 2.1.28+ comprime o arquivo media com zstd
+            if raw[:4] == b'\x28\xb5\x2f\xfd':
+                try:
+                    import zstandard as zstd
+                    dctx = zstd.ZstdDecompressor()
+                    reader = dctx.stream_reader(raw)
+                    raw = reader.read()
+                    reader.close()
+                except Exception:
+                    raw = b'{}'
+
+            # Tentar parse como JSON (formato clássico: {"0": "file.png", ...})
+            media_map = {}
+            if raw.strip():
+                try:
+                    media_map = json.loads(raw.decode('utf-8'))
+                except (UnicodeDecodeError, json.JSONDecodeError):
+                    try:
+                        media_map = json.loads(raw.decode('latin-1'))
+                    except json.JSONDecodeError:
+                        pass
+
+            # Se JSON falhou, tentar protobuf (Anki 23.12+)
+            # Schema: MediaEntries { repeated ZipMediaEntry entries=1; }
+            # ZipMediaEntry { string name=6; bytes sha1=7; optional string legacy_zip_name=8; }
+            if not media_map and raw and raw[0:1] == b'\x0a':
+                media_map = _parse_media_protobuf(raw)
+
+            for num_str, original_name in media_map.items():
+                src = os.path.join(tmpdir, num_str)
+                if os.path.exists(src):
+                    dst = os.path.join(media_dest, original_name)
+                    if not os.path.exists(dst):
+                        _copy_media_file(src, dst)
+                        media_count += 1
+
+        elif os.path.isdir(media_json_path):
+            for entry in os.listdir(media_json_path):
+                src = os.path.join(media_json_path, entry)
+                if os.path.isfile(src):
+                    dst = os.path.join(media_dest, entry)
+                    if not os.path.exists(dst):
+                        shutil.copy2(src, dst)
+                        media_count += 1
+
+        else:
+            for entry in os.listdir(tmpdir):
+                if entry in known_non_media:
+                    continue
+                src = os.path.join(tmpdir, entry)
+                if os.path.isfile(src):
+                    dst = os.path.join(media_dest, entry)
+                    if not os.path.exists(dst):
+                        shutil.copy2(src, dst)
+                        media_count += 1
+
         db.session.commit()
-        print("Gamificação processada e salva com sucesso")
+        conn.close()
+
+        return {
+            'notes': notes_created,
+            'cards': cards_created,
+            'revlogs': revlogs_created,
+            'media': media_count,
+            'duplicates': duplicates,
+        }
+
     except Exception as e:
         db.session.rollback()
-        print(f"ERRO ao salvar mudanças no banco de dados: {e}")
-    
-    print("=== FIM DO PROCESSAMENTO DE GAMIFICAÇÃO ===")
+        return {'error': f'Erro ao importar: {str(e)}'}
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
 
 
-def get_next_base_interval(current_interval):
-    sequence = [10/1440.0, 1, 3, 7, 21, 45, 90, 180, 360]
-    for base in sequence:
-        if current_interval < base:
-            return base
-    return sequence[-1]
+def import_apkg_stream(filepath):
+    """Generator que importa .apkg e yield dicts de progresso a cada etapa."""
+    tmpdir = tempfile.mkdtemp()
+    try:
+        # 1. Extrair ZIP
+        yield {'progress': 5, 'message': 'Extraindo arquivo...'}
+        try:
+            with zipfile.ZipFile(filepath, 'r') as z:
+                z.extractall(tmpdir)
+        except zipfile.BadZipFile:
+            yield {'progress': -1, 'status': 'error', 'message': 'Arquivo inválido. Não é um .apkg válido.'}
+            return
 
-def get_current_step(interval):
-    sequence = [10/1440.0, 1, 3, 7, 21, 45, 90, 180, 360]
-    for i, base in enumerate(sequence):
-        if abs(interval - base) < 1e-6:
-            return i
-        if interval < base:
-            return i
-    return len(sequence) - 1
+        # 2. Encontrar e abrir banco SQLite
+        yield {'progress': 10, 'message': 'Lendo banco de dados...'}
+        db_path = None
+        for name in ['collection.anki21b', 'collection.anki2', 'collection.anki21']:
+            candidate = os.path.join(tmpdir, name)
+            if os.path.exists(candidate):
+                if name == 'collection.anki21b':
+                    try:
+                        import zstandard as zstd
+                    except ImportError:
+                        try:
+                            subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'zstandard'])
+                            import zstandard as zstd
+                        except Exception:
+                            yield {'progress': -1, 'status': 'error', 'message': 'Formato comprimido (Anki 2.1.28+). Execute: pip install zstandard'}
+                            return
+                    try:
+                        dctx = zstd.ZstdDecompressor()
+                        decompressed_path = os.path.join(tmpdir, 'collection_decompressed.anki21')
+                        with open(candidate, 'rb') as f_in, open(decompressed_path, 'wb') as f_out:
+                            reader = dctx.stream_reader(f_in)
+                            while True:
+                                chunk = reader.read(65536)
+                                if not chunk:
+                                    break
+                                f_out.write(chunk)
+                        db_path = decompressed_path
+                    except Exception as e:
+                        yield {'progress': -1, 'status': 'error', 'message': f'Erro ao descomprimir banco: {str(e)}'}
+                        return
+                else:
+                    db_path = candidate
+                break
 
-def update_daily_stats(response, was_new):
-    today = datetime.now(timezone.utc).date()
-    stats = DailyStats.query.filter_by(date=today).first()
-    if not stats:
-        stats = DailyStats(date=today, cards_studied=0, correct_count=0, new_cards=0, revision_cards=0)
-        db.session.add(stats)
-    stats.cards_studied += 1
-    if was_new:
-        stats.new_cards += 1
-    else:
-        stats.revision_cards += 1
-    if response in ['facil', 'difícil', 'muito_facil']:
-        stats.correct_count += 1
+        if not db_path:
+            yield {'progress': -1, 'status': 'error', 'message': 'Formato .apkg não suportado.'}
+            return
 
-def update_card_review(card, response):
-    now = datetime.now(timezone.utc)
-    was_new = (card.review_count == 0)
-    card.review_count += 1
-    sequence = [10/1440.0, 1, 3, 7, 21, 45, 90, 180, 360]
-    current_step = get_current_step(card.interval)
-    if response == 'errei':
-        card.interval = sequence[0]
-        card.difficulty = 10
-    elif current_step == 0:
-        if response in ['difícil', 'facil']:
-            if was_new and response == 'difícil':
-                card.interval = 2
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        conn.text_factory = lambda b: b.decode('utf-8', errors='replace')
+
+        # 3. Detectar schema e carregar dados
+        yield {'progress': 15, 'message': 'Analisando estrutura...'}
+        tables = [r[0] for r in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        ).fetchall()]
+        is_new_schema = 'notetypes' in tables
+
+        col_row = conn.execute('SELECT * FROM col').fetchone()
+        col_crt = col_row['crt']
+
+        model_type_map = {}
+        if is_new_schema:
+            for row in conn.execute('SELECT id, config FROM notetypes'):
+                config = bytes(row['config']) if row['config'] else b''
+                is_cloze = b'\x08\x01' in config
+                model_type_map[row['id']] = 'cloze' if is_cloze else 'basic'
+        else:
+            models_str = col_row['models']
+            if models_str and models_str.strip():
+                models = json.loads(models_str)
+                for mid_str, model in models.items():
+                    model_type_map[int(mid_str)] = 'cloze' if model.get('type') == 1 else 'basic'
+
+        anki_notes = {}
+        for row in conn.execute('SELECT * FROM notes'):
+            anki_notes[row['id']] = row
+
+        note_cards = {}
+        for row in conn.execute('SELECT * FROM cards'):
+            nid = row['nid']
+            if nid not in note_cards:
+                note_cards[nid] = []
+            note_cards[nid].append(row)
+
+        revlog_by_card = {}
+        for row in conn.execute('SELECT * FROM revlog ORDER BY id'):
+            cid = row['cid']
+            if cid not in revlog_by_card:
+                revlog_by_card[cid] = []
+            revlog_by_card[cid].append(row)
+
+        total_notes = len(anki_notes)
+        yield {'progress': 20, 'message': f'Criando baralhos ({total_notes} notas encontradas)...'}
+
+        # 4. Criar hierarquia de baralhos
+        deck_map = {}
+        if is_new_schema:
+            for row in conn.execute('SELECT id, name FROM decks'):
+                deck_name = row['name']
+                if '\x1f' in deck_name:
+                    parts = deck_name.split('\x1f')
+                else:
+                    parts = deck_name.split('::')
+                parent = None
+                for part in parts:
+                    part = part.strip()
+                    if not part:
+                        continue
+                    existing = Deck.query.filter_by(
+                        name=part, parent_id=(parent.id if parent else None)
+                    ).first()
+                    if existing:
+                        parent = existing
+                    else:
+                        new_deck = Deck(name=part, parent_id=(parent.id if parent else None))
+                        db.session.add(new_deck)
+                        db.session.flush()
+                        parent = new_deck
+                if parent:
+                    deck_map[row['id']] = parent
+        else:
+            decks_str = col_row['decks']
+            if decks_str and decks_str.strip():
+                decks_meta = json.loads(decks_str)
+                for anki_deck_id_str, deck_info in decks_meta.items():
+                    deck_name = deck_info['name']
+                    parts = deck_name.split('::')
+                    parent = None
+                    for part in parts:
+                        part = part.strip()
+                        existing = Deck.query.filter_by(
+                            name=part, parent_id=(parent.id if parent else None)
+                        ).first()
+                        if existing:
+                            parent = existing
+                        else:
+                            new_deck = Deck(name=part, parent_id=(parent.id if parent else None))
+                            db.session.add(new_deck)
+                            db.session.flush()
+                            parent = new_deck
+                    deck_map[int(anki_deck_id_str)] = parent
+
+        # 5. Processar notas e cartões (20% → 75%)
+        notes_created = 0
+        cards_created = 0
+        revlogs_created = 0
+        duplicates = 0
+
+        for i, (anki_note_id, anki_note) in enumerate(anki_notes.items()):
+            fields = anki_note['flds'].split('\x1f')
+            mid = anki_note['mid']
+            note_type = model_type_map.get(mid, 'basic')
+            tags_str = anki_note['tags'].strip()
+
+            front = fields[0] if len(fields) > 0 else ''
+            back = fields[1] if len(fields) > 1 else ''
+            extra = fields[2] if len(fields) > 2 else None
+
+            if note_type == 'basic' and re.search(r'\{\{c\d+::', front):
+                note_type = 'cloze'
+
+            if note_type == 'cloze':
+                content = front
+                note_back = None
             else:
-                card.interval = sequence[1]
-            if response == 'difícil':
-                card.difficulty = min(card.difficulty + 0.1, 10)
-            else:
-                card.difficulty = max(card.difficulty - 0.1, 1)
-        elif response == 'muito_facil':
-            card.interval = sequence[2]
-            card.difficulty = max(card.difficulty - 0.3, 1)
-        else:
-            card.interval = sequence[1]
-            card.difficulty = min(card.difficulty + 0.1, 10)
-    else:
-        new_step = min(current_step + 1, len(sequence) - 1)
-        if response == 'difícil':
-            card.difficulty = min(card.difficulty + 0.1, 10)
-        elif response == 'facil':
-            card.difficulty = max(card.difficulty - 0.1, 1)
-        elif response == 'muito_facil':
-            new_step = min(current_step + 2, len(sequence) - 1)
-            card.difficulty = max(card.difficulty - 0.3, 1)
-        else:
-            card.difficulty = min(card.difficulty + 0.1, 10)
-        card.interval = sequence[new_step]
-    modifier = 2 - ((card.difficulty - 1) * 1.5 / 9)
-    card.next_review = now + timedelta(days=card.interval * modifier)
-    update_daily_stats(response, was_new)
-    db.session.commit()
+                content = front
+                note_back = back
 
-def compute_next_interval(card, response):
-    sequence = [10/1440.0, 1, 3, 7, 21, 45, 90, 180, 360]
-    current_step = get_current_step(card.interval)
-    new_interval = card.interval
-    new_difficulty = card.difficulty
-    if response == 'errei':
-        new_step = 0
-        new_difficulty = 10
-    elif current_step == 0:
-        if response in ['difícil', 'facil']:
-            new_step = 1
-            if response == 'difícil':
-                new_difficulty = min(new_difficulty + 0.1, 10)
-            else:
-                new_difficulty = max(new_difficulty - 0.1, 1)
-        elif response == 'muito_facil':
-            new_step = 2
-            new_difficulty = max(new_difficulty - 0.3, 1)
-        else:
-            new_step = 1
-            new_difficulty = min(new_difficulty + 0.1, 10)
-    else:
-        new_step = min(current_step + 1, len(sequence) - 1)
-        if response == 'difícil':
-            new_difficulty = min(new_difficulty + 0.1, 10)
-        elif response == 'facil':
-            new_difficulty = max(new_difficulty - 0.1, 1)
-        elif response == 'muito_facil':
-            new_step = min(current_step + 2, len(sequence) - 1)
-            new_difficulty = max(new_difficulty - 0.3, 1)
-        else:
-            new_difficulty = min(new_difficulty + 0.1, 10)
-    new_interval = sequence[new_step]
-    modifier = 2 - ((new_difficulty - 1) * 1.5 / 9)
-    next_interval = new_interval * modifier
-    return next_interval, new_difficulty
+            cards_for_note = note_cards.get(anki_note_id, [])
+            if not cards_for_note:
+                continue
 
-def format_interval(interval):
-    if interval < 1:
-        total_minutes = interval * 1440
-        if total_minutes < 60:
-            return f"{int(total_minutes)} min"
+            first_card = cards_for_note[0]
+            deck = deck_map.get(first_card['did'])
+            if not deck:
+                deck = Deck.query.first() or Deck(name='Importado')
+                if not deck.id:
+                    db.session.add(deck)
+                    db.session.flush()
+
+            existing = Note.query.filter_by(content=content, deck_id=deck.id).first()
+            if existing:
+                duplicates += 1
+                continue
+
+            note = Note(
+                note_type=note_type,
+                content=content,
+                back=note_back,
+                extra=extra if extra else None,
+                deck_id=deck.id
+            )
+            db.session.add(note)
+            db.session.flush()
+            notes_created += 1
+
+            if tags_str:
+                for tag_name in tags_str.split():
+                    tag_name = tag_name.strip()
+                    if not tag_name:
+                        continue
+                    tag = Tag.query.filter_by(name=tag_name).first()
+                    if not tag:
+                        tag = Tag(name=tag_name)
+                        db.session.add(tag)
+                        db.session.flush()
+                    if tag not in note.tags:
+                        note.tags.append(tag)
+
+            for anki_card in cards_for_note:
+                ordinal = anki_card['ord'] + 1
+                card_deck = deck_map.get(anki_card['did'], deck)
+
+                anki_ivl = anki_card['ivl']
+                anki_factor = anki_card['factor']
+                anki_reps = anki_card['reps']
+                anki_lapses = anki_card['lapses']
+                anki_type = anki_card['type']
+                anki_queue = anki_card['queue']
+                anki_due = anki_card['due']
+
+                if anki_ivl < 0:
+                    interval = abs(anki_ivl) / 86400.0
+                else:
+                    interval = float(anki_ivl)
+
+                if anki_factor > 0:
+                    easiness_factor = anki_factor / 1000.0
+                else:
+                    easiness_factor = 2.5
+                easiness_factor = max(1.3, easiness_factor)
+
+                if anki_type == 2:
+                    next_review = datetime.utcfromtimestamp(col_crt + anki_due * 86400)
+                elif anki_type == 1:
+                    next_review = datetime.utcfromtimestamp(anki_due)
+                else:
+                    next_review = datetime.utcnow()
+
+                if anki_type == 2 and anki_reps > 0:
+                    repetition = max(2, anki_reps - anki_lapses)
+                else:
+                    repetition = 0
+
+                difficulty = max(1, min(10, round(10 - (easiness_factor - 1.3) * 9 / 2.2)))
+
+                card = Card(
+                    note_id=note.id,
+                    ordinal=ordinal,
+                    deck_id=card_deck.id,
+                    front=content,
+                    back=note_back or '',
+                    interval=interval,
+                    easiness_factor=easiness_factor,
+                    repetition=repetition,
+                    review_count=anki_reps,
+                    correct_count=max(0, anki_reps - anki_lapses),
+                    difficulty=difficulty,
+                    next_review=next_review,
+                    suspended=(anki_queue == -1),
+                )
+                db.session.add(card)
+                db.session.flush()
+                cards_created += 1
+
+                for tag in note.tags:
+                    if tag not in card.tags:
+                        card.tags.append(tag)
+
+                anki_card_id = anki_card['id']
+                for rev in revlog_by_card.get(anki_card_id, []):
+                    ease = rev['ease']
+                    if ease == 1:
+                        quality, response = 0, 'errei'
+                    elif ease == 2:
+                        quality, response = 3, 'dificil'
+                    elif ease == 3:
+                        quality, response = 4, 'facil'
+                    else:
+                        quality, response = 5, 'muito_facil'
+
+                    rev_ivl = rev['ivl']
+                    rev_last = rev['lastIvl']
+                    interval_after = abs(rev_ivl) / 86400.0 if rev_ivl < 0 else float(rev_ivl)
+                    interval_before = abs(rev_last) / 86400.0 if rev_last < 0 else float(rev_last)
+
+                    rev_factor = rev['factor']
+                    ef_val = rev_factor / 1000.0 if rev_factor > 0 else easiness_factor
+
+                    review_log = ReviewLog(
+                        card_id=card.id,
+                        response=response,
+                        quality=quality,
+                        was_new=(rev['type'] == 0),
+                        interval_before=interval_before,
+                        interval_after=interval_after,
+                        ef_before=ef_val,
+                        ef_after=ef_val,
+                        time_spent=rev['time'] // 1000,
+                        timestamp=datetime.utcfromtimestamp(rev['id'] / 1000.0),
+                    )
+                    db.session.add(review_log)
+                    revlogs_created += 1
+
+            # Progresso a cada 100 notas
+            if (i + 1) % 100 == 0 or i == total_notes - 1:
+                pct = 20 + int(55 * (i + 1) / total_notes)
+                yield {'progress': pct, 'message': f'Processando notas ({i+1}/{total_notes})...'}
+
+        # 6. Extrair mídia (75% → 95%)
+        yield {'progress': 75, 'message': 'Preparando arquivos de mídia...'}
+        media_count = 0
+        media_dest = os.path.join(current_app.root_path, 'static', 'collection.media')
+        os.makedirs(media_dest, exist_ok=True)
+
+        media_json_path = os.path.join(tmpdir, 'media')
+        known_non_media = {
+            'media', 'meta', 'collection.anki2',
+            'collection.anki21', 'collection.anki21b',
+            'collection_decompressed.anki21',
+        }
+
+        media_items = []  # lista de (src, dst) para copiar
+
+        if os.path.isfile(media_json_path):
+            with open(media_json_path, 'rb') as f:
+                raw = f.read()
+
+            if raw[:4] == b'\x28\xb5\x2f\xfd':
+                try:
+                    import zstandard as zstd
+                    dctx = zstd.ZstdDecompressor()
+                    reader = dctx.stream_reader(raw)
+                    raw = reader.read()
+                    reader.close()
+                except Exception:
+                    raw = b'{}'
+
+            media_map = {}
+            if raw.strip():
+                try:
+                    media_map = json.loads(raw.decode('utf-8'))
+                except (UnicodeDecodeError, json.JSONDecodeError):
+                    try:
+                        media_map = json.loads(raw.decode('latin-1'))
+                    except json.JSONDecodeError:
+                        pass
+
+            if not media_map and raw and raw[0:1] == b'\x0a':
+                media_map = _parse_media_protobuf(raw)
+
+            for num_str, original_name in media_map.items():
+                src = os.path.join(tmpdir, num_str)
+                if os.path.exists(src):
+                    dst = os.path.join(media_dest, original_name)
+                    if not os.path.exists(dst):
+                        media_items.append((src, dst, True))
+
+        elif os.path.isdir(media_json_path):
+            for entry in os.listdir(media_json_path):
+                src = os.path.join(media_json_path, entry)
+                if os.path.isfile(src):
+                    dst = os.path.join(media_dest, entry)
+                    if not os.path.exists(dst):
+                        media_items.append((src, dst, False))
+
         else:
-            hours = int(total_minutes // 60)
-            minutes = int(total_minutes % 60)
-            return f"{hours}h {minutes}min"
-    else:
-        return f"{interval:.1f} dias"
+            for entry in os.listdir(tmpdir):
+                if entry in known_non_media:
+                    continue
+                src = os.path.join(tmpdir, entry)
+                if os.path.isfile(src):
+                    dst = os.path.join(media_dest, entry)
+                    if not os.path.exists(dst):
+                        media_items.append((src, dst, False))
+
+        total_media = len(media_items)
+        for j, (src, dst, use_copy_media) in enumerate(media_items):
+            if use_copy_media:
+                _copy_media_file(src, dst)
+            else:
+                shutil.copy2(src, dst)
+            media_count += 1
+            if total_media > 0 and ((j + 1) % 200 == 0 or j == total_media - 1):
+                pct = 75 + int(20 * (j + 1) / total_media)
+                yield {'progress': pct, 'message': f'Copiando mídia ({j+1}/{total_media})...'}
+
+        # 7. Commit
+        yield {'progress': 97, 'message': 'Salvando no banco de dados...'}
+        db.session.commit()
+        conn.close()
+
+        # 8. Concluído
+        parts = []
+        parts.append(f'{notes_created} notas')
+        parts.append(f'{cards_created} cartões')
+        if revlogs_created > 0:
+            parts.append(f'{revlogs_created} revisões')
+        if media_count > 0:
+            parts.append(f'{media_count} arquivos de mídia')
+        msg = f'Importação concluída! {", ".join(parts)}.'
+        if duplicates > 0:
+            msg += f' ({duplicates} duplicados ignorados)'
+
+        yield {'progress': 100, 'status': 'done', 'message': msg}
+
+    except Exception as e:
+        db.session.rollback()
+        yield {'progress': -1, 'status': 'error', 'message': f'Erro ao importar: {str(e)}'}
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+
+def process_gamification(card, response, time_spent, was_new):
+    """Process gamification logic for studying cards. NÃO faz commit."""
+    player = Player.query.first()
+    if not player:
+        return
+
+    player.last_active = datetime.now(timezone.utc)
+
+    # Rastreamento de tempo de estudo + marcos de cristais
+    if time_spent < 60:
+        player.study_time_total += time_spent
+
+        if player.study_time_total >= 1800 and (player.study_time_total - time_spent) < 1800:
+            player.crystals += 1
+            flash_gamification("Você estudou por 30 minutos e ganhou 1 Cristal de Memória!")
+
+    hours_studied = player.study_time_total // 3600
+    hours_before = (player.study_time_total - time_spent) // 3600
+
+    if hours_studied != hours_before:
+        if hours_studied in (20, 50, 100) or (hours_studied > 100 and hours_studied % 100 == 0):
+            player.crystals += 5
+            flash_gamification(f"Parabéns! Você atingiu {hours_studied} horas de estudo e ganhou 5 Cristais de Memória!")
+
+
+## Algoritmo antigo removido — agora centralizado em srs_engine.py
 
 # Substitua as chamadas de flash() para mensagens de gamificação com esta função
 
@@ -289,418 +1116,461 @@ def flash_gamification(message, notification_only=False):
 
 
 ##############################################
+#         MIGRAÇÃO Note/Card
+##############################################
+
+def migrate_cards_to_notes():
+    """Migra cartões existentes para o sistema Note/Card.
+    Adiciona colunas note_id e ordinal se necessário, cria notas para cada cartão."""
+    # 1) Adicionar colunas se não existem
+    for sql in [
+        "ALTER TABLE card ADD COLUMN note_id INTEGER REFERENCES note(id)",
+        "ALTER TABLE card ADD COLUMN ordinal INTEGER DEFAULT 1",
+    ]:
+        try:
+            db.session.execute(text(sql))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+    # 2) Verificar se já foi migrado
+    orphan_count = Card.query.filter(Card.note_id == None).count()
+    if orphan_count == 0:
+        return
+
+    print(f"Migrando {orphan_count} cartões para o sistema Note/Card...")
+
+    cards = Card.query.filter(Card.note_id == None).all()
+    for card in cards:
+        raw_cloze = bool(re.search(r'\{\{c\d+::', card.front or '')) or \
+                    bool(re.search(r'\{\{c\d+::', card.back or ''))
+        anki_html = detect_anki_cloze_html(card.front) or detect_anki_cloze_html(card.back)
+        has_cloze = raw_cloze or anki_html
+
+        if has_cloze:
+            if anki_html:
+                cloze_content = convert_anki_cloze_html(card.front or '', card.back or '')
+            elif bool(re.search(r'\{\{c\d+::', card.front or '')):
+                cloze_content = card.front
+            else:
+                cloze_content = card.back
+            note = Note(
+                note_type='cloze',
+                content=cloze_content,
+                back=None,
+                extra=None,
+                deck_id=card.deck_id
+            )
+        else:
+            note = Note(
+                note_type='basic',
+                content=card.front,
+                back=card.back,
+                extra=None,
+                deck_id=card.deck_id
+            )
+
+        db.session.add(note)
+        db.session.flush()
+
+        # Copiar tags do cartão para a nota
+        for tag in card.tags:
+            note.tags.append(tag)
+
+        # Vincular cartão existente à nota
+        card.note_id = note.id
+        card.ordinal = 1
+
+        # Para cloze com múltiplos ordinais, criar cartões extras
+        if has_cloze:
+            ordinals = note.get_cloze_ordinals()
+            for ordinal in ordinals:
+                if ordinal != 1:
+                    new_card = Card(
+                        note_id=note.id,
+                        ordinal=ordinal,
+                        deck_id=card.deck_id,
+                        front=card.front,
+                        back=card.back or ''
+                    )
+                    # Copiar tags
+                    for tag in card.tags:
+                        new_card.tags.append(tag)
+                    db.session.add(new_card)
+
+    db.session.commit()
+    print(f"Migração concluída: {orphan_count} cartões migrados para notas.")
+
+    # 4) Corrigir notas que foram criadas como 'basic' mas contêm cloze
+    mistyped = Note.query.filter(Note.note_type == 'basic').all()
+    fixed = 0
+    for note in mistyped:
+        raw_content = bool(re.search(r'\{\{c\d+::', note.content or ''))
+        raw_back = bool(re.search(r'\{\{c\d+::', note.back or ''))
+        anki_content = detect_anki_cloze_html(note.content)
+        anki_back = detect_anki_cloze_html(note.back)
+
+        if raw_content or raw_back or anki_content or anki_back:
+            if anki_content or anki_back:
+                note.content = convert_anki_cloze_html(note.content or '', note.back or '')
+            elif raw_back and not raw_content:
+                note.content = note.back
+            note.note_type = 'cloze'
+            note.back = None
+            note.sync_cards()
+            fixed += 1
+    if fixed:
+        db.session.commit()
+        print(f"Corrigidas {fixed} notas de 'basic' para 'cloze'.")
+
+
+##############################################
 #                ROTAS
 ##############################################
 @cards_bp.route('/')
 def index():
-    today = datetime.now(timezone.utc).date()
-    stats = DailyStats.query.filter_by(date=today).first()
-    
-    # Inicializar o tempo de estudo
-    total_study_time = 0
-    
-    # Obter o tempo do banco de dados
-    if stats:
-        accuracy = (stats.correct_count / stats.cards_studied * 100) if stats.cards_studied > 0 else 0
-        # Obter o tempo salvo no banco de dados
-        db_study_time = getattr(stats, 'study_time', 0) or 0
-        total_study_time += db_study_time
-    else:
-        stats = {'cards_studied': 0, 'new_cards': 0, 'revision_cards': 0, 'study_time': 0}
-        accuracy = 0
-    
-    # Adicionar o tempo da sessão ativa (se existir)
-    if 'study_time_total' in session and session.get('study_time_total', 0) > 0:
-        session_time = session.get('study_time_total', 0)
-        total_study_time += session_time
-        print(f"Sessão ativa: {session_time}s adicionados temporariamente ao tempo total.")
-    
-    # Converter para minutos
-    study_time_minutes = total_study_time // 60
-    
-    due_count = Card.query.filter(Card.next_review <= datetime.now(timezone.utc)).count()
-    new_total = Card.query.filter(Card.review_count == 0).count()
-    in_date = Card.query.filter(Card.review_count > 0, Card.next_review > datetime.now(timezone.utc)).count()
-    due_total = Card.query.filter(Card.review_count > 0, Card.next_review <= datetime.now(timezone.utc)).count()
-    circumference = 2 * math.pi * 16
-    pie_dash = (accuracy / 100.0) * circumference
-    pie_gap = circumference - pie_dash
-    
-    return render_template('index.html',
-                           stats=stats,
-                           accuracy=accuracy,
-                           due_count=due_count,
-                           new_total=new_total,
-                           in_date=in_date,
-                           due_total=due_total,
-                           pie_dash=pie_dash,
-                           pie_gap=pie_gap,
-                           study_time_minutes=study_time_minutes)
-
-@cards_bp.route('/study_lobby')
-def study_lobby():
-    # Verificar se os dados da sessão estão consistentes
-    session_cards = session.get('session_cards', None)
-    current_index = session.get('current_index', 0)
-    is_custom_study = session.get('custom_study', False)
-    
-    # Verificar se a sessão é válida
-    session_exists = False
-    if session_cards and isinstance(session_cards, list) and len(session_cards) > 0:
-        if current_index < len(session_cards):
-            session_exists = True
-        else:
-            # Sessão inconsistente - limpar
-            session.pop('session_cards', None)
-            session.pop('current_index', None)
-            session.pop('cards_reviewed', None)
-            session.pop('review_history', None)
-            session.pop('study_time_total', None)
-            session.pop('total_session', None)
-            session.pop('reviewed_session', None)
-            session.pop('active_deck', None)
-            session.pop('custom_study', None)
-    
-    new_count = 0
-    revision_count = 0
-    reviewed_session = 0
-    total_session = 0
-    active_deck = session.get('active_deck', 0)
-    
-    if session_exists:
-        now = datetime.now(timezone.utc)
-        total_session = len(session_cards)
-        reviewed_session = session.get('cards_reviewed', 0)
-        for card_id in session_cards:
-            card = Card.query.get(card_id)
-            if card:
-                if card.review_count == 0:
-                    new_count += 1
-                else:
-                    revision_count += 1
-    
-    global_new = Card.query.filter(Card.review_count == 0, Card.suspended == False).count()
-    global_in_date = Card.query.filter(Card.review_count > 0, Card.next_review > datetime.now(timezone.utc), Card.suspended == False).count()
-    global_due = Card.query.filter(Card.review_count > 0, Card.next_review <= datetime.now(timezone.utc), Card.suspended == False).count()
-    decks = Deck.query.all()
-    session['study_start_time'] = datetime.utcnow().isoformat()
-    
-    return render_template('study_lobby.html',
-                           session_exists=session_exists,
-                           is_custom_study=is_custom_study,
-                           new_count=new_count,
-                           revision_count=revision_count,
-                           reviewed_session=reviewed_session,
-                           total_session=total_session,
-                           global_new=global_new,
-                           global_in_date=global_in_date,
-                           global_due=global_due,
-                           decks=decks,
-                           active_deck=active_deck)
+    return redirect(url_for('cards.decks'))
 
 @cards_bp.route('/import', methods=['GET', 'POST'])
 def import_cards():
     if request.method == 'POST':
         file = request.files.get('file')
-        if file:
-            # Cria a pasta de uploads, se não existir
-            if not os.path.exists(current_app.config['UPLOAD_FOLDER']):
-                os.makedirs(current_app.config['UPLOAD_FOLDER'])
-            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], file.filename)
-            file.save(filepath)
-            
-            # Extrai o nome do arquivo sem a extensão para definir a hierarquia dos baralhos
-            deck_name_str = os.path.splitext(file.filename)[0]
-            
-            # Cria ou recupera a hierarquia de baralhos com base no nome do arquivo
-            final_deck = get_or_create_deck(deck_name_str)
-            
-            # Lê o arquivo CSV (supondo que o delimitador seja tabulação)
-            with open(filepath, newline='', encoding='utf-8-sig') as txtfile:
-                csv_reader = csv.reader(txtfile, delimiter='\t')
-                cards_added = 0
-                for row in csv_reader:
-                    if len(row) >= 2:
-                        front = row[0].strip()
-                        back = row[1].strip()
-                        # Cria o cartão associado ao baralho final da hierarquia
-                        db.session.add(Card(front=front, back=back, deck_id=final_deck.id))
-                        cards_added += 1    
-                db.session.commit()
-            flash(f'Importação concluída! {cards_added} cartões adicionados ao baralho "{final_deck.name}"', 'success')
-            return redirect(url_for('cards.decks'))
-        else:
+        if not file:
             flash('Por favor, selecione um arquivo.', 'danger')
+            return render_template('import.html')
+
+        ext = os.path.splitext(file.filename)[1].lower()
+        if ext != '.apkg':
+            flash('Formato não suportado. Exporte sua coleção do Anki como .apkg.', 'danger')
+            return render_template('import.html')
+
+        # Salvar arquivo temporariamente
+        if not os.path.exists(current_app.config['UPLOAD_FOLDER']):
+            os.makedirs(current_app.config['UPLOAD_FOLDER'])
+        filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(filepath)
+
+        result = import_apkg(filepath)
+
+        # Limpar arquivo temporário
+        try:
+            os.remove(filepath)
+        except OSError:
+            pass
+
+        if 'error' in result:
+            flash(result['error'], 'danger')
+            return render_template('import.html')
+
+        parts = []
+        parts.append(f'{result["notes"]} notas')
+        parts.append(f'{result["cards"]} cartões')
+        if result.get('revlogs', 0) > 0:
+            parts.append(f'{result["revlogs"]} revisões no histórico')
+        if result.get('media', 0) > 0:
+            parts.append(f'{result["media"]} arquivos de mídia')
+
+        msg = f'Importação concluída! {", ".join(parts)}.'
+        if result.get('duplicates', 0) > 0:
+            msg += f' ({result["duplicates"]} duplicados ignorados)'
+        flash(msg, 'success')
+        return redirect(url_for('cards.decks'))
+
     return render_template('import.html')
 
-@cards_bp.route('/start_session_new')
-def start_session_new():
-    session.clear()
-    # Seleciona apenas os cartões novos, não suspensos, limitando a 50
-    cards = Card.query.filter(Card.review_count == 0, Card.suspended == False).order_by(Card.id.asc()).limit(50).all()
-    if not cards:
-        flash('Nenhum cartão novo disponível.', 'warning')
-        return redirect(url_for('cards.study_lobby'))
-    session.permanent = True
-    session['session_cards'] = [c.id for c in cards]
-    session['current_index'] = 0
-    session['cards_reviewed'] = 0
-    session['review_history'] = []
-    session['active_deck'] = 0
-    return redirect(url_for('cards.study_session'))
 
-@cards_bp.route('/start_session_revisions')
-def start_session_revisions():
+@cards_bp.route('/import-stream', methods=['POST'])
+def import_stream():
+    """Importa .apkg com streaming de progresso (NDJSON)."""
+    file = request.files.get('file')
+    if not file:
+        return Response(
+            json.dumps({'progress': -1, 'status': 'error', 'message': 'Nenhum arquivo enviado.'}) + '\n',
+            mimetype='text/plain'
+        )
+
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext != '.apkg':
+        return Response(
+            json.dumps({'progress': -1, 'status': 'error', 'message': 'Formato não suportado. Use .apkg.'}) + '\n',
+            mimetype='text/plain'
+        )
+
+    if not os.path.exists(current_app.config['UPLOAD_FOLDER']):
+        os.makedirs(current_app.config['UPLOAD_FOLDER'])
+    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], file.filename)
+    file.save(filepath)
+
+    def generate():
+        try:
+            for event in import_apkg_stream(filepath):
+                yield json.dumps(event, ensure_ascii=False) + '\n'
+        finally:
+            try:
+                os.remove(filepath)
+            except OSError:
+                pass
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype='text/plain',
+        headers={'X-Accel-Buffering': 'no', 'Cache-Control': 'no-cache'}
+    )
+
+
+##############################################
+#         ESTUDO DINÂMICO (Anki-style)
+##############################################
+
+def get_next_study_card(deck_ids):
+    """Busca o próximo cartão para estudo por prioridade.
+    Prioridade: 1) Aprendendo (errados) → 2) Revisão (vencidos) → 3) Novos
+    Retorna (card, card_type) ou (None, None).
+    """
     now = datetime.now(timezone.utc)
-    cards = Card.query.filter(Card.review_count > 0, Card.next_review <= now, Card.suspended == False).order_by(Card.next_review.asc()).all()
-    if cards:
-        cards = cards[:50]
-    if not cards:
-        flash('Nenhum cartão de revisão disponível.', 'warning')
-        return redirect(url_for('cards.study_lobby'))
-    session.permanent = True
-    session['session_cards'] = [c.id for c in cards]
-    session['current_index'] = 0
-    session['cards_reviewed'] = 0
-    session['review_history'] = []
-    session['active_deck'] = 0
-    return redirect(url_for('cards.study_session'))
 
-@cards_bp.route('/study_session', methods=['GET', 'POST'])
-def study_session():
-    session.permanent = True
-    if 'session_cards' not in session:
-        flash('Sessão não iniciada.', 'warning')
-        return redirect(url_for('cards.index'))
-    
-    session_cards = session['session_cards']
-    current_index = session.get('current_index', 0)
-    total_cards = len(session_cards)
-    
-    # Inicializar o contador de tempo na sessão se não existir
+    # 1. Aprendendo: repetition=0, review_count>0 (erraram, precisam reaprender)
+    card = Card.query.filter(
+        Card.deck_id.in_(deck_ids),
+        Card.suspended == False,
+        Card.review_count > 0,
+        Card.repetition == 0,
+        Card.next_review <= now,
+    ).order_by(Card.next_review.asc()).first()
+    if card:
+        return card, 'learning'
+
+    # 2. Revisão: repetition>0, next_review<=now (graduados e vencidos)
+    card = Card.query.filter(
+        Card.deck_id.in_(deck_ids),
+        Card.suspended == False,
+        Card.review_count > 0,
+        Card.repetition > 0,
+        Card.next_review <= now,
+    ).order_by(Card.next_review.asc()).first()
+    if card:
+        return card, 'review'
+
+    # 3. Novos: review_count=0
+    card = Card.query.filter(
+        Card.deck_id.in_(deck_ids),
+        Card.suspended == False,
+        Card.review_count == 0,
+    ).order_by(Card.id.asc()).first()
+    if card:
+        return card, 'new'
+
+    return None, None
+
+
+def get_waiting_learning_card(deck_ids):
+    """Verifica se há cartões de aprendizado pendentes (com next_review no futuro)."""
+    now = datetime.now(timezone.utc)
+    card = Card.query.filter(
+        Card.deck_id.in_(deck_ids),
+        Card.suspended == False,
+        Card.review_count > 0,
+        Card.repetition == 0,
+        Card.next_review > now,
+    ).order_by(Card.next_review.asc()).first()
+    return card
+
+
+def count_study_queue(deck_ids):
+    """Conta cartões em cada fila de estudo para o counter bar."""
+    now = datetime.now(timezone.utc)
+    new_count = Card.query.filter(
+        Card.deck_id.in_(deck_ids), Card.suspended == False,
+        Card.review_count == 0,
+    ).count()
+    learning_count = Card.query.filter(
+        Card.deck_id.in_(deck_ids), Card.suspended == False,
+        Card.review_count > 0, Card.repetition == 0,
+    ).count()
+    review_count = Card.query.filter(
+        Card.deck_id.in_(deck_ids), Card.suspended == False,
+        Card.review_count > 0, Card.repetition > 0,
+        Card.next_review <= now,
+    ).count()
+    return new_count, learning_count, review_count
+
+
+@cards_bp.route('/study/<int:deck_id>', methods=['GET', 'POST'])
+def study(deck_id):
+    """Sessão de estudo dinâmico estilo Anki."""
+    deck = Deck.query.get_or_404(deck_id)
+    deck_ids = get_subdeck_ids(deck_id)
+
+    # Inicializar histórico de undo na sessão
+    if 'study_undo_history' not in session:
+        session['study_undo_history'] = []
     if 'study_time_total' not in session:
         session['study_time_total'] = 0
-    
-    # Inicializar contador de revisões se não existir
-    if 'session_revision_count' not in session:
-        session['session_revision_count'] = 0
-    
-    if total_cards == 0 or current_index >= total_cards:
-        # Transferir o tempo total estudado para a estatística diária
-        if 'study_time_total' in session and session['study_time_total'] > 0:
+
+    if request.method == 'POST':
+        card_id = request.form.get('card_id', type=int)
+        response = request.form.get('response')
+        time_spent = request.form.get('time_spent', '0')
+
+        try:
+            time_spent = int(time_spent)
+        except ValueError:
+            time_spent = 0
+
+        # Acumular tempo de estudo (apenas se < 60s)
+        if time_spent < 60:
+            session['study_time_total'] = session.get('study_time_total', 0) + time_spent
+
+        card = Card.query.get(card_id)
+        if not card:
+            flash('Cartão não encontrado.', 'warning')
+            return redirect(url_for('cards.study', deck_id=deck_id))
+
+        # Salvar estado pré-revisão para undo
+        prev_state = {
+            'card_id': card.id,
+            'interval': card.interval,
+            'difficulty': card.difficulty,
+            'easiness_factor': card.easiness_factor,
+            'repetition': card.repetition,
+            'next_review': card.next_review.isoformat() if card.next_review else None,
+            'review_count': card.review_count,
+            'correct_count': card.correct_count,
+        }
+        history = session.get('study_undo_history', [])
+        history.append(prev_state)
+        # Manter apenas últimos 50 undos
+        if len(history) > 50:
+            history = history[-50:]
+        session['study_undo_history'] = history
+
+        # SM-2: atualizar cartão + registrar log + estatísticas
+        was_new, quality, interval_before, ef_before = sm2_review(card, response)
+        log_review(card, response, was_new, quality, time_spent, interval_before, ef_before)
+        update_daily_stats(response, was_new)
+        process_gamification(card, response, time_spent, was_new)
+
+        # Contagem de revisões para gamificação
+        if not was_new:
+            session['session_revision_count'] = session.get('session_revision_count', 0) + 1
+
+        db.session.commit()
+        return redirect(url_for('cards.study', deck_id=deck_id))
+
+    # GET: buscar próximo cartão
+    card, card_type = get_next_study_card(deck_ids)
+    new_count, learning_count, review_count = count_study_queue(deck_ids)
+
+    if not card:
+        # Verificar se há cartões de aprendizado esperando
+        waiting_card = get_waiting_learning_card(deck_ids)
+        if waiting_card:
+            wait_seconds = (waiting_card.next_review - datetime.now(timezone.utc)).total_seconds()
+            wait_seconds = max(0, int(wait_seconds))
+            return render_template('study.html',
+                                   deck=deck,
+                                   card=None,
+                                   waiting=True,
+                                   wait_seconds=wait_seconds,
+                                   new_count=new_count,
+                                   learning_count=learning_count,
+                                   review_count=review_count,
+                                   card_type=None,
+                                   active_type='learning')
+
+        # Salvar tempo de estudo acumulado nas estatísticas
+        if session.get('study_time_total', 0) > 0:
             today = datetime.now(timezone.utc).date()
             today_stats = DailyStats.query.filter_by(date=today).first()
             if not today_stats:
                 today_stats = DailyStats(date=today, cards_studied=0, correct_count=0, new_cards=0, revision_cards=0)
                 db.session.add(today_stats)
-            
-            # Adicionar o tempo estudado às estatísticas diárias
-            try:
-                current_time = getattr(today_stats, 'study_time', 0) or 0
-                today_stats.study_time = current_time + session.get('study_time_total', 0)
-                db.session.commit()
-            except Exception as e:
-                print(f"Erro ao salvar tempo de estudo: {e}")
-                db.session.rollback()
-        
-        # Mantemos o contador de revisões para a tela de batalha
-        # Mas limpamos os outros dados da sessão
-        session.pop('session_cards', None)
-        session.pop('current_index', None)
-        session.pop('cards_reviewed', None)
-        session.pop('review_history', None)
-        session.pop('study_time_total', None)
-        session.pop('total_session', None)
-        session.pop('reviewed_session', None)
-        session.pop('active_deck', None)
-        
-        flash('Sessão finalizada! Todos os cartões foram estudados.', 'success')
-        return redirect(url_for('cards.study_lobby'))
-    
-    if request.method == 'POST':
-        response = request.form.get('response')
-        time_spent = request.form.get('time_spent', '0')
-        
-        try:
-            time_spent = int(time_spent)
-        except ValueError:
-            time_spent = 0
-        
-        # Adicionar o tempo gasto (somente se < 60 segundos)
-        if time_spent < 60:
-            current_total = session.get('study_time_total', 0)
-            session['study_time_total'] = current_total + time_spent
-            print(f"Tempo registrado para este cartão: {time_spent}s, total acumulado: {session['study_time_total']}s")
-        
-        if "review_history" not in session:
-            session["review_history"] = []
-        
-        card = Card.query.get(session_cards[current_index])
-        
-        # IMPORTANTE: Verificar se o cartão é novo ANTES de qualquer atualização
-        was_new = (card.review_count == 0)
-        print(f"CARTÃO #{card.id} - Review count antes: {card.review_count}, é novo? {was_new}")
-        
-        prev_state = {
-            "card_id": card.id,
-            "interval": card.interval,
-            "difficulty": card.difficulty,
-            "next_review": card.next_review.isoformat() if card.next_review else None,
-            "review_count": card.review_count,
-            "correct_count": card.correct_count
-        }
-        
-        history = session["review_history"]
-        history.append(prev_state)
-        session["review_history"] = history
-        
-        # Atualizar o cartão com o algoritmo de espaçamento
-        update_card_review(card, response)
-        
-        # Process gamification - agora passamos was_new como parâmetro
-        process_gamification(card, response, time_spent, was_new)
-        
-        # Verificar novamente para depuração
-        print(f"CARTÃO #{card.id} - Review count depois: {card.review_count}")
-        
-        # Contar revisões para dano ao boss apenas para cartões que JÁ ERAM de revisão
-        if not was_new:  # Se era um cartão de revisão ANTES da atualização
-            # Incrementar contador de revisões para dano ao boss (1 ponto por revisão)
-            # Independente da resposta, todos os cartões de revisão valem 1 ponto
-            revision_count = session.get('session_revision_count', 0)
-            session['session_revision_count'] = revision_count + 1
-            print(f"REVISÃO CONTABILIZADA: Total para dano ao boss: {session['session_revision_count']}")
-        else:
-            print("CARTÃO NOVO - Não contabilizado para dano, apenas para XP")
-        
-        session['current_index'] = current_index + 1
-        session['cards_reviewed'] = session.get('cards_reviewed', 0) + 1
-        return redirect(url_for('cards.study_session'))
-    
-    # Se chegou aqui, é uma requisição GET
-    card = Card.query.get(session_cards[current_index])
-    progress_percent = int((session.get('cards_reviewed', 0) / total_cards) * 100) if total_cards else 0
-    next_errei, _ = compute_next_interval(card, 'errei')
-    next_dificil, _ = compute_next_interval(card, 'difícil')
-    next_facil, _ = compute_next_interval(card, 'facil')
-    next_muitofacil, _ = compute_next_interval(card, 'muito_facil')
-    
-    return render_template('study_session.html',
+            current_time = getattr(today_stats, 'study_time', 0) or 0
+            today_stats.study_time = current_time + session.get('study_time_total', 0)
+            db.session.commit()
+            session['study_time_total'] = 0
+
+        # Nenhum cartão disponível
+        return render_template('study.html',
+                               deck=deck,
+                               card=None,
+                               waiting=False,
+                               new_count=new_count,
+                               learning_count=learning_count,
+                               review_count=review_count,
+                               card_type=None,
+                               active_type=None)
+
+    # Determinar qual fila está ativa (para o counter bar)
+    active_type = card_type
+
+    # Calcular previews SM-2
+    next_errei, _ = compute_sm2_preview(card, 'errei')
+    next_dificil, _ = compute_sm2_preview(card, 'difícil')
+    next_facil, _ = compute_sm2_preview(card, 'facil')
+    next_muitofacil, _ = compute_sm2_preview(card, 'muito_facil')
+
+    is_cloze = card.note and card.note.note_type == 'cloze'
+
+    return render_template('study.html',
+                           deck=deck,
                            card=card,
-                           current_index=current_index,
-                           total=total_cards,
-                           cards_reviewed=session.get('cards_reviewed', 0),
+                           waiting=False,
+                           card_type=card_type,
+                           active_type=active_type,
+                           new_count=new_count,
+                           learning_count=learning_count,
+                           review_count=review_count,
                            next_errei=format_interval(next_errei),
                            next_dificil=format_interval(next_dificil),
                            next_facil=format_interval(next_facil),
                            next_muitofacil=format_interval(next_muitofacil),
-                           progress_percent=progress_percent,
+                           is_cloze=is_cloze,
                            datetime=datetime)
 
 
-@cards_bp.route('/undo_review')
-def undo_review():
-    """Undo the last review and revert any gamification rewards."""
-    if "review_history" in session and session["review_history"]:
-        # Obter o último estado do cartão
-        last_state = session["review_history"].pop()
-        
-        # Obter o cartão atual
-        card = Card.query.get(last_state["card_id"])
-        if not card:
-            flash("Cartão não encontrado.", "warning")
-            return redirect(url_for("study_session"))
-        
-        # Verificar se o cartão era novo quando foi estudado (before_review_count == 0)
-        was_new = (last_state["review_count"] == 0)
-        
-        # 1. Reverter os dados do cartão
-        card.interval = last_state["interval"]
-        card.difficulty = last_state["difficulty"]
-        card.next_review = datetime.fromisoformat(last_state["next_review"]) if last_state["next_review"] else None
-        card.review_count = last_state["review_count"]
-        card.correct_count = last_state["correct_count"]
-        
-        # 2. Reverter a gamificação
-        player = Player.query.first()
-        if player:
-            # Reverter XP se o cartão era novo
-            if was_new:
-                print(f"Revertendo 2 XP porque o cartão #{card.id} era novo")
-                player.experience = max(0, player.experience - 2)  # 2 XP por cartão novo
-                flash_gamification("2 pontos de XP foram revertidos.")
-            
-            # Reverter pontos de dano se não era novo (cartão de revisão)
-            else:
-                # Reverter contador de revisões para dano
-                revision_count = session.get('session_revision_count', 0)
-                if revision_count > 0:
-                    session['session_revision_count'] = revision_count - 1
-                    print(f"Revertendo 1 ponto de dano. Novo total: {session['session_revision_count']}")
-                    flash_gamification("1 ponto de dano foi revertido.")
-        
-        # Decrementar o contador de cartões revisados
-        session["current_index"] = max(session.get("current_index", 1) - 1, 0)
-        session["cards_reviewed"] = max(session.get("cards_reviewed", 1) - 1, 0)
-        
-        # Salvar alterações
-        db.session.commit()
-        
-        flash("Cartão anterior restaurado.", "info")
-    else:
-        flash("Nenhuma ação para desfazer.", "warning")
-    
-    return redirect(url_for("study_session"))
+@cards_bp.route('/study/<int:deck_id>/undo')
+def study_undo(deck_id):
+    """Desfaz a última revisão na sessão de estudo dinâmico."""
+    history = session.get('study_undo_history', [])
+    if not history:
+        flash('Nenhuma ação para desfazer.', 'warning')
+        return redirect(url_for('cards.study', deck_id=deck_id))
 
-@cards_bp.route('/end_session')
-def end_session():
-    # Salvar o tempo de estudo nas estatísticas do dia
-    if 'study_time_total' in session and session['study_time_total'] > 0:
-        today = datetime.now(timezone.utc).date()
-        today_stats = DailyStats.query.filter_by(date=today).first()
-        if not today_stats:
-            today_stats = DailyStats(date=today, cards_studied=0, correct_count=0, new_cards=0, revision_cards=0)
-            db.session.add(today_stats)
-        
-        # Verificar se a coluna existe
-        if not hasattr(today_stats, 'study_time'):
-            try:
-                db.session.execute(text('ALTER TABLE daily_stats ADD COLUMN study_time INTEGER DEFAULT 0'))
-                db.session.commit()
-            except:
-                db.session.rollback()
-        
-        # Adicionar o tempo estudado às estatísticas diárias
-        try:
-            current_time = getattr(today_stats, 'study_time', 0) or 0
-            study_time_to_add = session.get('study_time_total', 0)
-            today_stats.study_time = current_time + study_time_to_add
-            db.session.commit()
-            print(f"Sessão encerrada: {study_time_to_add}s adicionados, total: {today_stats.study_time}s")
-        except Exception as e:
-            print(f"Erro ao salvar tempo na finalização da sessão: {e}")
-            db.session.rollback()
-    
-    # Verificar se é uma sessão de estudo personalizado
-    is_custom_study = session.get('custom_study', False)
-    review_history = session.get('review_history', [])
-    
-    # Limpar a sessão
-    session.pop('session_cards', None)
-    session.pop('current_index', None)
-    session.pop('cards_reviewed', None)
-    session.pop('study_time_total', None)
-    session.pop('custom_study', None)
-    
-    # Se for estudo personalizado, redirecionar para a página de resultados
-    if is_custom_study and review_history:
-        # Manter o histórico de revisão temporariamente para passar para a página de resultados
-        session.pop('review_history', None)
-        return redirect(url_for('cards.custom_study_results', history=json.dumps(review_history)))
-    
-    # Caso contrário, limpar tudo e voltar para o lobby
-    flash("Sessão de estudo encerrada.", "success")
-    return redirect(url_for('cards.study_lobby'))
+    last_state = history.pop()
+    session['study_undo_history'] = history
+
+    card = Card.query.get(last_state['card_id'])
+    if not card:
+        flash('Cartão não encontrado.', 'warning')
+        return redirect(url_for('cards.study', deck_id=deck_id))
+
+    was_new = (last_state['review_count'] == 0)
+
+    # Reverter estado do cartão
+    card.interval = last_state['interval']
+    card.difficulty = last_state['difficulty']
+    card.easiness_factor = last_state.get('easiness_factor', 2.5)
+    card.repetition = last_state.get('repetition', 0)
+    card.next_review = datetime.fromisoformat(last_state['next_review']) if last_state['next_review'] else None
+    card.review_count = last_state['review_count']
+    card.correct_count = last_state['correct_count']
+
+    # Remover último ReviewLog
+    last_log = ReviewLog.query.filter_by(card_id=card.id).order_by(ReviewLog.id.desc()).first()
+    if last_log:
+        db.session.delete(last_log)
+
+    # Reverter contagem de revisão para gamificação
+    if not was_new:
+        revision_count = session.get('session_revision_count', 0)
+        if revision_count > 0:
+            session['session_revision_count'] = revision_count - 1
+
+    db.session.commit()
+    flash('Cartão anterior restaurado.', 'info')
+    return redirect(url_for('cards.study', deck_id=deck_id))
+
 
 @cards_bp.route('/panel')
 def panel():
@@ -749,11 +1619,11 @@ def panel():
                 )
             ).all()
     
-    # Se um deck_id foi fornecido, filtre os cartões por esse deck
+    # Se um deck_id foi fornecido, filtre os cartões por esse deck (CTE)
     elif deck_id:
-        deck = Deck.query.get(deck_id)
-        if deck:
-            cards = get_cards_recursive(deck)
+        all_ids = get_subdeck_ids(deck_id)
+        if all_ids:
+            cards = Card.query.filter(Card.deck_id.in_(all_ids)).all()
     
     # Se nenhum dos filtros acima foi aplicado, não carregue nenhum cartão
     
@@ -765,9 +1635,22 @@ def panel():
         9: "Muito difícil", 10: "Muito difícil"
     }
     
+    # Build filter info for the template header
+    filter_info = None
+    if tags_param and tag_ids:
+        tag_names = [t.name for t in Tag.query.filter(Tag.id.in_(tag_ids)).all()]
+        filter_info = {'type': 'tags', 'names': tag_names}
+    elif query:
+        filter_info = {'type': 'query', 'text': query}
+    elif deck_id:
+        deck_obj = Deck.query.get(deck_id)
+        filter_info = {'type': 'deck', 'name': deck_obj.name if deck_obj else ''}
+
+    root_decks = Deck.query.filter(Deck.parent_id == None).all()
     return render_template('panel.html', cards=cards, query=query, diff_expl=diff_expl,
-                          decks=Deck.query.all(), deck_id=deck_id, all_tags=all_tags, 
-                          selected_tag_ids=tag_ids)
+                          decks=Deck.query.all(), deck_id=deck_id, all_tags=all_tags,
+                          selected_tag_ids=tag_ids, root_decks=root_decks,
+                          filter_info=filter_info)
 
 
 
@@ -784,9 +1667,12 @@ def show_all():
     decks = Deck.query.all()
     # Obter todas as tags
     all_tags = Tag.query.order_by(Tag.name).all()
+    root_decks = Deck.query.filter(Deck.parent_id == None).all()
     # Passar show_all=True para o template saber que estamos mostrando todos os cartões
-    return render_template('panel.html', cards=cards, query="", diff_expl=diff_expl, 
-                           decks=decks, all_tags=all_tags, show_all=True)
+    filter_info = {'type': 'collection'}
+    return render_template('panel.html', cards=cards, query="", diff_expl=diff_expl,
+                           decks=decks, all_tags=all_tags, show_all=True, root_decks=root_decks,
+                           filter_info=filter_info)
 
 @cards_bp.route('/rename_deck/<int:deck_id>', methods=['GET', 'POST'])
 def rename_deck(deck_id):
@@ -805,31 +1691,38 @@ def rename_deck(deck_id):
 @cards_bp.route('/card/<int:card_id>')
 def card_detail(card_id):
     card = Card.query.get_or_404(card_id)
-    diff_expl = {
-        1: "Muito fácil", 2: "Muito fácil",
-        3: "Fácil", 4: "Fácil",
-        5: "Médio", 6: "Médio",
-        7: "Difícil", 8: "Difícil",
-        9: "Muito difícil", 10: "Muito difícil"
-    }
     if card.review_count > 0:
         accuracy = (card.correct_count / card.review_count * 100)
         details_info = {
             'review_count': card.review_count,
             'interval': format_interval(card.interval),
-            'accuracy': f"{accuracy:.1f}%"
+            'accuracy': f"{accuracy:.1f}%",
+            'easiness_factor': f"{card.easiness_factor:.2f}",
+            'repetition': card.repetition,
         }
     else:
         details_info = {
             'review_count': 0,
             'interval': format_interval(card.interval),
-            'accuracy': "N/A"
+            'accuracy': "N/A",
+            'easiness_factor': f"{card.easiness_factor:.2f}",
+            'repetition': card.repetition,
         }
-    return render_template('card_detail.html', card=card, details=details_info, diff_expl=diff_expl)
+    review_logs = ReviewLog.query.filter_by(card_id=card.id).order_by(ReviewLog.timestamp.desc()).limit(50).all()
+    # Info sobre nota e cartões-irmãos
+    sibling_cards = []
+    if card.note:
+        sibling_cards = Card.query.filter_by(note_id=card.note.id).order_by(Card.ordinal).all()
+    return render_template('card_detail.html', card=card, details=details_info,
+                           review_logs=review_logs, sibling_cards=sibling_cards)
 
 @cards_bp.route('/card/<int:card_id>/edit', methods=['GET', 'POST'])
 def edit_card(card_id):
     card = Card.query.get_or_404(card_id)
+    # Se o cartão tem nota, redirecionar para edit_note
+    if card.note:
+        return redirect(url_for('cards.edit_note', note_id=card.note.id))
+    # Fallback legado para cartões sem nota
     if request.method == 'POST':
         new_front = request.form.get('front', '')
         new_back = request.form.get('back', '')
@@ -839,6 +1732,36 @@ def edit_card(card_id):
         flash("Cartão atualizado com sucesso!", "success")
         return redirect(url_for('cards.card_detail', card_id=card_id))
     return render_template('edit_card.html', card=card)
+
+
+@cards_bp.route('/note/<int:note_id>/edit', methods=['GET', 'POST'])
+def edit_note(note_id):
+    note = Note.query.get_or_404(note_id)
+    if request.method == 'POST':
+        new_type = request.form.get('note_type', note.note_type)
+        note.note_type = new_type
+
+        if new_type == 'cloze':
+            note.content = request.form.get('content', '')
+            note.back = None
+            note.extra = request.form.get('extra', '') or None
+        else:
+            note.content = request.form.get('front', '')
+            note.back = request.form.get('back', '')
+            note.extra = request.form.get('extra', '') or None
+
+        # Sincronizar cartões-filho
+        note.sync_cards()
+        db.session.commit()
+
+        flash("Nota atualizada com sucesso!", "success")
+        # Redirecionar para o primeiro cartão da nota
+        first_card = Card.query.filter_by(note_id=note.id).order_by(Card.ordinal).first()
+        if first_card:
+            return redirect(url_for('cards.card_detail', card_id=first_card.id))
+        return redirect(url_for('cards.panel'))
+
+    return render_template('edit_note.html', note=note)
 
 @cards_bp.route('/decks', methods=['GET', 'POST'])
 def decks():
@@ -855,9 +1778,151 @@ def decks():
         db.session.commit()
         flash("Baralho criado com sucesso.", "success")
         return redirect(url_for('cards.decks'))
-    # Lista os decks de nível superior (você pode ajustar para mostrar todos, se desejar)
-    decks = Deck.query.filter(Deck.parent_id == None).all()
-    return render_template('decks.html', decks=decks)
+
+    # Resumo do estudo do dia
+    today = datetime.now(timezone.utc).date()
+    stats = DailyStats.query.filter_by(date=today).first()
+    total_study_time = 0
+    if stats:
+        accuracy = (stats.correct_count / stats.cards_studied * 100) if stats.cards_studied > 0 else 0
+        db_study_time = getattr(stats, 'study_time', 0) or 0
+        total_study_time += db_study_time
+        cards_studied = stats.cards_studied
+    else:
+        accuracy = 0
+        cards_studied = 0
+    if 'study_time_total' in session and session.get('study_time_total', 0) > 0:
+        total_study_time += session.get('study_time_total', 0)
+    study_time_minutes = total_study_time // 60
+
+    all_decks = Deck.query.filter(Deck.parent_id == None).all()
+    return render_template('decks.html', decks=all_decks,
+                           cards_studied=cards_studied,
+                           accuracy=accuracy,
+                           study_time_minutes=study_time_minutes)
+
+
+@cards_bp.route('/api/deck/move', methods=['POST'])
+def api_move_deck():
+    """API para mover baralho via drag-and-drop."""
+    data = request.get_json()
+    deck_id = data.get('deck_id')
+    new_parent_id = data.get('parent_id')  # None para mover para raiz
+
+    deck = Deck.query.get(deck_id)
+    if not deck:
+        return jsonify({'error': 'Baralho não encontrado'}), 404
+
+    # Prevenir referência circular: não pode ser filho de si mesmo ou de um descendente
+    if new_parent_id:
+        target = Deck.query.get(new_parent_id)
+        if not target:
+            return jsonify({'error': 'Baralho destino não encontrado'}), 404
+        if target.id == deck.id:
+            return jsonify({'error': 'Não pode ser pai de si mesmo'}), 400
+        # Verificar se target é descendente de deck
+        check = target
+        while check.parent_id:
+            if check.parent_id == deck.id:
+                return jsonify({'error': 'Referência circular'}), 400
+            check = Deck.query.get(check.parent_id)
+
+    deck.parent_id = new_parent_id
+    db.session.commit()
+    return jsonify({'success': True})
+
+
+@cards_bp.route('/api/card/<int:card_id>')
+def api_card_detail(card_id):
+    """API que retorna detalhes do cartao em JSON para o split panel."""
+    card = Card.query.get(card_id)
+    if not card:
+        return jsonify({'error': 'Cartao nao encontrado'}), 404
+
+    # Dados SM-2
+    if card.review_count > 0:
+        accuracy = f"{(card.correct_count / card.review_count * 100):.1f}%"
+    else:
+        accuracy = "N/A"
+
+    # Fase
+    now = datetime.now(timezone.utc)
+    if card.suspended:
+        phase = 'Suspenso'
+        phase_color = 'orange'
+    elif card.review_count == 0:
+        phase = 'Novo'
+        phase_color = '#2196F3'
+    else:
+        nr = card.next_review
+        if nr and nr.tzinfo is None:
+            nr = nr.replace(tzinfo=timezone.utc)
+        if nr and nr <= now:
+            phase = 'A revisar'
+            phase_color = '#27ae60'
+        else:
+            phase = 'Intervalo'
+            phase_color = '#888'
+
+    # Renderizar conteudo
+    front_html = card.render_front()
+    back_html = card.render_back()
+
+    # Tags
+    tags = [{'id': t.id, 'name': t.name} for t in card.tags]
+
+    # Info da nota e irmaos
+    note_info = None
+    siblings = []
+    if card.note:
+        note_info = {
+            'id': card.note.id,
+            'type': 'Omissao' if card.note.note_type == 'cloze' else 'Basico',
+            'ordinal': card.ordinal,
+            'edit_url': url_for('cards.edit_note', note_id=card.note.id),
+        }
+        for sc in Card.query.filter_by(note_id=card.note.id).order_by(Card.ordinal).all():
+            siblings.append({'id': sc.id, 'ordinal': sc.ordinal, 'current': sc.id == card.id})
+    else:
+        note_info = {
+            'edit_url': url_for('cards.edit_card', card_id=card.id),
+        }
+
+    # Historico de revisoes (ultimas 20)
+    logs = []
+    for log in ReviewLog.query.filter_by(card_id=card.id).order_by(ReviewLog.timestamp.desc()).limit(20).all():
+        logs.append({
+            'date': log.timestamp.strftime('%d/%m/%Y %H:%M'),
+            'response': log.response,
+            'interval_before': f"{log.interval_before:.2f}" if log.interval_before is not None else '-',
+            'interval_after': f"{log.interval_after:.2f}" if log.interval_after is not None else '-',
+            'ef_before': f"{log.ef_before:.2f}" if log.ef_before is not None else '-',
+            'ef_after': f"{log.ef_after:.2f}" if log.ef_after is not None else '-',
+            'time_spent': log.time_spent,
+        })
+
+    is_cloze = card.note is not None and card.note.note_type == 'cloze'
+
+    return jsonify({
+        'id': card.id,
+        'front': front_html,
+        'back': back_html,
+        'is_cloze': is_cloze,
+        'deck_name': card.deck.name,
+        'deck_id': card.deck_id,
+        'phase': phase,
+        'phase_color': phase_color,
+        'review_count': card.review_count,
+        'accuracy': accuracy,
+        'interval': format_interval(card.interval),
+        'easiness_factor': f"{card.easiness_factor:.2f}",
+        'repetition': card.repetition,
+        'suspended': card.suspended,
+        'tags': tags,
+        'note_info': note_info,
+        'siblings': siblings,
+        'review_logs': logs,
+    })
 
 @cards_bp.route('/delete_deck/<int:deck_id>', methods=['POST'])
 def delete_deck(deck_id):
@@ -870,55 +1935,6 @@ def delete_deck(deck_id):
     flash("Baralho excluído com sucesso.", "success")
     return redirect(url_for('cards.decks'))
 
-
-@cards_bp.route('/select_deck')
-def select_deck():
-    decks = Deck.query.all()
-    return render_template('select_deck.html', decks=decks)
-
-@cards_bp.route('/start_deck_session/<int:deck_id>')
-def start_deck_session(deck_id):
-    deck = Deck.query.get(deck_id)
-    if deck:
-        # Coleta recursivamente todos os cartões do deck e de seus sub-decks,
-        # filtrando apenas os cartões novos e não suspensos
-        cards = [card for card in get_cards_recursive(deck) if card.review_count == 0 and not card.suspended]
-    else:
-        cards = []
-    # Limita a sessão para os primeiros 50 cartões, se houver muitos
-    if cards:
-        cards = cards[:50]
-    if not cards:
-        flash("Nenhum cartão novo disponível para esse baralho.", "warning")
-        return redirect(url_for('cards.study_lobby'))
-    session.permanent = True
-    session['session_cards'] = [c.id for c in cards]
-    session['current_index'] = 0
-    session['cards_reviewed'] = 0
-    session['review_history'] = []
-    session['active_deck'] = deck_id
-    return redirect(url_for('cards.study_session'))
-
-
-@cards_bp.route('/start_deck_session_revisions/<int:deck_id>')
-def start_deck_session_revisions(deck_id):
-    now = datetime.now(timezone.utc)
-    deck = Deck.query.get(deck_id)
-    if deck:
-        # Seleciona apenas os cartões de revisão que estejam prontos (next_review <= agora) e não suspensos
-        cards = [card for card in get_cards_recursive(deck) if card.review_count > 0 and card.next_review <= now and not card.suspended]
-    else:
-        cards = []
-    if not cards:
-        flash("Nenhum cartão de revisão disponível para esse baralho.", "warning")
-        return redirect(url_for('cards.study_lobby'))
-    session.permanent = True
-    session['session_cards'] = [c.id for c in cards]
-    session['current_index'] = 0
-    session['cards_reviewed'] = 0
-    session['review_history'] = []
-    session['active_deck'] = deck_id
-    return redirect(url_for('cards.study_session'))
 
 @cards_bp.route('/batch_change_deck', methods=['POST'])
 def batch_change_deck():
@@ -951,19 +1967,19 @@ def batch_reset_cards():
         flash("Nenhum cartão selecionado para resetar.", "warning")
         return redirect(url_for('cards.panel'))
     
-    for card_id in selected_cards:
-        card = Card.query.get(card_id)
-        if card:
-            # Exemplo de reset: zerar o número de revisões, definir o intervalo inicial e resetar a dificuldade
-            card.review_count = 0
-            card.interval = 1.0
-            card.difficulty = 3  # ou outro valor padrão
-            # Atualiza a próxima revisão para o instante atual
-            card.next_review = datetime.now(timezone.utc)
-            # Também reativa o cartão se estiver suspenso
-            if card.suspended:
-                card.suspended = False
-    
+    cards = Card.query.filter(Card.id.in_(selected_cards)).all()
+    now = datetime.now(timezone.utc)
+    for card in cards:
+        card.review_count = 0
+        card.interval = 0.0
+        card.difficulty = 5
+        card.easiness_factor = 2.5
+        card.repetition = 0
+        card.next_review = now
+        card.correct_count = 0
+        if card.suspended:
+            card.suspended = False
+
     db.session.commit()
     flash("Cartões resetados com sucesso.", "success")
     return redirect(url_for('cards.panel'))
@@ -1092,9 +2108,10 @@ def statistics_heatmap():
     from datetime import datetime, timedelta
     from matplotlib.colors import LinearSegmentedColormap, BoundaryNorm
 
-    # Período fixo para 2025
-    start_date = datetime(2025, 1, 1).date()
-    end_date = datetime(2025, 12, 31).date()
+    # Período dinâmico baseado no ano atual
+    current_year = datetime.now(timezone.utc).year
+    start_date = datetime(current_year, 1, 1).date()
+    end_date = datetime(current_year, 12, 31).date()
 
     # Obter os registros do DailyStats para 2025
     daily_stats = DailyStats.query.filter(
@@ -1174,7 +2191,7 @@ def statistics_heatmap():
     month_labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
     ax.set_yticklabels([month_labels[i-1] for i in grid.index], rotation=0)
     ax.set_ylabel("Mês")
-    ax.set_title("Estudo diário em 2025", fontsize=12)
+    ax.set_title(f"Estudo diário em {current_year}", fontsize=12)
 
     # Adicionar as informações de recorde e streak abaixo do heatmap (nova ordem)
     # Esquerda: Recorde de cartões estudados
@@ -1424,71 +2441,6 @@ def revision_history_chart():
     
     return send_file(buffer, mimetype='image/png')
 
-@cards_bp.route('/tags')
-def tags():
-    """Lista todas as tags existentes."""
-    all_tags = Tag.query.order_by(Tag.name).all()
-    return render_template('tags.html', tags=all_tags)
-
-@cards_bp.route('/tag/<int:tag_id>')
-def tag_detail(tag_id):
-    """Mostra cartões com uma tag específica."""
-    tag = Tag.query.get_or_404(tag_id)
-    cards = tag.cards
-    return render_template('tag_detail.html', tag=tag, cards=cards)
-
-@cards_bp.route('/add_tag', methods=['POST'])
-def add_tag():
-    """Adiciona uma nova tag."""
-    tag_name = request.form.get('tag_name', '').strip()
-    if not tag_name:
-        flash('O nome da tag não pode ser vazio.', 'warning')
-        return redirect(url_for('cards.tags'))
-    
-    existing_tag = Tag.query.filter(func.lower(Tag.name) == func.lower(tag_name)).first()
-    if existing_tag:
-        flash(f'A tag "{tag_name}" já existe.', 'warning')
-        return redirect(url_for('cards.tags'))
-    
-    new_tag = Tag(name=tag_name)
-    db.session.add(new_tag)
-    db.session.commit()
-    flash(f'Tag "{tag_name}" criada com sucesso.', 'success')
-    return redirect(url_for('cards.tags'))
-
-@cards_bp.route('/delete_tag/<int:tag_id>', methods=['POST'])
-def delete_tag(tag_id):
-    """Remove uma tag."""
-    tag = Tag.query.get_or_404(tag_id)
-    db.session.delete(tag)
-    db.session.commit()
-    flash(f'Tag "{tag.name}" removida com sucesso.', 'success')
-    return redirect(url_for('cards.tags'))
-
-@cards_bp.route('/tag/<int:tag_id>/rename', methods=['GET', 'POST'])
-def rename_tag(tag_id):
-    """Renomeia uma tag."""
-    tag = Tag.query.get_or_404(tag_id)
-    
-    if request.method == 'POST':
-        new_name = request.form.get('new_name', '').strip()
-        if not new_name:
-            flash('O nome da tag não pode ser vazio.', 'warning')
-            return redirect(url_for('cards.rename_tag', tag_id=tag_id))
-        
-        # Verificar se já existe uma tag com esse nome
-        existing_tag = Tag.query.filter(func.lower(Tag.name) == func.lower(new_name)).first()
-        if existing_tag and existing_tag.id != tag.id:
-            flash(f'A tag "{new_name}" já existe.', 'warning')
-            return redirect(url_for('cards.rename_tag', tag_id=tag_id))
-        
-        tag.name = new_name
-        db.session.commit()
-        flash(f'Tag renomeada com sucesso para "{new_name}".', 'success')
-        return redirect(url_for('cards.tags'))
-    
-    return render_template('rename_tag.html', tag=tag)
-
 @cards_bp.route('/card/<int:card_id>/tags', methods=['GET', 'POST'])
 def manage_card_tags(card_id):
     """Gerencia as tags de um cartão."""
@@ -1572,20 +2524,15 @@ def custom_study():
         # Construir a consulta base
         query = Card.query.filter(Card.suspended == False)
         
-        # Filtrar por baralhos, se especificados
+        # Filtrar por baralhos, se especificados (CTE recursivo)
         if deck_ids:
             deck_ids = [int(d_id) for d_id in deck_ids if d_id.isdigit()]
             if deck_ids:
-                deck_condition = False
-                for deck_id in deck_ids:
-                    deck = Deck.query.get(deck_id)
-                    if deck:
-                        # Obter todos os cartões deste deck e seus subdecks
-                        deck_cards = get_cards_recursive(deck)
-                        deck_card_ids = [c.id for c in deck_cards]
-                        deck_condition = or_(deck_condition, Card.id.in_(deck_card_ids))
-                if deck_condition:
-                    query = query.filter(deck_condition)
+                all_deck_ids = []
+                for d_id in deck_ids:
+                    all_deck_ids.extend(get_subdeck_ids(d_id))
+                all_deck_ids = list(set(all_deck_ids))
+                query = query.filter(Card.deck_id.in_(all_deck_ids))
         
         # Filtrar por tags, se especificadas
         if tag_ids:
@@ -1651,8 +2598,8 @@ def custom_study_session():
         # Registrar a resposta no histórico
         history_entry = {
             "card_id": card_id,
-            "front": card.front,
-            "back": card.back,
+            "front": card.render_front() if card.note else card.front,
+            "back": card.render_back() if card.note else card.back,
             "response": response
         }
         

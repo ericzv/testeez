@@ -1,389 +1,715 @@
 {% extends 'base.html' %}
 {% block title %}Painel de Cartões{% endblock %}
-{% block content %}
-<!-- Overlay de carregamento -->
-<div id="loadingOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.9); z-index: 9999; display: none; align-items: center; justify-content: center;">
-  <h2>Carregando o Painel de Cartões...</h2>
-</div>
-
+{% block body_class %}panel-page{% endblock %}
+{% block head %}
 <style>
-  .batch-operation-group {
-    margin-bottom: 12px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #e9ecef;
+  /* Override container to full width for split panel */
+  .panel-page .container.mt-4 {
+    max-width: 100%;
+    padding: 0;
+    margin-top: 0 !important;
   }
-  
-  .batch-operation-group:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-  
-  /* Melhorar a aparência do select múltiplo */
-  select[multiple] {
-    height: auto;
-    min-height: 38px;
-    max-height: 150px;
-  }
-  
-  /* Estilo para informações sobre o select múltiplo */
-  .select-info {
-    display: block;
-    font-size: 0.8rem;
-    color: #6c757d;
-    margin-top: 3px;
-    margin-bottom: 10px;
-  }
-</style>
 
-<style>
-  /* Reduzir o tamanho da fonte da tabela em ~15% */
-  .panel-container table {
-    font-size: 0.85rem;
+  /* Layout split */
+  .panel-wrapper {
+    display: flex;
+    gap: 0;
+    height: calc(100vh - 56px);
   }
-  
-  /* Centralizar o texto nas colunas de Próxima Revisão e Fase */
-  .panel-container th:nth-child(6),
-  .panel-container td:nth-child(6),
-  .panel-container th:nth-child(8),
-  .panel-container td:nth-child(8) {
+  .panel-sidebar {
+    flex: 0 0 15%;
+    max-width: 15%;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+    border-right: 1px solid #e0e0e0;
+    background: #f8f9fa;
+    font-size: 0.82em;
+  }
+  .panel-sidebar-header {
+    padding: 10px 12px;
+    font-weight: 600;
+    font-size: 1.05em;
+    color: #444;
+    border-bottom: 1px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    background: #f8f9fa;
+    z-index: 5;
+  }
+  .sidebar-deck-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .sidebar-deck-item {
+    display: flex;
+    align-items: center;
+  }
+  .sidebar-deck-toggle {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 18px;
+    flex-shrink: 0;
     text-align: center;
+    font-size: 0.85em;
   }
-  
-  /* Centralizar os checkboxes na coluna de seleção */
+  .sidebar-deck-toggle:hover {
+    color: #333;
+  }
+  .sidebar-deck-spacer {
+    width: 18px;
+    flex-shrink: 0;
+  }
+  .sidebar-deck-link {
+    flex: 1;
+    padding: 5px 4px;
+    color: #333;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .sidebar-deck-link:hover {
+    background: #e9ecef;
+    text-decoration: none;
+    color: #333;
+  }
+  .sidebar-deck-link.active {
+    background: #d0e7ff;
+    font-weight: 600;
+    color: #1565c0;
+  }
+  .sidebar-children {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: none;
+  }
+  .sidebar-children.expanded {
+    display: block;
+  }
+  .panel-list {
+    flex: 1;
+    overflow-y: auto;
+    height: calc(100vh - 56px);
+  }
+  .panel-detail {
+    flex: 0 0 30%;
+    max-width: 30%;
+    border-left: 1px solid #e0e0e0;
+    overflow-y: auto;
+    display: none;
+    background: #ebedf0;
+    height: calc(100vh - 56px);
+    position: sticky;
+    top: 0;
+  }
+  .panel-detail.open {
+    display: block;
+  }
+
+  /* Tabela */
+  .panel-container table {
+    font-size: 0.83rem;
+    margin-bottom: 0;
+  }
+  .panel-container th, .panel-container td {
+    padding: 6px 8px;
+    vertical-align: middle;
+  }
   .panel-container th:first-child,
   .panel-container td:first-child {
     text-align: center;
     vertical-align: middle;
   }
-</style>
+  .panel-container tr.active-row {
+    background-color: #e8f4fd !important;
+  }
+  .panel-container tr:hover {
+    background-color: #f5f5f5;
+  }
+  .truncate-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 0;
+  }
 
-<div class="panel-container">
-  <h2>Painel de Cartões</h2>
-  <form method="GET" action="{{ url_for('cards.panel') }}" id="searchForm">
-    <div class="form-group">
-      <input type="text" name="q" class="form-control" placeholder="Buscar... (#ID ou texto)" value="{{ query }}">
-      {% if deck_id %}
-        <input type="hidden" name="deck_id" value="{{ deck_id }}">
+  /* Batch ops */
+  .batch-operation-group {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9ecef;
+  }
+  .batch-operation-group:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  /* Painel de detalhes */
+  .detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
+    background: #fafafa;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .detail-header h6 { margin: 0; color: #555; }
+  .detail-close {
+    background: none;
+    border: none;
+    font-size: 1.2em;
+    color: #999;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+  .detail-close:hover { color: #333; }
+  .detail-body {
+    padding: 16px;
+  }
+  .detail-body img {
+    max-width: 100%;
+    height: auto;
+  }
+  .detail-section {
+    margin-bottom: 16px;
+  }
+  .detail-section h6 {
+    font-size: 0.8em;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .detail-content {
+    text-align: center;
+    padding: 8px 0;
+  }
+  .detail-divider {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 12px 0;
+  }
+  .detail-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    font-size: 0.85em;
+  }
+  .detail-meta-item {
+    text-align: center;
+    padding: 6px;
+    background: #f8f8f8;
+    border-radius: 4px;
+  }
+  .detail-meta-item .meta-label {
+    font-size: 0.75em;
+    color: #999;
+    display: block;
+  }
+  .detail-meta-item .meta-value {
+    font-weight: 600;
+    color: #444;
+  }
+  .detail-tags .badge {
+    margin-right: 4px;
+    margin-bottom: 4px;
+  }
+  .detail-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .detail-actions .btn {
+    font-size: 0.82em;
+  }
+  .detail-log-table {
+    font-size: 0.78em;
+    width: 100%;
+  }
+  .detail-log-table th, .detail-log-table td {
+    padding: 3px 6px;
+    text-align: center;
+  }
+  .detail-siblings a {
+    margin-right: 6px;
+    font-size: 0.85em;
+  }
+  .detail-siblings strong {
+    font-size: 0.85em;
+  }
+  .detail-loading {
+    text-align: center;
+    padding: 40px;
+    color: #aaa;
+  }
+  .response-errei { color: #e74c3c; }
+  .response-dificil { color: #e67e22; }
+  .response-facil { color: #27ae60; }
+  .response-muito_facil { color: #2196F3; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="panel-wrapper">
+  <!-- Barra lateral: baralhos -->
+  <div class="panel-sidebar">
+    <div class="panel-sidebar-header">Baralhos</div>
+    <ul class="sidebar-deck-list">
+      <li>
+        <div class="sidebar-deck-item" style="padding: 2px 8px;">
+          <span class="sidebar-deck-spacer"></span>
+          <a href="{{ url_for('cards.show_all') }}" class="sidebar-deck-link{% if show_all is defined and show_all %} active{% endif %}">
+            <i class="fas fa-layer-group" style="margin-right: 4px; font-size: 0.9em;"></i>Colecao
+          </a>
+        </div>
+      </li>
+      {% macro render_sidebar_deck(deck, level=0) %}
+      <li>
+        <div class="sidebar-deck-item" style="padding: 2px 8px 2px {{ 8 + level * 16 }}px;">
+          {% if deck.children.count() > 0 %}
+            <button class="sidebar-deck-toggle" onclick="event.stopPropagation(); toggleSidebarDeck({{ deck.id }})">
+              <i class="fas fa-caret-right" id="sidebar-icon-{{ deck.id }}"></i>
+            </button>
+          {% else %}
+            <span class="sidebar-deck-spacer"></span>
+          {% endif %}
+          <a href="{{ url_for('cards.panel', deck_id=deck.id) }}" class="sidebar-deck-link{% if deck_id == deck.id %} active{% endif %}">{{ deck.name }}</a>
+        </div>
+        {% if deck.children.count() > 0 %}
+          <ul class="sidebar-children" id="sidebar-children-{{ deck.id }}">
+            {% for child in deck.children %}
+              {{ render_sidebar_deck(child, level + 1) }}
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </li>
+      {% endmacro %}
+      {% for deck in root_decks %}
+        {{ render_sidebar_deck(deck) }}
+      {% endfor %}
+    </ul>
+
+    <!-- Tags -->
+    <div class="panel-sidebar-header" style="border-top: 1px solid #e0e0e0;">Tags</div>
+    <ul class="sidebar-deck-list">
+      {% for tag in all_tags %}
+      <li>
+        <div class="sidebar-deck-item" style="padding: 2px 8px;">
+          <span class="sidebar-deck-spacer"></span>
+          <a href="{{ url_for('cards.panel', tags=tag.id) }}" class="sidebar-deck-link{% if selected_tag_ids and tag.id in selected_tag_ids %} active{% endif %}">
+            <i class="fas fa-tag" style="margin-right: 4px; font-size: 0.8em; color: #999;"></i>{{ tag.name }}
+          </a>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- Coluna central: lista de cartoes -->
+  <div class="panel-list" id="panelList">
+    <div class="panel-container" style="padding: 16px;">
+      <h5 style="margin-bottom: 12px;">Painel de Cartoes</h5>
+      <form method="GET" action="{{ url_for('cards.panel') }}" id="searchForm">
+        <div class="form-group mb-2">
+          <input type="text" name="q" class="form-control form-control-sm" placeholder="Buscar... (#ID ou texto)" value="{{ query }}">
+          {% if deck_id %}
+            <input type="hidden" name="deck_id" value="{{ deck_id }}">
+          {% endif %}
+        </div>
+        <div class="d-flex align-items-center flex-wrap">
+          <button type="submit" class="btn btn-primary btn-sm mr-2 mb-2">Buscar</button>
+          <button type="button" id="toggleSelectionMode" class="btn btn-outline-primary btn-sm mr-2 mb-2">Selecionar</button>
+        </div>
+      </form>
+
+      <!-- Filter description -->
+      {% if filter_info %}
+      <div style="font-size: 0.88em; color: #555; margin: 6px 0 2px 0;">
+        {% if filter_info.type == 'collection' %}
+          <strong>Colecao</strong> &mdash; {{ cards|length }} cartoes encontrados
+        {% elif filter_info.type == 'deck' %}
+          <strong>Baralho {{ filter_info.name }}</strong> &mdash; {{ cards|length }} cartoes encontrados
+        {% elif filter_info.type == 'tags' %}
+          <strong>Tag {{ filter_info.names|join(', ') }}</strong> &mdash; {{ cards|length }} cartoes encontrados
+        {% elif filter_info.type == 'query' %}
+          <strong>"{{ filter_info.text }}"</strong> &mdash; {{ cards|length }} cartoes encontrados
+        {% endif %}
+      </div>
       {% endif %}
-    </div>
-    <div class="d-flex align-items-center flex-wrap">
-      <button type="submit" class="btn btn-primary mr-2 mb-2">Buscar</button>
-      {% if deck_id %}
-        <a href="{{ url_for('cards.show_all', deck_id=deck_id) }}" class="btn btn-secondary mr-2 mb-2">Mostrar Todos os Cartões</a>
-      {% else %}
-        <a href="{{ url_for('cards.show_all') }}" class="btn btn-secondary mr-2 mb-2">Mostrar Todos os Cartões</a>
-      {% endif %}
-      <!-- Botão para ativar/desativar o modo de seleção -->
-      <button type="button" id="toggleSelectionMode" class="btn btn-outline-primary mr-2 mb-2">Selecionar cartões</button>
-      
-      <!-- Botão para filtrar por tags -->
-      <button type="button" id="selectCardsBtn" class="btn btn-info mb-2">Filtrar por Tags</button>
-    </div>
-  </form>
-  
-  <!-- Menu dropdown de tags -->
-  <div class="form-group mt-3" id="tags-selection-container" style="display: none;">
-    <label for="tagsDropdown"><strong>Filtrar por tags:</strong></label>
-    <div class="input-group">
-      <div class="dropdown w-100">
-        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-left" type="button" id="tagsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Selecionar tags
-        </button>
-        <div class="dropdown-menu w-100" aria-labelledby="tagsDropdown" style="max-height: 300px; overflow-y: auto;">
-          {% for tag in all_tags %}
-            <div class="dropdown-item">
-              <div class="form-check">
-                <input class="form-check-input tag-checkbox" type="checkbox" id="tag-{{ tag.id }}" value="{{ tag.id }}" 
-                       {% if selected_tag_ids and tag.id in selected_tag_ids %}checked{% endif %}>
-                <label class="form-check-label" for="tag-{{ tag.id }}">{{ tag.name }}</label>
+
+      <!-- Batch operations -->
+      <div id="batchOperations" style="display: none; margin-top: 8px;">
+        <div class="batch-operation-group mb-2">
+          <select name="new_deck_id" form="cardsForm" class="form-control form-control-sm" style="max-width: 250px; display: inline-block;">
+            <option value="">Novo baralho</option>
+            {% for deck in decks %}
+              <option value="{{ deck.id }}">{{ deck.name }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" form="cardsForm" formaction="{{ url_for('cards.batch_change_deck') }}" class="btn btn-info btn-sm">Mover</button>
+        </div>
+        <div class="batch-operation-group mb-2">
+          <div class="d-inline-flex align-items-center" style="gap: 4px;">
+            <div class="dropdown d-inline-block">
+              <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="batchTagsDropdown" data-toggle="dropdown" style="min-width: 150px; text-align: left;">
+                Tags
+              </button>
+              <div class="dropdown-menu" style="max-height: 250px; overflow-y: auto;">
+                {% for tag in all_tags %}
+                  <div class="dropdown-item py-1">
+                    <div class="form-check">
+                      <input class="form-check-input batch-tag-checkbox" type="checkbox" id="batch-tag-{{ tag.id }}" value="{{ tag.id }}" name="tags" form="cardsForm">
+                      <label class="form-check-label" for="batch-tag-{{ tag.id }}" style="font-size: 0.85em;">{{ tag.name }}</label>
+                    </div>
+                  </div>
+                {% endfor %}
               </div>
             </div>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-    
-    <!-- Botão Aplicar com margem superior -->
-    <div class="mt-3">
-      <button class="btn btn-primary" type="button" id="applyTagsBtn">Aplicar</button>
-    </div>
-    <small class="form-text text-muted">Selecione uma ou mais tags para filtrar os cartões</small>
-  </div>
-  
-  <!-- Botões de operações em lote, logo abaixo dos botões de busca -->
-  <div id="batchOperations" style="display: none; margin-top: 10px;">
-    <!-- Seção para mudar de baralho -->
-    <div class="batch-operation-group mb-2">
-      <select name="new_deck_id" form="cardsForm" class="form-control" style="max-width: 300px; display: inline-block;">
-        <option value="">Selecione um novo baralho</option>
-        {% for deck in decks %}
-          <option value="{{ deck.id }}">{{ deck.name }}</option>
-        {% endfor %}
-      </select>
-      <button type="submit" form="cardsForm" formaction="{{ url_for('cards.batch_change_deck') }}" class="btn btn-info">Mudar de Baralho</button>
-    </div>
-
-    <!-- Seção para gerenciar tags - Dropdown -->
-    <div class="batch-operation-group mb-2">
-      <div class="input-group" style="max-width: 500px;">
-        <!-- Dropdown de tags -->
-        <div class="dropdown d-inline-block">
-          <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="batchTagsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="min-width: 200px; text-align: left;">
-            Selecionar tag
-          </button>
-          <div class="dropdown-menu" aria-labelledby="batchTagsDropdown" style="max-height: 300px; overflow-y: auto;">
-            {% for tag in all_tags %}
-              <div class="dropdown-item">
-                <div class="form-check">
-                  <input class="form-check-input batch-tag-checkbox" type="checkbox" id="batch-tag-{{ tag.id }}" value="{{ tag.id }}" name="tags" form="cardsForm">
-                  <label class="form-check-label" for="batch-tag-{{ tag.id }}">{{ tag.name }}</label>
-                </div>
-              </div>
-            {% endfor %}
+            <select name="tag_action" form="cardsForm" class="form-control form-control-sm" style="max-width: 130px;">
+              <option value="add">Adicionar</option>
+              <option value="remove">Remover</option>
+              <option value="set">Substituir</option>
+            </select>
+            <button type="submit" form="cardsForm" formaction="{{ url_for('cards.batch_manage_tags') }}" class="btn btn-info btn-sm">Aplicar</button>
           </div>
         </div>
-        
-        <!-- Dropdown de ação (adicionar/remover/substituir) -->
-        <select name="tag_action" form="cardsForm" class="form-control" style="max-width: 150px; margin-left: 5px;">
-          <option value="add">Adicionar tags</option>
-          <option value="remove">Remover tags</option>
-          <option value="set">Substituir tags</option>
-        </select>
-        
-        <!-- Botão de aplicar -->
-        <div class="input-group-append">
-          <button type="submit" form="cardsForm" formaction="{{ url_for('cards.batch_manage_tags') }}" class="btn btn-info">Aplicar</button>
+        <div class="batch-operation-group">
+          <button type="submit" form="cardsForm" formaction="{{ url_for('cards.batch_reset_cards') }}" class="btn btn-warning btn-sm">Resetar</button>
+          <button type="submit" form="cardsForm" formaction="{{ url_for('cards.batch_suspend_cards') }}" class="btn btn-danger btn-sm" id="suspendButton">Suspender</button>
         </div>
       </div>
-    </div>
 
-    <!-- Outros botões de operação em lote -->
-    <div class="batch-operation-group">
-      <button type="submit" form="cardsForm" formaction="{{ url_for('cards.batch_reset_cards') }}" class="btn btn-warning">Resetar Cartões</button>
-      <button type="submit" form="cardsForm" formaction="{{ url_for('cards.batch_suspend_cards') }}" class="btn btn-danger" id="suspendButton">Suspender Cartões</button>
+      <hr style="margin: 8px 0;">
+
+      {% if cards|length > 0 %}
+      <form id="cardsForm" method="POST" action="">
+        <table class="table table-bordered table-striped table-sm" style="width:100%; table-layout: fixed;">
+          <thead>
+            <tr>
+              <th style="width: 4%;"></th>
+              <th style="width: 6%;">ID</th>
+              <th style="width: 48%;">Resposta</th>
+              <th style="width: 22%;">Baralho</th>
+              <th style="width: 10%;">Fase</th>
+              <th style="width: 10%;">Dificuldade</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for card in cards %}
+            <tr id="card-{{ card.id }}" onclick="rowClicked(event, {{ card.id }})" style="cursor: pointer;" data-suspended="{{ card.suspended|lower }}" data-card-id="{{ card.id }}">
+              <td><input type="checkbox" name="selected_cards" value="{{ card.id }}" class="cardCheckbox" disabled></td>
+              <td>{{ card.id }}</td>
+              <td class="truncate-text">{{ card.render_back() | panel_preview | safe }}</td>
+              <td class="truncate-text">{{ card.deck.name }}</td>
+              <td style="text-align: center;">
+                {% if card.suspended %}
+                  <span style="color: orange;">Suspenso</span>
+                {% elif card.review_count == 0 %}
+                  <span style="color: #2196F3;">Novo</span>
+                {% elif card.next_review | make_aware <= datetime_module().now(timezone_module().utc) %}
+                  <span style="color: #27ae60;">Revisar</span>
+                {% else %}
+                  <span style="color: #888;">Intervalo</span>
+                {% endif %}
+              </td>
+              <td style="text-align: center;">{{ "%.1f"|format(card.easiness_factor) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </form>
+      {% else %}
+        <p class="text-muted" style="font-size: 0.9em;">Nenhum flashcard encontrado. Use a busca ou selecione um baralho/tag na barra lateral.</p>
+      {% endif %}
     </div>
   </div>
-  
-  <hr>
-  {% if cards|length > 0 %}
-  <form id="cardsForm" method="POST" action="">
-    <table class="table table-bordered table-striped" style="width:100%; table-layout: fixed; text-align: left; margin-left:0;">
-      <thead>
-        <tr>
-          <th style="width: 3%;"></th>  {# Cabeçalho vazio para a coluna de seleção #}
-          <th style="width: 7%;">ID</th>
-          <th style="width: 38%;">Resposta (preview)</th>
-          <th style="width: 15%;">Baralho</th>
-          <th style="width: 15%;">Dificuldade</th>
-          <th style="width: 12%;">Próxima Revisão</th>
-          <th style="width: 10%;">Imagens</th>
-          <th style="width: 8%;">Fase</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for card in cards %}
-        <tr id="card-{{ card.id }}" onclick="rowClicked(event, '{{ card.id }}')" style="cursor: pointer;" data-suspended="{{ card.suspended|lower }}">
-          <td><input type="checkbox" name="selected_cards" value="{{ card.id }}" class="cardCheckbox" disabled></td>
-          <td>{{ card.id }}</td>
-          <td class="truncate-text">{{ card.back | process_answer | panel_preview | safe }}</td>
-          <td class="truncate-text">{{ card.deck.name }}</td>
-          <td>
-            {{ card.difficulty }} -
-            {% if card.difficulty < 2 %}
-              Muito fácil
-            {% elif card.difficulty < 4 %}
-              Fácil
-            {% elif card.difficulty < 6 %}
-              Médio
-            {% elif card.difficulty < 8 %}
-              Difícil
-            {% else %}
-              Muito difícil
-            {% endif %}
-          </td>
-          <td>{{ card | next_review_status }}</td>
-          <td>{{ card.back | extract_images | safe }}</td>
-          <td>
-            {% if card.suspended %}
-              <span style="color: orange;">Suspenso</span>
-            {% elif card.review_count == 0 %}
-              <span style="color: blue;">Novo</span>
-            {% elif card.next_review | make_aware <= datetime_module().now(timezone_module().utc) %}
-              <span style="color: green;">A revisar</span>
-            {% else %}
-              <span style="color: gray;">Intervalo</span>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </form>
-  {% else %}
-    <p>Nenhum flashcard encontrado. Use a busca ou clique em "Mostrar Todos os Cartões" para visualizar os flashcards.</p>
-  {% endif %}
+
+  <!-- Coluna direita: detalhes do cartao -->
+  <div class="panel-detail" id="panelDetail">
+    <div class="detail-header">
+      <h6 id="detailTitle">Detalhes</h6>
+      <button class="detail-close" onclick="closeDetail()" title="Fechar">&times;</button>
+    </div>
+    <div class="detail-body" id="detailBody">
+      <div class="detail-loading">Selecione um cartao na lista</div>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
 (function() {
-  // Controle do modo de seleção
   var selectionMode = false;
+  var currentCardId = null;
+
+  // === Selection mode ===
   var toggleButton = document.getElementById('toggleSelectionMode');
   toggleButton.addEventListener('click', function(){
     selectionMode = !selectionMode;
-    if(selectionMode) {
-      this.classList.add('active');
-    } else {
-      this.classList.remove('active');
-    }
-    var checkboxes = document.querySelectorAll('.cardCheckbox');
-    checkboxes.forEach(function(cb){
+    this.classList.toggle('active', selectionMode);
+    document.querySelectorAll('.cardCheckbox').forEach(function(cb){
       cb.disabled = !selectionMode;
-      if (!selectionMode) { cb.checked = false; }
+      if (!selectionMode) cb.checked = false;
     });
     document.getElementById('batchOperations').style.display = selectionMode ? 'block' : 'none';
-    
-    // Atualizar o texto do botão Suspender/Reativar com base nos cartões selecionados
     updateSuspendButtonText();
   });
 
-  // Função para atualizar o texto do botão Suspender/Reativar
   function updateSuspendButtonText() {
-    const suspendButton = document.getElementById('suspendButton');
-    if (!suspendButton) return;
-
-    // Verificar se há cartões selecionados e se todos eles estão suspensos
-    const selectedCheckboxes = document.querySelectorAll('.cardCheckbox:checked');
-    if (selectedCheckboxes.length === 0) {
-      suspendButton.textContent = 'Suspender Cartões';
-      return;
-    }
-
-    // Verificar o status de cada cartão selecionado
-    let allSuspended = true;
-    selectedCheckboxes.forEach(checkbox => {
-      const row = checkbox.closest('tr');
-      if (row && row.getAttribute('data-suspended') === 'false') {
-        allSuspended = false;
-      }
+    var btn = document.getElementById('suspendButton');
+    if (!btn) return;
+    var checked = document.querySelectorAll('.cardCheckbox:checked');
+    if (checked.length === 0) { btn.textContent = 'Suspender'; return; }
+    var allSusp = true;
+    checked.forEach(function(cb) {
+      var row = cb.closest('tr');
+      if (row && row.getAttribute('data-suspended') === 'false') allSusp = false;
     });
-
-    // Atualizar o texto do botão
-    suspendButton.textContent = allSuspended ? 'Reativar Cartões' : 'Suspender Cartões';
+    btn.textContent = allSusp ? 'Reativar' : 'Suspender';
   }
 
-  // Função de clique na linha: se modo seleção ativo, alterna o checkbox; caso contrário, redireciona
+  // === Row click ===
   window.rowClicked = function(event, cardId) {
-    if(event.target.type === 'checkbox') {
-      // Se o clique foi no checkbox, verificar se mudou a seleção
+    if (event.target.type === 'checkbox') {
       setTimeout(updateSuspendButtonText, 0);
       return;
     }
-    
-    if(selectionMode) {
-      var checkbox = document.querySelector('.cardCheckbox[value="'+cardId+'"]');
-      if(checkbox) {
-        checkbox.checked = !checkbox.checked;
-        // Atualizar o texto do botão após alterar a seleção
-        updateSuspendButtonText();
-      }
+    if (selectionMode) {
+      var cb = document.querySelector('.cardCheckbox[value="'+cardId+'"]');
+      if (cb) { cb.checked = !cb.checked; updateSuspendButtonText(); }
     } else {
-      window.location = "/card/" + cardId;
+      openCardDetail(cardId);
     }
   };
 
-  // Script de scrollTo
-  function getQueryParam(param) {
-    var searchParams = new URLSearchParams(window.location.search);
-    return searchParams.get(param);
+  // === Split panel ===
+  function openCardDetail(cardId) {
+    var panel = document.getElementById('panelDetail');
+    var list = document.getElementById('panelList');
+    var body = document.getElementById('detailBody');
+
+    // Highlight row
+    document.querySelectorAll('.panel-container tr.active-row').forEach(function(r){ r.classList.remove('active-row'); });
+    var row = document.getElementById('card-' + cardId);
+    if (row) row.classList.add('active-row');
+
+    // Open panel
+    panel.classList.add('open');
+    currentCardId = cardId;
+
+    // Loading
+    body.innerHTML = '<div class="detail-loading"><i class="fas fa-spinner fa-spin"></i> Carregando...</div>';
+    document.getElementById('detailTitle').textContent = 'Cartao #' + cardId;
+
+    // Fetch
+    fetch('/api/card/' + cardId)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error) { body.innerHTML = '<p class="text-danger">' + data.error + '</p>'; return; }
+        renderCardDetail(data);
+      })
+      .catch(function(err) {
+        body.innerHTML = '<p class="text-danger">Erro ao carregar cartao</p>';
+      });
   }
-  var scrollToId = getQueryParam('scrollTo');
-  if(scrollToId) {
-    var overlay = document.getElementById('loadingOverlay');
-    if (overlay) {
-      overlay.style.display = 'flex';
+
+  window.closeDetail = function() {
+    document.getElementById('panelDetail').classList.remove('open');
+    document.querySelectorAll('.panel-container tr.active-row').forEach(function(r){ r.classList.remove('active-row'); });
+    currentCardId = null;
+  };
+
+  // Render detail panel
+  function renderCardDetail(data) {
+    var body = document.getElementById('detailBody');
+    var html = '';
+
+    // Phase badge
+    html += '<div style="text-align:center; margin-bottom: 8px;">';
+    html += '<span style="color:' + data.phase_color + '; font-size: 0.85em; font-weight: 600;">' + data.phase + '</span>';
+    html += '</div>';
+
+    if (data.is_cloze) {
+      // Cloze: mostrar so o verso (ja contem o texto completo com a resposta revelada)
+      html += '<div class="detail-section">';
+      html += '<div class="detail-content">' + data.back + '</div>';
+      html += '</div>';
+    } else {
+      // Basico: mostrar pergunta e resposta
+      html += '<div class="detail-section">';
+      html += '<h6>Pergunta</h6>';
+      html += '<div class="detail-content">' + data.front + '</div>';
+      html += '</div>';
+
+      html += '<hr class="detail-divider">';
+      html += '<div class="detail-section">';
+      html += '<h6>Resposta</h6>';
+      html += '<div class="detail-content">' + data.back + '</div>';
+      html += '</div>';
     }
-    var startTime = Date.now();
-    function tryScroll() {
-      var element = document.getElementById('card-' + scrollToId);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        window.scrollBy(0, -20);
-        if (overlay) {
-          overlay.style.display = 'none';
-        }
-      } else if (Date.now() - startTime < 5000) {
-        setTimeout(tryScroll, 100);
-      } else {
-        if (overlay) {
-          overlay.style.display = 'none';
-        }
+
+    // Note info & siblings
+    if (data.note_info) {
+      if (data.note_info.type) {
+        html += '<div style="font-size: 0.78em; color: #999; text-align: center; margin-bottom: 8px;">';
+        html += 'Nota #' + (data.note_info.id || '') + ' (' + data.note_info.type + ')';
+        if (data.note_info.ordinal) html += ' | c' + data.note_info.ordinal;
+        html += '</div>';
+      }
+      if (data.siblings && data.siblings.length > 1) {
+        html += '<div class="detail-siblings" style="text-align: center; margin-bottom: 10px;">';
+        data.siblings.forEach(function(s) {
+          if (s.current) {
+            html += '<strong>c' + s.ordinal + '</strong> ';
+          } else {
+            html += '<a href="#" onclick="event.preventDefault(); openSibling(' + s.id + ')">c' + s.ordinal + '</a> ';
+          }
+        });
+        html += '</div>';
       }
     }
-    document.addEventListener("DOMContentLoaded", tryScroll);
+
+    // Actions
+    html += '<div class="detail-actions" style="justify-content: center;">';
+    if (data.note_info && data.note_info.edit_url) {
+      html += '<a href="' + data.note_info.edit_url + '" class="btn btn-sm btn-warning">Editar</a>';
+    }
+    html += '<a href="/card/' + data.id + '" class="btn btn-sm btn-outline-secondary">Pagina completa</a>';
+    html += '</div>';
+
+    html += '<hr class="detail-divider">';
+
+    // Meta grid
+    html += '<div class="detail-section">';
+    html += '<h6>INFO</h6>';
+    html += '<div class="detail-meta-grid">';
+    html += '<div class="detail-meta-item"><span class="meta-label">Baralho</span><span class="meta-value">' + data.deck_name + '</span></div>';
+    html += '<div class="detail-meta-item"><span class="meta-label">Estudado</span><span class="meta-value">' + data.review_count + 'x</span></div>';
+    html += '<div class="detail-meta-item"><span class="meta-label">Acuracia</span><span class="meta-value">' + data.accuracy + '</span></div>';
+    html += '<div class="detail-meta-item"><span class="meta-label">Intervalo</span><span class="meta-value">' + data.interval + '</span></div>';
+    html += '<div class="detail-meta-item"><span class="meta-label">Dificuldade</span><span class="meta-value">' + data.easiness_factor + '</span></div>';
+    html += '<div class="detail-meta-item"><span class="meta-label">Repeticoes</span><span class="meta-value">' + data.repetition + '</span></div>';
+    html += '</div>';
+    html += '</div>';
+
+    // Tags
+    if (data.tags && data.tags.length > 0) {
+      html += '<div class="detail-section">';
+      html += '<h6>Tags</h6>';
+      html += '<div class="detail-tags">';
+      data.tags.forEach(function(t) {
+        html += '<span class="badge badge-info">' + t.name + '</span>';
+      });
+      html += '</div></div>';
+    }
+
+    // Review logs
+    if (data.review_logs && data.review_logs.length > 0) {
+      html += '<hr class="detail-divider">';
+      html += '<div class="detail-section">';
+      html += '<h6>Historico de Revisoes</h6>';
+      html += '<table class="detail-log-table table table-sm table-bordered">';
+      html += '<thead><tr><th>Data</th><th>Resp</th><th>Int. antes</th><th>Int. depois</th><th>Tempo</th></tr></thead>';
+      html += '<tbody>';
+      data.review_logs.forEach(function(log) {
+        var respClass = 'response-' + log.response;
+        var respLabel = {'errei':'Errei','dificil':'Dificil','facil':'Facil','muito_facil':'M. Facil'}[log.response] || log.response;
+        html += '<tr>';
+        html += '<td>' + log.date + '</td>';
+        html += '<td class="' + respClass + '">' + respLabel + '</td>';
+        html += '<td>' + log.interval_before + 'd</td>';
+        html += '<td>' + log.interval_after + 'd</td>';
+        html += '<td>' + log.time_spent + 's</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      html += '</div>';
+    }
+
+    body.innerHTML = html;
   }
+
+  // Open sibling card in detail
+  window.openSibling = function(cardId) {
+    openCardDetail(cardId);
+  };
+
+  // Keyboard: Escape to close detail
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && currentCardId) {
+      closeDetail();
+    }
+  });
+
+  // === Sidebar deck tree ===
+  var sidebarExpanded = {};
+
+  window.toggleSidebarDeck = function(deckId) {
+    sidebarExpanded[deckId] = !sidebarExpanded[deckId];
+    var icon = document.getElementById('sidebar-icon-' + deckId);
+    var children = document.getElementById('sidebar-children-' + deckId);
+    if (!icon || !children) return;
+    if (sidebarExpanded[deckId]) {
+      icon.classList.remove('fa-caret-right');
+      icon.classList.add('fa-caret-down');
+      children.classList.add('expanded');
+    } else {
+      icon.classList.remove('fa-caret-down');
+      icon.classList.add('fa-caret-right');
+      children.classList.remove('expanded');
+      // Collapse all nested children
+      children.querySelectorAll('.sidebar-children').forEach(function(ul) {
+        ul.classList.remove('expanded');
+      });
+      children.querySelectorAll('.sidebar-deck-toggle i').forEach(function(i) {
+        i.classList.remove('fa-caret-down');
+        i.classList.add('fa-caret-right');
+      });
+      children.querySelectorAll('[id^="sidebar-children-"]').forEach(function(ul) {
+        var childId = ul.id.replace('sidebar-children-', '');
+        sidebarExpanded[childId] = false;
+      });
+    }
+  };
+
+  // Auto-expand to show active deck
+  (function() {
+    var active = document.querySelector('.sidebar-deck-link.active');
+    if (active) {
+      var parent = active.closest('.sidebar-children');
+      while (parent) {
+        parent.classList.add('expanded');
+        var parentId = parent.id.replace('sidebar-children-', '');
+        sidebarExpanded[parentId] = true;
+        var icon = document.getElementById('sidebar-icon-' + parentId);
+        if (icon) {
+          icon.classList.remove('fa-caret-right');
+          icon.classList.add('fa-caret-down');
+        }
+        parent = parent.parentElement.closest('.sidebar-children');
+      }
+    }
+  })();
 })();
 
-// jQuery para gerenciar os dropdowns
+// jQuery batch tag dropdown
 $(document).ready(function() {
-  // Inicialmente esconde o contêiner de seleção de tags
-  $("#tags-selection-container").hide();
-  
-  // Quando o botão "Filtrar por Tags" é clicado, mostra o contêiner de tags
-  $("#selectCardsBtn").click(function() {
-    $("#tags-selection-container").toggle();
-  });
-  
-  // Manipulador para o botão Aplicar no filtro de tags
-  $("#applyTagsBtn").click(function() {
-    // Obter todas as tags selecionadas
-    var selectedTags = [];
-    $(".tag-checkbox:checked").each(function() {
-      selectedTags.push($(this).val());
-    });
-    
-    // Redirecionar para a URL com os parâmetros de tag
-    if (selectedTags.length > 0) {
-      window.location.href = "{{ url_for('cards.panel') }}?tags=" + selectedTags.join(',');
-    } else {
-      alert("Por favor, selecione pelo menos uma tag.");
-    }
-  });
-  
-  // Atualizar o texto do botão dropdown do filtro quando tags são selecionadas
-  $(".tag-checkbox").change(function() {
-    let checkedCount = $(".tag-checkbox:checked").length;
-    if (checkedCount > 0) {
-      $("#tagsDropdown").text(`${checkedCount} tag(s) selecionada(s)`);
-    } else {
-      $("#tagsDropdown").text("Selecionar tags");
-    }
-  });
-  
-  // Atualizar o texto do dropdown de tags em lote quando tags são selecionadas
   $(".batch-tag-checkbox").change(function() {
-    let checkedCount = $(".batch-tag-checkbox:checked").length;
-    if (checkedCount > 0) {
-      $("#batchTagsDropdown").text(`${checkedCount} tag(s) selecionada(s)`);
-    } else {
-      $("#batchTagsDropdown").text("Selecionar tag");
-    }
+    var n = $(".batch-tag-checkbox:checked").length;
+    $("#batchTagsDropdown").text(n > 0 ? n + ' tag(s)' : 'Tags');
   });
-  
-  // Pré-selecionar as tags da URL atual
-  var urlParams = new URLSearchParams(window.location.search);
-  var tagsParam = urlParams.get('tags');
-  if (tagsParam) {
-    var selectedIds = tagsParam.split(',');
-    selectedIds.forEach(function(id) {
-      $("#tag-" + id).prop('checked', true);
-    });
-    
-    // Atualizar o texto do dropdown
-    $("#tagsDropdown").text(selectedIds.length + " tag(s) selecionada(s)");
-  }
 });
 </script>
 {% endblock %}

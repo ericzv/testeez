@@ -17,13 +17,31 @@
     </p>
     <hr>
     <h5>Pergunta:</h5>
-    <p>{{ card.front | process_front | safe }}</p>
+    <p>{{ card.render_front() | safe }}</p>
     <hr>
     <h5>Resposta:</h5>
-    <p>{{ card.back | process_answer | safe }}</p>
-   
-    <!-- Botão para editar o cartão, logo abaixo do "esquema" (parte da resposta) -->
-    <a href="{{ url_for('cards.edit_card', card_id=card.id) }}" class="btn btn-sm btn-warning d-block mx-auto" style="margin-top: 10px; width: 120px;">Editar Cartão</a>
+    <p>{{ card.render_back() | safe }}</p>
+
+    {% if card.note %}
+    <!-- Info da Nota -->
+    <p style="font-size: 0.8em; color: #999; margin-top: 5px;">
+      Nota #{{ card.note.id }} ({{ 'Omissao' if card.note.note_type == 'cloze' else 'Basico' }})
+      {% if card.note.note_type == 'cloze' %} | Cartao c{{ card.ordinal }}{% endif %}
+      {% if sibling_cards|length > 1 %}
+        | {{ sibling_cards|length }} cartoes:
+        {% for sc in sibling_cards %}
+          {% if sc.id == card.id %}<strong>c{{ sc.ordinal }}</strong>{% else %}<a href="{{ url_for('cards.card_detail', card_id=sc.id) }}">c{{ sc.ordinal }}</a>{% endif %}{% if not loop.last %}, {% endif %}
+        {% endfor %}
+      {% endif %}
+    </p>
+    {% endif %}
+
+    <!-- Botao para editar -->
+    {% if card.note %}
+    <a href="{{ url_for('cards.edit_note', note_id=card.note.id) }}" class="btn btn-sm btn-warning d-block mx-auto" style="margin-top: 10px; width: 120px;">Editar Nota</a>
+    {% else %}
+    <a href="{{ url_for('cards.edit_card', card_id=card.id) }}" class="btn btn-sm btn-warning d-block mx-auto" style="margin-top: 10px; width: 120px;">Editar Cartao</a>
+    {% endif %}
     <hr>
     <div style="text-align: center;">
       <p style="font-size: 1.2em; color: #888; margin-bottom: 5px;">
@@ -47,19 +65,76 @@
         {% endif %}
         <a href="{{ url_for('cards.manage_card_tags', card_id=card.id) }}" class="btn btn-sm btn-outline-primary mt-2">Gerenciar Tags</a>
       </div>
+      <!-- Informações SM-2 -->
       <div style="text-align: center; margin-top: 10px;">
         <p style="color: #aaa; font-size: 0.9em;">
           Este cartão já foi estudado <strong>{{ card.review_count }}</strong>
-          {% if card.review_count == 1 %}
-            vez
-          {% else %}
-            vezes
-          {% endif %}
+          {% if card.review_count == 1 %}vez{% else %}vezes{% endif %}
         </p>
+        {% if card.review_count > 0 %}
+        <table class="table table-sm table-bordered" style="max-width: 400px; margin: 10px auto; font-size: 0.85em; text-align: center;">
+          <thead>
+            <tr>
+              <th style="text-align: center;">Informação</th>
+              <th style="text-align: center;">Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Acurácia</td><td><strong>{{ details.accuracy }}</strong></td></tr>
+            <tr><td>Intervalo atual</td><td><strong>{{ details.interval }}</strong></td></tr>
+            <tr><td>Dificuldade (EF)</td><td><strong>{{ details.easiness_factor }}</strong></td></tr>
+            <tr><td>Repetições corretas</td><td><strong>{{ details.repetition }}</strong></td></tr>
+          </tbody>
+        </table>
+        {% endif %}
       </div>
+
+      <!-- Histórico de revisões (ReviewLog) -->
+      {% if review_logs %}
+      <div style="margin-top: 15px;">
+        <h6 style="color: #888;">Histórico de Revisões</h6>
+        <table class="table table-sm table-bordered" style="font-size: 0.8em; max-width: 600px; margin: 0 auto;">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Resposta</th>
+              <th>Intervalo antes</th>
+              <th>Intervalo depois</th>
+              <th>Dificuldade antes</th>
+              <th>Dificuldade depois</th>
+              <th>Tempo</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in review_logs %}
+            <tr>
+              <td>{{ log.timestamp.strftime('%d/%m/%Y %H:%M') }}</td>
+              <td>
+                {% if log.response == 'errei' %}
+                  <span style="color: red;">Errei</span>
+                {% elif log.response == 'dificil' %}
+                  <span style="color: orange;">Difícil</span>
+                {% elif log.response == 'facil' %}
+                  <span style="color: green;">Fácil</span>
+                {% elif log.response == 'muito_facil' %}
+                  <span style="color: blue;">Muito fácil</span>
+                {% else %}
+                  {{ log.response }}
+                {% endif %}
+              </td>
+              <td>{{ "%.2f"|format(log.interval_before) if log.interval_before is not none else '-' }} d</td>
+              <td>{{ "%.2f"|format(log.interval_after) if log.interval_after is not none else '-' }} d</td>
+              <td>{{ "%.2f"|format(log.ef_before) if log.ef_before is not none else '-' }}</td>
+              <td>{{ "%.2f"|format(log.ef_after) if log.ef_after is not none else '-' }}</td>
+              <td>{{ log.time_spent }}s</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
     <hr>
     <div class="bottom-buttons" style="display: flex; justify-content: center; gap: 10px;">
-      <a href="{{ url_for('cards.study_session') }}" class="btn btn-sm btn-info">Voltar à sessão de estudo</a>
       <a href="{{ url_for('cards.show_all', scrollTo=card.id) }}" class="btn btn-sm btn-secondary">Mostrar Cartão no Painel</a>
     </div>
   </div>

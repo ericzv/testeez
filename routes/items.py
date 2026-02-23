@@ -11,7 +11,8 @@ from sqlalchemy import text, or_, func
 
 from database import db
 from models import Player, Item, PlayerItem, Equipment, ShopQuote, BestiaryEntry
-from routes.cards import flash_gamification, get_exp_for_next_level
+from routes.cards import flash_gamification
+from game_formulas import get_exp_for_next_level
 
 # Criar Blueprint para itens e loja
 items_bp = Blueprint('items', __name__)

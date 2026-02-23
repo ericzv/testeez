@@ -118,6 +118,11 @@ def calculate_dodge_chance(luck, dodge_item_bonus=0, dodge_talent_bonus=0):
     luck_bonus = luck * 0.001  # 0,10% por ponto de sorte
     return base_dodge + luck_bonus + dodge_item_bonus + dodge_talent_bonus
 
+def get_exp_for_next_level(level):
+    """Calcula a experiência necessária para o próximo nível."""
+    return int(100 * (level ** 1.5))
+
+
 if __name__ == "__main__":
     # Testar fórmulas
     for strength in [0, 10, 30, 70, 100]:

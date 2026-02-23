@@ -28,7 +28,8 @@ from characters import (
 )
 
 # ===== IMPORTS ROUTES =====
-from routes.cards import flash_gamification, get_exp_for_next_level
+from routes.cards import flash_gamification
+from game_formulas import get_exp_for_next_level
 from routes.talents import initialize_player_talents_simple
 from routes.relics import hooks as relic_hooks
 from routes.battle_modules.battle_log import get_battle_log, clear_battle_log

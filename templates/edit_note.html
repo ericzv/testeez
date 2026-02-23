@@ -1,0 +1,430 @@
+{% extends 'base.html' %}
+{% block title %}Editar Nota{% endblock %}
+{% block head %}
+<style>
+.editor-toolbar {
+  border: 1px solid #ccc;
+  border-bottom: none;
+  padding: 5px 6px;
+  background: #f5f5f5;
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  align-items: center;
+  border-radius: 4px 4px 0 0;
+}
+.editor-toolbar button {
+  padding: 4px 10px;
+  border: 1px solid #bbb;
+  background: #fff;
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+.editor-toolbar button:hover { background: #e0e0e0; }
+.editor-toolbar .color-btn {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 3px;
+  border: 2px solid #bbb;
+  cursor: pointer;
+}
+.editor-toolbar .color-btn:hover { border-color: #333; }
+.editor-toolbar .sep {
+  width: 1px;
+  height: 22px;
+  background: #ccc;
+  margin: 0 4px;
+}
+.editor-area {
+  border: 1px solid #ccc;
+  min-height: 120px;
+  max-height: 400px;
+  padding: 10px;
+  background: #fff;
+  outline: none;
+  overflow-y: auto;
+  border-radius: 0 0 4px 4px;
+}
+.editor-area:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+/* Cloze highlight styles */
+.editor-area .cloze-highlight {
+  padding: 1px 4px;
+  border-radius: 2px;
+  border: 1px dashed;
+}
+/* c1 - Azul */
+.editor-area .cloze-c1 { background: #dbeafe; border-color: #3b82f6; }
+/* c2 - Verde */
+.editor-area .cloze-c2 { background: #dcfce7; border-color: #22c55e; }
+/* c3 - Roxo */
+.editor-area .cloze-c3 { background: #ede9fe; border-color: #8b5cf6; }
+/* c4 - Laranja */
+.editor-area .cloze-c4 { background: #ffedd5; border-color: #f97316; }
+/* c5 - Rosa */
+.editor-area .cloze-c5 { background: #fce7f3; border-color: #ec4899; }
+.editor-area img { max-width: 200px; height: auto; border-radius: 4px; vertical-align: middle; }
+.cloze-btn { font-weight: bold; color: #856404; }
+/* Type selector */
+.type-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+.type-selector label {
+  padding: 8px 20px;
+  border: 2px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+.type-selector input[type="radio"] { display: none; }
+.type-selector input[type="radio"]:checked + label {
+  border-color: #007bff;
+  background: #e7f1ff;
+  color: #007bff;
+}
+.note-info {
+  font-size: 0.8em;
+  color: #888;
+  margin-bottom: 5px;
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <h3>Editar Nota #{{ note.id }}</h3>
+    <p class="note-info">
+      Tipo atual: <strong>{{ 'Omissao' if note.note_type == 'cloze' else 'Basico' }}</strong>
+      | {{ note.cards.count() }} cartao(oes) filho(s)
+    </p>
+    <hr>
+    <form method="POST" id="edit-form">
+      <!-- Seletor de tipo -->
+      <div class="type-selector">
+        <input type="radio" name="note_type" id="type-basic" value="basic"
+               {% if note.note_type == 'basic' %}checked{% endif %}>
+        <label for="type-basic">Basico</label>
+        <input type="radio" name="note_type" id="type-cloze" value="cloze"
+               {% if note.note_type == 'cloze' %}checked{% endif %}>
+        <label for="type-cloze">Omissao</label>
+      </div>
+
+      <!-- === MODO BASICO: Frente + Verso === -->
+      <div id="basic-fields" style="{% if note.note_type == 'cloze' %}display:none{% endif %}">
+        <div class="form-group">
+          <label><strong>Pergunta (Frente):</strong></label>
+          <div class="editor-toolbar" data-for="front-editor">
+            <button type="button" data-cmd="bold" title="Negrito"><b>B</b></button>
+            <button type="button" data-cmd="italic" title="Italico"><i>I</i></button>
+            <button type="button" data-cmd="underline" title="Sublinhado"><u>U</u></button>
+            <div class="sep"></div>
+            <button type="button" class="color-btn" style="background:#000;" data-color="#000000"></button>
+            <button type="button" class="color-btn" style="background:#cc0000;" data-color="#cc0000"></button>
+            <button type="button" class="color-btn" style="background:#0000cc;" data-color="#0000cc"></button>
+            <button type="button" class="color-btn" style="background:#008800;" data-color="#008800"></button>
+            <div class="sep"></div>
+            <button type="button" data-cmd="removeFormat" title="Limpar formatacao">&#10005;</button>
+          </div>
+          <div class="editor-area" contenteditable="true" id="front-editor">{{ note.content | safe }}</div>
+          <input type="hidden" name="front" id="front-input">
+        </div>
+
+        <div class="form-group" style="margin-top: 15px;">
+          <label><strong>Resposta (Verso):</strong></label>
+          <div class="editor-toolbar" data-for="back-editor">
+            <button type="button" data-cmd="bold" title="Negrito"><b>B</b></button>
+            <button type="button" data-cmd="italic" title="Italico"><i>I</i></button>
+            <button type="button" data-cmd="underline" title="Sublinhado"><u>U</u></button>
+            <div class="sep"></div>
+            <button type="button" class="color-btn" style="background:#000;" data-color="#000000"></button>
+            <button type="button" class="color-btn" style="background:#cc0000;" data-color="#cc0000"></button>
+            <button type="button" class="color-btn" style="background:#0000cc;" data-color="#0000cc"></button>
+            <button type="button" class="color-btn" style="background:#008800;" data-color="#008800"></button>
+            <div class="sep"></div>
+            <button type="button" data-cmd="removeFormat" title="Limpar formatacao">&#10005;</button>
+          </div>
+          <div class="editor-area" contenteditable="true" id="back-editor">{{ note.back | safe if note.back else '' }}</div>
+          <input type="hidden" name="back" id="back-input">
+        </div>
+      </div>
+
+      <!-- === MODO OMISSAO: Texto unico + Extra === -->
+      <div id="cloze-fields" style="{% if note.note_type != 'cloze' %}display:none{% endif %}">
+        <div class="form-group">
+          <label><strong>Texto (use Ctrl+Shift+C para criar omissoes):</strong></label>
+          <div class="editor-toolbar" data-for="content-editor">
+            <button type="button" data-cmd="bold" title="Negrito"><b>B</b></button>
+            <button type="button" data-cmd="italic" title="Italico"><i>I</i></button>
+            <button type="button" data-cmd="underline" title="Sublinhado"><u>U</u></button>
+            <div class="sep"></div>
+            <button type="button" class="color-btn" style="background:#000;" data-color="#000000"></button>
+            <button type="button" class="color-btn" style="background:#cc0000;" data-color="#cc0000"></button>
+            <button type="button" class="color-btn" style="background:#0000cc;" data-color="#0000cc"></button>
+            <button type="button" class="color-btn" style="background:#008800;" data-color="#008800"></button>
+            <div class="sep"></div>
+            <button type="button" data-cmd="removeFormat" title="Limpar formatacao">&#10005;</button>
+            <div class="sep"></div>
+            <button type="button" data-cloze="true" class="cloze-btn" title="Cloze (Ctrl+Shift+C)">[...]</button>
+          </div>
+          <div class="editor-area" contenteditable="true" id="content-editor">{{ note.content | safe if note.note_type == 'cloze' else '' }}</div>
+          <input type="hidden" name="content" id="content-input">
+        </div>
+
+        <div class="form-group" style="margin-top: 15px;">
+          <label><strong>Extra (opcional - exibido no verso):</strong></label>
+          <div class="editor-toolbar" data-for="extra-editor">
+            <button type="button" data-cmd="bold" title="Negrito"><b>B</b></button>
+            <button type="button" data-cmd="italic" title="Italico"><i>I</i></button>
+            <button type="button" data-cmd="underline" title="Sublinhado"><u>U</u></button>
+            <div class="sep"></div>
+            <button type="button" class="color-btn" style="background:#000;" data-color="#000000"></button>
+            <button type="button" class="color-btn" style="background:#cc0000;" data-color="#cc0000"></button>
+            <button type="button" class="color-btn" style="background:#0000cc;" data-color="#0000cc"></button>
+            <button type="button" class="color-btn" style="background:#008800;" data-color="#008800"></button>
+            <div class="sep"></div>
+            <button type="button" data-cmd="removeFormat" title="Limpar formatacao">&#10005;</button>
+          </div>
+          <div class="editor-area" contenteditable="true" id="extra-editor" style="min-height: 80px;">{{ note.extra | safe if note.extra else '' }}</div>
+          <input type="hidden" name="extra" id="extra-input">
+        </div>
+      </div>
+
+      <div style="margin-top: 15px;">
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <a href="javascript:history.back()" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{% raw %}
+<script>
+// === Fix image paths in editor areas (relative -> full path) ===
+var MEDIA_PREFIX = '/static/collection.media/';
+function fixEditorImages() {
+  document.querySelectorAll('.editor-area img').forEach(function(img) {
+    var src = img.getAttribute('src');
+    if (src && src.indexOf('/') === -1 && src.indexOf('://') === -1) {
+      img.setAttribute('src', MEDIA_PREFIX + src);
+    }
+  });
+}
+function revertEditorImages() {
+  document.querySelectorAll('.editor-area img').forEach(function(img) {
+    var src = img.getAttribute('src');
+    if (src && src.indexOf(MEDIA_PREFIX) === 0) {
+      img.setAttribute('src', src.replace(MEDIA_PREFIX, ''));
+    }
+  });
+}
+fixEditorImages();
+
+// === Color map for cloze numbers ===
+var CLOZE_COLORS = {1:'cloze-c1', 2:'cloze-c2', 3:'cloze-c3', 4:'cloze-c4', 5:'cloze-c5'};
+function clozeClass(n) { return CLOZE_COLORS[n] || CLOZE_COLORS[((n - 1) % 5) + 1]; }
+
+// === Type selector toggle ===
+document.querySelectorAll('input[name="note_type"]').forEach(function(radio) {
+  radio.addEventListener('change', function() {
+    var isBasic = this.value === 'basic';
+    document.getElementById('basic-fields').style.display = isBasic ? '' : 'none';
+    document.getElementById('cloze-fields').style.display = isBasic ? 'none' : '';
+
+    // Quando trocar para cloze, copiar conteudo do front para content se content vazio
+    if (!isBasic) {
+      var contentEditor = document.getElementById('content-editor');
+      if (!contentEditor.textContent.trim()) {
+        contentEditor.innerHTML = document.getElementById('front-editor').innerHTML;
+        highlightClozes();
+        ensureClozeExit();
+      }
+    }
+    // Quando trocar para basico, copiar content para front se front vazio
+    if (isBasic) {
+      var frontEditor = document.getElementById('front-editor');
+      if (!frontEditor.textContent.trim()) {
+        frontEditor.innerHTML = document.getElementById('content-editor').innerHTML;
+      }
+    }
+  });
+});
+
+// Prevent toolbar buttons from stealing editor focus
+document.querySelectorAll('.editor-toolbar button').forEach(function(btn) {
+  btn.addEventListener('mousedown', function(e) { e.preventDefault(); });
+});
+
+// Format commands
+document.querySelectorAll('[data-cmd]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.execCommand(btn.dataset.cmd, false, null);
+  });
+});
+
+// Color commands
+document.querySelectorAll('[data-color]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.execCommand('foreColor', false, btn.dataset.color);
+  });
+});
+
+// === Cloze highlighting on page load ===
+function highlightClozes() {
+  ['content-editor', 'front-editor'].forEach(function(id) {
+    var editor = document.getElementById(id);
+    if (!editor) return;
+
+    var walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT, null, false);
+    var textNodes = [];
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+    textNodes.forEach(function(node) {
+      var text = node.textContent;
+      if (!/\{\{c\d+::/.test(text)) return;
+
+      var frag = document.createDocumentFragment();
+      var re = /(\{\{c(\d+)::(.*?)\}\})/g;
+      var lastIndex = 0;
+      var match;
+      while ((match = re.exec(text)) !== null) {
+        if (match.index > lastIndex)
+          frag.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
+        var span = document.createElement('span');
+        span.className = 'cloze-highlight ' + clozeClass(parseInt(match[2]));
+        span.textContent = match[0];
+        frag.appendChild(span);
+        lastIndex = re.lastIndex;
+      }
+      if (lastIndex < text.length)
+        frag.appendChild(document.createTextNode(text.substring(lastIndex)));
+      node.parentNode.replaceChild(frag, node);
+    });
+  });
+}
+
+function ensureClozeExit() {
+  ['content-editor', 'front-editor'].forEach(function(id) {
+    var editor = document.getElementById(id);
+    if (!editor) return;
+    editor.querySelectorAll('.cloze-highlight').forEach(function(span) {
+      var next = span.nextSibling;
+      if (!next || next.nodeType !== Node.TEXT_NODE || next.textContent === '') {
+        span.parentNode.insertBefore(document.createTextNode('\u200B'), span.nextSibling);
+      }
+    });
+  });
+}
+
+highlightClozes();
+ensureClozeExit();
+
+// === Cloze insertion ===
+function insertCloze() {
+  var sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  var text = sel.toString();
+  if (!text) return;
+
+  var node = sel.anchorNode;
+  if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+  if (!node || !node.closest('.editor-area')) return;
+
+  // Find highest existing cloze number
+  var allContent = document.getElementById('content-editor').innerHTML
+                 + document.getElementById('front-editor').innerHTML;
+  var maxNum = 0;
+  (allContent.match(/\{\{c(\d+)::/g) || []).forEach(function(m) {
+    var n = parseInt(m.match(/\d+/)[0]);
+    if (n > maxNum) maxNum = n;
+  });
+
+  var num = maxNum + 1;
+  var range = sel.getRangeAt(0);
+  range.deleteContents();
+
+  var span = document.createElement('span');
+  span.className = 'cloze-highlight ' + clozeClass(num);
+  span.textContent = '{{c' + num + '::' + text + '}}';
+  range.insertNode(span);
+
+  var esc = document.createTextNode('\u200B');
+  span.parentNode.insertBefore(esc, span.nextSibling);
+  sel.collapse(esc, 1);
+}
+
+document.querySelectorAll('[data-cloze]').forEach(function(btn) {
+  btn.addEventListener('click', insertCloze);
+});
+
+// Ctrl+Shift+C shortcut
+document.addEventListener('keydown', function(e) {
+  if (e.ctrlKey && e.shiftKey && e.code === 'KeyC') {
+    e.preventDefault();
+    insertCloze();
+  }
+});
+
+// ArrowRight to escape cloze spans
+document.querySelectorAll('.editor-area').forEach(function(editor) {
+  editor.addEventListener('keydown', function(e) {
+    if (e.key !== 'ArrowRight') return;
+    var sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    var node = sel.anchorNode;
+    var offset = sel.anchorOffset;
+    if (node.nodeType === Node.TEXT_NODE && offset === node.textContent.length) {
+      var parent = node.parentElement;
+      if (parent && parent.classList.contains('cloze-highlight')) {
+        e.preventDefault();
+        var next = parent.nextSibling;
+        if (!next || next.nodeType !== Node.TEXT_NODE) {
+          next = document.createTextNode('\u200B');
+          parent.parentNode.insertBefore(next, parent.nextSibling);
+        }
+        sel.collapse(next, next.textContent === '\u200B' ? 1 : 0);
+      }
+    }
+  });
+});
+
+// === On submit: clean up and copy to hidden inputs ===
+document.getElementById('edit-form').addEventListener('submit', function() {
+  var noteType = document.querySelector('input[name="note_type"]:checked').value;
+
+  // Revert image paths to relative before saving
+  revertEditorImages();
+
+  // Clean cloze highlights in all editors
+  ['content-editor', 'front-editor', 'back-editor'].forEach(function(id) {
+    var editor = document.getElementById(id);
+    if (!editor) return;
+    editor.querySelectorAll('.cloze-highlight').forEach(function(span) {
+      span.parentNode.replaceChild(document.createTextNode(span.textContent), span);
+    });
+  });
+
+  // Strip zero-width spaces
+  function cleanHTML(el) {
+    return el.innerHTML.replace(/\u200B/g, '');
+  }
+
+  if (noteType === 'cloze') {
+    document.getElementById('content-input').value = cleanHTML(document.getElementById('content-editor'));
+    document.getElementById('extra-input').value = cleanHTML(document.getElementById('extra-editor'));
+  } else {
+    document.getElementById('front-input').value = cleanHTML(document.getElementById('front-editor'));
+    document.getElementById('back-input').value = cleanHTML(document.getElementById('back-editor'));
+  }
+});
+</script>
+{% endraw %}
+{% endblock %}

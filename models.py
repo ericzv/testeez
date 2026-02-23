@@ -19,6 +19,13 @@ card_tags = db.Table(
     db.Column('tag_id',  db.Integer, db.ForeignKey('tag.id'),  primary_key=True)
 )
 
+# Associação Note ⇄ Tag
+note_tags = db.Table(
+    'note_tags',
+    db.Column('note_id', db.Integer, db.ForeignKey('note.id'), primary_key=True),
+    db.Column('tag_id',  db.Integer, db.ForeignKey('tag.id'),  primary_key=True)
+)
+
 class Deck(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), default="Coleção completa")
@@ -39,27 +46,142 @@ class DailyStats(db.Model):
     study_time = db.Column(db.Integer, default=0)  # Tempo em segundos
 
 
+class Note(db.Model):
+    """Nota: entidade mãe que contém o texto editável.
+    Tipo 'basic' = Frente/Verso. Tipo 'cloze' = Texto único com {{cN::...}}."""
+    id = db.Column(db.Integer, primary_key=True)
+    note_type = db.Column(db.String(20), nullable=False, default='basic')  # 'basic' ou 'cloze'
+    content = db.Column(db.Text, nullable=False)   # basic: frente | cloze: texto completo
+    back = db.Column(db.Text, nullable=True)       # basic: verso  | cloze: NULL
+    extra = db.Column(db.Text, nullable=True)      # Info extra exibida no verso
+    deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'), nullable=False, default=1)
+    deck = db.relationship('Deck', backref='notes')
+    tags = db.relationship('Tag', secondary=note_tags, lazy='subquery',
+                           backref=db.backref('notes', lazy=True))
+    cards = db.relationship('Card', backref='note', lazy='dynamic')
+
+    def get_cloze_ordinals(self):
+        """Retorna lista ordenada dos ordinais cloze encontrados no conteúdo."""
+        import re
+        matches = re.findall(r'\{\{c(\d+)::', self.content or '')
+        return sorted(set(int(m) for m in matches))
+
+    def sync_cards(self):
+        """Sincroniza cartões-filho com os ordinais cloze. Cria/remove conforme necessário."""
+        if self.note_type != 'cloze':
+            # Nota básica: garantir exatamente 1 cartão com ordinal=1
+            existing = Card.query.filter_by(note_id=self.id).all()
+            if not existing:
+                card = Card(note_id=self.id, ordinal=1, deck_id=self.deck_id,
+                            front=self.content or '', back=self.back or '')
+                db.session.add(card)
+            else:
+                for c in existing:
+                    c.front = self.content or ''
+                    c.back = self.back or ''
+                    c.deck_id = self.deck_id
+            return
+
+        ordinals = self.get_cloze_ordinals()
+        existing_cards = {c.ordinal: c for c in Card.query.filter_by(note_id=self.id).all()}
+
+        # Criar cartões para novos ordinais
+        for ordinal in ordinals:
+            if ordinal not in existing_cards:
+                card = Card(note_id=self.id, ordinal=ordinal, deck_id=self.deck_id,
+                            front=self.content, back='')
+                db.session.add(card)
+            else:
+                existing_cards[ordinal].front = self.content
+                existing_cards[ordinal].deck_id = self.deck_id
+
+        # Deletar cartões de ordinais removidos
+        for ordinal, card in existing_cards.items():
+            if ordinal not in ordinals:
+                ReviewLog.query.filter_by(card_id=card.id).delete()
+                db.session.delete(card)
+
+    def __repr__(self):
+        return f"<Note #{self.id} type={self.note_type}>"
+
+
 class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     front = db.Column(db.Text, nullable=False)
     back = db.Column(db.Text, nullable=True)
-    difficulty = db.Column(db.Float, default=3)
-    interval = db.Column(db.Float, default=1.0)
+    difficulty = db.Column(db.Float, default=5)           # Legado: sincronizado a partir de EF para UI
+    interval = db.Column(db.Float, default=0.0)           # Intervalo atual em dias
     next_review = db.Column(db.DateTime, default=datetime.utcnow)
     review_count = db.Column(db.Integer, default=0)
     correct_count = db.Column(db.Integer, default=0)
+    # SM-2 fields
+    easiness_factor = db.Column(db.Float, default=2.5)    # EF do SM-2 (1.3 - 5.0)
+    repetition = db.Column(db.Integer, default=0)         # Contador de repetições consecutivas corretas
     deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'), nullable=False, default=1)
     deck = db.relationship('Deck', backref='cards')
     suspended = db.Column(db.Boolean, default=False)
     tags = db.relationship('Tag', secondary=card_tags, lazy='subquery',
                       backref=db.backref('cards', lazy=True))
+    # Note/Card system
+    note_id = db.Column(db.Integer, db.ForeignKey('note.id'), nullable=True)
+    ordinal = db.Column(db.Integer, default=1)  # Qual cN este cartão representa
+
+    def render_front(self):
+        """Renderiza o lado da pergunta deste cartão."""
+        if self.note:
+            from filters import process_cloze_front, update_image_paths
+            if self.note.note_type == 'cloze':
+                return process_cloze_front(update_image_paths(self.note.content), self.ordinal)
+            else:
+                return update_image_paths(self.note.content)
+        # Fallback legado
+        from filters import process_front
+        return process_front(self.front)
+
+    def render_back(self):
+        """Renderiza o lado da resposta deste cartão."""
+        if self.note:
+            from filters import process_cloze_answer, update_image_paths
+            if self.note.note_type == 'cloze':
+                result = process_cloze_answer(update_image_paths(self.note.content), self.ordinal)
+                if self.note.extra:
+                    result += '<br><br><br>' + update_image_paths(self.note.extra)
+                return result
+            else:
+                result = update_image_paths(self.note.back or '')
+                if self.note.extra:
+                    result += '<br><br><br>' + update_image_paths(self.note.extra)
+                return result
+        # Fallback legado
+        from filters import process_answer
+        return process_answer(self.back or '')
 
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
-    
+
     def __repr__(self):
         return f"<Tag {self.name}>"
+
+class ReviewLog(db.Model):
+    """Histórico detalhado de cada revisão de cartão."""
+    __tablename__ = 'review_log'
+    id = db.Column(db.Integer, primary_key=True)
+    card_id = db.Column(db.Integer, db.ForeignKey('card.id'), nullable=False, index=True)
+    response = db.Column(db.String(20), nullable=False)   # 'errei', 'dificil', 'facil', 'muito_facil'
+    quality = db.Column(db.Integer, nullable=False)        # Qualidade SM-2 (0-5)
+    was_new = db.Column(db.Boolean, default=False)
+    interval_before = db.Column(db.Float)
+    interval_after = db.Column(db.Float)
+    ef_before = db.Column(db.Float)
+    ef_after = db.Column(db.Float)
+    time_spent = db.Column(db.Integer, default=0)          # Segundos
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+
+    card = db.relationship('Card', backref=db.backref('review_logs', lazy='dynamic'))
+
+    def __repr__(self):
+        return f"<ReviewLog card={self.card_id} q={self.quality} @{self.timestamp}>"
 
 # Modificar o modelo Player para suportar classe e sub-classe
 class Player(db.Model):

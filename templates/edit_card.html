@@ -1,29 +1,440 @@
 {% extends 'base.html' %}
 {% block title %}Editar Cartão{% endblock %}
+{% block head %}
+<style>
+.editor-toolbar {
+  border: 1px solid #ccc;
+  border-bottom: none;
+  padding: 5px 6px;
+  background: #f5f5f5;
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  align-items: center;
+  border-radius: 4px 4px 0 0;
+}
+.editor-toolbar button {
+  padding: 4px 10px;
+  border: 1px solid #bbb;
+  background: #fff;
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+.editor-toolbar button:hover { background: #e0e0e0; }
+.editor-toolbar .color-btn {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 3px;
+  border: 2px solid #bbb;
+  cursor: pointer;
+}
+.editor-toolbar .color-btn:hover { border-color: #333; }
+.editor-toolbar .sep {
+  width: 1px;
+  height: 22px;
+  background: #ccc;
+  margin: 0 4px;
+}
+.editor-area {
+  border: 1px solid #ccc;
+  min-height: 120px;
+  max-height: 400px;
+  padding: 10px;
+  background: #fff;
+  outline: none;
+  overflow-y: auto;
+  border-radius: 0 0 4px 4px;
+}
+.editor-area:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+/* Base cloze/highlight styles */
+.editor-area .cloze,
+.editor-area .cloze-inactive,
+.editor-area .cloze-highlight {
+  padding: 1px 4px;
+  border-radius: 2px;
+  border: 1px dashed;
+}
+/* Default cloze color (unknown number) */
+.editor-area .cloze,
+.editor-area .cloze-inactive {
+  background: #fff3cd;
+  border-color: #d4a017;
+}
+/* c1 - Azul */
+.editor-area .cloze-c1 { background: #dbeafe; border-color: #3b82f6; }
+/* c2 - Verde */
+.editor-area .cloze-c2 { background: #dcfce7; border-color: #22c55e; }
+/* c3 - Roxo */
+.editor-area .cloze-c3 { background: #ede9fe; border-color: #8b5cf6; }
+/* c4 - Laranja */
+.editor-area .cloze-c4 { background: #ffedd5; border-color: #f97316; }
+/* c5 - Rosa */
+.editor-area .cloze-c5 { background: #fce7f3; border-color: #ec4899; }
+/* Esquema / Saiba mais blocks in editor */
+.editor-area .esquema {
+  border: 2px dashed #17a2b8;
+  background: #e8f4f8;
+  padding: 8px;
+  margin: 8px 0;
+  border-radius: 4px;
+}
+.editor-area .esquema::before {
+  content: '\25BC  Extra';
+  display: block;
+  font-size: 0.75em;
+  color: #17a2b8;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+.editor-area .esquema a {
+  color: #17a2b8;
+  text-decoration: none;
+  cursor: text;
+}
+.editor-area .esquema .extra-toggle {
+  pointer-events: none;
+  opacity: 0.7;
+}
+.editor-area img { max-width: 100%; height: auto; }
+.cloze-btn { font-weight: bold; color: #856404; }
+.spoiler-btn { font-weight: bold; color: #17a2b8; font-size: 0.85em; }
+</style>
+{% endblock %}
 {% block content %}
 <div class="card">
   <div class="card-body">
     <h3>Editar Cartão #{{ card.id }}</h3>
-    <p style="font-size: 0.8em; color: #888;">Editar cartões prontos pode desconfigurá-los</p>
+    <p style="font-size: 0.8em; color: #888;">Editor visual — use a barra de ferramentas para formatar. Cloze: Ctrl+Shift+C</p>
     <hr>
-    <form method="POST">
+    <form method="POST" id="edit-form">
       <div class="form-group">
-        <label for="front">Pergunta (Front):</label>
-        <textarea class="form-control" id="front" name="front" rows="3">{{ card.front | raw_edit }}</textarea>
+        <label><strong>Pergunta (Front):</strong></label>
+        <div class="editor-toolbar">
+          <button type="button" data-cmd="bold" title="Negrito (Ctrl+B)"><b>B</b></button>
+          <button type="button" data-cmd="italic" title="Itálico (Ctrl+I)"><i>I</i></button>
+          <button type="button" data-cmd="underline" title="Sublinhado (Ctrl+U)"><u>U</u></button>
+          <div class="sep"></div>
+          <button type="button" class="color-btn" style="background:#000;" data-color="#000000" title="Preto"></button>
+          <button type="button" class="color-btn" style="background:#cc0000;" data-color="#cc0000" title="Vermelho"></button>
+          <button type="button" class="color-btn" style="background:#0000cc;" data-color="#0000cc" title="Azul"></button>
+          <button type="button" class="color-btn" style="background:#008800;" data-color="#008800" title="Verde"></button>
+          <button type="button" class="color-btn" style="background:#ff9900;" data-color="#ff9900" title="Laranja"></button>
+          <div class="sep"></div>
+          <button type="button" data-cmd="removeFormat" title="Limpar formatação">✕</button>
+          <div class="sep"></div>
+          <button type="button" data-cloze="true" class="cloze-btn" title="Cloze (Ctrl+Shift+C)">[...]</button>
+          <div class="sep"></div>
+          <button type="button" data-spoiler="true" class="spoiler-btn" title="Inserir seção Extra colapsável">Extra</button>
+        </div>
+        <div class="editor-area" contenteditable="true" id="front-editor">{{ card.front | safe }}</div>
+        <input type="hidden" name="front" id="front-input">
       </div>
-      <div class="form-group">
-        <label for="back">Resposta (Back):</label>
-        <textarea class="form-control" id="back" name="back" rows="3">
-{% if "<img" in card.back %}
-{{ card.back | raw_edit }} (Imagem)
-{% else %}
-{{ card.back | raw_edit }}
-{% endif %}
-        </textarea>
+
+      <div class="form-group" style="margin-top: 15px;">
+        <label><strong>Resposta (Back):</strong></label>
+        <div class="editor-toolbar">
+          <button type="button" data-cmd="bold" title="Negrito (Ctrl+B)"><b>B</b></button>
+          <button type="button" data-cmd="italic" title="Itálico (Ctrl+I)"><i>I</i></button>
+          <button type="button" data-cmd="underline" title="Sublinhado (Ctrl+U)"><u>U</u></button>
+          <div class="sep"></div>
+          <button type="button" class="color-btn" style="background:#000;" data-color="#000000" title="Preto"></button>
+          <button type="button" class="color-btn" style="background:#cc0000;" data-color="#cc0000" title="Vermelho"></button>
+          <button type="button" class="color-btn" style="background:#0000cc;" data-color="#0000cc" title="Azul"></button>
+          <button type="button" class="color-btn" style="background:#008800;" data-color="#008800" title="Verde"></button>
+          <button type="button" class="color-btn" style="background:#ff9900;" data-color="#ff9900" title="Laranja"></button>
+          <div class="sep"></div>
+          <button type="button" data-cmd="removeFormat" title="Limpar formatação">✕</button>
+          <div class="sep"></div>
+          <button type="button" data-cloze="true" class="cloze-btn" title="Cloze (Ctrl+Shift+C)">[...]</button>
+          <div class="sep"></div>
+          <button type="button" data-spoiler="true" class="spoiler-btn" title="Inserir seção Extra colapsável">Extra</button>
+        </div>
+        <div class="editor-area" contenteditable="true" id="back-editor">{{ card.back | safe }}</div>
+        <input type="hidden" name="back" id="back-input">
       </div>
-      <button type="submit" class="btn btn-primary">Salvar</button>
-      <a href="{{ url_for('cards.card_detail', card_id=card.id) }}" class="btn btn-secondary">Cancelar</a>
+
+      <div style="margin-top: 15px;">
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <a href="{{ url_for('cards.card_detail', card_id=card.id) }}" class="btn btn-secondary">Cancelar</a>
+      </div>
     </form>
   </div>
 </div>
+{% endblock %}
+{% block scripts %}
+{% raw %}
+<script>
+// === Color map for cloze numbers ===
+var CLOZE_COLORS = {1:'cloze-c1', 2:'cloze-c2', 3:'cloze-c3', 4:'cloze-c4', 5:'cloze-c5'};
+function clozeClass(n) { return CLOZE_COLORS[n] || CLOZE_COLORS[((n - 1) % 5) + 1]; }
+
+// Prevent toolbar buttons from stealing editor focus
+document.querySelectorAll('.editor-toolbar button').forEach(function(btn) {
+  btn.addEventListener('mousedown', function(e) { e.preventDefault(); });
+});
+
+// Format commands (bold, italic, underline, removeFormat)
+document.querySelectorAll('[data-cmd]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.execCommand(btn.dataset.cmd, false, null);
+  });
+});
+
+// Color commands
+document.querySelectorAll('[data-color]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.execCommand('foreColor', false, btn.dataset.color);
+  });
+});
+
+// === Cloze highlighting on page load ===
+function highlightClozes() {
+  ['front-editor', 'back-editor'].forEach(function(id) {
+    var editor = document.getElementById(id);
+
+    // 1) Wrap text-based {{cN::text}} patterns in colored spans
+    var walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT, null, false);
+    var textNodes = [];
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+    textNodes.forEach(function(node) {
+      var text = node.textContent;
+      if (!/\{\{c\d+::/.test(text)) return;
+
+      var frag = document.createDocumentFragment();
+      var re = /(\{\{c(\d+)::(.*?)\}\})/g;
+      var lastIndex = 0;
+      var match;
+      while ((match = re.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+          frag.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
+        }
+        var span = document.createElement('span');
+        var num = parseInt(match[2]);
+        span.className = 'cloze-highlight ' + clozeClass(num);
+        span.textContent = match[0];
+        frag.appendChild(span);
+        lastIndex = re.lastIndex;
+      }
+      if (lastIndex < text.length) {
+        frag.appendChild(document.createTextNode(text.substring(lastIndex)));
+      }
+      node.parentNode.replaceChild(frag, node);
+    });
+
+    // 2) Color existing <span class="cloze"> elements by ordinal
+    editor.querySelectorAll('.cloze, .cloze-inactive').forEach(function(span) {
+      var ordinal = span.getAttribute('data-ordinal');
+      var num = ordinal ? parseInt(ordinal) : 1;
+      span.classList.add(clozeClass(num));
+    });
+  });
+}
+
+// === Ensure user can exit cloze spans by adding escape text nodes ===
+function ensureClozeExit() {
+  ['front-editor', 'back-editor'].forEach(function(id) {
+    var editor = document.getElementById(id);
+    editor.querySelectorAll('.cloze-highlight, .cloze, .cloze-inactive').forEach(function(span) {
+      var next = span.nextSibling;
+      if (!next || (next.nodeType !== Node.TEXT_NODE) || next.textContent === '') {
+        var esc = document.createTextNode('\u200B');
+        span.parentNode.insertBefore(esc, span.nextSibling);
+      }
+    });
+  });
+}
+
+// === Prepare collapsible sections for editing ===
+function prepareCollapsibles() {
+  document.querySelectorAll('.editor-area .esquema').forEach(function(esquema) {
+    // Remove onclick from trigger elements (both <a> and <button>)
+    esquema.querySelectorAll('a, button').forEach(function(el) {
+      el.removeAttribute('onclick');
+      if (el.tagName === 'A') el.setAttribute('href', 'javascript:void(0)');
+    });
+    // Show hidden content divs so user can edit them
+    esquema.querySelectorAll('[style*="display: none"], [style*="display:none"]').forEach(function(el) {
+      el.style.display = 'block';
+    });
+  });
+}
+
+// Run on page load
+highlightClozes();
+ensureClozeExit();
+prepareCollapsibles();
+
+// === Cloze insertion ===
+function insertCloze() {
+  var sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  var text = sel.toString();
+  if (!text) return;
+
+  var node = sel.anchorNode;
+  if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+  if (!node || !node.closest('.editor-area')) return;
+
+  // Find highest existing cloze number across both editors
+  var allContent = document.getElementById('front-editor').innerHTML
+                 + document.getElementById('back-editor').innerHTML;
+  var maxNum = 0;
+  var ankiMatches = allContent.match(/\{\{c(\d+)::/g) || [];
+  ankiMatches.forEach(function(m) {
+    var n = parseInt(m.match(/\d+/)[0]);
+    if (n > maxNum) maxNum = n;
+  });
+  var ordMatches = allContent.match(/data-ordinal="(\d+)"/g) || [];
+  ordMatches.forEach(function(m) {
+    var n = parseInt(m.match(/\d+/)[0]);
+    if (n > maxNum) maxNum = n;
+  });
+
+  var num = maxNum + 1;
+  var range = sel.getRangeAt(0);
+  range.deleteContents();
+
+  var span = document.createElement('span');
+  span.className = 'cloze-highlight ' + clozeClass(num);
+  span.textContent = '{{c' + num + '::' + text + '}}';
+  range.insertNode(span);
+
+  // Add escape node after span so user can continue typing outside
+  var esc = document.createTextNode('\u200B');
+  span.parentNode.insertBefore(esc, span.nextSibling);
+  sel.collapse(esc, 1);
+}
+
+document.querySelectorAll('[data-cloze]').forEach(function(btn) {
+  btn.addEventListener('click', insertCloze);
+});
+
+// Ctrl+Shift+C shortcut
+document.addEventListener('keydown', function(e) {
+  if (e.ctrlKey && e.shiftKey && e.code === 'KeyC') {
+    e.preventDefault();
+    insertCloze();
+  }
+});
+
+// ArrowRight to escape cloze spans
+document.querySelectorAll('.editor-area').forEach(function(editor) {
+  editor.addEventListener('keydown', function(e) {
+    if (e.key !== 'ArrowRight') return;
+    var sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    var node = sel.anchorNode;
+    var offset = sel.anchorOffset;
+
+    // Cursor at end of text inside a cloze span
+    if (node.nodeType === Node.TEXT_NODE && offset === node.textContent.length) {
+      var parent = node.parentElement;
+      if (parent && (parent.classList.contains('cloze-highlight') ||
+                     parent.classList.contains('cloze') ||
+                     parent.classList.contains('cloze-inactive'))) {
+        e.preventDefault();
+        var next = parent.nextSibling;
+        if (!next || next.nodeType !== Node.TEXT_NODE) {
+          next = document.createTextNode('\u200B');
+          parent.parentNode.insertBefore(next, parent.nextSibling);
+        }
+        sel.collapse(next, next.textContent === '\u200B' ? 1 : 0);
+      }
+    }
+  });
+});
+
+// === Insert collapsible "Extra" section ===
+function insertSpoiler() {
+  var sel = window.getSelection();
+  var node = sel.anchorNode;
+  if (node && node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+  var editor = node ? node.closest('.editor-area') : null;
+  if (!editor) editor = document.getElementById('back-editor');
+
+  var uid = 'hint' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+  var div = document.createElement('div');
+  div.className = 'esquema';
+  div.innerHTML = '<button class="extra-toggle" style="background:#007bff;color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:1.2em;cursor:pointer;text-align:center;line-height:28px;padding:0;" contenteditable="false">+</button>'
+    + '<div id="' + uid + '" class="hint" style="display: block;">'
+    + '<div><br></div></div>';
+
+  if (sel.rangeCount && editor.contains(sel.anchorNode)) {
+    var range = sel.getRangeAt(0);
+    range.collapse(false);
+    range.insertNode(div);
+  } else {
+    editor.appendChild(div);
+  }
+
+  // Place cursor inside the content area
+  var contentArea = div.querySelector('.hint > div');
+  if (contentArea) {
+    sel.collapse(contentArea, 0);
+  }
+}
+
+document.querySelectorAll('[data-spoiler]').forEach(function(btn) {
+  btn.addEventListener('click', insertSpoiler);
+});
+
+// === On submit: clean up editor HTML and copy to hidden inputs ===
+document.getElementById('edit-form').addEventListener('submit', function() {
+  ['front-editor', 'back-editor'].forEach(function(id) {
+    var editor = document.getElementById(id);
+
+    // 1) Restore collapsible sections for proper rendering
+    editor.querySelectorAll('.esquema').forEach(function(esquema) {
+      var trigger = esquema.querySelector(':scope > a') || esquema.querySelector(':scope > button');
+      var contentDiv = esquema.querySelector(':scope > div');
+
+      if (contentDiv) {
+        if (!contentDiv.id) {
+          contentDiv.id = 'hint' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+        }
+
+        // If trigger was deleted by user, recreate the blue + button
+        if (!trigger) {
+          trigger = document.createElement('button');
+          trigger.textContent = '+';
+          trigger.style.cssText = 'background:#007bff;color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:1.2em;cursor:pointer;text-align:center;line-height:28px;padding:0;';
+          trigger.className = 'extra-toggle';
+          esquema.insertBefore(trigger, contentDiv);
+        }
+
+        // Set onclick to toggle visibility
+        trigger.setAttribute('onclick',
+          "this.style.display='none';document.getElementById('" + contentDiv.id + "').style.display='block';return false;");
+        if (trigger.tagName === 'A') trigger.setAttribute('href', '#');
+        trigger.removeAttribute('contenteditable');
+        if (!contentDiv.classList.contains('hint')) contentDiv.classList.add('hint');
+        contentDiv.style.display = 'none';
+      }
+    });
+
+    // 2) Unwrap cloze highlight spans -> keep plain {{cN::text}} text
+    editor.querySelectorAll('.cloze-highlight').forEach(function(span) {
+      var txt = document.createTextNode(span.textContent);
+      span.parentNode.replaceChild(txt, span);
+    });
+
+    // 3) Remove added color classes from imported .cloze spans
+    editor.querySelectorAll('.cloze, .cloze-inactive').forEach(function(span) {
+      span.classList.remove('cloze-c1', 'cloze-c2', 'cloze-c3', 'cloze-c4', 'cloze-c5');
+    });
+  });
+
+  // Copy cleaned HTML to hidden inputs, stripping zero-width spaces
+  document.getElementById('front-input').value = document.getElementById('front-editor').innerHTML.replace(/\u200B/g, '');
+  document.getElementById('back-input').value = document.getElementById('back-editor').innerHTML.replace(/\u200B/g, '');
+});
+</script>
+{% endraw %}
 {% endblock %}
