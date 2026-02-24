@@ -1714,13 +1714,15 @@ def card_detail(card_id):
             'easiness_factor': f"{card.easiness_factor:.2f}",
             'repetition': card.repetition,
         }
+    total_review_logs = ReviewLog.query.filter_by(card_id=card.id).count()
     review_logs = ReviewLog.query.filter_by(card_id=card.id).order_by(ReviewLog.timestamp.desc()).limit(50).all()
     # Info sobre nota e cartões-irmãos
     sibling_cards = []
     if card.note:
         sibling_cards = Card.query.filter_by(note_id=card.note.id).order_by(Card.ordinal).all()
     return render_template('card_detail.html', card=card, details=details_info,
-                           review_logs=review_logs, sibling_cards=sibling_cards)
+                           review_logs=review_logs, sibling_cards=sibling_cards,
+                           total_review_logs=total_review_logs)
 
 @cards_bp.route('/card/<int:card_id>/edit', methods=['GET', 'POST'])
 def edit_card(card_id):
@@ -1895,6 +1897,7 @@ def api_card_detail(card_id):
         }
 
     # Historico de revisoes (ultimas 20)
+    total_review_logs = ReviewLog.query.filter_by(card_id=card.id).count()
     logs = []
     for log in ReviewLog.query.filter_by(card_id=card.id).order_by(ReviewLog.timestamp.desc()).limit(20).all():
         logs.append({
@@ -1928,7 +1931,44 @@ def api_card_detail(card_id):
         'note_info': note_info,
         'siblings': siblings,
         'review_logs': logs,
+        'total_review_logs': total_review_logs,
     })
+
+
+@cards_bp.route('/api/card/<int:card_id>/reviews')
+def api_card_reviews(card_id):
+    """API paginada para histórico de revisões de um cartão."""
+    card = Card.query.get(card_id)
+    if not card:
+        return jsonify({'error': 'Cartao nao encontrado'}), 404
+
+    offset = request.args.get('offset', 0, type=int)
+    limit = request.args.get('limit', 20, type=int)
+    limit = min(limit, 100)  # Teto de segurança
+
+    total = ReviewLog.query.filter_by(card_id=card.id).count()
+    reviews = ReviewLog.query.filter_by(card_id=card.id)\
+        .order_by(ReviewLog.timestamp.desc())\
+        .offset(offset).limit(limit).all()
+
+    logs = []
+    for log in reviews:
+        logs.append({
+            'date': log.timestamp.strftime('%d/%m/%Y %H:%M'),
+            'response': log.response,
+            'interval_before': f"{log.interval_before:.2f}" if log.interval_before is not None else '-',
+            'interval_after': f"{log.interval_after:.2f}" if log.interval_after is not None else '-',
+            'ef_before': f"{log.ef_before:.2f}" if log.ef_before is not None else '-',
+            'ef_after': f"{log.ef_after:.2f}" if log.ef_after is not None else '-',
+            'time_spent': log.time_spent,
+        })
+
+    return jsonify({
+        'reviews': logs,
+        'total': total,
+        'has_more': (offset + limit) < total,
+    })
+
 
 @cards_bp.route('/delete_deck/<int:deck_id>', methods=['POST'])
 def delete_deck(deck_id):
