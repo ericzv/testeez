@@ -622,7 +622,7 @@
       html += '<h6>Historico de Revisoes</h6>';
       html += '<table class="detail-log-table table table-sm table-bordered">';
       html += '<thead><tr><th>Data</th><th>Resp</th><th>Int. antes</th><th>Int. depois</th><th>Tempo</th></tr></thead>';
-      html += '<tbody>';
+      html += '<tbody id="review-logs-tbody">';
       data.review_logs.forEach(function(log) {
         var respClass = 'response-' + log.response;
         var respLabel = {'errei':'Errei','dificil':'Dificil','facil':'Facil','muito_facil':'M. Facil'}[log.response] || log.response;
@@ -635,10 +635,63 @@
         html += '</tr>';
       });
       html += '</tbody></table>';
+      var total = data.total_review_logs || data.review_logs.length;
+      if (total > data.review_logs.length) {
+        html += '<button id="btn-load-more-reviews" class="btn btn-sm btn-outline-secondary btn-block" '
+              + 'data-card-id="' + data.id + '" data-offset="' + data.review_logs.length + '" data-total="' + total + '">'
+              + 'Ver mais (' + data.review_logs.length + ' de ' + total + ')</button>';
+      }
       html += '</div>';
     }
 
     body.innerHTML = html;
+
+    // Bind "Ver mais" button for review logs
+    var btnMore = document.getElementById('btn-load-more-reviews');
+    if (btnMore) {
+      btnMore.addEventListener('click', function() {
+        loadMoreReviews(this);
+      });
+    }
+  }
+
+  function loadMoreReviews(btn) {
+    var cardId = btn.getAttribute('data-card-id');
+    var offset = parseInt(btn.getAttribute('data-offset'));
+    var total = parseInt(btn.getAttribute('data-total'));
+    btn.disabled = true;
+    btn.textContent = 'Carregando...';
+
+    fetch('/api/card/' + cardId + '/reviews?offset=' + offset + '&limit=20')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var tbody = document.getElementById('review-logs-tbody');
+        if (!tbody || !data.reviews) return;
+        data.reviews.forEach(function(log) {
+          var respClass = 'response-' + log.response;
+          var respLabel = {'errei':'Errei','dificil':'Dificil','facil':'Facil','muito_facil':'M. Facil'}[log.response] || log.response;
+          var row = '<tr>';
+          row += '<td>' + log.date + '</td>';
+          row += '<td class="' + respClass + '">' + respLabel + '</td>';
+          row += '<td>' + log.interval_before + 'd</td>';
+          row += '<td>' + log.interval_after + 'd</td>';
+          row += '<td>' + log.time_spent + 's</td>';
+          row += '</tr>';
+          tbody.insertAdjacentHTML('beforeend', row);
+        });
+        var newOffset = offset + data.reviews.length;
+        if (data.has_more) {
+          btn.disabled = false;
+          btn.setAttribute('data-offset', newOffset);
+          btn.textContent = 'Ver mais (' + newOffset + ' de ' + total + ')';
+        } else {
+          btn.remove();
+        }
+      })
+      .catch(function() {
+        btn.disabled = false;
+        btn.textContent = 'Erro ao carregar. Tentar novamente.';
+      });
   }
 
   // Open sibling card in detail

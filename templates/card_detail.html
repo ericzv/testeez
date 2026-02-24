@@ -84,6 +84,7 @@
             <tr><td>Intervalo atual</td><td><strong>{{ details.interval }}</strong></td></tr>
             <tr><td>Dificuldade (EF)</td><td><strong>{{ details.easiness_factor }}</strong></td></tr>
             <tr><td>Repetições corretas</td><td><strong>{{ details.repetition }}</strong></td></tr>
+            <tr><td>Tempo total</td><td><strong>{{ details.total_time }}</strong></td></tr>
           </tbody>
         </table>
         {% endif %}
@@ -100,12 +101,10 @@
               <th>Resposta</th>
               <th>Intervalo antes</th>
               <th>Intervalo depois</th>
-              <th>Dificuldade antes</th>
-              <th>Dificuldade depois</th>
               <th>Tempo</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="review-logs-tbody">
             {% for log in review_logs %}
             <tr>
               <td>{{ log.timestamp.strftime('%d/%m/%Y %H:%M') }}</td>
@@ -124,13 +123,61 @@
               </td>
               <td>{{ "%.2f"|format(log.interval_before) if log.interval_before is not none else '-' }} d</td>
               <td>{{ "%.2f"|format(log.interval_after) if log.interval_after is not none else '-' }} d</td>
-              <td>{{ "%.2f"|format(log.ef_before) if log.ef_before is not none else '-' }}</td>
-              <td>{{ "%.2f"|format(log.ef_after) if log.ef_after is not none else '-' }}</td>
               <td>{{ log.time_spent }}s</td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
+        {% if total_review_logs > review_logs|length %}
+        <button id="btn-load-more-reviews" class="btn btn-sm btn-outline-secondary btn-block"
+                data-card-id="{{ card.id }}" data-offset="{{ review_logs|length }}" data-total="{{ total_review_logs }}">
+          Ver mais ({{ review_logs|length }} de {{ total_review_logs }})
+        </button>
+        <script>
+        (function() {
+          var respColors = {'errei':'red','dificil':'orange','facil':'green','muito_facil':'blue'};
+          var respLabels = {'errei':'Errei','dificil':'Difícil','facil':'Fácil','muito_facil':'Muito fácil'};
+          var btn = document.getElementById('btn-load-more-reviews');
+          btn.addEventListener('click', function() {
+            var cardId = btn.getAttribute('data-card-id');
+            var offset = parseInt(btn.getAttribute('data-offset'));
+            var total = parseInt(btn.getAttribute('data-total'));
+            btn.disabled = true;
+            btn.textContent = 'Carregando...';
+            fetch('/api/card/' + cardId + '/reviews?offset=' + offset + '&limit=50')
+              .then(function(r) { return r.json(); })
+              .then(function(data) {
+                var tbody = document.getElementById('review-logs-tbody');
+                if (!tbody || !data.reviews) return;
+                data.reviews.forEach(function(log) {
+                  var color = respColors[log.response] || '';
+                  var label = respLabels[log.response] || log.response;
+                  var row = '<tr>';
+                  row += '<td>' + log.date + '</td>';
+                  row += '<td><span style="color:' + color + ';">' + label + '</span></td>';
+                  row += '<td>' + log.interval_before + ' d</td>';
+                  row += '<td>' + log.interval_after + ' d</td>';
+                  row += '<td>' + log.time_spent + 's</td>';
+                  row += '</tr>';
+                  tbody.insertAdjacentHTML('beforeend', row);
+                });
+                var newOffset = offset + data.reviews.length;
+                if (data.has_more) {
+                  btn.disabled = false;
+                  btn.setAttribute('data-offset', newOffset);
+                  btn.textContent = 'Ver mais (' + newOffset + ' de ' + total + ')';
+                } else {
+                  btn.remove();
+                }
+              })
+              .catch(function() {
+                btn.disabled = false;
+                btn.textContent = 'Erro ao carregar. Tentar novamente.';
+              });
+          });
+        })();
+        </script>
+        {% endif %}
       </div>
       {% endif %}
     <hr>
