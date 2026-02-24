@@ -1716,6 +1716,13 @@ def card_detail(card_id):
         }
     total_review_logs = ReviewLog.query.filter_by(card_id=card.id).count()
     review_logs = ReviewLog.query.filter_by(card_id=card.id).order_by(ReviewLog.timestamp.desc()).limit(50).all()
+    total_time_seconds = db.session.query(db.func.sum(ReviewLog.time_spent)).filter(ReviewLog.card_id == card.id).scalar() or 0
+    if total_time_seconds >= 3600:
+        details_info['total_time'] = f"{total_time_seconds // 3600}h {(total_time_seconds % 3600) // 60}min"
+    elif total_time_seconds >= 60:
+        details_info['total_time'] = f"{total_time_seconds // 60}min"
+    else:
+        details_info['total_time'] = f"{total_time_seconds}s"
     # Info sobre nota e cartões-irmãos
     sibling_cards = []
     if card.note:
