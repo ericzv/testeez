@@ -809,19 +809,23 @@ def import_apkg_stream(filepath):
             note_type = model_type_map.get(mid, 'basic')
             tags_str = anki_note['tags'].strip()
 
-            front = fields[0] if len(fields) > 0 else ''
-            back = fields[1] if len(fields) > 1 else ''
-            extra = fields[2] if len(fields) > 2 else None
-
-            if note_type == 'basic' and re.search(r'\{\{c\d+::', front):
+            # Fallback: detectar cloze pelo conteúdo (útil quando protobuf não é 100% confiável)
+            if note_type == 'basic' and re.search(r'\{\{c\d+::', fields[0] if fields else ''):
                 note_type = 'cloze'
 
+            # Mapeamento de campos depende do tipo de nota:
+            # - Cloze no Anki: field[0]=Text, field[1+]=Extra
+            # - Basic no Anki: field[0]=Front, field[1]=Back, field[2+]=Extra
             if note_type == 'cloze':
-                content = front
+                content = fields[0] if len(fields) > 0 else ''
                 note_back = None
+                extra_parts = [f for f in fields[1:] if f and f.strip()]
+                extra = '<br><br>'.join(extra_parts) if extra_parts else None
             else:
-                content = front
-                note_back = back
+                content = fields[0] if len(fields) > 0 else ''
+                note_back = fields[1] if len(fields) > 1 else ''
+                extra_parts = [f for f in fields[2:] if f and f.strip()]
+                extra = '<br><br>'.join(extra_parts) if extra_parts else None
 
             cards_for_note = note_cards.get(anki_note_id, [])
             if not cards_for_note:
