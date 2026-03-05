@@ -156,28 +156,30 @@ def calculate_attack_cache(player_id):
         relic_count = len(active_relics)
         
         relic_crit_bonus = 0.0
-        
+        # Bônus global de crit aplicado a todas as skills (relíquias + lembranças)
+        global_crit_bonus = 0.0
+
         for relic in active_relics:
             from routes.relics.registry import get_relic_definition
             definition = get_relic_definition(relic.relic_id)
             if not definition:
                 continue
-            
+
             effect_type = definition['effect']['type']
-            
+
             # ID 13: +3% crit por relíquia
             if effect_type == 'crit_per_relic':
                 bonus_per_relic = definition['effect']['crit_percent']
                 relic_crit_bonus += (relic_count * bonus_per_relic)
-        
+
         if relic_crit_bonus > 0:
-            base_crit_chance += relic_crit_bonus
+            global_crit_bonus += relic_crit_bonus
             logger.debug(f"RELÍQUIAS: +{relic_crit_bonus*100:.1f}% crit ({relic_count} relíquias)")
 
         # 3g. Lembranças de crítico (Fervor = crit_chance, Furia = crit_damage)
         memory_crit_chance = get_run_buff_total(player_id, 'crit_chance')
         if memory_crit_chance > 0:
-            base_crit_chance += memory_crit_chance / 100  # Converter % para decimal
+            global_crit_bonus += memory_crit_chance / 100  # Converter % para decimal
             logger.debug(f"LEMBRANÇA 'crit_chance' (Fervor): +{memory_crit_chance:.0f}%")
 
         memory_crit_damage = get_run_buff_total(player_id, 'crit_damage')
@@ -318,13 +320,13 @@ def calculate_attack_cache(player_id):
             final_base_damage = current_damage
 
             # 4d. CHANCE DE CRÍTICO DA SKILL (effect_type)
-            base_crit_chance = 0.0  # Começar com 0%
+            base_crit_chance = global_crit_bonus  # Começar com bônus global (relíquias + lembranças)
             effect_type = skill.get('effect_type')
             effect_value = skill.get('effect_value', 0.0)
 
             if effect_type == 'crit_chance':
-                base_crit_chance = effect_value
-                logger.debug(f"Chance de Crítico da Skill: {base_crit_chance*100:.0f}%")
+                base_crit_chance += effect_value
+                logger.debug(f"Chance de Crítico da Skill: {effect_value*100:.0f}% (total: {base_crit_chance*100:.0f}%)")
             
             # 4d. VAMPIRISMO (se a skill tiver)
             lifesteal_percent = 0.0

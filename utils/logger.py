@@ -35,6 +35,28 @@ LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 # Cache de loggers já configurados
 _loggers = {}
 
+# Cache de file handlers compartilhados por arquivo de log
+# Evita criar múltiplos RotatingFileHandler para o mesmo arquivo,
+# o que causaria PermissionError no Windows ao tentar rotacionar.
+_file_handlers: dict = {}
+
+
+def _get_file_handler(log_file: Path, level: int, formatter: logging.Formatter) -> RotatingFileHandler:
+    """Retorna um RotatingFileHandler compartilhado para o arquivo especificado."""
+    key = str(log_file)
+    if key not in _file_handlers:
+        handler = RotatingFileHandler(
+            log_file,
+            maxBytes=10_000_000,  # 10MB
+            backupCount=5,
+            encoding='utf-8',
+            delay=True,
+        )
+        handler.setFormatter(formatter)
+        handler.setLevel(level)
+        _file_handlers[key] = handler
+    return _file_handlers[key]
+
 
 def get_logger(name: str) -> logging.Logger:
     """
@@ -70,7 +92,7 @@ def get_logger(name: str) -> logging.Logger:
     console_handler.setLevel(level)
     logger.addHandler(console_handler)
 
-    # Handler para arquivo (rotativo, máximo 10MB, 5 backups)
+    # Handler para arquivo compartilhado (evita múltiplas instâncias por arquivo)
     if LOG_TO_FILE:
         # Agrupa logs por categoria
         if 'battle' in name.lower():
@@ -82,14 +104,7 @@ def get_logger(name: str) -> logging.Logger:
         else:
             log_file = LOG_DIR / 'app.log'
 
-        file_handler = RotatingFileHandler(
-            log_file,
-            maxBytes=10_000_000,  # 10MB
-            backupCount=5,
-            encoding='utf-8'
-        )
-        file_handler.setFormatter(formatter)
-        file_handler.setLevel(level)
+        file_handler = _get_file_handler(log_file, level, formatter)
         logger.addHandler(file_handler)
 
     # Não propagar para o logger raiz
