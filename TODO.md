@@ -2,46 +2,26 @@
 
 ## Bugs Conhecidos (Para Corrigir Depois)
 
-### 1. Shop não atualiza itens entre diferentes nodes do mapa
-**Descrição**: Quando o jogador muda de node no mapa procedural, a loja deveria mostrar itens diferentes, mas está mantendo os mesmos itens do shop anterior.
-
-**Status**: Pendente
-**Prioridade**: Alta
-**Localização**: Sistema de shop/loja - routes relacionadas ao mapa e shop
-
-**Notas**:
-- Cada node do tipo "shop" deve ter sua própria seleção de itens aleatórios
-- Ao visitar um novo shop node, os itens devem ser regenerados/diferentes
-- Possível causa: cache dos itens não está sendo limpo entre nodes
-- Possível causa: seed/random dos itens não está sendo recalculado por node
-- Verificar se items estão sendo carregados de forma estática ao invés de dinâmica
-- Arquivos relacionados: routes/map*.py, routes/items.py ou routes/shop.py
-
-**Data de identificação**: 2025-11-22
-
----
-
-### 2. Recompensa não aparece após derrotar inimigo (às vezes)
-**Descrição**: Às vezes, após derrotar um inimigo, o jogador volta para o hub mas a recompensa não aparece. Quando isso acontece, o jogador também não consegue avançar de node e precisa começar outra batalha no mesmo node.
-
-**Status**: Pendente
-**Prioridade**: CRÍTICA
-**Localização**: Sistema de recompensas pós-batalha - routes/battle.py, hub.html
-
-**Notas**:
-- Bug intermitente (nem sempre acontece)
-- Quando ocorre, bloqueia progresso do jogador
-- Possível causa: pending_rewards não está sendo salvo corretamente na session
-- Possível causa: redirecionamento para hub acontece antes de salvar recompensas
-- Possível causa: localStorage de vitória recente não está sendo setado
-- Verificar fluxo: damage_boss() → session['pending_rewards'] → hub checkForRecentVictory()
-- Arquivos relacionados: routes/battle.py (damage_boss), templates/gamification/hub.html
-
-**Data de identificação**: 2025-11-22
+Nenhum bug conhecido em aberto. Planejamento e próximos passos: ver [ROADMAP.md](ROADMAP.md).
 
 ---
 
 ## Bugs Corrigidos Recentemente
+
+### ✅ Recompensa não aparecia após derrotar inimigo (às vezes) e o jogador ficava preso no nó
+**Corrigido em**: 2026-10-04
+**Solução**:
+- Sessão só é gravada quando muda (`SESSION_REFRESH_EACH_REQUEST = False`): requisições paralelas
+  sobrescreviam a sessão umas das outras e a lembrança/relíquia pendente sumia
+- O servidor conclui o nó de batalha/elite quando o inimigo morre (`routes/map_modules/progress.py`);
+  `/map/api/complete-node` ficou idempotente; saves já travados são destravados ao abrir o mapa
+- O hub sempre verifica recompensa pendente ao abrir; recompensas antigas não coletadas são somadas
+  na próxima coleta e apagadas ao iniciar nova run
+- Erros de JS na atualização visual pós-ataque não impedem mais o fluxo de vitória
+- Testes: `tests/test_regressions.py`
+
+### ✅ Shop não atualizava itens entre diferentes nodes do mapa
+**Corrigido em**: 2026-01-21 (PR #47) — inventário da loja é por nó e é limpo ao resetar a run
 
 ### ✅ Lâmina de Sangue não funcionava contra LastBoss
 **Corrigido em**: 2025-11-24
