@@ -13,7 +13,7 @@ logger = get_logger(__name__)
 
 def log_turn(player_id, enemy_id, enemy_name, is_boss, turn_number, turn_type, 
              actions, damage_dealt=0, damage_received=0, healing=0, 
-             energy_consumed=0, mp_consumed=0, next_intentions=None):
+             energy_consumed=0, next_intentions=None):
     """
     Registra um turno no log de batalha
     
@@ -29,7 +29,6 @@ def log_turn(player_id, enemy_id, enemy_name, is_boss, turn_number, turn_type,
         damage_received: Dano recebido
         healing: Cura recebida
         energy_consumed: Energia consumida
-        mp_consumed: MP consumido
         next_intentions: Intenções do próximo turno
     """
     try:
@@ -45,7 +44,6 @@ def log_turn(player_id, enemy_id, enemy_name, is_boss, turn_number, turn_type,
             damage_received=damage_received,
             healing=healing,
             energy_consumed=energy_consumed,
-            mp_consumed=mp_consumed,
             next_intentions=json.dumps(next_intentions) if next_intentions else '[]'
         )
         

@@ -246,10 +246,10 @@
           <div class="attribute-row attribute-container" data-attribute="concentration">
             <div class="attribute-name">
               <h5>Concentração</h5>
-              <p class="attribute-value">{{ player.concentration }}</p>
+              <p class="attribute-value">{{ player.concentration|default(0) }}</p>
             </div>
             <div class="attribute-actions">
-              {% if player.attribute_points > 0 and player.concentration < 100 %}
+              {% if player.attribute_points > 0 and (player.concentration|default(0)) < 100 %}
               <div class="d-flex align-items-center">
                 <button class="btn btn-sm btn-outline-success attribute-increase-btn" data-attribute="concentration">+</button>
               </div>

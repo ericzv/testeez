@@ -1,0 +1,11 @@
+# Servidor (python app.py)
+Flask>=3.0
+Flask-SQLAlchemy>=3.1
+Flask-Session>=0.8
+zstandard>=0.22        # importação de .apkg do Anki 2.1.28+
+
+# Testes (python -m pytest)
+pytest>=8.0
+
+# Opcional: só para os scripts de otimização de imagens (optimize_*.py, scripts/)
+# Pillow>=10.0

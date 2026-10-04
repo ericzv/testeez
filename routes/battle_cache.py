@@ -148,6 +148,8 @@ def calculate_attack_cache(player_id):
         
         # 3e. Crítico base - REMOVIDO (agora é 0% para todos, exceto skills específicas)
         base_crit_multiplier = 1.5  # Multiplicador fixo quando crita
+        # Bônus globais de chance de crítico (relíquias/lembranças), somados à chance de cada skill
+        global_crit_bonus = 0.0
         logger.debug(f"CRÍTICO BASE: 0% chance (só skills específicas têm crítico), {base_crit_multiplier:.2f}x multiplicador")
 
         # 3f. BÔNUS DE RELÍQUIAS PASSIVAS
@@ -171,13 +173,13 @@ def calculate_attack_cache(player_id):
                 relic_crit_bonus += (relic_count * bonus_per_relic)
         
         if relic_crit_bonus > 0:
-            base_crit_chance += relic_crit_bonus
+            global_crit_bonus += relic_crit_bonus
             logger.debug(f"RELÍQUIAS: +{relic_crit_bonus*100:.1f}% crit ({relic_count} relíquias)")
 
         # 3g. Lembranças de crítico (Fervor = crit_chance, Furia = crit_damage)
         memory_crit_chance = get_run_buff_total(player_id, 'crit_chance')
         if memory_crit_chance > 0:
-            base_crit_chance += memory_crit_chance / 100  # Converter % para decimal
+            global_crit_bonus += memory_crit_chance / 100  # Converter % para decimal
             logger.debug(f"LEMBRANÇA 'crit_chance' (Fervor): +{memory_crit_chance:.0f}%")
 
         memory_crit_damage = get_run_buff_total(player_id, 'crit_damage')
@@ -325,6 +327,10 @@ def calculate_attack_cache(player_id):
             if effect_type == 'crit_chance':
                 base_crit_chance = effect_value
                 logger.debug(f"Chance de Crítico da Skill: {base_crit_chance*100:.0f}%")
+
+            if global_crit_bonus > 0:
+                base_crit_chance = min(1.0, base_crit_chance + global_crit_bonus)
+                logger.debug(f"Crítico com bônus globais: {base_crit_chance*100:.1f}%")
             
             # 4d. VAMPIRISMO (se a skill tiver)
             lifesteal_percent = 0.0

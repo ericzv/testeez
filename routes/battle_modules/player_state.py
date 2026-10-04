@@ -90,6 +90,10 @@ def reset_player_run(player_id):
         shop_items_deleted = ShopInventory.query.filter_by(player_id=player.id).delete()
         logger.debug(f"{shop_items_deleted} itens de shop limpos")
 
+        # ===== LIMPAR RECOMPENSAS NÃO COLETADAS DA RUN ANTERIOR =====
+        from models import PendingReward
+        PendingReward.query.filter_by(player_id=player.id).delete()
+
         # ===== LIMPAR DEBUFFS DE INIMIGOS (como Nictalopia) =====
         EnemySkillDebuff.query.filter_by(player_id=player.id).delete()
         logger.debug(f"Debuffs de inimigos removidos")

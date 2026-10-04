@@ -17,6 +17,7 @@ from .map_modules.node_types import (
 )
 from .map_modules.events import EVENT_DEFINITIONS, get_event_by_id, get_events_for_act
 from .map_modules.event_effects import apply_event_effects, check_choice_requirements
+from .map_modules.progress import mark_node_completed, repair_stuck_battle_node
 from .relics import hooks as relic_hooks
 import json
 import random
@@ -478,6 +479,10 @@ def get_current_map():
             'current_act': progress.current_act if progress else 1
         })
 
+    # Destrava saves que ficaram presos numa batalha já vencida
+    if repair_stuck_battle_node(player.id):
+        db.session.commit()
+
     # Buscar todos os nós do mapa
     nodes = MapNode.query.filter_by(map_id=progress.current_map_id).all()
     current_map = ProceduralMap.query.get(progress.current_map_id)
@@ -658,27 +663,11 @@ def complete_current_node():
     if not node:
         return jsonify({'error': 'Nó não encontrado'}), 404
 
-    # Marcar como completado
-    node.is_completed = True
+    # Marcar como completado (idempotente: o servidor já conclui batalhas/elites
+    # na vitória, então esta chamada do frontend pode chegar com o nó concluído)
+    newly_completed = mark_node_completed(progress, node)
 
-    # Para nós de combate, marcar próximos nós como disponíveis após vitória
-    if node.node_type in ['battle', 'elite']:
-        connections_up = node.get_connections_up()
-        for (up_x, up_y) in connections_up:
-            next_node = MapNode.query.filter_by(
-                map_id=node.map_id,
-                x=up_x,
-                y=up_y
-            ).first()
-            if next_node and not next_node.is_visited:
-                next_node.is_available = True
-
-    # Atualizar estatísticas
-    if node.node_type == 'battle':
-        progress.battles_won += 1
-    elif node.node_type == 'elite':
-        progress.elites_defeated += 1
-    elif node.node_type == 'boss':
+    if node.node_type == 'boss' and newly_completed:
         # Boss derrotado - mapa completado
         current_map = ProceduralMap.query.get(progress.current_map_id)
         if current_map:
@@ -692,7 +681,7 @@ def complete_current_node():
     game_completed = False
     next_act = None
 
-    if node.node_type == 'boss':
+    if node.node_type == 'boss' and newly_completed:
         if progress.current_act >= 3:
             # FIM DE JOGO! Ato 3 boss derrotado
             game_completed = True
@@ -1327,49 +1316,11 @@ def buy_shop_item(shop_item_id):
     # Processar compra baseado no tipo
     if shop_item.item_type == 'potion':
         # Adicionar poção ao inventário
+        from routes.battle_modules.potions import add_potion_to_inventory
         potion_type = shop_item.item_id.replace('potion_', '')
-
-        # Verificar se já tem essa poção em algum slot
-        existing_slot = PlayerPotionSlot.query.filter_by(
-            player_id=player.id,
-            potion_type=potion_type
-        ).first()
-
-        if existing_slot:
-            # Adicionar à quantidade existente
-            existing_slot.quantity += 1
-        else:
-            # Encontrar slot vazio ou criar novo
-            slots = PlayerPotionSlot.query.filter_by(player_id=player.id).order_by(PlayerPotionSlot.slot_number).all()
-
-            # Garantir que existem 3 slots
-            for i in range(1, 4):
-                if not any(s.slot_number == i for s in slots):
-                    new_slot = PlayerPotionSlot(
-                        player_id=player.id,
-                        slot_number=i,
-                        potion_type=None,
-                        quantity=0
-                    )
-                    db.session.add(new_slot)
-
-            db.session.flush()
-
-            # Recarregar slots
-            slots = PlayerPotionSlot.query.filter_by(player_id=player.id).order_by(PlayerPotionSlot.slot_number).all()
-
-            # Encontrar primeiro slot vazio
-            empty_slot = None
-            for slot in slots:
-                if slot.potion_type is None or slot.quantity == 0:
-                    empty_slot = slot
-                    break
-
-            if empty_slot:
-                empty_slot.potion_type = potion_type
-                empty_slot.quantity = 1
-            else:
-                return jsonify({'success': False, 'error': 'Inventário de poções cheio'}), 400
+        if not add_potion_to_inventory(player.id, potion_type):
+            db.session.rollback()
+            return jsonify({'success': False, 'error': 'Inventário de poções cheio'}), 400
 
         result_message = f'Poção adicionada ao inventário'
         redirect_needed = False

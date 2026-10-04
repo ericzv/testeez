@@ -1324,9 +1324,12 @@ function performAttack(skill) {
             }
 
             // IMPORTANTE: Atualizar Blood Stacks após ataque
-            if (typeof loadBattleData === 'function') {
+            // (se o inimigo morreu não há mais batalha para recarregar)
+            if (typeof loadBattleData === 'function' && gameState.boss.hp > 0) {
                 loadBattleData().then(() => {
                     console.log("✅ Blood Stacks atualizados após ataque");
+                }).catch(error => {
+                    console.warn("Não foi possível atualizar dados da batalha:", error.message);
                 });
             }
 
@@ -4728,7 +4731,8 @@ function handleBossDeathAnimation(hasMemoryReward, enemyGroup) {
     let victorySummary = null;
 
     // IMPORTANTE: Marcar nó como completo para liberar próximos nodes
-    fetch('/map/api/complete-node', { method: 'POST' })
+    // (o servidor já conclui batalhas/elites na vitória; aqui importa para o boss)
+    const completeNodeRequest = fetch('/map/api/complete-node', { method: 'POST' })
         .then(response => response.json())
         .then(data => {
             console.log("✅ Nó de batalha marcado como completo:", data);
@@ -4743,8 +4747,21 @@ function handleBossDeathAnimation(hasMemoryReward, enemyGroup) {
             console.error("❌ Erro ao marcar nó como completo:", error);
         });
 
-    // Auto-redirect após 3.5 segundos (banner de vitória reduzido)
-    setTimeout(() => {
+    // Sai da tela de vitória após 3.5s, ou antes se o jogador tocar/clicar (liberado após 1s
+    // para não pular sem querer com o clique do próprio ataque)
+    let victoryFinished = false;
+    let skipHint = null;
+    const skipVictory = () => finishVictory();
+    const finishVictory = async () => {
+        if (victoryFinished) return;
+        victoryFinished = true;
+        document.removeEventListener('pointerdown', skipVictory);
+        if (skipHint) skipHint.remove();
+        document.querySelectorAll('.victory-banner-container').forEach(el => el.remove());
+
+        // Esperar o servidor confirmar o nó (precisamos saber se foi o boss final)
+        await completeNodeRequest;
+
         // RESETAR HUD: Restaurar energia para máximo e remover barreira
         // Isso garante que o hub não mostre valores da batalha anterior
         if (window.gameState && window.gameState.player) {
@@ -4798,7 +4815,20 @@ function handleBossDeathAnimation(hasMemoryReward, enemyGroup) {
         } else {
             window.location.href = '/gamification';
         }
-    }, 3500);
+    };
+
+    setTimeout(() => {
+        if (victoryFinished) return;
+        document.addEventListener('pointerdown', skipVictory);
+        skipHint = document.createElement('div');
+        skipHint.className = 'victory-skip-hint';
+        skipHint.textContent = 'Toque para continuar';
+        skipHint.style.cssText = 'position:fixed;bottom:18%;left:50%;transform:translateX(-50%);' +
+            'z-index:9001;color:#f5e6c8;font-size:15px;letter-spacing:1px;opacity:0.75;pointer-events:none;' +
+            'text-shadow:0 1px 3px #000;';
+        document.body.appendChild(skipHint);
+    }, 1000);
+    setTimeout(finishVictory, 3500);
 }
 
 // Criar animação de impacto de morte
@@ -5077,18 +5107,6 @@ function saveBossDamage(skill, damage, isCritical) {
         console.log("🔍 DANO RETORNADO PELA API:", data.damage);
         
         if (data.success) {
-            // ===== INÍCIO DA MODIFICAÇÃO =====
-
-            // 1. MOVIDO: Disparar efeitos de crítico SOMENTE se o servidor confirmar
-            if (data.is_critical) {
-                triggerCriticalEffects();
-            }
-
-            // 2. Esta função já existia e mostra o dano correto
-            updateDamageDisplay(data.damage, data.is_critical);
-            
-            // ===== FIM DA MODIFICAÇÃO =====
-
             // Acumular dano total da batalha
             window.totalBattleDamage += data.damage;
             console.log("🔍 DANO TOTAL ACUMULADO:", window.totalBattleDamage);
@@ -5099,62 +5117,80 @@ function saveBossDamage(skill, damage, isCritical) {
             gameState.player.maxHp = data.player_max_hp;
             gameState.player.barrier = data.player_barrier;
 
-            // ATUALIZAR BLOOD STACKS
-            if (data.blood_stacks !== undefined) {
-                gameState.boss.bloodStacks = data.blood_stacks;
-                console.log(`🩸 Blood Stacks atualizados: ${data.blood_stacks}`);
+            // Atualizações visuais protegidas: um erro aqui não pode impedir o fluxo de vitória abaixo
+            try {
+                // ===== INÍCIO DA MODIFICAÇÃO =====
 
-                // Atualizar display imediatamente
-                if (typeof updateBloodStacksDisplay === 'function') {
-                    updateBloodStacksDisplay(data.blood_stacks);
+                // 1. MOVIDO: Disparar efeitos de crítico SOMENTE se o servidor confirmar
+                if (data.is_critical) {
+                    triggerCriticalEffects();
                 }
-            }
 
-            // Atualizar energia do jogador
-            if (data.player_energy !== undefined) {
-                gameState.player.energy = data.player_energy;
-                gameState.player.maxEnergy = data.player_max_energy || 10;
+                // 2. Esta função já existia e mostra o dano correto
+                updateDamageDisplay(data.damage, data.is_critical);
+            
+                // ===== FIM DA MODIFICAÇÃO =====
+
+
+                // ATUALIZAR BLOOD STACKS
+                if (data.blood_stacks !== undefined) {
+                    gameState.boss.bloodStacks = data.blood_stacks;
+                    console.log(`🩸 Blood Stacks atualizados: ${data.blood_stacks}`);
+
+                    // Atualizar display imediatamente
+                    if (typeof updateBloodStacksDisplay === 'function') {
+                        updateBloodStacksDisplay(data.blood_stacks);
+                    }
+                }
+
+                // Atualizar energia do jogador
+                if (data.player_energy !== undefined) {
+                    gameState.player.energy = data.player_energy;
+                    gameState.player.maxEnergy = data.player_max_energy || 10;
                 
-                // Animar consumo de energia
-                if (typeof animateEnergyConsumption === 'function') {
-                    animateEnergyConsumption();
-                }
+                    // Animar consumo de energia
+                    if (typeof animateEnergyConsumption === 'function') {
+                        animateEnergyConsumption();
+                    }
                 
-                console.log(`⚡ Energia consumida! Restante: ${data.player_energy}/${data.player_max_energy}`);
+                    console.log(`⚡ Energia consumida! Restante: ${data.player_energy}/${data.player_max_energy}`);
 
-                // Atualizar disponibilidade dos botões após consumo
-                if (typeof updateAttackButtonsEnergyAvailability === 'function') {
-                    updateAttackButtonsEnergyAvailability();
+                    // Atualizar disponibilidade dos botões após consumo
+                    if (typeof updateAttackButtonsEnergyAvailability === 'function') {
+                        updateAttackButtonsEnergyAvailability();
+                    }
                 }
+            
+                // Atualizar elementos ocultos no DOM
+                document.getElementById('boss_hp').innerText = gameState.boss.hp;
+                document.getElementById('boss_max_hp').innerText = gameState.boss.max_hp;
+                document.getElementById('player_hp').innerText = gameState.player.hp;
+                document.getElementById('player_max_hp').innerText = gameState.player.maxHp;
+            
+                // Atualizar as estatísticas visuais sem fazer nova chamada ao servidor
+                updateStats();
+
+                // ===== INÍCIO DA MODIFICAÇÃO =====
+
+                // 3. MOVIDO: Mostrar mensagem de resultado com dados reais do servidor
+                showAttackResultMessage(skill, data.damage, data.is_critical);
+
+                // ===== FIM DA MODIFICAÇÃO =====
+            
+                // ===== REPOPULAR SKILLS PARA ATUALIZAR DISPONIBILIDADE =====
+                if (data.should_refresh_skills && typeof populateAttackOptions === 'function') {
+                    populateAttackOptions();
+                    console.log('🔄 Skills repopuladas após ataque');
+                }
+
+                // Processar mensagens extras (como buffs ativados)
+                if (data.extra_messages && data.extra_messages.length > 0) {
+                    showExtraEffectsMessages(data.extra_messages);
+                }
+            } catch (uiError) {
+                console.error('Erro ao atualizar a interface após o ataque:', uiError);
             }
-            
-            // Atualizar elementos ocultos no DOM
-            document.getElementById('boss_hp').innerText = gameState.boss.hp;
-            document.getElementById('boss_max_hp').innerText = gameState.boss.max_hp;
-            document.getElementById('player_hp').innerText = gameState.player.hp;
-            document.getElementById('player_max_hp').innerText = gameState.player.maxHp;
-            
-            // Atualizar as estatísticas visuais sem fazer nova chamada ao servidor
-            updateStats();
 
-            // ===== INÍCIO DA MODIFICAÇÃO =====
-
-            // 3. MOVIDO: Mostrar mensagem de resultado com dados reais do servidor
-            showAttackResultMessage(skill, data.damage, data.is_critical);
-
-            // ===== FIM DA MODIFICAÇÃO =====
-            
-            // ===== REPOPULAR SKILLS PARA ATUALIZAR DISPONIBILIDADE =====
-            if (data.should_refresh_skills && typeof populateAttackOptions === 'function') {
-                populateAttackOptions();
-                console.log('🔄 Skills repopuladas após ataque');
-            }
-
-            // Processar mensagens extras (como buffs ativados)
-            if (data.extra_messages && data.extra_messages.length > 0) {
-                showExtraEffectsMessages(data.extra_messages);
-            }
-            
             // Verificar se o boss foi derrotado
             if (data.boss_defeated) {
                 // ✅ DEBUG e dados completos

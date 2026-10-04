@@ -1045,12 +1045,11 @@ window.SPA = {
                 updateActiveRunBuffs(),
                 updateActiveRelics()
             ]);
-
-            // Verificar recompensas pendentes
-            checkForRecentVictory();
-
         } catch (error) {
             console.error('Erro ao atualizar hub:', error);
+        } finally {
+            // Sempre verificar recompensas pendentes, mesmo se algo acima falhar
+            checkForRecentVictory();
         }
     },
 
@@ -1086,8 +1085,8 @@ document.addEventListener('DOMContentLoaded', function() {
         backBtn.addEventListener('click', () => SPA.goToHub());
     }
 
-    // Particles
-    if (document.getElementById('particles-js')) {
+    // Particles (vem de CDN; se não carregar, o resto do hub precisa continuar funcionando)
+    if (document.getElementById('particles-js') && typeof particlesJS === 'function') {
         particlesJS('particles-js', {
             "particles": {
                 "number": { "value": 180 },
@@ -1107,20 +1106,19 @@ document.addEventListener('DOMContentLoaded', function() {
     updateActiveRunBuffs();
     updateActiveRelics();
 
-    // Verificar se veio de uma batalha (redirecionamento)
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('from_battle') === 'true') {
-        // Veio de uma batalha, verificar recompensas
-        checkForRecentVictory();
-    }
 
-    // Verificar se deve ir direto para batalha
     if (urlParams.get('go_battle') === 'true') {
+        // Ir direto para batalha
         setTimeout(() => SPA.goToBattle(), 500);
+    } else {
+        // Sempre verificar recompensa de vitória pendente ao abrir o hub (não só vindo
+        // de batalha): se a página foi recarregada ou o popup falhou, ela não se perde.
+        // O fluxo do popup já encadeia lembrança -> relíquia ao aceitar.
+        checkForRecentVictory().then(shown => {
+            if (!shown) checkRelicReward();
+        });
     }
-
-    // Verificar recompensas de relíquias pendentes
-    checkRelicReward();
 
     // Verificar se veio de compra de Lembrança no shop
     const showMemorySelection = urlParams.get('show_memory_selection');
@@ -1431,8 +1429,9 @@ function displayActiveRelics(relics) {
 // VICTORY & MEMORY SYSTEM
 // ============================================
 
+// Retorna true se mostrou o popup de recompensa
 async function checkForRecentVictory() {
-    if (window.victoryProcessed) return;
+    if (window.victoryProcessed) return true;
 
     try {
         const response = await fetch('/gamification/check_pending_rewards');
@@ -1441,8 +1440,12 @@ async function checkForRecentVictory() {
         if (data.success && data.has_pending_rewards) {
             window.victoryProcessed = true;
             showVictoryRewards(data.reward_data);
+            return true;
         }
-    } catch (error) {}
+    } catch (error) {
+        console.error('Erro ao verificar recompensas pendentes:', error);
+    }
+    return false;
 }
 
 function showVictoryRewards(data) {
@@ -1458,6 +1461,7 @@ function showVictoryRewards(data) {
                     ${data.crystalsGained ? `<div class="reward-item"><img src="/static/game.data/crystal.png" class="reward-item-icon"><span>${data.crystalsGained} Cristais</span></div>` : ''}
                     ${data.goldGained ? `<div class="reward-item"><img src="/static/game.data/gold.png" class="reward-item-icon"><span>${data.goldGained} Ouro</span></div>` : ''}
                     ${data.hourglassesGained ? `<div class="reward-item"><img src="/static/game.data/hourglass.png" class="reward-item-icon"><span>${data.hourglassesGained} Ampulhetas</span></div>` : ''}
+                    ${data.potion ? `<div class="reward-item"><img src="${data.potion.icon}" class="reward-item-icon"><span>${data.potion.name}</span></div>` : ''}
                 </div>
             </div>
             <button class="victory-continue-btn" onclick="acceptVictoryRewards(this.parentElement.parentElement)">Receber Recompensas</button>

@@ -265,7 +265,7 @@ def select_random_memory_options():
             count += 1
             logger.debug(f"Rosário de Dominic encontrado! +1 opção ({count} opções)")
         else:
-            logger.error(f"Rosário de Dominic NÃO encontrado")
+            logger.debug("Rosário de Dominic não está ativo")
     else:
         logger.error("DEBUG: Player não encontrado!")
 

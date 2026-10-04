@@ -1525,6 +1525,10 @@ def damage_boss():
         )
         db.session.add(pending_reward)
 
+        # Concluir o nó de batalha/elite no servidor (não depender do navegador)
+        from .map_modules.progress import complete_current_combat_node
+        complete_current_combat_node(player.id)
+
         # Todos os inimigos genéricos agora geram lembrança
         if not is_boss_fight:
             # ===== GERAR OPÇÕES DE LEMBRANÇAS AGORA =====
@@ -1895,6 +1899,10 @@ def process_skill_kill():
             potion_drop=potion_drop if not is_boss_fight else None
         )
         db.session.add(pending_reward)
+
+        # Concluir o nó de batalha/elite no servidor (não depender do navegador)
+        from .map_modules.progress import complete_current_combat_node
+        complete_current_combat_node(player.id)
 
         # Gerar opções de lembrança para inimigos genéricos
         if not is_boss_fight:
@@ -2565,6 +2573,16 @@ def get_player_currencies():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
     
+def _potion_display(drop_name):
+    """Nome e ícone da poção derrubada, para o popup de vitória (ou None)."""
+    from .battle_modules.potions import potion_type_from_drop, POTION_INFO
+    potion_type = potion_type_from_drop(drop_name)
+    if not potion_type:
+        return None
+    info = POTION_INFO[potion_type]
+    return {'type': potion_type, 'name': info['name'], 'icon': '/static/game.data/' + info['icon']}
+
+
 @battle_bp.route('/check_pending_rewards')
 def check_pending_rewards():
     """Verifica se há recompensas pendentes no banco de dados"""
@@ -2592,6 +2610,7 @@ def check_pending_rewards():
             'goldGained': pending_reward.gold_gained,
             'hourglassesGained': pending_reward.hourglasses_gained,
             'potionDrop': pending_reward.potion_drop,
+            'potion': _potion_display(pending_reward.potion_drop),
             'rewardType': pending_reward.reward_type,
             'rewardIcon': pending_reward.reward_icon,
             'relic_bonus_messages': pending_reward.relic_bonus_messages
@@ -2615,22 +2634,36 @@ def apply_victory_rewards():
         if not player:
             return jsonify({'success': False, 'message': 'Jogador não encontrado'})
 
-        # Obter recompensas pendentes do banco
+        # Obter recompensas pendentes do banco. Normalmente há só uma; se uma
+        # vitória anterior não teve o popup coletado, ela é somada aqui em vez
+        # de ficar presa reaparecendo nas batalhas seguintes.
         from models import PendingReward
-        pending_reward = PendingReward.query.filter_by(player_id=player.id).order_by(PendingReward.created_at.desc()).first()
-        if not pending_reward:
-            logger.error(f"DEBUG: Nenhuma recompensa pendente encontrada no banco!")
+        pending_list = PendingReward.query.filter_by(player_id=player.id).order_by(PendingReward.created_at.asc()).all()
+        if not pending_list:
+            logger.warning("Nenhuma recompensa pendente encontrada no banco")
             return jsonify({'success': False, 'message': 'Nenhuma recompensa pendente'})
 
-        # Converter para formato esperado
-        pending_rewards = pending_reward.to_dict()
-        
-        # Aplicar as recompensas
-        exp_reward = pending_rewards.get('exp_reward', 0)
-        crystals_gained = pending_rewards.get('crystals_gained', 0)
-        gold_gained = pending_rewards.get('gold_gained', 0)
-        hourglasses_gained = pending_rewards.get('hourglasses_gained', 0)
-        victory_heal_amount = pending_rewards.get('victory_heal_amount', 0)
+        # Aplicar as recompensas (soma de todas as pendentes)
+        totals = {'exp_reward': 0, 'crystals_gained': 0, 'gold_gained': 0,
+                  'hourglasses_gained': 0, 'victory_heal_amount': 0}
+        for pending_reward in pending_list:
+            reward_dict = pending_reward.to_dict()
+            for key in totals:
+                totals[key] += reward_dict.get(key, 0) or 0
+        # Poções derrubadas pelo inimigo vão para o inventário (antes só apareciam no popup antigo)
+        from .battle_modules.potions import add_potion_to_inventory, potion_type_from_drop, POTION_INFO
+        potions_added, potions_lost = [], []
+        for pending_reward in pending_list:
+            potion_type = potion_type_from_drop(pending_reward.potion_drop)
+            if potion_type:
+                target_list = potions_added if add_potion_to_inventory(player.id, potion_type) else potions_lost
+                target_list.append(POTION_INFO[potion_type]['name'])
+
+        exp_reward = totals['exp_reward']
+        crystals_gained = totals['crystals_gained']
+        gold_gained = totals['gold_gained']
+        hourglasses_gained = totals['hourglasses_gained']
+        victory_heal_amount = totals['victory_heal_amount']
         
         # Aplicar EXP
         old_level = player.level
@@ -2649,9 +2682,10 @@ def apply_victory_rewards():
             player.eternal_hourglasses += hourglasses_gained
             player.run_hourglasses_gained += hourglasses_gained
 
-        # Incrementar contador de bosses derrotados
-        player.run_bosses_defeated += 1
-        
+        # (run_bosses_defeated é incrementado só quando um boss/elite morre, em
+        # damage_boss/process_skill_kill — antes era somado aqui a cada vitória,
+        # inflando o talento "Caçador de Bosses")
+
         # Aplicar cura de vitória se houver
         if victory_heal_amount > 0:
             player.hp = min(player.hp + victory_heal_amount, player.max_hp)
@@ -2675,33 +2709,9 @@ def apply_victory_rewards():
         db.session.commit()
 
         # Limpar recompensas do banco
-        db.session.delete(pending_reward)
+        for pending_reward in pending_list:
+            db.session.delete(pending_reward)
         db.session.commit()
-
-        # MARCAR NÓ DO MAPA COMO COMPLETADO (fix: nó sendo liberado 2x)
-        try:
-            from models import PlayerMapProgress, MapNode
-            progress = PlayerMapProgress.query.filter_by(player_id=player.id).first()
-            if progress and progress.current_node_id:
-                node = MapNode.query.get(progress.current_node_id)
-                if node and not node.is_completed:
-                    node.is_completed = True
-                    # Atualizar estatísticas do progresso
-                    if node.node_type == 'battle':
-                        progress.battles_won += 1
-                    elif node.node_type == 'elite':
-                        progress.elites_defeated += 1
-                    elif node.node_type == 'boss':
-                        from models import ProceduralMap
-                        current_map = ProceduralMap.query.get(progress.current_map_id)
-                        if current_map:
-                            current_map.is_completed = True
-                            current_map.boss_defeated = True
-                        progress.total_acts_completed += 1
-                    db.session.commit()
-                    logger.info(f"Nó {node.id} ({node.node_type}) marcado como completado")
-        except Exception as e:
-            logger.warning(f"Erro ao marcar nó como completado: {e}")
 
         logger.info(f"RECOMPENSAS APLICADAS:")
         logger.debug(f"EXP: {exp_reward}")
@@ -2719,6 +2729,8 @@ def apply_victory_rewards():
             'message': 'Recompensas recebidas!',
             'level_up': level_up,
             'new_level': player.level if level_up else None,
+            'potions_added': potions_added,
+            'potions_lost': potions_lost,  # inventário cheio
             'rewards_applied': {
                 'exp': exp_reward,
                 'crystals': crystals_gained,

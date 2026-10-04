@@ -402,22 +402,23 @@ RELIC_DEFINITIONS = {
         }
     },
     
-    '''
-    '27': {
-        'id': '27',
-        'name': 'Pedra Esmagadora',
-        'description': 'Realizar o mesmo ataque 3x seguidas diminui a defesa do inimigo',
-        'icon': 'relic_27.png',
-        'rarity': 'rare',
-        'hooks': ['after_attack'],
-        'requires_counter': False,
-        'effect': {
-            'type': 'repetition_debuff',
-            'required_repeats': 3,
-            'defense_reduction': 0.15
-        }
-    },
-    '''
+    # DESATIVADA: os inimigos não têm atributo de defesa, então o efeito não tem onde agir.
+    # (Antes estava entre ''' ''', o que colava este texto na chave da relíquia 28 e
+    # quebrava 'Ritual de Sangue'.)
+    # '27': {
+    #     'id': '27',
+    #     'name': 'Pedra Esmagadora',
+    #     'description': 'Realizar o mesmo ataque 3x seguidas diminui a defesa do inimigo',
+    #     'icon': 'relic_27.png',
+    #     'rarity': 'rare',
+    #     'hooks': ['after_attack'],
+    #     'requires_counter': False,
+    #     'effect': {
+    #         'type': 'repetition_debuff',
+    #         'required_repeats': 3,
+    #         'defense_reduction': 0.15
+    #     }
+    # },
 
     '28': {
         'id': '28',

@@ -43,11 +43,6 @@ except Exception as e:
     map_bp = None
     map_battle_bp = None
 
-# Configuração do matplotlib
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-
 # Importar formulários e filtros
 from filters import register_filters
 from filters import get_cards_recursive, count_cards_recursive
@@ -89,16 +84,23 @@ from skill_effects import apply_positive_effect, apply_negative_effect
 
 # Criar e configurar a aplicação Flask
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'sua_chave_secreta_aqui'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///flashcards.db'
+# Variáveis de ambiente opcionais (os testes usam para apontar para um banco temporário)
+app.config['SECRET_KEY'] = os.environ.get('TESTEEZ_SECRET_KEY', 'sua_chave_secreta_aqui')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('TESTEEZ_DATABASE_URI', 'sqlite:///flashcards.db')
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.permanent_session_lifetime = timedelta(days=7)
 
 # Flask-Session: sessão server-side (filesystem) — resolve limite de 4KB do cookie
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_FILE_DIR'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'flask_session')
+app.config['SESSION_FILE_DIR'] = os.environ.get(
+    'TESTEEZ_SESSION_DIR',
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'flask_session'))
 app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_USE_SIGNER'] = True
+# Só gravar a sessão quando ela muda. Com o padrão (True), TODA requisição regrava a sessão
+# inteira; como o jogo faz várias requisições em paralelo, uma requisição lenta sobrescrevia
+# o que outra tinha acabado de salvar (lembrança/relíquia pendente sumia).
+app.config['SESSION_REFRESH_EACH_REQUEST'] = False
 
 from flask_session import Session
 Session(app)

@@ -214,9 +214,9 @@
                 <div class="attribute-row">
                   <div class="attribute-name">
                       <h5>Concentração</h5>
-                      <p class="attribute-value">{{ player.concentration }}</p>
+                      <p class="attribute-value">{{ player.concentration|default(0) }}</p>
                   </div>
-                  {% if player.attribute_points > 0 and player.concentration < 100 %}
+                  {% if player.attribute_points > 0 and (player.concentration|default(0)) < 100 %}
                   <button class="attribute-increase-btn" data-attribute="concentration">+</button>
                   {% endif %}
                 </div>
@@ -347,13 +347,6 @@
                 <div class="info-item">
                     <span class="info-label">Cura HP no início do dia</span>
                     <span class="info-value">+{{ player.morning_heal_amount }} HP</span>
-                </div>
-                {% endif %}
-                
-                {% if player.morning_heal_if_full_mp > 0 %}
-                <div class="info-item">
-                    <span class="info-label">Cura HP se MP cheio</span>
-                    <span class="info-value">+{{ player.morning_heal_if_full_mp }} HP</span>
                 </div>
                 {% endif %}
                 
